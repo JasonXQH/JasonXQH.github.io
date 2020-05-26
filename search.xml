@@ -8710,11 +8710,11 @@ console.log(s[0]);
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">USE sql_store;</span><br><span class="line">SELECT *</span><br><span class="line">FROM products p</span><br><span class="line">WHERE NOT EXISTS(</span><br><span class="line">        SELECT product_id</span><br><span class="line">        FROM order_items</span><br><span class="line">        WHERE product_id &#x3D; p.product_id</span><br><span class="line">    );</span><br></pre></td></tr></table></figure>
 <p><img src="/2020/05/16/Mysql%E5%9F%BA%E7%A1%80/87.png" style="zoom: 70%;"></p>
 <h3 id="Subqueries-in-SELECT-clause"><a href="#Subqueries-in-SELECT-clause" class="headerlink" title="Subqueries in SELECT  clause"></a>Subqueries in SELECT  clause</h3><p>子查询不仅仅局限于 WHERE子句当中，还存在于SELECT子句和接下来要讲的FROM子句当中</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">SELECT</span><br><span class="line">    invoice_id,</span><br><span class="line">    invoice_total,</span><br><span class="line">    (SELECT AVG(invoice_total) FROM invoices) AS invoice_average,</span><br><span class="line">    (SELECT invoice_total - invoice_average) AS difference</span><br><span class="line">FROM invoices</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">SELECT</span><br><span class="line">    invoice_id,</span><br><span class="line">    invoice_total,</span><br><span class="line">    (SELECT AVG(invoice_total) FROM invoices) AS invoice_average,</span><br><span class="line">    -- 不能不写SELECT，因为语句不能直接用别名</span><br><span class="line">    (SELECT invoice_total - invoice_average) AS difference</span><br><span class="line">FROM invoices</span><br></pre></td></tr></table></figure>
 <p><img src="/2020/05/16/Mysql%E5%9F%BA%E7%A1%80/88.png" style="zoom: 70%;"></p>
 <h4 id="小练习-22"><a href="#小练习-22" class="headerlink" title="小练习"></a>小练习</h4><p><img src="/2020/05/16/Mysql%E5%9F%BA%E7%A1%80/89.png" style="zoom: 70%;"></p>
 <p>制作出这张表格</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">USE sql_invoicing;</span><br><span class="line">SELECT</span><br><span class="line">        c.client_id,</span><br><span class="line">        name,</span><br><span class="line">        (SELECT SUM(invoice_total)FROM invoices WHERE client_id &#x3D; c.client_id) AS total_sales,</span><br><span class="line">        (SELECT AVG(invoice_total) FROM invoices) AS average,</span><br><span class="line">       (SELECT total_sales - average) AS difference</span><br><span class="line">FROM clients c</span><br><span class="line">LEFT JOIN invoices i on c.client_id &#x3D; i.client_id</span><br><span class="line">GROUP BY c.client_id</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">USE sql_invoicing;</span><br><span class="line">SELECT</span><br><span class="line">       c.client_id,</span><br><span class="line">       name,</span><br><span class="line">       (SELECT SUM(invoice_total)FROM invoices WHERE client_id &#x3D; c.client_id) AS total_sales,</span><br><span class="line">       (SELECT AVG(invoice_total) FROM invoices) AS average,</span><br><span class="line">       (SELECT total_sales - average) AS difference</span><br><span class="line">FROM clients c</span><br><span class="line">LEFT JOIN invoices i on c.client_id &#x3D; i.client_id</span><br><span class="line">GROUP BY c.client_id</span><br></pre></td></tr></table></figure>
 <p><img src="/2020/05/16/Mysql%E5%9F%BA%E7%A1%80/90.png" style="zoom: 100%;"></p>
 <h3 id="Subqueries-in-FROM-clause"><a href="#Subqueries-in-FROM-clause" class="headerlink" title="Subqueries in FROM clause"></a>Subqueries in FROM clause</h3><p>也就是说，可以把我们选择的表格作为一张新的表格，然后在这张表格的基础上进行操作，但是这样或让子查询变得复杂，所以运用视图的方法会更加简化代码。关于视图，在接下来会讲到</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">SELECT *</span><br><span class="line">FROM (</span><br><span class="line">         SELECT c.client_id,</span><br><span class="line">                name,</span><br><span class="line">                (SELECT SUM(invoice_total) FROM invoices WHERE client_id &#x3D; c.client_id) AS total_sales,</span><br><span class="line">                (SELECT AVG(invoice_total) FROM invoices)                               AS average,</span><br><span class="line">                (SELECT total_sales - average)                                          AS difference</span><br><span class="line">         FROM clients c</span><br><span class="line">                  LEFT JOIN invoices i on c.client_id &#x3D; i.client_id</span><br><span class="line">         GROUP BY c.client_id</span><br><span class="line">     ) as sales_summary</span><br><span class="line">WHERE total_sales IS NOT NULL</span><br></pre></td></tr></table></figure>
@@ -8754,7 +8754,35 @@ console.log(s[0]);
 <h4 id="小练习-25"><a href="#小练习-25" class="headerlink" title="小练习"></a>小练习</h4><p> 写这张表格，利用CASE Operator</p>
 <p><img src="/2020/05/16/Mysql%E5%9F%BA%E7%A1%80/96.png" style="zoom: 80%;"></p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">USE sql_store;</span><br><span class="line">SELECT</span><br><span class="line">    CONCAT(first_name,&#39; &#39;,last_name) AS customer,</span><br><span class="line">    points,</span><br><span class="line">    CASE</span><br><span class="line">        WHEN (points&gt;3000) THEN &#39;Gold&#39;</span><br><span class="line">        WHEN (points BETWEEN 2000 AND 3000) THEN &#39;Silver&#39;</span><br><span class="line">        ELSE &#39;Bronze&#39;</span><br><span class="line">        END AS category</span><br><span class="line"></span><br><span class="line">FROM customers</span><br><span class="line">ORDER BY points DESC</span><br></pre></td></tr></table></figure>
-<h2 id="视图"><a href="#视图" class="headerlink" title="视图"></a>视图</h2><h2 id="存储过程"><a href="#存储过程" class="headerlink" title="存储过程"></a>存储过程</h2><h2 id="触发器和事件"><a href="#触发器和事件" class="headerlink" title="触发器和事件"></a>触发器和事件</h2><h2 id="事务和并发"><a href="#事务和并发" class="headerlink" title="事务和并发"></a>事务和并发</h2><h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><h2 id="设计数据库"><a href="#设计数据库" class="headerlink" title="设计数据库"></a>设计数据库</h2><h2 id="高效的索引"><a href="#高效的索引" class="headerlink" title="高效的索引"></a>高效的索引</h2><h2 id="保护数据库"><a href="#保护数据库" class="headerlink" title="保护数据库"></a>保护数据库</h2>]]></content>
+<h2 id="视图"><a href="#视图" class="headerlink" title="视图"></a>视图</h2><h3 id="Creating-views创建视图"><a href="#Creating-views创建视图" class="headerlink" title="Creating views创建视图"></a>Creating views创建视图</h3><p>视图就是一张子表格，我们把我们需要的信息筛选出来后创建成一张视图。然后就可以把这张视图当作一个表格，进行更多操作。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE VIEW sales_by_clients AS</span><br><span class="line">SELECT</span><br><span class="line">        c.client_id,</span><br><span class="line">        c.name,</span><br><span class="line">        SUM(invoice_total) AS total_sales,</span><br><span class="line">        (SELECT AVG(invoice_total) FROM invoices) AS average</span><br><span class="line">FROM clients c</span><br><span class="line">JOIN invoices i on c.client_id &#x3D; i.client_id</span><br><span class="line">GROUP BY c.client_id,name</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">SELECT *</span><br><span class="line">FROM sales_by_clients</span><br><span class="line">ORDER BY total_sales</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/05/16/Mysql%E5%9F%BA%E7%A1%80/97.png" style="zoom: 80%;"></p>
+<h4 id="小练习：-2"><a href="#小练习：-2" class="headerlink" title="小练习："></a>小练习：</h4><p>Create a view to see the balance for each client called clients_balance,including client_id,name and balance</p>
+<p>(balance = invoice_total - payment_total)</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE VIEW clients_balance AS</span><br><span class="line">SELECT</span><br><span class="line">        c.client_id,</span><br><span class="line">        c.name,</span><br><span class="line">        (i.invoice_total-i.payment_total) AS balance</span><br><span class="line">FROM clients c</span><br><span class="line">JOIN invoices i on c.client_id &#x3D; i.client_id</span><br><span class="line">GROUP BY c.client_id,name</span><br><span class="line">ORDER BY client_id</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">SELECT *</span><br><span class="line">FROM clients_balance</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/05/16/Mysql%E5%9F%BA%E7%A1%80/98.png" style="zoom: 80%;"></p>
+<h3 id="Altering-or-Dropping-Views-更改或删除视图"><a href="#Altering-or-Dropping-Views-更改或删除视图" class="headerlink" title="Altering or Dropping Views    更改或删除视图"></a>Altering or Dropping Views    更改或删除视图</h3><p>删除视图后重新创建</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">DROP VIEW sales_by_clients</span><br></pre></td></tr></table></figure>
+<p>所以我们需要把创建视图时候的源代码保存为sql文件</p>
+<h3 id="Updatable-Views-可更新视图"><a href="#Updatable-Views-可更新视图" class="headerlink" title="Updatable Views    可更新视图"></a>Updatable Views    可更新视图</h3><p>当一张视图没有</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">DISTINCT</span><br><span class="line">Aggregate Functions(MIN,MAX,SUM...)</span><br><span class="line">GROUP BY&#x2F; HAVING</span><br><span class="line">UNION</span><br></pre></td></tr></table></figure>
+<p>这些函数或者关键词的时候，我们称这张视图为可更新视图</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE OR REPLACE VIEW invoices_with_balance AS</span><br><span class="line">SELECT</span><br><span class="line">       invoice_id,</span><br><span class="line">       number,</span><br><span class="line">       client_id,</span><br><span class="line">       invoice_total,</span><br><span class="line">       payment_total,</span><br><span class="line">       invoice_total-payment_total AS balance,</span><br><span class="line">       invoice_date,</span><br><span class="line">       due_date,</span><br><span class="line">       payment_date</span><br><span class="line">FROM invoices</span><br><span class="line">WHERE (invoice_total-payment_total)&gt;0</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/05/16/Mysql%E5%9F%BA%E7%A1%80/99.png" style="zoom: 60%;"></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">DELETE FROM invoices_with_balance</span><br><span class="line">WHERE invoice_id &#x3D; 1</span><br></pre></td></tr></table></figure>
+<p>删除invoice_id =1 的数据</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">UPDATE invoices_with_balance</span><br><span class="line">SET due_date &#x3D; DATE_ADD(due_date, INTERVAL 2 DAY )</span><br><span class="line">WHERE client_id &#x3D; 2</span><br></pre></td></tr></table></figure>
+<p>把due_date 调后两天</p>
+<h3 id="WITH-OPTION-CHECK-Clause"><a href="#WITH-OPTION-CHECK-Clause" class="headerlink" title="WITH OPTION CHECK  Clause"></a>WITH OPTION CHECK  Clause</h3><p>WITH CHECK OPTION的作用?<br>1.对于update,有with check option，要保证update后，数据要被视图查询出来；<br>2.对于delete,有无with check option都一样；<br>4.对于insert,有with check option，要保证insert后，数据要被视图查询出来；<br>5.对于没有where 子句的视图，使用with check option是多余的。</p>
+<p> 如果修改后的条件不满足在创建VIEW的时候给出的条件，那么就会报错。</p>
+<p>否则就随便改了，不符合我们的条件</p>
+<h3 id="Other-Benefits-of-Views"><a href="#Other-Benefits-of-Views" class="headerlink" title="Other Benefits of Views"></a>Other Benefits of Views</h3><p>如果需要经常执行某项复杂查询，可以基于这个复杂查询建立视图，此后查询此视图即可，简化复杂查询；<br>视图本质上就是一条SELECT语句，所以当访问视图时，只能访问到所对应的SELECT语句中涉及到的列，对基表中的其它列起到安全和保密的作用，可以限制数据访问。</p>
+<p>1、数据库视图允许简化复杂查询：数据库视图由与许多基础表相关联的SQL语句定义。 您可以使用数据库视图来隐藏最终用户和外部应用程序的基础表的复杂性。 通过数据库视图，您只需使用简单的SQL语句，而不是使用具有多个连接的复杂的SQL语句。<br>2、数据库视图有助于限制对特定用户的数据访问。 您可能不希望所有用户都可以查询敏感数据的子集。可以使用数据库视图将非敏感数据仅显示给特定用户组。<br>3、数据库视图提供额外的安全层。 安全是任何关系数据库管理系统的重要组成部分。 数据库视图为数据库管理系统提供了额外的安全性。 数据库视图允许您创建只读视图，以将只读数据公开给特定用户。 用户只能以只读视图检索数据，但无法更新。<br>4、数据库视图启用计算列。 数据库表不应该具有计算列，但数据库视图可以这样。 假设在orderDetails表中有quantityOrder(产品的数量)和priceEach(产品的价格)列。 但是，orderDetails表没有一个列用来存储订单的每个订单项的总销售额。如果有，数据库模式不是一个好的设计。 在这种情况下，您可以创建一个名为total的计算列，该列是quantityOrder和priceEach的乘积，以表示计算结果。当您从数据库视图中查询数据时，计算列的数据将随机计算产生。<br>5、数据库视图实现向后兼容。 假设你有一个中央数据库，许多应用程序正在使用它。 有一天，您决定重新设计数据库以适应新的业务需求。删除一些表并创建新的表，并且不希望更改影响其他应用程序。在这种情况下，可以创建与将要删除的旧表相同的模式的数据库视图。</p>
+<p><img src="/2020/05/16/Mysql%E5%9F%BA%E7%A1%80/100.png" style="zoom: 60%;"></p>
+<p><strong>到这里以后</strong>，mysql的基础分析已经够用了，接下来5个小时左右的课程，将会无限期拖延更新。因为接下来的学习重心将会转移至python和JavaScript。</p>
+<h2 id="存储过程"><a href="#存储过程" class="headerlink" title="存储过程"></a>存储过程</h2><h2 id="触发器和事件"><a href="#触发器和事件" class="headerlink" title="触发器和事件"></a>触发器和事件</h2><h2 id="事务和并发"><a href="#事务和并发" class="headerlink" title="事务和并发"></a>事务和并发</h2><h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><h2 id="设计数据库"><a href="#设计数据库" class="headerlink" title="设计数据库"></a>设计数据库</h2><h2 id="高效的索引"><a href="#高效的索引" class="headerlink" title="高效的索引"></a>高效的索引</h2><h2 id="保护数据库"><a href="#保护数据库" class="headerlink" title="保护数据库"></a>保护数据库</h2>]]></content>
       <tags>
         <tag>Mysql</tag>
         <tag>Database</tag>
@@ -9089,6 +9117,7 @@ console.log(s[0]);
 <h2 id="5-26"><a href="#5-26" class="headerlink" title="5.26"></a>5.26</h2><ol>
 <li>更新<a href="https://jasonxqh.github.io/2020/05/26/OOP-in-JavaScript/#more">OOP-in-JavaScript</a>中对象的部分（未完结）</li>
 <li>更新<a href="https://jasonxqh.github.io/2020/05/22/离散概率part3/">离散数学part3</a> 中的期望部分(已完结)，方差部分</li>
+<li>完善 <a href="https://jasonxqh.github.io/2020/05/16/Mysql基础/">Mysql基础</a>的 视图(已完结)</li>
 </ol>
 ]]></content>
       <tags>
@@ -9111,6 +9140,67 @@ console.log(s[0]);
 <h3 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h3><h4 id="例一"><a href="#例一" class="headerlink" title="例一"></a>例一</h4><p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/5.png" style="zoom:80%;"></p>
 <p>我们不仅仅可以算X的期望，也可以计算X^2^ ,X^3^的期望，直接用它的函数值带入即可 </p>
 <h4 id="例二"><a href="#例二" class="headerlink" title="例二"></a>例二</h4><p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/6.png" style="zoom:80%;"></p>
+<h3 id="贝努力分布和几何分布的期望"><a href="#贝努力分布和几何分布的期望" class="headerlink" title="贝努力分布和几何分布的期望"></a>贝努力分布和几何分布的期望</h3><h4 id="贝努力分布"><a href="#贝努力分布" class="headerlink" title="贝努力分布"></a>贝努力分布</h4><p>The expected number of successes when n mutually independent Bernoulli trials are performed, where p is the probability of success on each trial, is <strong>np</strong>.</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/7.png" style="zoom:80%;"></p>
+<h4 id="几何分布"><a href="#几何分布" class="headerlink" title="几何分布"></a>几何分布</h4><p>The expected number of successes when a r.v. X follows a Geometric distribution is 1 p , where p is the probability of success on each trial.</p>
+<p>也就是说第一次成功之前，已经做了多少次</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/8.png" style="zoom:80%;"></p>
+<h2 id="Linearity-of-expectations"><a href="#Linearity-of-expectations" class="headerlink" title="Linearity of expectations"></a>Linearity of expectations</h2><h3 id="期望的线性性质"><a href="#期望的线性性质" class="headerlink" title="期望的线性性质"></a>期望的线性性质</h3><p>1.和的期望等于期望的和</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/9.png" style="zoom:150%;"></p>
+<p>2.具有线性运算的性质$E(aX_i+b) = aE(X_i)+b$</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/10.png" style="zoom:170%;"></p>
+<h3 id="证明："><a href="#证明：" class="headerlink" title="证明："></a>证明：</h3><p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/11.png" style="zoom:80%;"></p>
+<h3 id="贝努力实验的期望"><a href="#贝努力实验的期望" class="headerlink" title="贝努力实验的期望"></a>贝努力实验的期望</h3><p>根据期望的线性性，我们很容易就能算出n次贝努力实验的期望了</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/12.png" style="zoom:60%;"></p>
+<h3 id="例子："><a href="#例子：" class="headerlink" title="例子："></a>例子：</h3><h4 id="例一："><a href="#例一：" class="headerlink" title="例一："></a>例一：</h4><p>A new employee checks the hats of n people at a restaurant, forgetting to put claim check numbers on the hats. When customers return for their hats, the checker gives them back hats chosen at random from the remaining hats. What is the expected number of hats that are returned correctly?</p>
+<p>就是说这个服务员是新来的，没有给顾客发取帽码，所以只能随便拿(帽子都一样)，问这个期望拿对的概率是多少</p>
+<p>如果我们按照定义来算，那么就要算出来没有人能拿对的概率，一个人拿对的概率，。。。全部拿对的概率，也就是说先找分布，再计算期望。但这显然太麻烦了</p>
+<p>所以 这样考虑：0个人拿对，那么n个人错排；1个人拿对，n-1个人错排。所以我们用期望的性质来做。我们来看第i个人是否拿对，拿对的概率 1/n,拿错的概率 n-1/n。求和即可</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/13.png" style="zoom:80%;"></p>
+<h4 id="例二："><a href="#例二：" class="headerlink" title="例二："></a>例二：</h4><p>计算一个数列中逆排列的数字对，逆排列就是说a&lt;b 但是a在b的后面，如图中所举例</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/14.png" style="zoom:80%;"></p>
+<p>那么对于一个数字对来说 $I_{i,j}$来说，他要么是逆序列，要么不是。所以说他的期望是 1/2</p>
+<p>然后我们只要计算有几个这样的数字对即可，C(2,n) = n(n-1)/2 相乘得答案</p>
+<h3 id="独立随机变量的方差"><a href="#独立随机变量的方差" class="headerlink" title="独立随机变量的方差"></a>独立随机变量的方差</h3><p>当X，Y相互独立的时候，期望的乘积就等于乘积的期望</p>
+<p>$E(XY) = E(X)E(Y)$</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/15.png" style="zoom:80%;"></p>
+<h2 id="Average-case-computational-complexity"><a href="#Average-case-computational-complexity" class="headerlink" title="Average-case computational complexity"></a>Average-case computational complexity</h2><p>通过期望来计算平均的算法复杂度，也就是一般情况下大概是什么复杂度</p>
+<p>那么他的期望就是输入一个数字的 概率，乘以其对应的比较次数</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/16.png" style="zoom:100%;"></p>
+<p>Finding the average-case computational complexity of an algorithm is usually much more diffcult than nding its worst-case computational complexity, and often involves the use of sophisticated methods.</p>
+<h3 id="线性搜索算法"><a href="#线性搜索算法" class="headerlink" title="线性搜索算法"></a>线性搜索算法</h3><p><strong>Question:</strong> What is the average-case computational complexity of the linear search algorithm if the probability that x is in the list is p and it is equally likely that x is any of the n elements in the list?</p>
+<p><strong>Solution:</strong> 也就是说，x和$a_i$ 去比较，那么需要比较 i 是否小于等于n 和 比较 x是否等于 $a_i$也就是说要比较两次，那么如果最终找到了，然后还要跳出循环，判断i是不是小于等于n，所以一共比较2i+1次</p>
+<p>那么如果没找到，那么就是比较2n+2次</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/1.jpg" style="zoom:80%;"></p>
+<p>The probability that x equals ai ,<br>the i-th element in the list, is p/n, and the probability that x is not in the list is q = 1 - p.</p>
+<p>令p指的是这个x落在这n个数中的概率。因为每个数可能是均匀分布在这个序列里面的，所以如果有5个数字，那么概率就是p/5,如果有n个数字，那么就是p/n.</p>
+<p>那么我们就可以进行计算了</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/17.png" style="zoom:60%;"></p>
+<h3 id="插入排序算法"><a href="#插入排序算法" class="headerlink" title="插入排序算法"></a>插入排序算法</h3><p><strong>Question：</strong>What is the average number of comparisons used by the insertion sort to sort n distinct elements?</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/2.jpg" style="zoom:60%;"></p>
+<p><strong>Solution:</strong>We first suppose that X is the r.v. equal to # comparisons used by the insertion sort to sort a list a1, a2, … ; an of n distinct elements.<br>Then E(X) is the average number of comparisons used.</p>
+<p>记作$a_k$为前j个元素中最大的元素,$1\leq k \leq j$</p>
+<p>所以关键是看k落在第几个位置。如果k在第一个，那么每一个后来的都比$$a_k$小</p>
+<p>如果是落在最后一个，那么每个都要比较一下</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/18.png" style="zoom:70%;"></p>
+<h2 id="方差"><a href="#方差" class="headerlink" title="方差"></a>方差</h2><h3 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h3><p>方差可以对定义求和，也可以对随机变量来求</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/19.png" style="zoom:70%;"></p>
+<h3 id="定理"><a href="#定理" class="headerlink" title="定理"></a>定理</h3><p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/20.png" style="zoom:70%;"></p>
+<p>也可以这样来计算：X偏离均值的平方的期望</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/21.png" style="zoom:70%;"></p>
+<h3 id="各种分布的方差"><a href="#各种分布的方差" class="headerlink" title="各种分布的方差"></a>各种分布的方差</h3><h4 id="例一：贝努力实验的方差"><a href="#例一：贝努力实验的方差" class="headerlink" title="例一：贝努力实验的方差"></a>例一：贝努力实验的方差</h4><p><strong>Question:</strong> A coin is  flipped one time. Let $\Omega$ be the sample space of the possible outcomes, and let X be r.v. that assigns to an outcome # heads in this outcome. What is the variance of X if it is a biased coin with P({H}) = p?  </p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/24.png" style="zoom:90%;"></p>
+<h4 id="例二：-二项分布的方差"><a href="#例二：-二项分布的方差" class="headerlink" title="例二： 二项分布的方差"></a>例二： 二项分布的方差</h4><p><strong>Question:</strong> Let r.v. X be the number of successes of n mutually independent Bernoulli trials, where p is the probability of success on each trial. What is the variance of X?</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/23.png" style="zoom:90%;"></p>
+<h4 id="例三：几何分布的方差"><a href="#例三：几何分布的方差" class="headerlink" title="例三：几何分布的方差"></a>例三：几何分布的方差</h4><p><strong>Question: </strong>Let r.v. X be the rst occurrence of success requires n mutually independent Bernoulli trials, where p is the probability of success on each trial. What is the variance of X?</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/25.png" style="zoom:90%;"></p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/26.png" style="zoom:90%;"></p>
+<h3 id="方差的非线性性"><a href="#方差的非线性性" class="headerlink" title="方差的非线性性"></a>方差的非线性性</h3><p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/28.png" style="zoom:90%;"></p>
+<p>这说明什么道理呢？</p>
+<p>说明对一列数进行平移，那么不会影响我的方差，如果对一列数进行拉伸a倍，那么方差就会扩大a的平方倍。</p>
+<p>如果对一列数进行压缩，那么方差就会压缩的更厉害。</p>
+<h3 id="Bienaymaye’s-formula"><a href="#Bienaymaye’s-formula" class="headerlink" title="Bienaymaye’s formula"></a>Bienaymaye’s formula</h3><p>当随机变量两两之间相互独立的时候，那么这时候方差的和就等于和的方差</p>
+<p><img src="/2020/05/22/%E7%A6%BB%E6%95%A3%E6%A6%82%E7%8E%87part3/29.png" style="zoom:90%;"></p>
 ]]></content>
       <tags>
         <tag>discrete mathematics</tag>
