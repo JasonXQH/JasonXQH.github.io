@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next gemini use-motion" lang="en">
+<html class="theme-next muse use-motion" lang="en">
 <head>
   <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -98,7 +98,7 @@
 <meta property="og:image" content="https://jasonxqh.github.io/2020/06/08/Express%E6%A1%86%E6%9E%B6%E5%9C%A8%E5%90%8E%E7%AB%AF%E7%9A%84%E5%BA%94%E7%94%A8/1.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/06/08/Express%E6%A1%86%E6%9E%B6%E5%9C%A8%E5%90%8E%E7%AB%AF%E7%9A%84%E5%BA%94%E7%94%A8/2.png">
 <meta property="article:published_time" content="2020-06-08T12:26:47.000Z">
-<meta property="article:modified_time" content="2020-06-21T04:23:15.322Z">
+<meta property="article:modified_time" content="2020-06-22T07:38:23.545Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="web期末">
@@ -112,7 +112,7 @@
   var NexT = window.NexT || {};
   var CONFIG = {
     root: '/',
-    scheme: 'Gemini',
+    scheme: 'Muse',
     version: '5.1.4',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
     fancybox: true,
@@ -392,7 +392,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  3.6k
+                  3.7k
                 </span>
               
 
@@ -483,12 +483,14 @@
 <h3 id="douban-js-2"><a href="#douban-js-2" class="headerlink" title="douban.js"></a><code>douban.js</code></h3><p>我从model/douban中导入了这张在数据库中的DouBan表格。现在我们就可以对他进行我需要的后端操作了。</p>
 <h4 id="getAll"><a href="#getAll" class="headerlink" title="getAll"></a><code>getAll</code></h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> getAll(req, res) &#123;</span><br><span class="line">  <span class="keyword">const</span> data = <span class="keyword">await</span> DouBan.find();</span><br><span class="line">  res.status(<span class="number">201</span>).json(&#123; data &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h4 id="findAll-1"><a href="#findAll-1" class="headerlink" title="findAll"></a><code>findAll</code></h4><p>这是前端显示数据是会用到的一个api</p>
-<p>首先我们从request中解析出传过来的per_page也就是每页显示的电影条数</p>
+<p>首先我们从request中解析出传过来的per_page也就是每页显示的电影条数，和排序的种类（升序or降序or不排序）</p>
+<p>如果不排序，那么请求中sort = undefined,那么我们就不进行.sort</p>
+<p>否则，我们就进行排序， 1代表升序，-1代表降序</p>
 <p>其次我们来计算per_page的多少，也就是至少为1条</p>
 <p>然后我们计算表内总共的数据到底有几条并返回，这个在前端的<strong>分页器</strong>中需要用到，因为分页器得有总条数才能计算页数</p>
 <p>最后我们在表中得到当前页面的信息，需要调过前面page*perpage条信息，然后取perpage条返回</p>
 <p><a href="https://jasonxqh.github.io/2020/06/07/Nodejs基础2/#Pagination">Nodejs基础2Pagination</a></p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> jsonwebtoken = <span class="built_in">require</span>(<span class="string">'jsonwebtoken'</span>);</span><br><span class="line"><span class="keyword">const</span> DouBan = <span class="built_in">require</span>(<span class="string">'../models/douban'</span>);</span><br><span class="line"><span class="keyword">const</span> &#123; scrects &#125; = <span class="built_in">require</span>(<span class="string">'../../config'</span>);</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DouBanCtl</span> </span>&#123;</span><br><span class="line">  <span class="keyword">async</span> findAll(req, res) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; per_page &#125; = req.query;</span><br><span class="line">    <span class="keyword">const</span> page = <span class="built_in">Math</span>.max(req.query.page * <span class="number">1</span>, <span class="number">1</span>) - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">const</span> perPage = <span class="built_in">Math</span>.max(per_page * <span class="number">1</span>, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">const</span> total = <span class="keyword">await</span> DouBan.countDocuments();</span><br><span class="line">    <span class="keyword">const</span> data = <span class="keyword">await</span> DouBan.find()</span><br><span class="line">      .limit(perPage)</span><br><span class="line">      .skip(page * perPage);</span><br><span class="line">    res.status(<span class="number">201</span>).json(&#123; data, total &#125;);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> jsonwebtoken = <span class="built_in">require</span>(<span class="string">'jsonwebtoken'</span>);</span><br><span class="line"><span class="keyword">const</span> DouBan = <span class="built_in">require</span>(<span class="string">'../models/douban'</span>);</span><br><span class="line"><span class="keyword">const</span> &#123; scrects &#125; = <span class="built_in">require</span>(<span class="string">'../../config'</span>);</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DouBanCtl</span> </span>&#123;</span><br><span class="line">  <span class="keyword">async</span> findAll(req, res) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; per_page = <span class="number">10</span> &#125; = req.query;</span><br><span class="line">    <span class="keyword">const</span> page = <span class="built_in">Math</span>.max(req.query.page * <span class="number">1</span>, <span class="number">1</span>) - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">const</span> perPage = <span class="built_in">Math</span>.max(per_page * <span class="number">1</span>, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">const</span> sort = req.query.sort;</span><br><span class="line">    <span class="built_in">console</span>.log(sort);</span><br><span class="line">    <span class="keyword">const</span> total = <span class="keyword">await</span> DouBan.countDocuments();</span><br><span class="line">    <span class="keyword">if</span> (sort === <span class="string">"undefined"</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> data = <span class="keyword">await</span> DouBan.find()</span><br><span class="line">        .limit(perPage)</span><br><span class="line">        .skip(page * perPage);</span><br><span class="line">      res.status(<span class="number">201</span>).json(&#123; data, total &#125;);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> data = <span class="keyword">await</span> DouBan.find()</span><br><span class="line">        .sort(&#123; <span class="attr">score</span>: sort === <span class="string">"reverse"</span> ? <span class="number">1</span> : <span class="number">-1</span> &#125;)</span><br><span class="line">        .limit(perPage)</span><br><span class="line">        .skip(page * perPage);</span><br><span class="line">      res.status(<span class="number">201</span>).json(&#123; data, total &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
 <h4 id="insertMany"><a href="#insertMany" class="headerlink" title="insertMany"></a><code>insertMany</code></h4><p>这是插入操作，是为了利用postman向云数据库插入信息，在前端并没有用到。</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> insertMany(req, res) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; data &#125; = req.body;</span><br><span class="line">    <span class="keyword">await</span> DouBan.insertMany(data);</span><br><span class="line">    res.status(<span class="number">201</span>).json(&#123; <span class="attr">data</span>: <span class="string">'success'</span> &#125;);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
 <h4 id="getListByKey"><a href="#getListByKey" class="headerlink" title="getListByKey"></a><code>getListByKey</code></h4><p>这是前端布尔查询中的 AND 查询，在这篇博客中<a href="https://jasonxqh.github.io/2020/06/07/React框架在作业当中的应用/">React框架在作业当中的应用</a>我已经介绍了我们把数据返回之后前端进行的渲染操作，现在我们来讲讲从前端发来请求后如何在后端获得我想要的信息。</p>
@@ -834,7 +836,7 @@ var jiathis_config={
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">293.4k</span>
+    <span title="Site words total count">294.3k</span>
   
 </div>
 
@@ -847,7 +849,7 @@ var jiathis_config={
 
 
 
-  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
 
 
 
@@ -941,13 +943,6 @@ var jiathis_config={
 
   
   
-
-
-  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
-
-  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
-
-
 
   
   <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
