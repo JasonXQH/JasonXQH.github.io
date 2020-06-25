@@ -496,7 +496,7 @@
 <p>比如说 $c_i = 9$那么也就是说分成1，2，4，2，四个物体，这样我们其实可以在这四个里取1-9中的任何数字，达到了拆分的效果</p>
 <h4 id="3-数组优化"><a href="#3-数组优化" class="headerlink" title="3.数组优化"></a>3.数组优化</h4><p>用一个$num[j]$数组记录容量为j时，放入了多少个第 $i$ 个物品，由此实现数量限制约束</p>
 <h3 id="代码一览-1"><a href="#代码一览-1" class="headerlink" title="代码一览"></a>代码一览</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> maxn 10005</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> M 105</span></span><br><span class="line"><span class="keyword">int</span> dp[maxn],num[maxn];<span class="comment">//dp[j]表示当前已放入容量为j的背包获得的最大价值,num[j]统计数量 </span></span><br><span class="line"><span class="keyword">int</span> w[M],v[M],c[M];<span class="comment">//w[i]表示第i个物品的重量，v[i]表示第i个物品的价值,c[i]表示第i个物品的数量 </span></span><br><span class="line"><span class="keyword">int</span> n,W;<span class="comment">//n表示n个物品，W表示背包的容量</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">multi_knapsack1</span><span class="params">(<span class="keyword">int</span> n,<span class="keyword">int</span> W)</span><span class="comment">//暴力拆分 超时！！！ </span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;i++)</span><br><span class="line">    	<span class="keyword">for</span>(<span class="keyword">int</span> k=<span class="number">1</span>;k&lt;=c[i];k++)<span class="comment">//多一层循环 </span></span><br><span class="line">			<span class="keyword">for</span>(<span class="keyword">int</span> j=W;j&gt;=w[i];j--)</span><br><span class="line">				dp[j]=<span class="built_in">max</span>(dp[j],dp[j-w[i]]+v[i]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">multi_knapsack2</span><span class="params">(<span class="keyword">int</span> n,<span class="keyword">int</span> W)</span><span class="comment">//二进制拆分 </span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">		<span class="keyword">if</span>(c[i]*w[i]&gt;=W)<span class="comment">//转化完全背包 </span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> j=w[i];j&lt;=W;j++)</span><br><span class="line">                dp[j]=<span class="built_in">max</span>(dp[j],dp[j-w[i]]+v[i]);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> k=<span class="number">1</span>;c[i]&gt;<span class="number">0</span>;k&lt;&lt;=<span class="number">1</span>)<span class="comment">//二进制拆分 k&lt;&lt;=1就等于k=k*2</span></span><br><span class="line">        	&#123;</span><br><span class="line">	            <span class="keyword">int</span> x=<span class="built_in">min</span>(k,c[i]);</span><br><span class="line">	            <span class="keyword">for</span>(<span class="keyword">int</span> j=W;j&gt;=w[i]*x;j--)<span class="comment">//转化01背包 </span></span><br><span class="line">	                dp[j]=<span class="built_in">max</span>(dp[j],dp[j-w[i]*x]+x*v[i]);</span><br><span class="line">	            c[i]-=x;</span><br><span class="line">        	&#125; </span><br><span class="line">    	&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line">                                            </span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">multi_knapsack3</span><span class="params">(<span class="keyword">int</span> n,<span class="keyword">int</span> W)</span><span class="comment">//数组优化 ,完全背包+数量限制</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">memset</span>(num,<span class="number">0</span>,<span class="keyword">sizeof</span>(num));<span class="comment">//统计数量 ,记录第i个物品用了多少个</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> j=w[i];j&lt;=W;j++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(dp[j]&lt;dp[j-w[i]]+v[i]&amp;&amp;num[j-w[i]]&lt;c[i])<span class="comment">//首先判断数量是不是小于c[i]</span></span><br><span class="line">            &#123;</span><br><span class="line">                dp[j]=dp[j-w[i]]+v[i];</span><br><span class="line">                num[j]=num[j-w[i]]+<span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请输入物品的个数 n:"</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;n;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请输入背包的容量W:"</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;W;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请依次输入每个物品的重量w、价值v和数量c,用空格分开:"</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;i++)</span><br><span class="line">        <span class="built_in">cin</span>&gt;&gt;w[i]&gt;&gt;v[i]&gt;&gt;c[i];</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> j=<span class="number">1</span>;j&lt;=W;j++)<span class="comment">//初始化第0行为0</span></span><br><span class="line">        dp[j]=<span class="number">0</span>;</span><br><span class="line">    multi_knapsack1(n,W);</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"装入背包的最大价值为:"</span>&lt;&lt;dp[W]&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="comment">//测试dp[]数组结果</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> j=<span class="number">1</span>;j&lt;=W;j++)</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;dp[j]&lt;&lt;<span class="string">"  "</span>;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="分组背包"><a href="#分组背包" class="headerlink" title="分组背包"></a>分组背包</h2><h3 id="问题描述-2"><a href="#问题描述-2" class="headerlink" title="问题描述"></a>问题描述</h3><p>给定n组物品，第i组有c<em>i 个物品，第i组第j个物品有重量$w</em>{ij}$和价值$v_{ij}$，背包容量为W，要求再不超过背包容量的情况下，每组至多选择一个物品，如何放置物品，让背包中物品价值之和最大。</p>
+<h2 id="分组背包"><a href="#分组背包" class="headerlink" title="分组背包"></a>分组背包</h2><h3 id="问题描述-2"><a href="#问题描述-2" class="headerlink" title="问题描述"></a>问题描述</h3><p>给定n组物品，第i组有c_i 个物品，第i组第j个物品有重量$w_{ij}$和价值$v_{ij}$，背包容量为W，要求再不超过背包容量的情况下，每组至多选择一个物品，如何放置物品，让背包中物品价值之和最大。</p>
 <p>因为每组之多选择一个物品，可以将每组看作一个整体，然后转换成01背包</p>
 <h3 id="算法分析：-2"><a href="#算法分析：-2" class="headerlink" title="算法分析："></a>算法分析：</h3><p>用$C[i][j]$ 表示前i组物品放入一个容量为j的背包可以获得的最大价值，对于第i组物品的处理状态：</p>
 <ul>
@@ -688,7 +688,7 @@ var jiathis_config={
               
                 <a href="/archives%7C%7C%20archive">
               
-                  <span class="site-state-item-count">212</span>
+                  <span class="site-state-item-count">213</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -699,7 +699,7 @@ var jiathis_config={
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">categories</span>
                 </a>
               </div>
@@ -710,7 +710,7 @@ var jiathis_config={
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">30</span>
+                  <span class="site-state-item-count">29</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
@@ -818,7 +818,7 @@ var jiathis_config={
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">300.9k</span>
+    <span title="Site words total count">303.8k</span>
   
 </div>
 
@@ -1324,50 +1324,13 @@ var jiathis_config={
     var s = document.getElementsByTagName("script")[0];
     s.parentNode.insertBefore(bp, s);
 })();
-</script>
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
 
 
   
   
 
   
-  
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-        tex2jax: {
-          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
-          processEscapes: true,
-          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-        }
-      });
-    </script>
-
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax(), i;
-        for (i=0; i < all.length; i += 1) {
-          all[i].SourceElement().parentNode.className += ' has-jax';
-        }
-      });
-    </script>
-    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- Begin: Injected MathJax -->
-<script type="text/x-mathjax-config">
-  MathJax.Hub.Config("");
-</script>
-
-<script type="text/x-mathjax-config">
-  MathJax.Hub.Queue(function() {
-    var all = MathJax.Hub.getAllJax(), i;
-    for(i=0; i < all.length; i += 1) {
-      all[i].SourceElement().parentNode.className += ' has-jax';
-    }
-  });
-</script>
-
-<script type="text/javascript" src="">
-</script>
-<!-- End: Injected MathJax -->
-<!-- hexo-inject:end -->
   
 
 
