@@ -108,12 +108,8 @@
 <meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/11.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/12.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/13.png">
-<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/14.png">
-<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/15.png">
-<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/16.png">
-<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/17.png">
 <meta property="article:published_time" content="2020-09-24T00:43:24.000Z">
-<meta property="article:modified_time" content="2020-10-09T13:32:52.928Z">
+<meta property="article:modified_time" content="2020-10-11T01:23:37.409Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="CSAPP">
 <meta name="twitter:card" content="summary">
@@ -405,7 +401,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  7.3k
+                  5.2k
                 </span>
               
 
@@ -421,7 +417,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  27
+                  19
                 </span>
               
             </div>
@@ -645,107 +641,7 @@
 <p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/13.png" style="zoom: 100%;"></p>
 <h3 id="移位操作"><a href="#移位操作" class="headerlink" title="移位操作"></a>移位操作</h3><p>最后一组是移位操作，先给出移位量，然后第二项给出的是要移位的数。可以进行算术和逻辑右移。移位量可以是一个立即数，或者放在单字节寄存器％cl 中。（这些指令很特别，因为<strong>只允许</strong>以这个特定的寄存器作为操作数。）原则上来说，1 个字节的移位量使得移位量的编码范围可以达到$2^8-1= 255$。X86-64 中，移位操作对w 位长的数据值进行操作，移位量是由％cl 寄存器的低m 位决定的，这里$2^m=w$ 高位会被忽略。所以，例如当寄存器％cl 的十六进制值为OxFF 时，指令salb 会移7 位，salw 会移15 位，sail 会移31 位，而salq 会移63 位。<br>如图3-10 所示，左移指令有两个名字：SAL 和SHL。两者的效果是一样的，都是将右边填上0。右移指令不同，SAR 执行算术移位（填上符号位）, 而SHR 执行逻辑移位（填上0）。</p>
 <p>移位操作的目的操作数可以是一个寄存器或是一个内存位置。图 3-10 中用$&gt;&gt;_A$(算术)和$&gt;&gt;_L$(逻辑）来表示这两种不同的右移运算。</p>
-<h3 id="特殊的算数操作"><a href="#特殊的算数操作" class="headerlink" title="特殊的算数操作"></a>特殊的算数操作</h3><h2 id="控制"><a href="#控制" class="headerlink" title="控制"></a>控制</h2><p>通常，C 语言中的语句和机器代码中的指令都是按照它们在程序中出现的次序，顺序执行的。用jump 指令可以改变一组机器代码指令的执行顺序，jump 指令指定控制应该被传递到程序的某个其他部分，可能是依赖于某个测试的结果。编译器必须产生构建在这种低级机制基础之上的指令序列，来实现C 语言的控制结构。</p>
-<p>我们先谈谈实现条件操作的两种方式，然后描述表达循环的switch 语句的方法。</p>
-<h3 id="条件码"><a href="#条件码" class="headerlink" title="条件码"></a>条件码</h3><p>除了整数寄存器，CPU 还维护着一组<strong>单个位(byte)</strong> 的条件码(condition code) 寄存器。我们可以检测这些寄存器来执行条件分支指令。</p>
-<p>一下是最常用的条件码</p>
-<p><strong>CF</strong> : 进位标志。最近的操作使高位产生了进位。可用来检查<strong>无符号操作</strong>的<strong>溢出</strong></p>
-<p><strong>ZF</strong>: 零标志。最近的操作得出的结果为<strong>0</strong></p>
-<p><strong>SF</strong> : 符号标志。最近的操作得到的结果为<strong>负数</strong></p>
-<p><strong>OF</strong>: 溢出标志。最近的操作导致一个补码的溢出—-正\负溢出</p>
-<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/14.png" style="zoom: 100%;"></p>
-<p>比如说，我们用一条 ADD指令完成等价于C表达式 $t=a+b$ 的功能，a、b、t都是整形的。然后根据下面的C表达式来设置条件码</p>
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>条件码</th>
-<th>表达式</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>CF</td>
-<td>(unsigned) t&lt;(unsigned) a</td>
-<td>无符号溢出</td>
-</tr>
-<tr>
-<td>ZF</td>
-<td>(t==0)</td>
-<td>零</td>
-</tr>
-<tr>
-<td>SF</td>
-<td>(t&lt;0)</td>
-<td>负数</td>
-</tr>
-<tr>
-<td>OF</td>
-<td>$(~a\geq0~\&amp;\&amp;~b\geq0~\&amp;\&amp;~t&lt;0)</td>
-<td></td>
-<td>(a&lt;0~\&amp;\&amp; ~b&lt;0<del>\&amp;\&amp;</del>t\geq0)$</td>
-<td>有符号溢出</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p> 有几类指令能够修改条件码：</p>
-<ol>
-<li>算术指令：既改变操作数，也有肯能改变条件码。</li>
-<li>CMP指令：右操作数减左操作数，只可能改变条件码。</li>
-<li>TEST指令：两操作数相与，只可能改变条件码。</li>
-</ol>
-<h3 id="访问条件码"><a href="#访问条件码" class="headerlink" title="访问条件码"></a>访问条件码</h3><p>条件码寄存器不能直接读取，有三种方法：</p>
-<ul>
-<li>set指令：根据条件码，设置一个字节。</li>
-</ul>
-<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/15.png" style="zoom: 100%;"></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">comp</span><span class="params">(<span class="keyword">data_t</span> a,<span class="keyword">data_t</span> b)</span></span></span><br><span class="line">a in %rdi,b in %rsi</span><br><span class="line"><span class="number">1</span> comp:</span><br><span class="line"><span class="number">2</span> 	cmpq 	%rsi, 	%rdi 	<span class="comment">//Compare a:b</span></span><br><span class="line"><span class="number">3</span> 	setl 	%al 			<span class="comment">//Set low-order byte of %eax to 0 or 1</span></span><br><span class="line"><span class="number">4</span> 	movzbl 	%al, 	%eax 	<span class="comment">//Clear rest of %eax (and rest of %rax)</span></span><br><span class="line"><span class="number">5</span> 	ret</span><br></pre></td></tr></table></figure>
-<p>第二行是cmp指令，也就是通过%rdi-%rsi 的状态来设置状态码的</p>
-<p>第三行是 set 指令，setl %al之后，al寄存器中的值就为比较命令 cmp执行后状态位 $SF\wedge  OF$ 的值</p>
-<p>第四行是将 %al 赋值给 eax 的低8bits，然后再将eax的高位设置为0</p>
-<p>我们就拿sete来举例，即 “set when equal” 指令。</p>
-<p>当a = b 时，会得到 $t=0$ ,因此零标志置为就表示相等。</p>
-<p>类似的我们来考虑setl,即”set when less” 指令</p>
-<p>当没有发生溢出的时候，OF设置为0，那么只有当 $a-b&lt;0$ 的时候，SF会等于1；<br>如果发生了溢出，那么OF设置为1，那么要让a仍然小于b，就要让a为负、b为正，a-b 会下溢变成正数，于是 SF会等于0</p>
-<p>那么只有当 SF^OF ，才能保证将每一种情况都包含在内，才能表达出 a&lt;b 是否为真。</p>
-<h3 id="跳转指令"><a href="#跳转指令" class="headerlink" title="跳转指令"></a>跳转指令</h3><ul>
-<li>jump指令：根据条件码进行跳转，即控制的条件转移。</li>
-</ul>
-<p>跳转指令会导致执行切换到程序中一个全新的位置。在汇编代码中，这些跳转的目的地通常用一个标号(label) 指明.比如说:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">	movq $0,%rax 		Set %rax to 0</span><br><span class="line">	jmp .L1 			Goto .L1</span><br><span class="line">	movq (%rax),%rdx 	Null pointer dereference (skipped)</span><br><span class="line">.L1:</span><br><span class="line">	popq %rdx 			Jump target</span><br></pre></td></tr></table></figure>
-<p>指令jmp.L1 会导致程序跳过movq 指令，而从popq 指令开始继续执行。在产生目标代码文件时，汇编器会确定所有带标号指令的地址，并将跳转目标（目的指令的地址）编码为跳转指令的一部分。</p>
-<p>下面列举了不同的跳转指令：</p>
-<ul>
-<li>jmp 是无条件跳转，它可以是<strong>直接跳转</strong>，即<strong>跳转目标</strong>是作为指令的<strong>一部分</strong> 编码的。也可以是<strong>间接跳转</strong>，即跳转目标是从寄存器或者内存位置中读出的<ul>
-<li>汇编语言中，直接跳转是给出一个标号作为跳转目标的，例如上面所示代码中的标号“.L1”。间接跳转的写法是 ”*“ 后面跟一个操作数指示符</li>
-<li>例如 <code>jmp *%rax</code> 用寄存器 %rax 中的值作为跳转目标，而 <code>jmp *(%rax)</code> 是以%rax中的值作为地址，从内存中读取跳转目标。</li>
-</ul>
-</li>
-</ul>
-<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/16.png" style="zoom: 100%;"></p>
-<p>上表所示的其他跳转指令都是有条件的：它们根据条件码的某种组合，或者跳转，或者继续执行代码序列中下一条指令。这些指令的名字和跳转条件与SET指令的名字和设置条件是相匹配的。</p>
-<p>同SET指令一样，一些底层的机器指令有多个名字，<strong>条件跳转只能是直接跳转</strong>。</p>
-<ul>
-<li>cmov条件传送指令：根据条件码决定是否进行mov操作（其性能要优于控制的条件转移P141）也就是有条件地传送数据。</li>
-</ul>
-<h3 id="跳转指令的编码"><a href="#跳转指令的编码" class="headerlink" title="跳转指令的编码"></a>跳转指令的编码</h3><p>在汇编代码中，跳转目标用符号标号书写。汇编器，以及后来的链接器，会产生跳转目标的适当编码。跳转指令有几种不同的编码，但是最常用都是<strong>PC-relative</strong>。也就是说它们会将<strong>目标指令的地址</strong>与<strong>紧跟在跳转指令后面那条指令的地址</strong>之间的差作为编码 这些地址偏移量可以编码为1、2 或4 个字节。</p>
-<p>第二种编码方法是给出“绝对”地址，用4 个字节直接指定目标。汇编器和链接器会选择适当的跳转目的编码。</p>
-<p>下面是一个PC-relative的例子，它包含两个跳转：第二行的jmp指令前向跳转到更高的地址，而第7行的jg指令后向跳转到较低的地址。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1 	movq 	%rdi, %rax</span><br><span class="line">2 	jmp 	.L2</span><br><span class="line">3 .L3:</span><br><span class="line">4 	sarq 	%rax</span><br><span class="line">5 .L2:</span><br><span class="line">6 	testq 	%rax, %rax</span><br><span class="line">7 	jg 		.L3</span><br><span class="line">8 	rep; 	ret</span><br></pre></td></tr></table></figure>
-<p>仍然是同一个函数，汇编器产生的 “.o” 格式的反汇编版本如下所示：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0: 48 89 f8 	mov 	%rdi,%rax</span><br><span class="line">3: eb 03 		jmp 	8&lt;loop+0x8&gt;</span><br><span class="line">5: 48 d1 f8 	sar 	%rax</span><br><span class="line">8: 48 85 c0 	test 	%rax,%rax</span><br><span class="line">b: 7f f8 		jg 		5&lt;loop+0x5&gt;</span><br><span class="line">d: f3 c3 		repz 	retq</span><br></pre></td></tr></table></figure>
-<p>我们看到反汇编版本生成的汇编语言没有label，jmp + label的直接跳转也变成了 jmp+地址的间接跳转。那么我们刚才说了，产生跳转目标的编码是由<strong>目标指令的地址与紧跟在跳转指令后面那条指令的地址之间的差</strong>得出的。我们现在就可以来验证这个是否正确。</p>
-<p>我们观察到第2行中跳转指令的跳转目标指明为0x8,观察指令的字节编码，会看到第一条跳转指令的目标编码(在第二个字节当中)为0x03 ，然后将其加上<strong>紧跟在跳转指令后面那条指令的地址</strong>0x5 就得到了跳转目标地址0x8 也就是第4行指令的地址。</p>
-<p>同样的，第二个跳转指令的目标编码是0xf8(十进制的-8) .将这个数加上<strong>紧跟在跳转指令后面那条指令的地址</strong> 0xd 即得到0x5 ，即第三行指令的地址。</p>
-<p>这说明在执行，当执行PC 相对寻址时，程序计数器的值是跳转指令后面的那条指令的地址，而不是跳转指令本身的地址。</p>
-<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/17.png" style="zoom: 100%;"></p>
-<p>A:  02+4003fc = 4003fe</p>
-<p>B:  因为 0xf4 是-12的补码所以这里是 400431-12 = 400425</p>
-<p>C:  根据反汇编器产生的注释，跳转目标是绝对地址 0x400547.那么根据字节编码，一定在距离pop 0x2 的地址处。减去这个值就得到地址 0x400545. 注意，ja指令的编码需要2个字节，它一定位于地址0x400543处。</p>
-<p>D: jmpq 是 e9, XXXXXX = 0xffffff73(负数)+0x4005ed =0x400560</p>
-<h3 id="用条件控制来实现条件分支"><a href="#用条件控制来实现条件分支" class="headerlink" title="用条件控制来实现条件分支"></a>用条件控制来实现条件分支</h3><h3 id="用条件传送来实现条件分支"><a href="#用条件传送来实现条件分支" class="headerlink" title="用条件传送来实现条件分支"></a>用条件传送来实现条件分支</h3><h3 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h3><h3 id="switch-语句"><a href="#switch-语句" class="headerlink" title="switch 语句"></a>switch 语句</h3><h2 id="过程"><a href="#过程" class="headerlink" title="过程"></a>过程</h2><h3 id="运行时栈"><a href="#运行时栈" class="headerlink" title="运行时栈"></a>运行时栈</h3><h3 id="转移控制"><a href="#转移控制" class="headerlink" title="转移控制"></a>转移控制</h3><h3 id="数据传送"><a href="#数据传送" class="headerlink" title="数据传送"></a>数据传送</h3><h3 id="栈上的局部存储"><a href="#栈上的局部存储" class="headerlink" title="栈上的局部存储"></a>栈上的局部存储</h3><h3 id="寄存器中的局部存储空间"><a href="#寄存器中的局部存储空间" class="headerlink" title="寄存器中的局部存储空间"></a>寄存器中的局部存储空间</h3><h3 id="递归过程"><a href="#递归过程" class="headerlink" title="递归过程"></a>递归过程</h3>
+<h3 id="特殊的算数操作"><a href="#特殊的算数操作" class="headerlink" title="特殊的算数操作"></a>特殊的算数操作</h3>
       
     </div>
     
@@ -896,7 +792,7 @@
               
                 <a href="/archives%7C%7C%20archive">
               
-                  <span class="site-state-item-count">255</span>
+                  <span class="site-state-item-count">257</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -918,7 +814,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-count">36</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
@@ -989,7 +885,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP程序的机器级表示1"><span class="nav-number">1.</span> <span class="nav-text">CSAPP程序的机器级表示1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#程序编码"><span class="nav-number">1.1.</span> <span class="nav-text">程序编码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#机器级代码"><span class="nav-number">1.1.1.</span> <span class="nav-text">机器级代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码示例"><span class="nav-number">1.1.2.</span> <span class="nav-text">代码示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关于格式的注解"><span class="nav-number">1.1.3.</span> <span class="nav-text">关于格式的注解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据格式"><span class="nav-number">1.2.</span> <span class="nav-text">数据格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#访问信息"><span class="nav-number">1.3.</span> <span class="nav-text">访问信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#操作数指示符"><span class="nav-number">1.3.1.</span> <span class="nav-text">操作数指示符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据传送指令"><span class="nav-number">1.3.2.</span> <span class="nav-text">数据传送指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据传送示例"><span class="nav-number">1.3.3.</span> <span class="nav-text">数据传送示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压入和弹出栈数据"><span class="nav-number">1.3.4.</span> <span class="nav-text">压入和弹出栈数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算数和逻辑操作"><span class="nav-number">1.4.</span> <span class="nav-text">算数和逻辑操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#加载有效地址"><span class="nav-number">1.4.1.</span> <span class="nav-text">加载有效地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一元和二元操作"><span class="nav-number">1.4.2.</span> <span class="nav-text">一元和二元操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移位操作"><span class="nav-number">1.4.3.</span> <span class="nav-text">移位操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#特殊的算数操作"><span class="nav-number">1.4.4.</span> <span class="nav-text">特殊的算数操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#控制"><span class="nav-number">1.5.</span> <span class="nav-text">控制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#条件码"><span class="nav-number">1.5.1.</span> <span class="nav-text">条件码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#访问条件码"><span class="nav-number">1.5.2.</span> <span class="nav-text">访问条件码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#跳转指令"><span class="nav-number">1.5.3.</span> <span class="nav-text">跳转指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#跳转指令的编码"><span class="nav-number">1.5.4.</span> <span class="nav-text">跳转指令的编码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用条件控制来实现条件分支"><span class="nav-number">1.5.5.</span> <span class="nav-text">用条件控制来实现条件分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用条件传送来实现条件分支"><span class="nav-number">1.5.6.</span> <span class="nav-text">用条件传送来实现条件分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#循环"><span class="nav-number">1.5.7.</span> <span class="nav-text">循环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#switch-语句"><span class="nav-number">1.5.8.</span> <span class="nav-text">switch 语句</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#过程"><span class="nav-number">1.6.</span> <span class="nav-text">过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#运行时栈"><span class="nav-number">1.6.1.</span> <span class="nav-text">运行时栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#转移控制"><span class="nav-number">1.6.2.</span> <span class="nav-text">转移控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据传送"><span class="nav-number">1.6.3.</span> <span class="nav-text">数据传送</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#栈上的局部存储"><span class="nav-number">1.6.4.</span> <span class="nav-text">栈上的局部存储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#寄存器中的局部存储空间"><span class="nav-number">1.6.5.</span> <span class="nav-text">寄存器中的局部存储空间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#递归过程"><span class="nav-number">1.6.6.</span> <span class="nav-text">递归过程</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP程序的机器级表示1"><span class="nav-number">1.</span> <span class="nav-text">CSAPP程序的机器级表示1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#程序编码"><span class="nav-number">1.1.</span> <span class="nav-text">程序编码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#机器级代码"><span class="nav-number">1.1.1.</span> <span class="nav-text">机器级代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码示例"><span class="nav-number">1.1.2.</span> <span class="nav-text">代码示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关于格式的注解"><span class="nav-number">1.1.3.</span> <span class="nav-text">关于格式的注解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据格式"><span class="nav-number">1.2.</span> <span class="nav-text">数据格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#访问信息"><span class="nav-number">1.3.</span> <span class="nav-text">访问信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#操作数指示符"><span class="nav-number">1.3.1.</span> <span class="nav-text">操作数指示符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据传送指令"><span class="nav-number">1.3.2.</span> <span class="nav-text">数据传送指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据传送示例"><span class="nav-number">1.3.3.</span> <span class="nav-text">数据传送示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压入和弹出栈数据"><span class="nav-number">1.3.4.</span> <span class="nav-text">压入和弹出栈数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算数和逻辑操作"><span class="nav-number">1.4.</span> <span class="nav-text">算数和逻辑操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#加载有效地址"><span class="nav-number">1.4.1.</span> <span class="nav-text">加载有效地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一元和二元操作"><span class="nav-number">1.4.2.</span> <span class="nav-text">一元和二元操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移位操作"><span class="nav-number">1.4.3.</span> <span class="nav-text">移位操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#特殊的算数操作"><span class="nav-number">1.4.4.</span> <span class="nav-text">特殊的算数操作</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
@@ -1030,7 +926,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">446.2k</span>
+    <span title="Site words total count">452.7k</span>
   
 </div>
 
