@@ -105,8 +105,12 @@
 <meta property="og:image" content="https://jasonxqh.github.io/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/9.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/10.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/15.png">
 <meta property="article:published_time" content="2020-10-20T08:55:46.000Z">
-<meta property="article:modified_time" content="2020-10-20T14:27:14.450Z">
+<meta property="article:modified_time" content="2020-10-21T13:11:14.683Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="CSAPP">
 <meta name="twitter:card" content="summary">
@@ -398,7 +402,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  1.4k
+                  2.7k
                 </span>
               
 
@@ -414,7 +418,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  6
+                  11
                 </span>
               
             </div>
@@ -554,7 +558,54 @@
 <p>Element access Mem[Mem[univ+8*index]+4*digit]</p>
 <p>对二维数组的两种存储方法(Nested array和 Multi-level array) ，我们可以做一个对比：</p>
 <p><img src="/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/11.png" style="zoom:90%;"></p>
-
+<h2 id="异质的数据结构"><a href="#异质的数据结构" class="headerlink" title="异质的数据结构"></a>异质的数据结构</h2><p>C语言中有 structure(结构)，用struct声明，将多个对象集合到一个单位中</p>
+<p>union(联合)，用关键字union来声明，允许用几种不同类型来引用一个对象。</p>
+<h3 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h3><p>struct结构类似于数组的实现，它将所有组成部分都存放在内存中一段连续的区域内，而只想结构的指针就是结构第一个字节的地址。</p>
+<p>比如下面这个例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">rec</span> &#123;</span></span><br><span class="line">	<span class="keyword">int</span> a[<span class="number">4</span>];</span><br><span class="line">	<span class="keyword">size_t</span> i;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">rec</span> *<span class="title">next</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/12.png" style="zoom:90%;"></p>
+<p>我们看到首先声明的是 一个int类型的数组，占用 4x4 =16 个字节。然后是size_t ，在64位机器下是8个字节。 next是一个指针，至下关下一个struct，所以占用8个byte。 可以观察到 数组 a 是嵌入到这个结构当中的。</p>
+<hr>
+<p>现在我想计算出指向a中某个数据的指针，我们应该如何操作？</p>
+<p>代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> *<span class="title">get_ap</span> <span class="params">(struct rec *r, <span class="keyword">size_t</span> idx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;r-&gt;a[idx];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在汇编代码中，编译器会这么处理：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># r in %rdi, idx in %rsi</span><br><span class="line">leaq 	(%rdi,%rsi,4), %rax</span><br><span class="line">ret</span><br></pre></td></tr></table></figure>
+<hr>
+<p>现在我想计算一条链表中的长度,我们可以写一个这样的代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">length</span><span class="params">(struct rec*r)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> len = <span class="number">0L</span>;</span><br><span class="line">    <span class="keyword">while</span> (r) &#123;</span><br><span class="line">        len ++;</span><br><span class="line">        r = r-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> len;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其汇编代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.L11: 						# loop:</span><br><span class="line">    addq 	$1, %rax 		# len ++</span><br><span class="line">    movq 	24(%rdi), %rdi	# r &#x3D; Mem[r+24]</span><br><span class="line">    testq 	%rdi, %rdi 		# Test r</span><br><span class="line">    jne 	.L11 			# If !&#x3D; 0, goto loop</span><br></pre></td></tr></table></figure>
+<p>因为一个struct占用的空间为32byte，但是最后8byte指向的是下一个struct 开始的地址，所以我们只要读出 在 r+24处的地址并判断其是否为空即可判断链表是否已经到达尾端</p>
+<p>r+24 是 next的地址，next地址上的值 = 下一个struct的开头地址</p>
+<hr>
+<p>再来看看下面这个可能会出现问题的代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">set_val</span> <span class="params">(struct rec *r, <span class="keyword">int</span> val)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">while</span> (r) &#123;</span><br><span class="line">        <span class="keyword">size_t</span> i = r-&gt;i;</span><br><span class="line">        r-&gt;a[i] = val;</span><br><span class="line">        r = r-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>先把 i 命令成 struct里面的 i，然后将 val的值赋给 a[i] ,然后再指向下一个struct</p>
+<p>其汇编代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.L11: 							# loop:</span><br><span class="line">    movq   16(%rdi), %rax	 	# i &#x3D; Mem[r+16]</span><br><span class="line">    movl   %esi, (%rdi,%rax,4) 	# Mem[r+4*i] &#x3D; val</span><br><span class="line">    movq   24(%rdi), %rdi 		# r &#x3D; Mem[r+24]</span><br><span class="line">    testq  %rdi, %rdi 			# Test r</span><br><span class="line">    jne    .L11 				# if !&#x3D;0 goto loop</span><br></pre></td></tr></table></figure>
+<p>先取出 r+16 地址上的值赋给 i，然后再将$r+4\cdot i $地址上的值赋值给 $val$</p>
+<p>但是这样写会出现意想不到的结果，因为a只有4个位置，如果 struct 中的 $i\geq 4$ 的话，事实上 r-&gt;a[i] = val 实际上改动的是 r-&gt;i =val甚至报错 因为struct是在内存上连续存储的，C语言也不会检查数组是否会越界。于是 a[4] 其实修改的是 r-&gt;i 的值，而如果 i继续增大的话，到了没有分配内存的区域，C语言就会报错。</p>
+<h3 id="联合"><a href="#联合" class="headerlink" title="联合"></a>联合</h3><h3 id="数据对齐"><a href="#数据对齐" class="headerlink" title="数据对齐"></a>数据对齐</h3><p>在struct中，我们要进行数据对齐。</p>
+<p>对于一个 struct 例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">S1</span> &#123;</span></span><br><span class="line">    <span class="keyword">char</span> c;</span><br><span class="line">    <span class="keyword">int</span> i[<span class="number">2</span>];</span><br><span class="line">    <span class="keyword">double</span> v;</span><br><span class="line">&#125; *p;</span><br></pre></td></tr></table></figure>
+<p>在真实的内存当中，它其实是这么存储的：</p>
+<p><img src="/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/13.png" style="zoom:90%;"></p>
+<p>对于一个数据类型，它在内存里的起始位置必须是它大小的倍数：</p>
+<p>对于一个 character来说，它在哪里存储都可以，因为其长度只有1byte</p>
+<p>对于一个 int 来说，他的起始位置必须是4的倍数</p>
+<p>对以一个double来说，它的起始位置必须是8的倍数。</p>
+<p>这就造成了中间空出来的空间。虽然一个struct只要17个字节，但是像这样写C语言，存储的时候却需要24的字节</p>
+<p>为什么要对齐？</p>
+<p>因为数据不一定放在内存里，而放在cache里面，从 cache里面取数据会比内存里取快很多。cache是很小的，一个cache line是64个byte。我们希望当取一个struct的时候，我们希望这个数据项不要跨两个cache，而放在一个 cache line里面。如果一个结构跨cache line存储，那么取了一条cache line，还有一条在外面：这样就导致即没有让速度变快，又浪费了cache line。这种情况叫做 miss,会极大的影响机器的性能。</p>
+<p>所以对于struct来说，我们宁可空出一段内存，也要让cache的命中率增加，从而提升整个程序的运算速度。</p>
+<p><img src="/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/14.png" style="zoom:90%;"></p>
+<p>对于一个结构数组，我们发现，即使是把最大的数据放在前面，满打满算用完17个字节，在存储的时候仍然要在最后补上空白的一些空间。这是因为要将整个struct大小补全到8的倍数，这里是24个字节。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">short <span class="title">get_j</span><span class="params">(<span class="keyword">int</span> idx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> a[idx].j;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># %rdi &#x3D; idx</span><br><span class="line">leaq 	(%rdi,%rdi,2),%rax 	# 3*idx</span><br><span class="line">movzwl 	a+8(,%rax,4),%eax</span><br></pre></td></tr></table></figure>
+<p>在某种情况下，我们可以节省空间：</p>
+<p><img src="/2020/10/20/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA3/15.png" style="zoom:90%;"></p>
+<h2 id="浮点代码"><a href="#浮点代码" class="headerlink" title="浮点代码"></a>浮点代码</h2>
       
     </div>
     
@@ -794,7 +845,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP程序的机器级表示3"><span class="nav-number">1.</span> <span class="nav-text">CSAPP程序的机器级表示3</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数组的分配和访问"><span class="nav-number">1.1.</span> <span class="nav-text">数组的分配和访问</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本原则"><span class="nav-number">1.1.1.</span> <span class="nav-text">基本原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#访问数组"><span class="nav-number">1.1.2.</span> <span class="nav-text">访问数组</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Array-Loop-Example"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">Array Loop Example</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#嵌套数组-Nested"><span class="nav-number">1.1.3.</span> <span class="nav-text">嵌套数组(Nested)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Nested-Array-Row-access"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">Nested Array Row access</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Nested-Array-Element-access"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">Nested Array Element access</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Multi-Level-Array"><span class="nav-number">1.1.4.</span> <span class="nav-text">Multi-Level Array</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP程序的机器级表示3"><span class="nav-number">1.</span> <span class="nav-text">CSAPP程序的机器级表示3</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数组的分配和访问"><span class="nav-number">1.1.</span> <span class="nav-text">数组的分配和访问</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本原则"><span class="nav-number">1.1.1.</span> <span class="nav-text">基本原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#访问数组"><span class="nav-number">1.1.2.</span> <span class="nav-text">访问数组</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Array-Loop-Example"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">Array Loop Example</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#嵌套数组-Nested"><span class="nav-number">1.1.3.</span> <span class="nav-text">嵌套数组(Nested)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Nested-Array-Row-access"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">Nested Array Row access</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Nested-Array-Element-access"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">Nested Array Element access</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Multi-Level-Array"><span class="nav-number">1.1.4.</span> <span class="nav-text">Multi-Level Array</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异质的数据结构"><span class="nav-number">1.2.</span> <span class="nav-text">异质的数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#结构"><span class="nav-number">1.2.1.</span> <span class="nav-text">结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#联合"><span class="nav-number">1.2.2.</span> <span class="nav-text">联合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据对齐"><span class="nav-number">1.2.3.</span> <span class="nav-text">数据对齐</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#浮点代码"><span class="nav-number">1.3.</span> <span class="nav-text">浮点代码</span></a></li></ol></li></ol></div>
             
 
           </div>
@@ -835,7 +886,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">460.5k</span>
+    <span title="Site words total count">462.4k</span>
   
 </div>
 
