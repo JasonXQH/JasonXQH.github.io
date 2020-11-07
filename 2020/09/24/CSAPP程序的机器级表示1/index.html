@@ -114,7 +114,7 @@
 <meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/13.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/22.png">
 <meta property="article:published_time" content="2020-09-24T00:43:24.000Z">
-<meta property="article:modified_time" content="2020-10-15T13:30:21.769Z">
+<meta property="article:modified_time" content="2020-11-02T13:45:14.514Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="CSAPP">
 <meta name="twitter:card" content="summary">
@@ -469,7 +469,7 @@
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"stdio.h"</span></span></span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">mult2</span><span class="params">(<span class="keyword">long</span>,<span class="keyword">long</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">multstore</span><span class="params">(<span class="keyword">long</span> x,<span class="keyword">long</span> y,<span class="keyword">long</span> *dest)</span></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> t = mult2(x,y);</span><br><span class="line">    *dest = t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>然后我们用 <code>gcc -Og -S mstore.c</code> 命令来进行编译</p>
 <p>得到mulstore的汇编语言形式：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">multstore:</span><br><span class="line">	pushq	%rbx</span><br><span class="line">	.seh_pushreg	%rbx</span><br><span class="line">	subq	$<span class="number">32</span>, %rsp</span><br><span class="line">	.seh_stackalloc	<span class="number">32</span></span><br><span class="line">	.seh_endprologue</span><br><span class="line">	movq	%r8, %rbx</span><br><span class="line">	call	mult2</span><br><span class="line">	movl	%eax, (%rbx)</span><br><span class="line">	addq	$<span class="number">32</span>, %rsp</span><br><span class="line">	popq	%rbx</span><br><span class="line">	ret</span><br><span class="line">	.seh_endproc</span><br><span class="line">	.ident	<span class="string">"GCC: (tdm64-1) 4.9.2"</span></span><br><span class="line">	.def	mult2;	.scl	<span class="number">2</span>;	.type	<span class="number">32</span>;	.endef</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">multstore:</span><br><span class="line">	pushq			%rbx</span><br><span class="line">	.seh_pushreg	%rbx</span><br><span class="line">	subq			$32, %rsp</span><br><span class="line">	.seh_stackalloc	32</span><br><span class="line">	.seh_endprologue</span><br><span class="line">	movq			%r8, %rbx</span><br><span class="line">	call			mult2</span><br><span class="line">	movl			%eax, (%rbx)</span><br><span class="line">	addq			$32, %rsp</span><br><span class="line">	popq			%rbx</span><br><span class="line">	ret</span><br><span class="line">	.seh_endproc</span><br><span class="line">	.ident			&quot;GCC: (tdm64-1) 4.9.2&quot;</span><br><span class="line">	.def			mult2;	.scl	2;	.type	32;	.endef</span><br></pre></td></tr></table></figure>
 <p>上面代码mulstore下的每行都代表一条机器指令。比如 pushq指令表示应该将寄存器 %rbx 的内容压入程序栈当中。这段代码中已经除去了所有关于局部变量名或者数据类型的信息。</p>
 <p>我们再进一步用 <code>gcc -Og -c mstore.c</code> 来进行编译，这就会产生目标代码文件 mstore.c ，他是二进制格式的无法直接查看。转换为十六进制之后可以看到汇编指令对应的目标代码。</p>
 <p>我们从中得到一个重要信息，即机器执行的程序只是一个字节序列，它是对一系列指令的编码。机器对产生这些指令的源代码几乎一无所知</p>
@@ -491,9 +491,9 @@
 <p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/1.png" style="zoom: 120%;"></p>
 <p>浮点数主要有两种形式</p>
 <ul>
-<li><p>单精度(4字节) 值，对应于C中的float</p>
+<li><p>单精度(4字节) 值，对应于C中的 Float</p>
 </li>
-<li><p>双精度(8字节) 值，对应于C中的Double</p>
+<li><p>双精度(8字节) 值，对应于C中的 Double</p>
 <p>大多数GCC生成的汇编代码指令都有一个字符的后缀，表明操作数的大小。比如 <code>moveb(传送字节)</code> 、<code>movw(传送字)</code> …</p>
 <p>后缀‘l’用来表示双字，因为32 位数被看成是“长字（long word)” 。注意，汇编代码也使用后缀‘l’来表示4 字节整数和8 字节双精度浮点数。这不会产生歧义，因为浮点数使用的是一组完全不同的指令和寄存器。</p>
 </li>
@@ -527,7 +527,7 @@
 <p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/3.png" style="zoom: 100%;"></p>
 <p>我们来 仔细解读一下这张表格，$$Imm 和R[r_a]$ 就不用说了。</p>
 <ul>
-<li>$M[Imm]$ 是绝对寻址。也就是按照Imm 取内存中寻址</li>
+<li>$M[Imm]$ 是绝对寻址。也就是按照<code>Imm</code> 取内存中寻址</li>
 <li>$M[R[r_0]]$ 是间接寻址。也就是说寄存器R中指定了一段内存地址，然后以此去寻址。<ul>
 <li><code>moveq (%rcx),%rax</code></li>
 </ul>
@@ -587,9 +587,9 @@
 <p>目的操作数指定一个位置们要么是一个寄存器地址要么是一个内存地址。</p>
 <p>x86-64规定传送指令的两个操作数不能都指向内存位置。将一个值从一个内存位置复制到另一个内存位置需要两条指令：第一条指令将源值加载到寄存器中，第二条将该寄存器值写入目的位置。</p>
 <p>这些指令的寄存器可以是16个寄存器有标号部分中的任意一个，寄存器部分的大小必须和指令的后缀(bwlq) 指定的大小相匹配。</p>
-<p>有一个例外，当movl指令以寄存器位目的时，它会把该寄存器的高位4字节设置为0。这是因为x86-64采用的任何寄存器生成32位值都会把该寄存器的高位部分设置为0这一惯例。</p>
+<p>有一个例外，当<code>movl</code>指令以寄存器位目的时，它会把该寄存器的高位4字节设置为0。这是因为x86-64采用的任何寄存器生成32位值都会把该寄存器的高位部分设置为0这一惯例。</p>
 <p>例子：</p>
-<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/6.png" style="zoom: 100%;"></p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/6.png" style="zoom: 120%;"></p>
 <p>第一个是源操作数(source)，第二个是目的操作数(destination).</p>
 <ul>
 <li>第一行就是将一个立即数放到寄存器当中，长度为4个字节</li>
@@ -600,7 +600,7 @@
 </ul>
 <p>下面两张表格记录的是两类移动指令，是当将较小的源值复制到较大的目的时使用的。</p>
 <p>MOVZ类中的指令是在复制到寄存器后将剩余的字节填充为0</p>
-<p>MOVS类中的指令则是通过符号扩展来填充，吧源操作数的最高位进行赋值。</p>
+<p>MOVS类中的指令则是通过符号扩展来填充，把源操作数的最高位进行赋值。</p>
 <p>我们可以看到每条指令名字的后两个字符都是大小指示符，第一个字符指定源的大小，而第二个指明destination的大小</p>
 <p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/7.png" style="zoom: 100%;"></p>
 <p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/8.png" style="zoom: 130%;"></p>
@@ -651,7 +651,7 @@
 <h3 id="数据传送示例"><a href="#数据传送示例" class="headerlink" title="数据传送示例"></a>数据传送示例</h3><p>我们现在来考虑一个exchange代码</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">exchange</span><span class="params">(<span class="keyword">long</span> *xp, <span class="keyword">long</span> y)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> x = *xp;</span><br><span class="line">    *xp = y;</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>然后看看这个函数的汇编代码：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">long exchange(long *xp, long y)</span><br><span class="line">xp in %rdi, y in %rsi</span><br><span class="line">1 exchange:</span><br><span class="line">2	 movq (%rdi), %rax 		Get x at xp. Set as return value.</span><br><span class="line">3	 movq %rsi, (%rdi) 		Store y at xp.</span><br><span class="line">4	 ret 					Return.</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">long exchange(long *xp, long y)</span><br><span class="line">xp in %rdi, y in %rsi</span><br><span class="line">exchange:</span><br><span class="line">	 movq 	(%rdi), %rax 		Get x at xp. Set as return value.</span><br><span class="line">	 movq 	%rsi, (%rdi) 		Store y at xp.</span><br><span class="line">	 ret 						Return.</span><br></pre></td></tr></table></figure>
 <p>我们看到函数exchange由三条指令实现：两个数据传送(movq) 加上一条返回函数被调用点的指令(ret)</p>
 <p>当过程开始时，参数xp和y分别存储在 $\%rdi$ 和$\%rsi$ 中。然后，指令2从内存中读出xp指向的x，将其存到寄存器$\%rax$ 中，直接实现了C程序中的操作 $x=*xp$ 。然后用 $\%rax$ 从这个函数返回一个值，因而返回的值就是x</p>
 <p>指令3将y写入到寄存器$\%rdi$ 中的 $xp$ 指向的内存位置，直接实现了操作 $*xp=y$ 这个例子说明了如何用 $MOV$ 指令从内存中读值到寄存器，如何从寄存器写到内存当中。</p>
@@ -664,34 +664,34 @@
 <p>这道题要注意几个点:</p>
 <ul>
 <li>高位转向低位(如 int 转成 char; unsigned 转换为 unsigned char)  不需要用 <code>movzbl,movsbl</code>之类的命令，直接将后几位移动到相应大小的寄存器即可</li>
-<li>低位转为高位，需要进行符号扩展或零扩展；选择那种扩展取决于源数据的数据类型。比如源数据是char，转换为unsigned，那么就要用<code>movsbl</code>来进行符号扩展； 如果原来是unsigned char 要转换为long类型，那么就要用<code>movzbl</code> 来 进行 零扩展。</li>
+<li>低位转为高位，需要进行符号扩展或零扩展；选择那种扩展取决于源数据的数据类型。比如<strong>源数据是char，转换为unsigned</strong>，那么就要用<code>movsbl</code>来进行符号扩展； 如果<strong>原来是unsigned char 要转换为long类型</strong>，那么就要用 <code>movzbl</code> 来 进行 零扩展。</li>
 </ul>
 <p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/21.png" style="zoom: 130%;"></p>
 <p><code>%r8,%rcx,%rax</code>是三个新的变量，我们不妨将其命名为x,y,z</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">decode1</span><span class="params">(<span class="keyword">long</span> *xp,<span class="keyword">long</span> *yp,<span class="keyword">long</span> *zp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	x = *xp;</span><br><span class="line">	y = *yp</span><br><span class="line">	z = *zp;</span><br><span class="line">	*yp = x;</span><br><span class="line">	*zp = y;</span><br><span class="line">	*xp = z;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h3 id="压入和弹出栈数据"><a href="#压入和弹出栈数据" class="headerlink" title="压入和弹出栈数据"></a>压入和弹出栈数据</h3><p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/9.png" style="zoom: 130%;"></p>
 <p>pushq指令的功能就是把数据压入到栈上，而popq指令是弹出数据。这些指令都只有一个操作数-压入的数据源 和 弹出的数据目的</p>
-<p>将一个四字值压入栈中，首先要将栈指针减去8，然后将值写到新的栈顶地址。因此指令 $pushq ~~\%rbp$ 的行为等价于</p>
+<p>将一个四字值压入栈中，<strong>首先要将栈指针减去8</strong>，然后<strong>将值写到新的栈顶地址</strong>。因此指令 $pushq ~~\%rbp$ 的行为<strong>等价于</strong></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">subq $8,%rsp</span><br><span class="line">movq %rbp,(%rsp)</span><br></pre></td></tr></table></figure>
 <p>只是前面的 $pushq ~~\%rbp$  只是一个字节，而后面两条指令一共需要8个字节。</p>
 <p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/10.png" style="zoom: 130%;"></p>
 <p>上图的最右边说得是在pushq后立即执行指令 popq %rdx 的效果。先从内存中读取值 0x123,再写道寄存器 $\%rdx$ 中，然后，寄存器 $\%rsp$ 的值将从 0x100增加到 0x108 . 如图，值0x123仍然会保存在内存位置 $0x100$ 中，直到被覆盖。无论如何，$\% rsp$ 指向的地址总是栈顶。</p>
-<p>因为栈和程序代码以及其他形式的程序数据都是放在同一内存中，所以程序可以用标准的内存寻址方法访问栈内的任意位置。例如，假设栈顶元素是四字，指令movq 8(rsp),%rdx  会将第二个四字从栈中复制到寄存器 %rdx</p>
+<p>因为栈和程序代码以及其他形式的程序数据都是放在同一内存中，所以程序可以用标准的内存寻址方法访问栈内的任意位置。例如，假设栈顶元素是四字，指令movq 8(rsp),%rdx  会将第二个四字<strong>从栈中复制到寄存器</strong> %rdx</p>
 <h2 id="算数和逻辑操作"><a href="#算数和逻辑操作" class="headerlink" title="算数和逻辑操作"></a>算数和逻辑操作</h2><p>下面是一些整数和逻辑操作。大多数操作分成了指令类，这些指令类有各种带不同大小操作数的变种(除了leaq外）。 例如ADD由四条加法指令 addb、addw、addl、addq 组成。</p>
 <p>事实上给出的每个指令类都有对这四种大小不同的数据的指令。这些操作被分为四组：加载有效地址、一元操作、二元操作和移位。二元操作有两个操作数，而一元操作有一个操作数。</p>
 <p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/11.png" style="zoom: 100%;"></p>
 <h3 id="加载有效地址"><a href="#加载有效地址" class="headerlink" title="加载有效地址"></a>加载有效地址</h3><p>load effective address(加载有效地址)指令leaq 实际上是 movq的变形。</p>
-<p>leaq src,Dst</p>
+<p><code>leaq src,Dst</code></p>
 <ul>
 <li>Src is address mode expression</li>
 <li>Set Dst to address denoted by expression</li>
 </ul>
-<p>leaq主要用来简洁的描述普通的算术操作。例如如果寄存器 $\%rdx$ 的值为x，那么指令 $leaq ~~7(\%rdx,\%rdx,4),\%rax$ 将设置寄存器 $\%rax$ 的值为 $5x+7$ ,编译器经常发现 leaq 的一些灵活用法，根本和有效地址计算无关</p>
+<p><code>leaq</code>主要用来简洁的描述普通的算术操作。例如如果寄存器 $\%rdx$ 的值为x，那么指令 $leaq ~~7(\%rdx,\%rdx,4),\%rax$ 将设置寄存器 $\%rax$ 的值为 $5x+7$ ,编译器经常发现 <code>leaq</code> 的一些灵活用法，根本和有效地址计算无关</p>
 <p>比如下面这个C程序</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">scale</span><span class="params">(<span class="keyword">long</span> x, <span class="keyword">long</span> y, <span class="keyword">long</span> z)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">long</span> t = x + <span class="number">4</span> * y + <span class="number">12</span> * z;</span><br><span class="line">	<span class="keyword">return</span> t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>编译成汇编语言的到</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">long scale(long x, long y, long z)</span><br><span class="line">x in %rdi, y in %rsi, z in %rdx</span><br><span class="line">scale:</span><br><span class="line">leaq (%rdi,%rsi,4), %rax 	x + 4*y</span><br><span class="line">leaq (%rdx,%rdx,2), %rdx 	z + 2*z &#x3D; 3*z</span><br><span class="line">leaq (%rax,%rdx,4), %rax 	(x+4*y) + 4*(3*z) &#x3D; x + 4*y + 12*z</span><br><span class="line">ret</span><br></pre></td></tr></table></figure>
-<p>leaq能执行加法和有限形式的乘法，在编译如上简单的算术表达式时，是很有用处的。</p>
+<p>leaq 能执行加法和有限形式的乘法，在编译如上简单的算术表达式时，是很有用处的。</p>
 <h3 id="一元和二元操作"><a href="#一元和二元操作" class="headerlink" title="一元和二元操作"></a>一元和二元操作</h3><p>这一组操作是一元操作，只有一个操作数，既是源又是目的。这个操作数可以实寄存器也可以是一个内存位置。</p>
 <p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/12.png" style="zoom: 100%;"></p>
 <p>第三组是二元操作，其中，第二个操作数既是源又是目的。这种语法让人想起C 语言中的赋值运算符，例如x-=y。 不过，要注意，源操作数是第一个，目的操作数是第二个, 对于不可交换操作来说，这看上去很奇特。例如，指令<code>subq%rax,%rdx</code> 使寄存器<code>%rdx</code>的值减去<code>％rax</code> 中的值。（将指令解成”从<code>%rdx</code> 中减去<code>％rax</code>” 会有所帮助。）第一个操作数可以是立即数、寄存器或是内存位置。第二个操作数可以是寄存器或是内存位置。注意，当第二个操作数为内存地址时，处理器必须从内存读出值，执行操作，再把结果写回内存.</p>
@@ -850,7 +850,7 @@
               
                 <a href="/archives%7C%7C%20archive">
               
-                  <span class="site-state-item-count">270</span>
+                  <span class="site-state-item-count">276</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -872,7 +872,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-count">37</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
@@ -984,7 +984,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">488.5k</span>
+    <span title="Site words total count">493.6k</span>
   
 </div>
 
