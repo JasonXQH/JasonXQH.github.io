@@ -113,8 +113,11 @@
 <meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/16.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/17.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/21.png">
 <meta property="article:published_time" content="2020-11-21T06:10:24.000Z">
-<meta property="article:modified_time" content="2020-11-23T08:13:01.384Z">
+<meta property="article:modified_time" content="2020-11-23T15:44:15.624Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="CSAPP">
 <meta name="twitter:card" content="summary">
@@ -406,7 +409,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  5.1k
+                  6.3k
                 </span>
               
 
@@ -422,7 +425,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  19
+                  25
                 </span>
               
             </div>
@@ -742,7 +745,80 @@
 </ul>
 </li>
 </ul>
-<h3 id="动态链接共享库-shared-library"><a href="#动态链接共享库-shared-library" class="headerlink" title="动态链接共享库(shared library)"></a>动态链接共享库(shared library)</h3>
+<p>题目：</p>
+<p>a和b表示当前路径中的目标模块和静态库，而 $a\rightarrow b$ 表示 $a$ 依赖于 $b$ ,也就是说 $a$ 引用了一个$b$ 定义的符号。对于下面每个场景，给出<strong>使得静态链接器能够解析所有符号</strong>引用的最小的命令行(即含有最少数量的目标文件和库函数的命令)</p>
+<ul>
+<li><p>A. $p.o\rightarrow libx.a \rightarrow p.o $</p>
+</li>
+<li><p>B. $p.o\rightarrow libx.a\rightarrow liby.a$ 和 $liby.a\rightarrow libx.a$</p>
+</li>
+<li><p>C. $p.o\rightarrow libx.a \rightarrow liby.a\rightarrow libz.a$ 和 $liby.a\rightarrow libx.a\rightarrow libz.a$  </p>
+</li>
+</ul>
+<h3 id="动态链接共享库-shared-library"><a href="#动态链接共享库-shared-library" class="headerlink" title="动态链接共享库(shared library)"></a>动态链接共享库(shared library)</h3><p>静态链接库有如下缺点：</p>
+<ol>
+<li>增加了硬盘的占用空间</li>
+<li>增加了内存的占用空间，比如说一份printf的代码可能会在内存中存放100份</li>
+<li>如果要更新某些库中的一些函数，我不得不将和这个库有关的程序重新编译链接一遍。这个代价是非常非常大的。编译一个程序是十分消耗时间的。</li>
+</ol>
+<p>所以我们引入了共享库/动态链接库的概念</p>
+<p>当我想要一个 对象文件的时候，我并不将其链接进我们的程序，只有在要使用这个文件的时候，再动态的加载进去。这样就能让磁盘只保存一份库的代码即可</p>
+<p>那么有哪些情况需要用到 object file呢？</p>
+<ol>
+<li>当加载可执行程序的时候，发现要用特定的object file，就将其加载到内存当中去</li>
+<li>可执行程序要用到某个 object file中的某个全局变量或者函数的时候，到那句语句要执行的时候我在将对应的object file加载进去。</li>
+</ol>
+<p>在windows中，这类库叫做 .dll ; 在linux环境下，叫做 .so</p>
+<h4 id="What-dynamic-libraries-are-required"><a href="#What-dynamic-libraries-are-required" class="headerlink" title="What dynamic libraries are required"></a>What dynamic libraries are required</h4><ul>
+<li>.interp section<ul>
+<li>Specifies the dynamic linker to use (i.e.,ld-linux.so)</li>
+</ul>
+</li>
+<li>.dynamic section<ul>
+<li>Specifies the names, etc of the dynamic libraries to use</li>
+</ul>
+</li>
+<li>where are the libraries found <ul>
+<li>专门有一个可执行文件 ldd帮我们去找到我们需要的动态链接库在什么地方</li>
+</ul>
+</li>
+</ul>
+<h4 id="生成一个动态链接库的例子"><a href="#生成一个动态链接库的例子" class="headerlink" title="生成一个动态链接库的例子"></a>生成一个动态链接库的例子</h4><p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/19.png" style="zoom: 120%;"></p>
+<p>将两个 .o 文件，通过命令 <code>gcc -shared -o libvector.so addvec.o multvec.o</code> 这行命令来生成一个 .so 文件。 其中 <code>.o</code> 表示 output，即说明生成的这个文件(共享库)是什么名字。</p>
+<h4 id="Dynamic-Linking-at-load-time"><a href="#Dynamic-Linking-at-load-time" class="headerlink" title="Dynamic Linking at load-time"></a>Dynamic Linking at load-time</h4><p>现在我们来讲一下加载过程中怎么样使用共享库</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/20.png" style="zoom: 120%;"></p>
+<p>我们对程序采用动态链接，这就是编译链接生成函数的内部步骤。</p>
+<p>我们通过 <code>gcc -o prog21 main2.o ./libvector.so</code> 这行命令就可以将main2.o 和我们需要的 libvector.so,libc.so 组合生成prog21文件。</p>
+<p>但是这个prog21文件有 main2.o的代码，但是却没有 libvector.so 的代码，仅仅是在里面“埋了一个伏笔告诉我们会用到libvector.so “</p>
+<p>当我们要运行的时候(最后)，系统会通过动态链接器(ld-linux.so) 将需要的两个 .so 文件加载进去。最终形成一个完整的文件。</p>
+<h4 id="Dynamic-Linking-at-Run-time"><a href="#Dynamic-Linking-at-Run-time" class="headerlink" title="Dynamic Linking at Run-time"></a>Dynamic Linking at Run-time</h4><p>现在有一个程序如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;dlfcn.h&gt;</span></span></span><br><span class="line"><span class="keyword">int</span> x[<span class="number">2</span>] = &#123;<span class="number">1</span>, <span class="number">2</span>&#125;;</span><br><span class="line"><span class="keyword">int</span> y[<span class="number">2</span>] = &#123;<span class="number">3</span>, <span class="number">4</span>&#125;;</span><br><span class="line"><span class="keyword">int</span> z[<span class="number">2</span>];</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">void</span> *handle;<span class="comment">//handle是一个句柄，我们通过handle这个指针来拿到我想要的东西</span></span><br><span class="line">    <span class="keyword">void</span> (*addvec)(<span class="keyword">int</span> *, <span class="keyword">int</span> *, <span class="keyword">int</span> *, <span class="keyword">int</span>);<span class="comment">//函数指针，</span></span><br><span class="line">    <span class="keyword">char</span> *error;<span class="comment">//字符串数组，来传递错误信息的</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* Dynamically load the shared library that contains addvec() */</span></span><br><span class="line">    <span class="comment">//一开始用handle来挂住一个文件，也就是相对路径下的 libvector.so文件</span></span><br><span class="line">    handle = dlopen(<span class="string">"./libvector.so"</span>, RTLD_LAZY);</span><br><span class="line">    <span class="comment">//这里的 LAZY 翻译成 “迟" 的，也就是能不加载就不加载，不得已要的时候才加载</span></span><br><span class="line">    <span class="keyword">if</span> (!handle) &#123;</span><br><span class="line">    	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%s\n"</span>, dlerror());</span><br><span class="line">        <span class="comment">//如果handle没有打开这个文件，那就报标准错误</span></span><br><span class="line">   		<span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get a pointer to the addvec() function we just loaded */</span></span><br><span class="line">    addvec = dlsym(handle, <span class="string">"addvec"</span>);</span><br><span class="line">    <span class="keyword">if</span> ((error = dlerror()) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">//如果dlerror 非空，那么也要把错误输出</span></span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%s\n"</span>, error);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* Now we can call addvec() just like any other function */</span></span><br><span class="line">    addvec(x, y, z, <span class="number">2</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"z = [%d %d]\n"</span>, z[<span class="number">0</span>], z[<span class="number">1</span>]);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* Unload the shared library */</span></span><br><span class="line">    <span class="comment">//如果要关闭外部的资源，要看看handle的返回值是否是负的，负的就要报错</span></span><br><span class="line">    <span class="comment">//我们可以用man来看系统调用。</span></span><br><span class="line">    <span class="keyword">if</span> (dlclose(handle) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%s\n"</span>, dlerror());</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个工程的逻辑如下：</p>
+<p>首先我们要在本地申明一个和要链接的动态库绑定的指针(handle)</p>
+<p>然后打开这个共享库</p>
+<p>然后正常使用共享库当中的符号 </p>
+<p>最后关闭这个共享库</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/21.png" style="zoom: 120%;"></p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li><p>Linking is a technique that allows programs to be constructed from multiple object files.</p>
+<ul>
+<li>链接能让多个目标文件最终组合成一个程序</li>
+</ul>
+</li>
+<li><p>Linking can happen at different times in a program’s lifetime:</p>
+<ul>
+<li>Compile time (when a program is compiled) 编译阶段</li>
+<li>Load time (when a program is loaded into memory) 加载阶段</li>
+<li>Run time (while a program is executing) 运行阶段</li>
+</ul>
+</li>
+<li><p>Understanding linking can help you avoid nasty errors and make you a better programmer.</p>
+<ul>
+<li>了解链接能帮助我们避免恶心的错误</li>
+</ul>
+</li>
+</ul>
+
       
     </div>
     
@@ -982,7 +1058,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP链接-Linking"><span class="nav-number">1.</span> <span class="nav-text">CSAPP链接(Linking)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#编译器驱动程序"><span class="nav-number">1.1.</span> <span class="nav-text">编译器驱动程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三种-Object-Files"><span class="nav-number">1.2.</span> <span class="nav-text">三种 Object Files</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Executable-and-Linkable-Format-ELF"><span class="nav-number">1.2.1.</span> <span class="nav-text">Executable and Linkable Format (ELF)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Relocatable-object-file-o-file"><span class="nav-number">1.2.2.</span> <span class="nav-text">Relocatable object file(.o file)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Executable-object-file-a-out-file"><span class="nav-number">1.2.3.</span> <span class="nav-text">Executable object file(a.out file)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#加载可执行目标文件"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">加载可执行目标文件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Share-object-file-so-file"><span class="nav-number">1.2.4.</span> <span class="nav-text">Share object file(.so file)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#静态链接-符号解析-symbol-resolution"><span class="nav-number">1.3.</span> <span class="nav-text">静态链接-符号解析(symbol resolution)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#"><span class="nav-number">1.3.1.</span> <span class="nav-text"> </span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#静态变量、全局变量、局部变量"><span class="nav-number">1.3.2.</span> <span class="nav-text">静态变量、全局变量、局部变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三种symbols"><span class="nav-number">1.3.3.</span> <span class="nav-text">三种symbols</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关于symbols划分的例题"><span class="nav-number">1.3.4.</span> <span class="nav-text">关于symbols划分的例题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#全局变量"><span class="nav-number">1.3.5.</span> <span class="nav-text">全局变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Use-of-extern-in-h-Files"><span class="nav-number">1.3.6.</span> <span class="nav-text">Use of extern in .h Files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#链接器怎么解决重复定义的？"><span class="nav-number">1.3.7.</span> <span class="nav-text">链接器怎么解决重复定义的？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#静态链接-重定位-relocation"><span class="nav-number">1.4.</span> <span class="nav-text">静态链接-重定位(relocation)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Relocation-Entries"><span class="nav-number">1.4.1.</span> <span class="nav-text">Relocation Entries</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Relocated-text-section"><span class="nav-number">1.4.2.</span> <span class="nav-text">Relocated .text section</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#库-libraries"><span class="nav-number">1.5.</span> <span class="nav-text">库(libraries)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是库？"><span class="nav-number">1.5.1.</span> <span class="nav-text">什么是库？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#静态库-static-library"><span class="nav-number">1.5.2.</span> <span class="nav-text">静态库(static library)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用静态库"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">使用静态库</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态链接共享库-shared-library"><span class="nav-number">1.5.3.</span> <span class="nav-text">动态链接共享库(shared library)</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP链接-Linking"><span class="nav-number">1.</span> <span class="nav-text">CSAPP链接(Linking)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#编译器驱动程序"><span class="nav-number">1.1.</span> <span class="nav-text">编译器驱动程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三种-Object-Files"><span class="nav-number">1.2.</span> <span class="nav-text">三种 Object Files</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Executable-and-Linkable-Format-ELF"><span class="nav-number">1.2.1.</span> <span class="nav-text">Executable and Linkable Format (ELF)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Relocatable-object-file-o-file"><span class="nav-number">1.2.2.</span> <span class="nav-text">Relocatable object file(.o file)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Executable-object-file-a-out-file"><span class="nav-number">1.2.3.</span> <span class="nav-text">Executable object file(a.out file)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#加载可执行目标文件"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">加载可执行目标文件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Share-object-file-so-file"><span class="nav-number">1.2.4.</span> <span class="nav-text">Share object file(.so file)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#静态链接-符号解析-symbol-resolution"><span class="nav-number">1.3.</span> <span class="nav-text">静态链接-符号解析(symbol resolution)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#"><span class="nav-number">1.3.1.</span> <span class="nav-text"> </span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#静态变量、全局变量、局部变量"><span class="nav-number">1.3.2.</span> <span class="nav-text">静态变量、全局变量、局部变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三种symbols"><span class="nav-number">1.3.3.</span> <span class="nav-text">三种symbols</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关于symbols划分的例题"><span class="nav-number">1.3.4.</span> <span class="nav-text">关于symbols划分的例题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#全局变量"><span class="nav-number">1.3.5.</span> <span class="nav-text">全局变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Use-of-extern-in-h-Files"><span class="nav-number">1.3.6.</span> <span class="nav-text">Use of extern in .h Files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#链接器怎么解决重复定义的？"><span class="nav-number">1.3.7.</span> <span class="nav-text">链接器怎么解决重复定义的？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#静态链接-重定位-relocation"><span class="nav-number">1.4.</span> <span class="nav-text">静态链接-重定位(relocation)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Relocation-Entries"><span class="nav-number">1.4.1.</span> <span class="nav-text">Relocation Entries</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Relocated-text-section"><span class="nav-number">1.4.2.</span> <span class="nav-text">Relocated .text section</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#库-libraries"><span class="nav-number">1.5.</span> <span class="nav-text">库(libraries)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是库？"><span class="nav-number">1.5.1.</span> <span class="nav-text">什么是库？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#静态库-static-library"><span class="nav-number">1.5.2.</span> <span class="nav-text">静态库(static library)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用静态库"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">使用静态库</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态链接共享库-shared-library"><span class="nav-number">1.5.3.</span> <span class="nav-text">动态链接共享库(shared library)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#What-dynamic-libraries-are-required"><span class="nav-number">1.5.3.1.</span> <span class="nav-text">What dynamic libraries are required</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#生成一个动态链接库的例子"><span class="nav-number">1.5.3.2.</span> <span class="nav-text">生成一个动态链接库的例子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dynamic-Linking-at-load-time"><span class="nav-number">1.5.3.3.</span> <span class="nav-text">Dynamic Linking at load-time</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dynamic-Linking-at-Run-time"><span class="nav-number">1.5.3.4.</span> <span class="nav-text">Dynamic Linking at Run-time</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">1.5.3.5.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></li></ol></div>
             
 
           </div>
@@ -1023,7 +1099,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">516.4k</span>
+    <span title="Site words total count">517.6k</span>
   
 </div>
 
