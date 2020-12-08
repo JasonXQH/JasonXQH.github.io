@@ -116,8 +116,19 @@
 <meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/19.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/20.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/24.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/25.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/26.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/27.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/28.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/29.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/30.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/31.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/32.png">
 <meta property="article:published_time" content="2020-11-24T05:33:55.000Z">
-<meta property="article:modified_time" content="2020-11-25T14:34:59.222Z">
+<meta property="article:modified_time" content="2020-12-01T14:37:26.789Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="CSAPP">
 <meta name="twitter:card" content="summary">
@@ -409,7 +420,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  5.3k
+                  7.5k
                 </span>
               
 
@@ -425,7 +436,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  18
+                  27
                 </span>
               
             </div>
@@ -619,6 +630,79 @@
 <p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/20.png" style="zoom:90%;"></p>
 <h4 id="TLB-miss"><a href="#TLB-miss" class="headerlink" title="TLB miss"></a>TLB miss</h4><p>当TLB 不命中时，MMU 必须从L1 缓存中取出相应的PTE, 如下图所示。新取出的PTE 存放在TLB 中，可能会覆盖一个已经存在的条目。</p>
 <p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/21.png" style="zoom:90%;"></p>
+<h3 id="Multi-Level-Page-Tables"><a href="#Multi-Level-Page-Tables" class="headerlink" title="Multi-Level Page Tables"></a>Multi-Level Page Tables</h3><p>假设我们的电脑是48位的，每个PTE大小是8 byte，每个页的大小是4kb，那么如果将这些PTE全放到一个page table当中的话，我们就需要 $2^{48}\cdot 2^{-12}\cdot 2^3 = 2^{39}$ bytes 也就是一张512GB的大表，而这张大表有很多的PTE为空，造成了很大浪费。因此仅创建一张页表显然是不现实的。所以我们采用了另一个方案：多层页表</p>
+<p>为了简便，我们这里以二层页表为例：第一层页表中存放的PTE指向的是第二层的某一张页表，而第二层中存放的PTE则是指向内存当中的页</p>
+<p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/22.png" style="zoom:90%;"></p>
+<p>因为第一层很多PTE是空的，那么它们就不会指向一个页表，因此不用为其分配空间，因此节省下了不少内存。事实上，计算机采用的是多层页表，也就是说仅仅双层列表还是不够的。</p>
+<h4 id="Translating-with-a-k-level-Page-Table"><a href="#Translating-with-a-k-level-Page-Table" class="headerlink" title="Translating with a k-level Page Table"></a>Translating with a k-level Page Table</h4><p>这是一个多级列表的示意图，只要最终找到了PPN，那么这一路页表都必须存在。此外，每一层都能节省下一定的空间，最后就能达到一个比较高效的、又体积比较小的方案。</p>
+<p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/23.png" style="zoom:90%;"></p>
+<h2 id="地址翻译总结"><a href="#地址翻译总结" class="headerlink" title="地址翻译总结"></a>地址翻译总结</h2><p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/24.png" style="zoom:90%;"></p>
+<h3 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h3><p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/25.png" style="zoom:90%;"></p>
+<p>首先我们拿到的信息有3点</p>
+<ul>
+<li>虚拟地址是14位的</li>
+<li>物理地址是12位的</li>
+<li>页的大小是64个bytes，也就是 $P= 2^6$  因此 $p=6$ ，这点非常重要，因为p的大小即是 VPO和PPO的位数，因此我们可以在上图画出VPO、PPO所占的位置和PPN(12-6 = 6 位)，VPN(14-6=8位)</li>
+</ul>
+<p>现在有一个虚拟地址 ： $00001101101001$ ,我们就知道它的VPN为 $00001101$ ,其VPO为$101001$ </p>
+<p>根据查找顺序，接下来应该是去TLB当中查找，因此我们还要再VPN的基础上求出TLBT和TLBI。TLBT是标签，TLBI是用于定位的，我们需要现根据TLB的组数来确定TLBI有几位，然后再将剩余位设置成TLBT</p>
+<p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/26.png" style="zoom:90%;"></p>
+<p>我们看到，TLB一共有$4 = 2^2$ 组。因此TLBI为2位，TLBT位6位，因此真个虚拟地址可以做如下划分：</p>
+<p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/27.png" style="zoom:90%;"></p>
+<p>那么根据TLBI我们先定位到set1，然后再根据TLBT(0x03)进行匹配，发现valid位为1，匹配成功，于是我们可以从TLB中取出这个虚拟地址对应的PPN = 2D</p>
+<p>我们知道物理地址是由PPN和PPO组成的，而PPO和VPO又是一模一样的，因此物理地址即可翻译出来：这里要注意，因为PPN只有6位，所以0x2d要写成</p>
+<p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/28.png" style="zoom:90%;"></p>
+<p>有了物理地址，我们就可以去Cache当中找数据了。那么我们首先看一下这个cache的结构，然后再来将物理地址分为Tag、Index和Offset3个部分</p>
+<p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/29.png" style="zoom:90%;"></p>
+<p>我们发现这个Cache一共有$16=2^4$组，那么我们就需要用4位来表示 Cache Index也就是CI，又因为每一组set中，有 $4 = 2^2$个block，因此Cache Offset 需要分配2位，剩下的就是 Cache Tag了。因此在物理内存中的划分如上图所示。</p>
+<p>在Cache中查找数据的时候，首先要查Index，这里是0xA; 找到以后匹配Tag,这里是0x2D，发现匹配上了; 并且Valid bit = 1 。所以这是一个典型的Cache hit.我们根据offset = 1来锁定最终取到的数据为 0x15</p>
+<h2 id="Memory-Mapping"><a href="#Memory-Mapping" class="headerlink" title="Memory Mapping"></a>Memory Mapping</h2><p><strong>Linux</strong> 通过将一个<strong>虚拟内存区域</strong>与一个<strong>磁盘上的对象</strong>（object)关联起来，以初始化这个虚拟内存区域的内容，这个过程称为内存映射(memory mapping)。有了内存映射，我们就只要访问像访问内存一样访问磁盘上的对象，而不需要用fopen ,fclose 这些函数去访问了。</p>
+<p>虚拟内存可以映射到两种类型的对象：<strong>Linux文件系统中的普通文件</strong> 和 <strong>匿名文件</strong> 。</p>
+<h4 id="Linux文件系统中的普通文件"><a href="#Linux文件系统中的普通文件" class="headerlink" title="Linux文件系统中的普通文件"></a>Linux文件系统中的普通文件</h4><p>一个区域可以映射到一个普通磁盘文件的连续部分，例如一个<strong>可执行目标文件</strong>。  </p>
+<h4 id="匿名文件"><a href="#匿名文件" class="headerlink" title="匿名文件"></a>匿名文件</h4><p>匿名文件是由内核 (kernel) 创建的，包含的全是二进制0.</p>
+<p>CPU 第一次引用这样一个区域内的虚拟页面时，内核就在物理内存中找到一个合适的牺牲页面，如果该页面被修改过，就将这个页面换出来，用二进制零覆盖牺牲页面并更新页表，将这个页面标记为是驻留在内存中的。注意在磁盘和内存之间并没有实际的数据传送。</p>
+<p>==这两类文件的区别和应用场景还没有搞明白==</p>
+<p>无论在哪种情况中旦一个虚拟页面被初始化了，它就在一个由内核维护的专门的交换文件（swap file)之间换来换去。交换文件也叫做交换空间（swap space)或者交换区域 (swap area)</p>
+<h3 id="共享对象"><a href="#共享对象" class="headerlink" title="共享对象"></a>共享对象</h3><p>内存映射给我们提供了一种清晰的机制，用来控制多个进程如何共享对象。</p>
+<p>一个对象可以被映射到虚拟内存的一个区域，要么作为共享对象，要么作为私有对象。</p>
+<p><strong>共享对象</strong>：</p>
+<p>如果一个进程将一个共享对象映射到它的虚拟地址空间的一个区域内，那么<strong>这个进程</strong>对<strong>这个区域</strong>的<strong>任何写操作</strong>，对其他进程而言(映射了这个共享对象的)也是可见的。而且，这些变化也会<strong>反映在磁盘上的原始对象</strong>中</p>
+<p><strong>私有对象</strong> :</p>
+<p>对其它进程来说不可见而且进程对这个区域所做的任何写操作都不会反映在磁盘上的对象当中。</p>
+<p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/30.png" style="zoom:90%;"></p>
+<p>关键点在于即使对象被映射到了<strong>多个共享区域</strong>，物理内存中也只需要存放共享对象的<strong>一个副本</strong>，而这个对象在不同的进程当中所处的虚拟地址是不一样的。</p>
+<h4 id="Copy-On-Write"><a href="#Copy-On-Write" class="headerlink" title="Copy-On-Write"></a>Copy-On-Write</h4><p>私有对象在被映射到虚拟内存的时候会使用一种Copy-On-Write的技术。因为私有对象要满足在被修改时对其它进程来说不可见、磁盘上的文件也不会进行改变的要求。Copy-On-Write顾名思义就是在写的时候复制。</p>
+<p>对于每个映射私有对象的进程，<strong>相应私有区域</strong>的页表条目都被标记为<strong>只读</strong>，且物理内存上的页这时候被标记成了<strong>(Private copy-on-write</strong>),当进程2要修改原来的对象的时候，会触发一个保护故障，这时候保护故障程序就会在物理内存中创建这个页面的一个<strong>新副本</strong>，更新页表条目指向这个新的副本，然后恢复这个页面的可写权限，当故障处理程序返回时，CPU <strong>重新执行这个写操作</strong>，现在在<strong>新创建的页面上这个写操作</strong>就可以正常执行了。如下图所示</p>
+<p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/31.png" style="zoom:90%;"></p>
+<p>也就是说，读的时候大家可以一起读，只有在写的时候(迫不得已)，才进行一个拷贝。是一种 Lazy Copy的模式。</p>
+<p>这样做的好处是加快启动进程，加快相应时间。因为读取很快，但是写很慢，因此每次写只拷贝要写的那几个page。</p>
+<h3 id="使用-mmap-函数的用户级内存映射"><a href="#使用-mmap-函数的用户级内存映射" class="headerlink" title="使用 mmap 函数的用户级内存映射"></a>使用 mmap 函数的用户级内存映射</h3><p>Linux 进程可以使用 <code>mmap</code>函数来创建新的虚拟内存区域，并将对象映射到这些区域中。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/mman.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">mmap</span><span class="params">(<span class="keyword">void</span> *staxt, <span class="keyword">size_t</span> length, <span class="keyword">int</span> prot, <span class="keyword">int</span> flags, <span class="keyword">int</span> fd, <span class="keyword">off_t</span> offset)</span></span>;</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/32.png" style="zoom:90%;"></p>
+<p>mmap 函数要求内核创建一个新的虚拟内存区域，最好是从地址start 开始的一个区域，并将文件描述符fd 指定的对象的一个连续的(chunk)映射到这个新的区域。</p>
+<p>连续的对象片大小为length 字节，从距文件开始处偏移量为offset 字节的地方开始。start地址仅仅是一个暗示，通常被定义为NULL.</p>
+<p>因为mmap的返回值是一个指针，这个指针并没有规定数据类型。我们就可以通过这个指针来访问磁盘上的文件，我访问、修改的所有东西可以在磁盘当中进行同步。</p>
+<h3 id="mmap的-用处"><a href="#mmap的-用处" class="headerlink" title="mmap的 用处"></a>mmap的 用处</h3><ul>
+<li>读取大文件<ul>
+<li>mmap可以使用分页机制将文件放入内存中</li>
+</ul>
+</li>
+<li>共享数据结构<ul>
+<li>When call with MAP_SHARED flag<ul>
+<li>Multiple processes have access to same region of memory</li>
+<li>Risky!</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>File-based data structures<ul>
+<li>E.g., database</li>
+<li>Give protargument PROT_READ | PROT_WRITE</li>
+<li>When unmap region, file will be updated via write-back</li>
+<li>Can implement load from file / update / write back to file</li>
+</ul>
+</li>
+</ul>
 
       
     </div>
@@ -770,7 +854,7 @@
               
                 <a href="/archives%7C%7C%20archive">
               
-                  <span class="site-state-item-count">283</span>
+                  <span class="site-state-item-count">285</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -863,7 +947,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP虚拟内存"><span class="nav-number">1.</span> <span class="nav-text">CSAPP虚拟内存</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#物理和虚拟地址"><span class="nav-number">1.1.</span> <span class="nav-text">物理和虚拟地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#地址空间"><span class="nav-number">1.2.</span> <span class="nav-text">地址空间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VM-as-a-tool-for-caching"><span class="nav-number">1.3.</span> <span class="nav-text">VM as a tool for caching</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DRAM-Cache-Organization"><span class="nav-number">1.3.1.</span> <span class="nav-text">DRAM Cache Organization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Enabling-Data-Structure-Page-Table"><span class="nav-number">1.3.2.</span> <span class="nav-text">Enabling Data Structure: Page Table</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Page-Hit"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Page Hit</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Page-Fault"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">Page Fault</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Triggering-a-Page-Fault"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">Triggering a Page Fault</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Completing-page-fault"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">Completing page fault</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Allocating-Pages"><span class="nav-number">1.3.2.5.</span> <span class="nav-text">Allocating Pages</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#又是局部性救了我们"><span class="nav-number">1.3.3.</span> <span class="nav-text">又是局部性救了我们</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VM-as-a-tool-for-memory-management"><span class="nav-number">1.4.</span> <span class="nav-text">VM as a tool for memory management</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#简化链接"><span class="nav-number">1.4.1.</span> <span class="nav-text">简化链接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简化加载"><span class="nav-number">1.4.2.</span> <span class="nav-text">简化加载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简化共享"><span class="nav-number">1.4.3.</span> <span class="nav-text">简化共享</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简化内存分配"><span class="nav-number">1.4.4.</span> <span class="nav-text">简化内存分配</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VM-as-a-tool-for-memory-protection"><span class="nav-number">1.5.</span> <span class="nav-text">VM as a tool for memory protection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Address-translation"><span class="nav-number">1.6.</span> <span class="nav-text">Address translation</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Address-Translation-Page-Hit"><span class="nav-number">1.6.0.1.</span> <span class="nav-text">Address Translation : Page Hit</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Address-Translation-：Page-Fault"><span class="nav-number">1.6.0.2.</span> <span class="nav-text">Address Translation ：Page Fault</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结合Cache和VM"><span class="nav-number">1.6.1.</span> <span class="nav-text">结合Cache和VM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TLB-Translation-Lookaside-Buffer"><span class="nav-number">1.6.2.</span> <span class="nav-text">TLB(Translation Lookaside Buffer)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#TLB-Hit"><span class="nav-number">1.6.2.1.</span> <span class="nav-text">TLB Hit</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#TLB-miss"><span class="nav-number">1.6.2.2.</span> <span class="nav-text">TLB miss</span></a></li></ol></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP虚拟内存"><span class="nav-number">1.</span> <span class="nav-text">CSAPP虚拟内存</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#物理和虚拟地址"><span class="nav-number">1.1.</span> <span class="nav-text">物理和虚拟地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#地址空间"><span class="nav-number">1.2.</span> <span class="nav-text">地址空间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VM-as-a-tool-for-caching"><span class="nav-number">1.3.</span> <span class="nav-text">VM as a tool for caching</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DRAM-Cache-Organization"><span class="nav-number">1.3.1.</span> <span class="nav-text">DRAM Cache Organization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Enabling-Data-Structure-Page-Table"><span class="nav-number">1.3.2.</span> <span class="nav-text">Enabling Data Structure: Page Table</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Page-Hit"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Page Hit</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Page-Fault"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">Page Fault</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Triggering-a-Page-Fault"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">Triggering a Page Fault</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Completing-page-fault"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">Completing page fault</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Allocating-Pages"><span class="nav-number">1.3.2.5.</span> <span class="nav-text">Allocating Pages</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#又是局部性救了我们"><span class="nav-number">1.3.3.</span> <span class="nav-text">又是局部性救了我们</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VM-as-a-tool-for-memory-management"><span class="nav-number">1.4.</span> <span class="nav-text">VM as a tool for memory management</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#简化链接"><span class="nav-number">1.4.1.</span> <span class="nav-text">简化链接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简化加载"><span class="nav-number">1.4.2.</span> <span class="nav-text">简化加载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简化共享"><span class="nav-number">1.4.3.</span> <span class="nav-text">简化共享</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简化内存分配"><span class="nav-number">1.4.4.</span> <span class="nav-text">简化内存分配</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VM-as-a-tool-for-memory-protection"><span class="nav-number">1.5.</span> <span class="nav-text">VM as a tool for memory protection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Address-translation"><span class="nav-number">1.6.</span> <span class="nav-text">Address translation</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Address-Translation-Page-Hit"><span class="nav-number">1.6.0.1.</span> <span class="nav-text">Address Translation : Page Hit</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Address-Translation-：Page-Fault"><span class="nav-number">1.6.0.2.</span> <span class="nav-text">Address Translation ：Page Fault</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结合Cache和VM"><span class="nav-number">1.6.1.</span> <span class="nav-text">结合Cache和VM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TLB-Translation-Lookaside-Buffer"><span class="nav-number">1.6.2.</span> <span class="nav-text">TLB(Translation Lookaside Buffer)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#TLB-Hit"><span class="nav-number">1.6.2.1.</span> <span class="nav-text">TLB Hit</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#TLB-miss"><span class="nav-number">1.6.2.2.</span> <span class="nav-text">TLB miss</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Multi-Level-Page-Tables"><span class="nav-number">1.6.3.</span> <span class="nav-text">Multi-Level Page Tables</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Translating-with-a-k-level-Page-Table"><span class="nav-number">1.6.3.1.</span> <span class="nav-text">Translating with a k-level Page Table</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#地址翻译总结"><span class="nav-number">1.7.</span> <span class="nav-text">地址翻译总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#例题"><span class="nav-number">1.7.1.</span> <span class="nav-text">例题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Memory-Mapping"><span class="nav-number">1.8.</span> <span class="nav-text">Memory Mapping</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux文件系统中的普通文件"><span class="nav-number">1.8.0.1.</span> <span class="nav-text">Linux文件系统中的普通文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#匿名文件"><span class="nav-number">1.8.0.2.</span> <span class="nav-text">匿名文件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#共享对象"><span class="nav-number">1.8.1.</span> <span class="nav-text">共享对象</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Copy-On-Write"><span class="nav-number">1.8.1.1.</span> <span class="nav-text">Copy-On-Write</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-mmap-函数的用户级内存映射"><span class="nav-number">1.8.2.</span> <span class="nav-text">使用 mmap 函数的用户级内存映射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mmap的-用处"><span class="nav-number">1.8.3.</span> <span class="nav-text">mmap的 用处</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
@@ -904,7 +988,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">525k</span>
+    <span title="Site words total count">531k</span>
   
 </div>
 
