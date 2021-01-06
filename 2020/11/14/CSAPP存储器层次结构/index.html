@@ -142,8 +142,10 @@
 <meta property="og:image" content="https://jasonxqh.github.io/2020/11/14/CSAPP%E5%AD%98%E5%82%A8%E5%99%A8%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84/46.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/11/14/CSAPP%E5%AD%98%E5%82%A8%E5%99%A8%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84/47.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/11/14/CSAPP%E5%AD%98%E5%82%A8%E5%99%A8%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84/2.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/14/CSAPP%E5%AD%98%E5%82%A8%E5%99%A8%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84/4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/14/CSAPP%E5%AD%98%E5%82%A8%E5%99%A8%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84/5.jpg">
 <meta property="article:published_time" content="2020-11-14T01:40:28.000Z">
-<meta property="article:modified_time" content="2021-01-03T06:20:20.933Z">
+<meta property="article:modified_time" content="2021-01-05T15:41:23.738Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="CSAPP">
 <meta name="twitter:card" content="summary">
@@ -435,7 +437,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  9k
+                  9.6k
                 </span>
               
 
@@ -451,7 +453,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  35
+                  37
                 </span>
               
             </div>
@@ -864,7 +866,11 @@
 <li>对 src和dst数组的访问分别是读和写不命中的唯一来源</li>
 </ul>
 <p>A.对每个row和col,指明对$src[row][col]$和 $dst[row][col]$ 的访问时命中还是不命中。例如，读$src[0][0]$ 会不命中，写$dst[0][0]$ 也不会命中</p>
+<p><img src="/2020/11/14/CSAPP%E5%AD%98%E5%82%A8%E5%99%A8%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84/4.jpg" style="zoom: 100%;"></p>
+<p>首先我们要画出src和dst的图像，如上图所示。这里注意，每个高速缓存行只包含数组的一个行，杠苏缓存正好只能够保存一个数组。而且对于所有的i，src和dst的行i是映射到同一个高速缓存行的。但是我们发现Cache是肯定不够大的，所以对一个数组的引用总是要驱逐另一个数组的有用的行。</p>
+<p>比如说对 $dst[0][0]$ 写会驱逐当我们读 $src[0][0]$ 时加载进来的那一行。所以当我们接下来读取$src[0][1]$ 时，会有一个不命中。</p>
 <p>B. 对于一个大小为32数据字节的Cache重复这个练习</p>
+<p>当高速缓存为32字节的时候，它足够大，并能容纳这两个数组。因此，所有的不命中都是开始时的冷不命中。</p>
 <h3 id="3"><a href="#3" class="headerlink" title="3"></a>3</h3><p>最近一个很成功的游戏SimAquarium 的核心就是一个紧密循环（tight loop), 它计算256 个海藻(algae)的平均位置。在一台具有块大小为16 字节(B=16) .整个大小为1024 字节的直接映射数据缓存的机器上测量它的高速缓存性能。定义如下：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">struct algae_position &#123;</span><br><span class="line">	int x;</span><br><span class="line">	int y;</span><br><span class="line">&#125;</span><br><span class="line">struct algae.position grid[16][16];</span><br><span class="line">int total_x &#x3D; 0, totally &#x3D; 0;</span><br><span class="line">int i, j;</span><br></pre></td></tr></table></figure>
 <p>还有如下假设：</p>
@@ -876,7 +882,14 @@
 </ul>
 <p>确定下面代码的高速缓存性能：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (i = <span class="number">31</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">31</span>; j &gt;= <span class="number">0</span>; j--) &#123;</span><br><span class="line">    	total_x += grid[i][j].x;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (i = <span class="number">31</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">31</span>; j &gt;= <span class="number">0</span>; j--) &#123;</span><br><span class="line">    	total_y += grid[i][j].y;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>A. 读总数是多少？<br>B. 缓存不命中的读总数是多少？<br>C. 不命中率是多少？</p>
+<p>首先我们要画出这struct的结构和整一个struct数组的样子</p>
+<p><img src="/2020/11/14/CSAPP%E5%AD%98%E5%82%A8%E5%99%A8%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84/5.jpg" style="zoom: 100%;"></p>
+<p>每个16字节的高速缓存包含着两个连续的algae_position 结构。每个循环按照内存的访问顺序访问这些结构，每次读一个整数元素。所以每个循环的模式就是不命中、命中、不命中、命中，依次类推。这里我们不必实际列举出读和不命中的总数就能预测出不命中率为50%</p>
+<p>A. 读总数是多少？</p>
+<p>读的总数为 16*16 = 256</p>
+<p>B. 缓存不命中的读总数是多少？</p>
+<p>缓存不命中的总数是256</p>
+<p>C. 不命中率是多少？ 50%</p>
 <h3 id="4"><a href="#4" class="headerlink" title="4"></a>4</h3><p>给定上面的四条假设</p>
 <ul>
 <li>sizeof(int) = 4</li>
@@ -885,12 +898,14 @@
 <li>唯一的内存访问时对数组grid的元素的访问。变量 i，j,total_x和total_y 存放在寄存器当中</li>
 </ul>
 <p>确定下列代码的高速缓存性</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (i = <span class="number">31</span>; i &gt;= <span class="number">0</span>; i--)&#123;</span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">31</span>; j &gt;= <span class="number">0</span>; j--) &#123;</span><br><span class="line">        total_x += grid[j][i].x;</span><br><span class="line">        total_y += grid[j][i].y;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>A. 读总数是多少？<br>B. 高速缓存不命中的读总数是多少？<br>C. 不命中率是多少？<br>D. 如果高速缓存有两倍大，那么不命中率会是多少呢？</p>
+<p>按照列顺序来扫描数组的第二部分回去住扫描第一部分时加载进来的那些行。比如说读取 $grid[8][0]$ 的第一个元素会驱逐当我们读 $grid[0][0]$ 的元素时加载进来的哪一行。 这一行也包含 $grid[0][1]$ 。所以，当我们开始扫描下一列的时候，对 $grid[0][1]$ 第一个元素的引用会不命中。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; <span class="number">16</span>; i--)&#123;</span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; <span class="number">16</span>; j--) &#123;</span><br><span class="line">        total_x += grid[j][i].x;</span><br><span class="line">        total_y += grid[j][i].y;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>A. 读总数是多少？512<br>B. 高速缓存不命中的读总数是多少？ 256<br>C. 不命中率是多少？50%<br>D. 如果高速缓存有两倍大，那么不命中率会是多少呢？如果高速缓存有现在的两倍大，那么它能保存整个grid数组。所有的不命中都会是开始时的冷不命中，而不命中的概率会降低到25%</p>
 <p>确定下面代码的高速缓存性能</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (i = <span class="number">31</span>; i &gt;= <span class="number">0</span>; i--)&#123;</span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">31</span>; j &gt;= <span class="number">0</span>; j--) &#123;</span><br><span class="line">        total_x += grid[i][j].x;</span><br><span class="line">        total_y += grid[i][j].y;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>A. 读总数是多少？<br>B. 高速缓存不命中的读总数是多少？</p>
-<p>C. 不命中率是多少？<br>D.如果高速缓存有两倍大，那么不命中率会是多少呢？</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; <span class="number">16</span>; i++)&#123;</span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; <span class="number">16</span>; j++) &#123;</span><br><span class="line">        total_x += grid[i][j].x;</span><br><span class="line">        total_y += grid[i][j].y;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个循环有很好的步长为1的引用模式，因此所有的不命中都是最开始时的冷不命中。</p>
+<p>A. 读总数是多少？512<br>B. 高速缓存不命中的读总数是多少？ 128</p>
+<p>C. 不命中率是多少？ 25%<br>D.如果高速缓存有两倍大，那么不命中率会是多少呢？无论高速缓存的大小增加多少，还是会冷命中，因此不会改变不命中率，因为冷不命中时不可能避免的。</p>
 
       
     </div>
@@ -1176,7 +1191,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">551k</span>
+    <span title="Site words total count">553.2k</span>
   
 </div>
 
