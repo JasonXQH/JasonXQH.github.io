@@ -117,8 +117,9 @@
 <meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/21.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/22.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/24.png">
 <meta property="article:published_time" content="2020-12-01T13:22:38.000Z">
-<meta property="article:modified_time" content="2020-12-24T04:59:30.226Z">
+<meta property="article:modified_time" content="2021-01-16T14:44:45.816Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="CSAPP">
 <meta name="twitter:card" content="summary">
@@ -410,7 +411,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  4.9k
+                  5.1k
                 </span>
               
 
@@ -426,7 +427,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  17
+                  18
                 </span>
               
             </div>
@@ -580,9 +581,9 @@
 <p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/10.png" style="zoom:80%;"></p>
 <p>比如说上图，我们在size = 48的空闲块中插入一个size = 32的block，这时候空间块就会被拆成一个长为32的分配块、一个长为16的空闲块</p>
 <h4 id="释放、合并空闲块"><a href="#释放、合并空闲块" class="headerlink" title="释放、合并空闲块"></a>释放、合并空闲块</h4><p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/11.png" style="zoom:80%;"></p>
-<p>在释放块使，我们不需要对被释放的块的header进行修改。我们只需要跳过这个block，将前一个header指向下下个block的header即可。</p>
-<p>上面所说的是和后面的block相连，但是如果想要和前一个block相连，那么事情就变得复杂起来了。如果我们的模型只是一个带头部的隐式空闲链表，那么我们只能是搜索整个链表，同时记住前面块的位置。那么如果这样操作，我们会发现每次调用free所需要的时间都和堆的大小成线性关系。即使使用更复杂更精细的空闲链表，搜索时间也不会是常数。</p>
-<p>于是我们可以将刚才提出的模型进行一个修改。这个修改是knuth提出来的。对于一个free block(空闲的块)，我们可以把这个块的结尾处改成一个footer。其中，footer是header的一个副本。这个设计十分巧妙，如果每个块都包括这样一个footer，那么分配器就可以通过检查它的footer，来判断前面一个块的起始位置和状态。</p>
+<p>在释放块是时，我们不需要对被释放的块的header进行修改。我们只需要跳过这个block，将前一个header指向下下个block的header即可。</p>
+<p>上面所说的是和后面的block相连，但是如果想要和<strong>前一个block相连</strong>，那么事情就变得复杂起来了。如果我们的模型只是一个带头部的隐式空闲链表，那么我们只能是搜索整个链表，同时记住前面块的位置。那么如果这样操作，我们会发现每次调用free所需要的时间都和堆的大小成线性关系。即使使用更复杂更精细的空闲链表，搜索时间也不会是常数。</p>
+<p>于是我们可以将刚才提出的模型进行一个修改。这个修改是knuth提出来的。对于一个free block(空闲的块)，我们可以把这个块的结尾处改成一个footer。其中，<strong>footer是header的一个副本</strong>。这个设计十分巧妙，如果每个块都包括这样一个footer，那么分配器就可以通过检查它的footer，来判断前面一个块的起始位置和状态。</p>
 <p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/12.png" style="zoom:80%;"> </p>
 <h4 id="带边界标记的合并"><a href="#带边界标记的合并" class="headerlink" title="带边界标记的合并"></a>带边界标记的合并</h4><p>那么当分配器释放当前块的时候，可能存在有以下四种情况</p>
 <p><strong>1) 前面的块和后面的块都是已分配的</strong></p>
@@ -599,11 +600,11 @@
 <p>对于前面的块和后面的块都是free block的情况，我们需要修改前面的块的header和后面的块的footer。其大小就是将三个块的大小相加。对于中间这些数据，都被跳过了，不用去修改它们。</p>
 <p>于是整个模型如下图所示：</p>
 <p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/13.png" style="zoom:80%;"></p>
-<p>我们发现最前面和最后面的两块空间是利用不起来的。因为malloc返回的地址并不是header的起始地址，而是payload的起始地址。而payload的起始地址必须是偶数对齐的，因此必须要有一个word空出来的。</p>
+<p>我们发现<strong>最前面和最后面的两块空间是利用不起来的</strong>。因为malloc返回的地址并不是header的起始地址，而是<strong>payload的起始地址</strong>。而payload的起始地址必须是偶数对齐的，因此必须要有一个word空出来的。</p>
 <p>因为heap是自底向上生长的，因此我们定义Dummy footer是在第一个block之前的；Dummy header是在最后一个block之后的。而且他们都要被标记成已分配，这是因为他们不能和block进行合并操作。</p>
 <h4 id="No-Boundary-Tag-for-Allocated-Blocks"><a href="#No-Boundary-Tag-for-Allocated-Blocks" class="headerlink" title="No Boundary Tag for Allocated Blocks"></a>No Boundary Tag for Allocated Blocks</h4><p>对于已经分配了的blocks来说，如果要有footer，由于对齐的原因，有可能要多两个字节来存放。因此，我们可以对分配了的block进行一些修改：</p>
 <p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/19.png" style="zoom:80%;"></p>
-<p>我们可以进一步地用2位来表示状态，多出来的一位可以用来表示前一个block是满的还是空的。这样，我们仅仅用一位就能节省额外地footer，分配了的block仅保留一个header。但是对于free block，我们还是保留footer。</p>
+<p>我们可以进一步地用2位来表示状态，多出来的一位可以用来表示前一个block是满的还是空的。这样，我们仅仅用一位就能节省额外地footer，分配了的block仅保留一个header。但是对于payload为空的块，我们还是保留footer。</p>
 <p>那么上面所说的4种情况就要发生一些细小的改变了：</p>
 <p><strong>1) 前面的块和后面的块都是已分配的</strong></p>
 <p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/20.png" style="zoom:80%;"></p>
@@ -635,7 +636,10 @@
 </li>
 <li>However ,the concepts of splitting and boundary tag coalescing are general to all allocators</li>
 </ul>
-<h3 id="显式空闲链表"><a href="#显式空闲链表" class="headerlink" title="显式空闲链表"></a>显式空闲链表</h3><p>显示链表是说我并不需要管理分配的空间，而是要管好那些空闲的空间</p>
+<h3 id="显式空闲链表"><a href="#显式空闲链表" class="headerlink" title="显式空闲链表"></a>显式空闲链表</h3><p>显示链表是说我并不需要管理分配的空间，而是要管好那些空闲的空间. 因为块分配与堆块的总数呈线性关系，所以对于通用的分配器，隐式空闲链表是不适合的。</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/24.png" style="zoom:80%;"></p>
+<p>一种更好的方法是将空闲块组织为某种形式的显式数据结构。因为根据定义，程序不需要一个空闲块的主体，所以实现这个数据结构的指针可以存放在这些空闲块的主体里面。例如，堆可以组织成一个双向空闲链表，在每个空闲块中，都包含一个pred(前驱）和succ(后继指针)</p>
+<p>使用双向链表而不是隐式空闲链表，使首次适配的分配时间从块总数的线性时间减少到了空闲块数量的线性时间。不过，释放一个块的时间可以是线性的，也可能是个常数，这取决于我们所选择的空闲链表中块的排序策略。</p>
 <h2 id="Garbage-Collection"><a href="#Garbage-Collection" class="headerlink" title="Garbage Collection"></a>Garbage Collection</h2><p> 你</p>
 
       
@@ -788,7 +792,7 @@
               
                 <a href="/archives%7C%7C%20archive">
               
-                  <span class="site-state-item-count">289</span>
+                  <span class="site-state-item-count">290</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -922,7 +926,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">554.4k</span>
+    <span title="Site words total count">555.7k</span>
   
 </div>
 
