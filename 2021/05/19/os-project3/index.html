@@ -100,9 +100,14 @@
 <meta property="og:image" content="https://jasonxqh.github.io/2021/05/19/os-project3/4.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2021/05/19/os-project3/5.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2021/05/19/os-project3/6.png">
-<meta property="og:image" content="https://jasonxqh.github.io/2021/05/19/os-project3/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/19/os-project3/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/19/os-project3/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/19/os-project3/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/19/os-project3/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/19/os-project3/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/19/os-project3/12.png">
 <meta property="article:published_time" content="2021-05-19T05:15:15.000Z">
-<meta property="article:modified_time" content="2021-05-19T08:45:19.000Z">
+<meta property="article:modified_time" content="2021-06-08T15:15:26.000Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="操作系统">
 <meta name="twitter:card" content="summary">
@@ -394,7 +399,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  2k
+                  2.5k
                 </span>
               
 
@@ -410,7 +415,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  9
+                  11
                 </span>
               
             </div>
@@ -500,17 +505,12 @@
 <p><img src="/2021/05/19/os-project3/6.png"></p>
 <p>重启后，我们会发现刚刚创建的ram盘就丢失了，我们就需要重复下面三条命令：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.&#x2F;buildmyram 700 &#x2F;dev&#x2F;myram 	&#x2F;&#x2F; 因为吞吐量不会大于700MB&#x2F;s 这里就把Ram盘设置为700mb</span><br><span class="line">mkfs.mfs &#x2F;dev&#x2F;myram</span><br><span class="line">mount &#x2F;dev&#x2F;myram &#x2F;root&#x2F;myram</span><br></pre></td></tr></table></figure>
-<h2 id="性能测试："><a href="#性能测试：" class="headerlink" title="性能测试："></a>性能测试：</h2><ol>
-<li>RAM盘和Disk盘的性能测试中，需要采用多进程并发的同步读写，并发数要增加到设备接近“饱和”状态（吞吐量难以继续提升，但是I/O延时恶化）。在出现饱和前，总吞吐量随着并发数线性增长。</li>
-</ol>
-<p><img src="/2021/05/19/os-project3/1.png" style="zoom:67%;"></p>
+<h2 id="性能测试："><a href="#性能测试：" class="headerlink" title="性能测试："></a>性能测试：</h2><p>RAM盘和Disk盘的性能测试中，需要采用多进程并发的同步读写，并发数要增加到设备接近“饱和”状态（吞吐量难以继续提升，但是I/O延时恶化）。在出现饱和前，总吞吐量随着并发数线性增长。</p>
+<p>性能测试的二个变量为<strong>块大小</strong>（推荐64B/256B/1KB/4KB/16KB/64KB）和<strong>块扫描方式</strong>（顺序/随机）。可以画<strong>四张曲线图</strong>对比RAM盘和Disk盘性能（随机读，随机写，顺序读，顺序写）。实验结果预计为RAM盘性能高于DISK盘，特别是随机读写性能。<strong>对比在不同的blocksize下的性能</strong>，然后通过Excel把数据制作成图表。</p>
 <h3 id="编写测试文件"><a href="#编写测试文件" class="headerlink" title="编写测试文件"></a>编写测试文件</h3><h4 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h4><ul>
 <li>使用posix函数open打开文件，利用O_SYNC参数使得write/read操作为同步模式。</li>
 <li>一定要检查write/read函数的返回值，以及写入的字节数目，确定是否成功。</li>
-<li>为了简化实验，可以<strong>为每个进程分配一个独立的文件</strong>。为了减小主机操作系统的缓存机制造成的误差，文件总大小越大越好（例如300MB）。<ul>
-<li>这里我用随机数据生成了300MB的一个txt文件</li>
-</ul>
-</li>
+<li>为了简化实验，可以<strong>为每个进程分配一个独立的文件</strong>。为了减小主机操作系统的缓存机制造成的误差，文件总大小越大越好（例如300MB）。</li>
 <li>随机读写时，可以采用<code>lseek()</code>重新定位文件指针；顺序读写时，默认文件指针自动移动，当读到文件末尾时，可以用<code>lseek()</code>返回文件头。</li>
 <li>每组的读写需要反复持续一段时间，过短的时间会造成误差较大。</li>
 <li>通常情况下，7~15个进程达到饱和，吞吐量不会高于700MB/s (ram盘顺序读写)。</li>
@@ -576,16 +576,199 @@
 </tbody>
 </table>
 </div>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">write_file</span><span class="params">(<span class="keyword">int</span> block, <span class="keyword">bool</span> isrand, <span class="keyword">char</span> *filepath)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    fp=<span class="built_in">open</span>(filepath, O_CREAT | O_RDWR | O_SYNC, <span class="number">0755</span>);</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (i=<span class="number">0</span>; i &lt; writetime; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>((res=<span class="built_in">write</span>(fp, examtext, block))!=block) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"Error writing to the file.\n"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// printf("Wrote %d bytes to the file.\n", res);</span></span><br><span class="line">        <span class="keyword">if</span> (isrand) <span class="comment">//如果是随机写</span></span><br><span class="line">            <span class="comment">//用lseek()重新定位文件指针,定位到文件的某处，filesize为300M</span></span><br><span class="line">            lseek(fp, rand() % filesize, SEEK_SET);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/*顺序写的时候，当读到文件末尾时，用lseek返回文件头*/</span></span><br><span class="line">    lseek(fp, <span class="number">0</span>, SEEK_SET);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="读方法"><a href="#读方法" class="headerlink" title="读方法"></a>读方法</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">read_file</span><span class="params">(<span class="keyword">int</span> block, <span class="keyword">bool</span> isrand, <span class="keyword">char</span> *filepath)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> examtext[maxline];</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (; i &lt; readtime; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//read(fp, examtext, block);</span></span><br><span class="line">        <span class="comment">// printf("%s",examtext);</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (isrand) <span class="comment">//如果是随机读</span></span><br><span class="line">            lseek(fp, rand() % filesize, SEEK_SET);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//lseek重新定位文件指针</span></span><br><span class="line">    lseek(fp, <span class="number">0</span>, SEEK_SET);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 向缓存中写入大小为blocksize的数字</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">write_to_buf</span><span class="params">(<span class="keyword">char</span>* buf, <span class="keyword">int</span> blocksize)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; blocksize; i++)</span><br><span class="line">        buf[i] = rand() % <span class="number">94</span> + <span class="number">33</span>; </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">write_file</span><span class="params">(<span class="keyword">int</span> blocksize, <span class="keyword">bool</span> isrand, <span class="keyword">char</span> *filepath, <span class="keyword">int</span> fs)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> fd;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">int</span> total_block = fs / blocksize; <span class="comment">// 需要写入的总block数</span></span><br><span class="line">    <span class="keyword">char</span>* buf = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * blocksize); <span class="comment">// 缓存字符串，大小为一个block </span></span><br><span class="line">  	<span class="comment">//往缓存中写入数据</span></span><br><span class="line">    write_to_buf(buf, blocksize);</span><br><span class="line">  </span><br><span class="line">  	<span class="comment">// 只写、同步打开文件,并处理错误</span></span><br><span class="line">    <span class="keyword">if</span> ((fd = <span class="built_in">open</span>(filepath, O_WRONLY|O_SYNC)) &lt; <span class="number">0</span>) </span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Open Error!\n"</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  	</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; total_block; i++)</span><br><span class="line">    &#123;</span><br><span class="line">  <span class="comment">//write()会把缓存中的数据写到文件当中去. 当然, 文件读写位置也会随之移动.</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">write</span>(fd, buf, blocksize) == <span class="number">-1</span>) <span class="comment">// 写入缓存 </span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"Write Error!\n"</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (isrand) <span class="comment">// 如果随机写，每次写入随机编号的block </span></span><br><span class="line">        &#123;</span><br><span class="line">          <span class="comment">//lseek可以将读写未知移到任意未知</span></span><br><span class="line">            <span class="keyword">if</span> (lseek(fd, rand() % total_block * blocksize, SEEK_SET) == <span class="number">-1</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"Lseek Error!\n"</span>);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">close</span>(fd) != <span class="number">0</span>) <span class="comment">//关闭文件 并处理错误</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Close Error!\n"</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="读方法"><a href="#读方法" class="headerlink" title="读方法"></a>读方法</h4><p>读方法和写方法的结构是一样的</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">read_file</span><span class="params">(<span class="keyword">int</span> blocksize, <span class="keyword">bool</span> isrand, <span class="keyword">char</span> *filepath, <span class="keyword">int</span> fs)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> fd;</span><br><span class="line">    <span class="keyword">int</span> code;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">int</span> total_block = fs / blocksize; <span class="comment">// 需要读取的总block数 </span></span><br><span class="line">    <span class="keyword">char</span>* buf = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * blocksize); <span class="comment">// 缓存字符串，大小为一个block</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((fd = <span class="built_in">open</span>(filepath, O_CREAT | O_RDWR | O_SYNC, <span class="number">0755</span>)) &lt; <span class="number">0</span>) <span class="comment">// 只读、同步打开文件</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Open Error!\n"</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; total_block ; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> ((code = <span class="built_in">read</span>(fd, buf, blocksize)) == <span class="number">-1</span>) <span class="comment">// 将文件中的信息读取至缓存</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"Read Error!\n"</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (isrand) <span class="comment">// 如果随机读，就随机跳到某个地方开始读</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (lseek(fd, rand() % total_block * blocksize, SEEK_SET) == <span class="number">-1</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"Lseek Error!\n"</span>);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (code == <span class="number">0</span>) <span class="comment">// 如果顺序读，并且已经读到队尾，那么就移到文件开头继续读</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (lseek(fd, <span class="number">0</span>, SEEK_SET) == <span class="number">-1</span>)<span class="comment">//移动到文件开头</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"Lseek to Head Error!\n"</span>);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">close</span>(fd) != <span class="number">0</span>) <span class="comment">/* 关闭文件 */</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Close Error!\n"</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h4 id="主函数"><a href="#主函数" class="headerlink" title="主函数"></a>主函数</h4><p>主函数：首先创建和命名文件，通过循环执行<code>read_file</code>和<code>write_file</code>函数测试读写差异。测试<code>blocksize</code>和<code>concurrency</code>对测试读写速度的影响，最后输出结果。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//在默认情况下随机种子来自系统时钟。如果想在一个程序中生成随机数序列，需要至多在生成随机数之前设置一次随机种子。</span></span><br><span class="line">    srand((<span class="keyword">unsigned</span>)time(<span class="literal">NULL</span>));</span><br><span class="line">    <span class="keyword">int</span> ramfp, diskfp, block, i;</span><br><span class="line">    <span class="keyword">int</span> Fork;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; maxline;)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">strncat</span>(examtext, <span class="string">"abcdefghij"</span>, <span class="number">10</span>);</span><br><span class="line">        i += <span class="number">10</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*等待子进程完成后，获取计算时间，计算读写操作所花时间，延时，吞吐量等*/</span></span><br><span class="line">    <span class="keyword">for</span> (block = <span class="number">64</span>; block &lt;= <span class="number">4096</span>;)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span> (Fork = <span class="number">6</span>; Fork &lt;= <span class="number">16</span>;)&#123;</span><br><span class="line">            <span class="comment">//clock_gettime(CLOCK_REALTIME, &amp;starttime);</span></span><br><span class="line">            gettimeofday(&amp;starttime, <span class="literal">NULL</span>);</span><br><span class="line">          <span class="comment">//给每一个进程来分配独立的文件来读写</span></span><br><span class="line">            <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt;=Fork; i++)&#123;</span><br><span class="line">                <span class="keyword">if</span> (fork() == <span class="number">0</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="comment">//随机写</span></span><br><span class="line">                    <span class="comment">//write_file(block, true, filepathDN[i]);</span></span><br><span class="line">                    <span class="comment">// write_file(block, true, filepathRN[i]);</span></span><br><span class="line">                    <span class="comment">// write_file(block, true, ramfp);</span></span><br><span class="line">                    <span class="comment">// write_file(block, true, diskfp);</span></span><br><span class="line">                    <span class="comment">//顺序写</span></span><br><span class="line">                    <span class="comment">// write_file(block, false, filepathDN[i]);</span></span><br><span class="line">                    write_file(block, <span class="literal">false</span>, filepathRN[i]);</span><br><span class="line">                    <span class="comment">//write_file(block, false, diskfp);</span></span><br><span class="line">                    <span class="comment">// write_file(block, false, ramfp);</span></span><br><span class="line"></span><br><span class="line">                    <span class="comment">//随机读</span></span><br><span class="line"></span><br><span class="line">                    <span class="comment">//  read_file(block, true, diskfp);</span></span><br><span class="line">                    <span class="comment">//read_file(block, true, ramfp);</span></span><br><span class="line">                    <span class="comment">//read_file(block,true,filepathDN[i]);</span></span><br><span class="line">                    <span class="comment">//read_file(block,true,filepathRN[i]);</span></span><br><span class="line">                    <span class="comment">//顺序读</span></span><br><span class="line">                    <span class="comment">// read_file(block,false,filepathDN[i]);</span></span><br><span class="line">                    <span class="comment">// read_file(block,false,filepathRN[i]);</span></span><br><span class="line">                    <span class="comment">// read_file(block, false, ramfp);</span></span><br><span class="line">                    <span class="comment">//read_file(block,false,diskfp);</span></span><br><span class="line"></span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//等待所有子进程结束，这里如果不写，就不会等待进程结束，导致计算错误。</span></span><br><span class="line">            <span class="keyword">while</span> (wait(<span class="literal">NULL</span>) != <span class="number">-1</span>);</span><br><span class="line">          </span><br><span class="line">            gettimeofday(&amp;endtime, <span class="literal">NULL</span>);</span><br><span class="line">            <span class="comment">//计算时间用秒，所以要除以1000</span></span><br><span class="line">            <span class="keyword">long</span> alltime=(endtime.tv_sec-starttime.tv_sec)*<span class="number">1000</span>+(endtime.tv_usec-starttime.tv_usec)/<span class="number">1000</span>;</span><br><span class="line">            <span class="keyword">double</span> eachtime = (alltime ) / (<span class="keyword">double</span>)writetime / Fork;</span><br><span class="line">            <span class="keyword">double</span> timeuse = eachtime / <span class="number">1000</span>;</span><br><span class="line">            <span class="comment">//转到KB级</span></span><br><span class="line">            <span class="keyword">double</span> block_kB = (<span class="keyword">double</span>)block / <span class="number">1024.0</span>;</span><br><span class="line">            <span class="comment">//MB/s</span></span><br><span class="line">            <span class="keyword">double</span> readspeed = block_kB / timeuse/<span class="number">1024.0</span>;</span><br><span class="line">            <span class="keyword">double</span> writespeed = block_kB / timeuse/<span class="number">1024.0</span>;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"%d,%f,%ld,%f\n"</span>, block,block_kB,alltime,writespeed);</span><br><span class="line">            Fork += <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        block *= <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ol>
-<li>性能测试的二个变量为<strong>块大小</strong>（推荐64B/256B/1KB/4KB/16KB/64KB）和<strong>块扫描方式</strong>（顺序/随机）。可以画<strong>四张曲线图</strong>对比RAM盘和Disk盘性能（随机读，随机写，顺序读，顺序写）。实验结果预计为RAM盘性能高于DISK盘，特别是随机读写性能。<strong>对比在不同的blocksize下的性能</strong>，然后通过Excel把数据制作成图表。</li>
-</ol>
-<ul>
-<li></li>
-</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//首先写两个 utils， 第一个函数是获取当前的时间</span></span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="keyword">long</span> <span class="title">get_current_time</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    struct timeval tv;</span><br><span class="line">    gettimeofday(&amp;tv, NULL);</span><br><span class="line">    <span class="keyword">return</span> tv.tv_sec * <span class="number">1000</span> + tv.tv_usec / <span class="number">1000</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//第二个是获取运行时间</span></span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="keyword">long</span> <span class="title">get_run_time</span><span class="params">(<span class="keyword">long</span> <span class="keyword">long</span> starttime, <span class="keyword">long</span> <span class="keyword">long</span> endtime)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> endtime - starttime;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">enum</span> io_list</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">write</span>, <span class="built_in">read</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">enum</span> order_list</span><br><span class="line">    &#123;</span><br><span class="line">        sequential = <span class="literal">false</span>,  <span class="built_in">random</span> = <span class="literal">true</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    <span class="keyword">int</span> fd;</span><br><span class="line">    <span class="keyword">int</span> i, j, k;</span><br><span class="line">    <span class="keyword">long</span> <span class="keyword">long</span> starttime, endtime, usetime;</span><br><span class="line">    <span class="keyword">char</span> filepath[MaxFileName];</span><br><span class="line">  <span class="comment">// 定义块数组，从 64到66536</span></span><br><span class="line">    <span class="keyword">int</span> blocksizelist[] = &#123;<span class="number">64</span>, <span class="number">256</span>,<span class="number">1024</span>, <span class="number">4096</span> ,<span class="number">16384</span>, <span class="number">66536</span>&#125;;</span><br><span class="line">    <span class="keyword">int</span> blocksize;</span><br><span class="line">    <span class="keyword">int</span> filesizeMB;</span><br><span class="line">    <span class="keyword">long</span> filesize = <span class="number">100</span> * MFACTOR; <span class="comment">// 1024*1024</span></span><br><span class="line">    <span class="keyword">int</span> concurrency = <span class="number">5</span>;					<span class="comment">// 并发5</span></span><br><span class="line">    <span class="keyword">bool</span> deletefile = <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">int</span> RedoTime = <span class="number">3</span>;							<span class="comment">//重复次数为3</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> io;</span><br><span class="line">    <span class="keyword">bool</span> order;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (argc &lt; <span class="number">4</span>) </span><br><span class="line">        help_and_quit();</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">strncmp</span>(argv[<span class="number">1</span>], <span class="string">"-w"</span>, <span class="number">2</span>)) </span><br><span class="line">            io = <span class="built_in">write</span>;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="built_in">strncmp</span>(argv[<span class="number">1</span>], <span class="string">"-r"</span>, <span class="number">2</span>))</span><br><span class="line">            io = <span class="built_in">read</span>;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            help_and_quit();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">strncmp</span>(argv[<span class="number">2</span>], <span class="string">"-0"</span>, <span class="number">2</span>)) </span><br><span class="line">            order = sequential;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="built_in">strncmp</span>(argv[<span class="number">2</span>], <span class="string">"-1"</span>, <span class="number">2</span>))</span><br><span class="line">            order = <span class="built_in">random</span>;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            help_and_quit();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> ((filesizeMB = atoi(argv[<span class="number">3</span>])) &gt;= <span class="number">1</span> &amp;&amp; filesizeMB &lt;= <span class="number">200</span>) </span><br><span class="line">            filesize = filesizeMB * MFACTOR;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            help_and_quit();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (k = <span class="number">0</span>; k &lt;= <span class="number">6</span>; k+=<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        blocksize = blocksizelist[k];</span><br><span class="line">        starttime = get_current_time();</span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; concurrency; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> ((pid = fork()) == <span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">sprintf</span>(filepath, <span class="string">"./file%d.txt"</span>, i);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> ((fd = creat(filepath, <span class="number">777</span>)) == <span class="number">-1</span>) <span class="comment">/* 创建文件后关闭 */</span></span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"Create Error!\n"</span>);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span></span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">close</span>(fd) != <span class="number">0</span>)</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="built_in">printf</span>(<span class="string">"Close Error!\n"</span>);</span><br><span class="line">                        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (io == <span class="built_in">read</span>) </span><br><span class="line">                &#123;</span><br><span class="line">                    write_file(blocksize, order, filepath, filesize/concurrency);</span><br><span class="line">                    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; RedoTime - <span class="number">1</span>; j++)</span><br><span class="line">                        read_file(blocksize, order, filepath, filesize/concurrency);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> </span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; RedoTime - <span class="number">1</span>; j++)</span><br><span class="line">                        write_file(blocksize, order, filepath, filesize/concurrency);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (deletefile &amp;&amp; (<span class="built_in">remove</span>(filepath) != <span class="number">0</span>))</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"Remove Error!\n"</span>);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// printf("Parent process running\n");</span></span><br><span class="line">        <span class="keyword">while</span> (waitpid(pid, <span class="literal">NULL</span>, <span class="number">0</span>) != <span class="number">-1</span>)&#123;&#125;</span><br><span class="line">        <span class="comment">// printf("All child processes finished\n");</span></span><br><span class="line"></span><br><span class="line">        endtime = get_current_time();</span><br><span class="line">        usetime = get_run_time(starttime, endtime);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"File size: %ld MB.\n"</span>, filesize / MFACTOR);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Blocksize: %d.\n"</span>, blocksize);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Redo times: %d.\n"</span>, RedoTime);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Execution time: %lld msec(s).\n"</span>, usetime);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Throughput: %f MB/S\n\n"</span>, ((<span class="keyword">double</span>)filesize / MFACTOR) * RedoTime / ((<span class="keyword">double</span>)usetime / <span class="number">1024</span>));</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>数据如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>分块大小</th>
+<th>ram</th>
+<th>disk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>64</td>
+<td>12.387097</td>
+<td>10.858385</td>
+</tr>
+<tr>
+<td>256</td>
+<td>47.872838</td>
+<td>27.863946</td>
+</tr>
+<tr>
+<td>1024</td>
+<td>157.538462</td>
+<td>91.237491</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>380.19802</td>
+<td>180.705582</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>550.044763</td>
+<td>236.307692</td>
+</tr>
+<tr>
+<td>66536</td>
+<td>646.736842</td>
+<td>257.826269</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>分块大小</td>
+<td>ram</td>
+<td>disk</td>
+</tr>
+<tr>
+<td>64</td>
+<td>17.886463</td>
+<td>8.031373</td>
+</tr>
+<tr>
+<td>256</td>
+<td>71.300917</td>
+<td>47.690775</td>
+</tr>
+<tr>
+<td>1024</td>
+<td>228.997391</td>
+<td>110.048361</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>519.357566</td>
+<td>169.185606</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>722.823529</td>
+<td>195.047619</td>
+</tr>
+<tr>
+<td>66536</td>
+<td>783.673469</td>
+<td>201.442623</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>分块大小</td>
+<td>ram</td>
+<td>disk</td>
+</tr>
+<tr>
+<td>64</td>
+<td>4.561823</td>
+<td>5.918561</td>
+</tr>
+<tr>
+<td>256</td>
+<td>20.2999336</td>
+<td>11.837121</td>
+</tr>
+<tr>
+<td>1024</td>
+<td>71.168771</td>
+<td>23.674242</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>297.24238</td>
+<td>47.348485</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>550.537634</td>
+<td>94.69697</td>
+</tr>
+<tr>
+<td>66536</td>
+<td>695.022624</td>
+<td>189.393939</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>分块大小</td>
+<td>ram</td>
+<td>disk</td>
+</tr>
+<tr>
+<td>64</td>
+<td>5.809929</td>
+<td>0.610483</td>
+</tr>
+<tr>
+<td>256</td>
+<td>24.924949</td>
+<td>2.032418</td>
+</tr>
+<tr>
+<td>1024</td>
+<td>96</td>
+<td>8.908608</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>372.353636</td>
+<td>55.941</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>625.025432</td>
+<td>139.098936</td>
+</tr>
+<tr>
+<td>66536</td>
+<td>722.823529</td>
+<td>219.428571</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>结果如下图所示：</p>
+<p><img src="/2021/05/19/os-project3/7.png"></p>
+<p><img src="/2021/05/19/os-project3/8.png"></p>
+<p><img src="/2021/05/19/os-project3/9.png"></p>
+<p><img src="/2021/05/19/os-project3/10.png"></p>
+<p>将随机</p>
+<p><img src="/2021/05/19/os-project3/11.png"></p>
+<p><img src="/2021/05/19/os-project3/12.png"></p>
 
       
     </div>
@@ -737,7 +920,7 @@
               
                 <a href="/archives%7C%7C%20archive">
               
-                  <span class="site-state-item-count">334</span>
+                  <span class="site-state-item-count">338</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -871,7 +1054,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">773.1k</span>
+    <span title="Site words total count">790k</span>
   
 </div>
 
