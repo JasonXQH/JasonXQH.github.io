@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="数据管理系统," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="查询执行引擎数据库查询可以看做是对数据集合做运算，运算的基本单位是算子。比如投影、扫描、选择、连接、排序等 在关系数据库及其基本实现原理 这篇博客中，我们初步了解了几种算子的功能以及如何实现的。 现在我们来介绍一下在执行查询的流程：  首先SQL语言会被解析，并得到好几种不同的查询方案(plan)。 SQL$\rightarrow$ Plans 的过程被称为 Interpretation 然后引擎">
+<meta property="og:type" content="article">
+<meta property="og:title" content="高级数据库系统-查询">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="查询执行引擎数据库查询可以看做是对数据集合做运算，运算的基本单位是算子。比如投影、扫描、选择、连接、排序等 在关系数据库及其基本实现原理 这篇博客中，我们初步了解了几种算子的功能以及如何实现的。 现在我们来介绍一下在执行查询的流程：  首先SQL语言会被解析，并得到好几种不同的查询方案(plan)。 SQL$\rightarrow$ Plans 的过程被称为 Interpretation 然后引擎">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/24.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/25.png">
+<meta property="article:published_time" content="2022-03-23T02:45:50.000Z">
+<meta property="article:modified_time" content="2022-06-25T06:21:36.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据管理系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/2.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2022/03/23/高级数据库系统-查询/"/>
+
+
+
+
+
+  <title>高级数据库系统-查询 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">高级数据库系统-查询</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2022-03-23T10:45:50+08:00">
+                2022-03-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  7.3k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  27
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h1><h2 id="执行引擎"><a href="#执行引擎" class="headerlink" title="执行引擎"></a>执行引擎</h2><p>数据库查询可以看做是对数据集合做运算，运算的基本单位是算子。比如投影、扫描、选择、连接、排序等</p>
+<p>在<a href="https://jasonxqh.github.io/2021/10/25/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%8A%E5%85%B6%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/">关系数据库及其基本实现原理</a> 这篇博客中，我们初步了解了几种算子的功能以及如何实现的。</p>
+<p>现在我们来介绍一下在执行查询的流程：</p>
+<ol>
+<li>首先SQL语言会被解析，并得到好几种不同的查询方案(plan)。 SQL$\rightarrow$ Plans 的过程被称为 Interpretation</li>
+<li>然后引擎会找出最佳的哪个执行方案。Plans$\rightarrow$ Best Plan 的过程被称为Query  Optimization</li>
+<li>最后引擎会执行这个方案，并返回结果。Best Plans $\rightarrow$ Results 的过程为成为Query Execution</li>
+</ol>
+<p>过程如下：</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/2.png"></p>
+<ul>
+<li>从逻辑上讲：<ul>
+<li>查询 $\rightarrow$ 语法树 $\rightarrow$ 逻辑优化$\rightarrow$ 物理优化 $\rightarrow$ 查询执行</li>
+<li>逻辑优化是关系代数的等价变换</li>
+<li>物理优化是访问路径的选择，算子执行路径的选择</li>
+</ul>
+</li>
+<li>在实现中<ul>
+<li>很可能发生耦合</li>
+<li>查询 $\rightarrow$ 语法树和数据结构  $\rightarrow$ 逻辑优化/物理优化耦合 $\rightarrow$ 执行</li>
+</ul>
+</li>
+</ul>
+<p>下图是PostgreSQL中查询引擎的组成部分：</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/1.png"></p>
+<p>引擎主要可以分为几个组件：</p>
+<h4 id="parser"><a href="#parser" class="headerlink" title="parser"></a>parser</h4><p>首先是parser，它进行的是编译过程，对SQL进行词法和语法分析 </p>
+<p>SQL被编译过程中会形成这样一棵 Parse Tree(语法树)</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/3.png"></p>
+<h4 id="Analyzer"><a href="#Analyzer" class="headerlink" title="Analyzer"></a>Analyzer</h4><p>然后，Analyzer会对语法树做语义检查，一共是检查这几个方面：</p>
+<ol>
+<li>投影列是否存在与对应的关系中</li>
+<li>属性是否明确？是否有歧义？是否存在？</li>
+<li>类型检查(int ,double等)</li>
+</ol>
+<h4 id="Rewriter"><a href="#Rewriter" class="headerlink" title="Rewriter"></a>Rewriter</h4><p>Parse Tree经过 analyzer之后就变成了Query Tree, 在这里面有一个视图表 (蓝色的RTE_VIEW)。Rewriter的作用是展开视图表</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/4.png"></p>
+<h4 id="Planner"><a href="#Planner" class="headerlink" title="Planner"></a>Planner</h4><p>Planner是对上面的完整的Query Tree进行处理，形成查询计划</p>
+ <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> tb1_a <span class="keyword">WHERE</span> <span class="keyword">id</span> &lt; <span class="number">300</span> <span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">data</span>;</span><br></pre></td></tr></table></figure>
+<p>比如说对上面这句SQL语言，会生成如下一个plan tree</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/5.png"></p>
+<p>在这个过程之后会进行逻辑优化和物理优化，这部分我们放到最后一节去说。</p>
+<p>我们可以使用EXPLAIN功能，输出物理计划：</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/6.png"></p>
+<h4 id="Executor"><a href="#Executor" class="headerlink" title="Executor"></a>Executor</h4><p>最后交给执行器去执行，接下来我们就要学习查询执行过程中的火山模型</p>
+<h3 id="查询引擎-火山模型"><a href="#查询引擎-火山模型" class="headerlink" title="查询引擎-火山模型"></a>查询引擎-火山模型</h3><p>我们从上面看出，物理计划是一颗树形的结构，那么以此提出了火山模型来实现查询引擎的功能。火山模型是一种通用的SQL执行引擎的实现方法，因此很多数据库都会使用。</p>
+<ul>
+<li>操作流：从树顶依次往孩子节点要数据，直到底层算子提供数据</li>
+<li>数据流：从叶子依次往上层返回数据</li>
+</ul>
+<p>每个数据库操作，都会使用共同的结构：</p>
+<ul>
+<li>Open() ： 准备资源，准备获得第一个tuple</li>
+<li>Next():  一次提供一个数据</li>
+<li>Close(): 释放资源</li>
+</ul>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/7.png" style="zoom:50%;"></p>
+<p>比如说上面这个执行树，投影、选择、扫描算子都有这三个接口。当我的SQL语句想要得到一行结果的时候， 首先会去调用投影的next接口，然后投影的next会去调选择的next接口，而选择的next又会去调扫描的next接口，只有满足了条件的数据才能够向上传递。</p>
+<p>总而言之，就是父亲节点去调用孩子节点的next接口，直到获得一条数据为止。比如说第3条数据符合age&lt;25的条件，那么，<strong>选择算子</strong>会循环调用3次扫描算子的next接口，才会拿到一条符合条件的数据，并向投影算子传递</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/8.png" style="zoom:50%;"></p>
+<p>比如说我们要实现一个排序算子，我们可以这样来实现</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">sqrt()&#123;</span><br><span class="line">	if(第一次)&#123; &#x2F;&#x2F; 这里需要判断是否为第一次执行，第一次执行需要将孩子节点的信息全部调用上来，后面则不用</span><br><span class="line">	  while(true)&#123;</span><br><span class="line">	    child.next</span><br><span class="line">	  &#125;</span><br><span class="line">	  store sort</span><br><span class="line">	  返回信息</span><br><span class="line">	&#125;else&#123;</span><br><span class="line">		store sort</span><br><span class="line">	 	返回信息</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="阻塞算子"><a href="#阻塞算子" class="headerlink" title="阻塞算子"></a>阻塞算子</h4><p>其实，上面的sort就是一种阻塞算子，我们也可以看到sort和扫描是完全两种不同的算子——sort需要拿到所有的数据，而扫描不需要。</p>
+<p>因此，我们称 要把数据全部拿到再执行的算子称为<strong>阻塞算子</strong></p>
+<p>常见的阻塞算子是：构建哈希表(哈希连接)和排序(合并连接)</p>
+<h4 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h4><p>我们可以首先来对比批处理执行和流水线执行</p>
+<p>如果是用批处理的话，我们可以写几个for循环，然后几行代码就可以搞定。虽然效率很高，但这样的可扩展性极差。</p>
+<p>但是使用流水线来执行的话，虽然效率很低，但是可扩展。</p>
+<p>因此我们可以做出预测：</p>
+<p>火山模型的优点：</p>
+<ol>
+<li>实现简单易扩展</li>
+<li>节省内存资源</li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li>冗余的流控指令</li>
+<li>效率低：虚函数嵌套，CPU的分支预测不友好</li>
+</ol>
+<h4 id="流水线在内存数据库中的优化"><a href="#流水线在内存数据库中的优化" class="headerlink" title="流水线在内存数据库中的优化"></a>流水线在内存数据库中的优化</h4><p>这实际上是一个并行的概念，也就是一次next并不是只取一条数据，而是取一批数据：</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/9.png" style="zoom: 67%;"></p>
+<h2 id="Join-算子实现"><a href="#Join-算子实现" class="headerlink" title="Join 算子实现"></a>Join 算子实现</h2><p>这里我们主要学习连接算子join的实现过程。两张表的Join的效果如下</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/10.png"></p>
+<h3 id="连接算法"><a href="#连接算法" class="headerlink" title="连接算法"></a>连接算法</h3><p>连接算法一共有三种：Nest Loop Join、 Hash   Join、 Merge Join. 目的就是将相同属性的pair给找出来</p>
+<h4 id="Nest-Loop-Join"><a href="#Nest-Loop-Join" class="headerlink" title="Nest Loop Join"></a>Nest Loop Join</h4><p>Nest Loop Join就是对 R 和 S 进行双循环匹配。如果 $R\bowtie S$  的话，R为内表，S为外表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Function : nljoin (R,S,p)</span><br><span class="line">&#x2F;* outer relation S *&#x2F;</span><br><span class="line">foreach record s in S do</span><br><span class="line">		&#x2F;* inner relation R *&#x2F;</span><br><span class="line">		foreach record r in R do</span><br><span class="line">			&#x2F;* &lt;s,r&gt; denotes record concatenation *&#x2F;</span><br><span class="line">        if &lt;s,r&gt; satisfies p then</span><br><span class="line">            append &lt;s,rs&gt; to result</span><br></pre></td></tr></table></figure>
+<h4 id="Hash-Join"><a href="#Hash-Join" class="headerlink" title="Hash Join"></a>Hash Join</h4><p>如果采用Hash Join方法，可以对内表(这里是R表)构建哈希表，然后用S表去做哈希探测</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/11.png" style="zoom: 50%;"></p>
+<h4 id="Merge-Join"><a href="#Merge-Join" class="headerlink" title="Merge Join"></a>Merge Join</h4><p>如果采用Merge Join,需要分别对 R 和 S 进行排序，然后用归并算法得到Join结果</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/12.png" style="zoom: 50%;"></p>
+<h3 id="连接算法结合火山模型"><a href="#连接算法结合火山模型" class="headerlink" title="连接算法结合火山模型"></a>连接算法结合火山模型</h3><p>现在我们来看三种算法在火山模型下该如何实现。</p>
+<h4 id="Nest-Loop的火山模型"><a href="#Nest-Loop的火山模型" class="headerlink" title="Nest Loop的火山模型"></a>Nest Loop的火山模型</h4><p>我们可以简单画出 Nest Loop Join的查询计划表</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/15.png" style="zoom: 50%;"></p>
+<p>我们看到，由于Join算子需要对两张表进行连接，那么他一定是由两个孩子算子的</p>
+<p>事实上，在数据库系统中，有三种不同类型的算子：</p>
+<ul>
+<li>没孩子的，比如Scan算子</li>
+<li>单孩子的，比如Sort算子、投影算子</li>
+<li>双孩子的，比如Join算子</li>
+</ul>
+<p>首先我们列出比较简单的open接口和close接口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Function: open()</span><br><span class="line">R.open();</span><br><span class="line">S.open();</span><br><span class="line">r &lt;- R.next;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Function: close()</span><br><span class="line">R.close()</span><br><span class="line">S.close()</span><br></pre></td></tr></table></figure>
+<p>接下来给出next()接口的伪代码，本质上就是两重扫描：伪代码也非常直接</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">While (r !&#x3D; &lt;EOF&gt; )do</span><br><span class="line">    while ((s&lt;- S.next())!&#x3D;&lt;EOP&gt;) do</span><br><span class="line">        if p(r,s) then</span><br><span class="line">          &#x2F;*向上传递连接后的结果*&#x2F;</span><br><span class="line">          return &lt;r,s&gt;</span><br><span class="line">        &#x2F;*一遍循环完了，现在重置内表，继续循环*&#x2F;</span><br><span class="line">        S.close();</span><br><span class="line">        S.open();</span><br><span class="line">        r &lt;- R.next();</span><br><span class="line">return &lt;EOF&gt;;</span><br></pre></td></tr></table></figure>
+<h4 id="Hash-Join的火山模型"><a href="#Hash-Join的火山模型" class="headerlink" title="Hash Join的火山模型"></a>Hash Join的火山模型</h4><p>Hash Join 用到了多个算子：Hash算子用来创建哈希表，Hash Join算子用来探索哈希表</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/14.png" style="zoom: 50%;"></p>
+<p>Hash  Join的火山模型有两种实现方式：</p>
+<ul>
+<li>写法1</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">open()&#123;</span><br><span class="line">		R.open();</span><br><span class="line">		while((r&#x3D;R.next())!&#x3D;EOF)</span><br><span class="line">				将 r 加入哈希表h (内表构造哈表h)</span><br><span class="line">		S.open();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Next()&#123;</span><br><span class="line">		while()&#123;</span><br><span class="line">				s &#x3D; S.next();</span><br><span class="line">				用s探索哈希表h；</span><br><span class="line">				if(找到一个匹配的&lt;r,s&gt;)</span><br><span class="line">						return &lt;r,s&gt;</span><br><span class="line">		&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这中写法中，open接口其实是做一个准备工作，也就是将内表打开并将其扫入内存、构建哈希表了。这样在next接口中只需要做扫描即可。实际应用中这种方式更加常见</p>
+<ul>
+<li>写法2</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">open()&#123;</span><br><span class="line">		R.open();</span><br><span class="line">		r &#x3D; R.next();</span><br><span class="line">		S.open();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">next()&#123;</span><br><span class="line">		if(r是R的第一个元组)&#123;</span><br><span class="line">				将r加入哈希表h</span><br><span class="line">				while((r&#x3D;R.next())!&#x3D;EOF)</span><br><span class="line">						将r加入哈希表h</span><br><span class="line">		&#125;</span><br><span class="line">		while()&#123;</span><br><span class="line">				s &#x3D; S.next();</span><br><span class="line">				用s探索哈希表h；</span><br><span class="line">				if(找到一个匹配的&lt;r,s&gt;)</span><br><span class="line">						return &lt;r,s&gt;</span><br><span class="line">		&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果采用这种写法，需要在next的时候多加一层判断，实际上开销是差不多的。</p>
+<h4 id="Merge-Join的火山模型"><a href="#Merge-Join的火山模型" class="headerlink" title="Merge Join的火山模型"></a>Merge Join的火山模型</h4><p>Merge Join 用到了多个算子：Sort、Merge Join 等，下面是其查询计划表：</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/13.png" style="zoom: 50%;"></p>
+<p>Merge Join 下面有两个Sort算子，负责对两张表的数据进行排序。Sort算子在之前我们说过会维护一个缓冲区，用一个while循环不断地向Scan算子要数据，然后在缓冲区中进行排序。</p>
+<p>两个Sort都排序完成后，进行Merge Join算子的操作，也就是会从两个Sort算子各取一条数据，比较它们是否相等，如果相等说明满足条件，return，否则就继续取下面两条数据。</p>
+<p>Join算子并不是阻塞算子，Sort算子才是阻塞算子</p>
+<h3 id="基于块数据的连接算法"><a href="#基于块数据的连接算法" class="headerlink" title="基于块数据的连接算法"></a>基于块数据的连接算法</h3><p>现在很多数据库的底层是LSM Tree，在那种数据库环境下谈基于块数据的算法是没有意义的，这里我们讨论的是传统数据库中的基于块数据的连接方法</p>
+<p>由于在传统数据库中，数据库以Block/Page为基本存储单位，因此缓冲区可能会存在内存不足的问题，导致无法将数据全部加载到内存中进行计算。</p>
+<p>假设内存有B个Block用于Join，其中一个Block用于缓存Join的结果(在火山模型中并不需要缓存所有结果)。基于上面这种情况，我们再来讨论三种算法的实现</p>
+<h4 id="Nest-Loop-Join-1"><a href="#Nest-Loop-Join-1" class="headerlink" title="Nest Loop Join"></a>Nest Loop Join</h4><p>首先我们来回顾一下Nest Loop Join算法：对于 $S\bowtie R$,  $S$ 为内表，$R$ 为外表。那么需要做一个双重循环，将$<R,S>$ 一一比较后得出结果</R,S></p>
+<p>当块和Next Loop Join结合起来会变成什么样？</p>
+<p>我们假定 R 和 S 的blocks数量分别为$N_R$ 和 $N_S$ ，那么对于外表来说，其每一个块都需要放到内存里面一遍，对于内表来说，外表的元素每改变一次，就要将所有的块放入内存中访问一遍，因此总的块访问次数为 $N_R+|R| \cdot N_S$ </p>
+<h5 id="Index-Nest-Loop-join"><a href="#Index-Nest-Loop-join" class="headerlink" title="Index Nest Loop join"></a>Index Nest Loop join</h5><p>实际上我们可以对Nest Loop做一定的优化：改进成了 Indexed Nest Loop Join</p>
+<p>对R表的每个数据，直接对S表做Index Scan，以此减少磁盘访问次数和访问数据量。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Function : index_nljoin(R,S,p)</span><br><span class="line">foreach record r in R do</span><br><span class="line">		scan S-index using (key value in) r </span><br><span class="line">		and concatenate r with all match tuples s;</span><br><span class="line">		</span><br><span class="line">		appand &lt;r,s&gt; to result;</span><br></pre></td></tr></table></figure>
+<p>前提条件是，在S表上的那一列需要对其构建索引。然后，对于R表中的每个元素，对S表做索引的查询，这样复杂度就可以降下来了。对块的访问次数也没有之前多——不用再扫描全表的块$N_s$了</p>
+<h5 id="Block-Nest-Loop-Join"><a href="#Block-Nest-Loop-Join" class="headerlink" title="Block Nest Loop Join"></a>Block Nest Loop Join</h5><p>我们可以再进行一次优化来减少磁盘的访问次数</p>
+<p>假设缓冲区中 $b_r$ 和 $b_s$ 个块用于缓存R和S的数据，$b_r+b_s=B-1$(B为内存可分配的块数量), 剩下1个block是用来存放输出的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Function: block_nljoin (R, S, p)</span><br><span class="line">foreach b_r-sized block in R do</span><br><span class="line">		build an in-memory hash table H for the current R-block;</span><br><span class="line">		foreach b_s-sized block in S do</span><br><span class="line">				foreach record s in current S-block do</span><br><span class="line">						probe H and append matching (r, s) tuples to result</span><br></pre></td></tr></table></figure>
+<p>也就是说，一次读入 $b_r,b_s$ 个块读入内存，对其进行比较、连接。</p>
+<p>因此，总的磁盘访问次数为： $\lceil N_R/b_r\rceil\cdot\lceil N_S/b_s\rceil $ (默认块是连续的) </p>
+<p>访问block数量为： $N_R\cdot N_S$</p>
+<p>通常来说，我们会取 $b_r = B-2,b_s = 1$ ，内存中建立哈希表优化匹配 .(如果R表可以一次性全部放进内存，事实上和哈希连接比较相近)</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/16.png"></p>
+<h4 id="Block-Hash-Join"><a href="#Block-Hash-Join" class="headerlink" title="Block Hash Join"></a>Block Hash Join</h4><p>如果R表可以完全放入内存，那么R和S只访问一遍，和上面我们说的Nest Loop算法相近</p>
+<p>那么如果R表无法完全放入内存的话，就需要<strong>对R表进行Block Hash 算法</strong>了：</p>
+<p>我们可以建 B-1 个桶， 每个桶写满一个Block就刷盘，一个桶可能占多个Block，如下所示：</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/17.png"></p>
+<p>对S表也可以做这样一个Block Hash算法，此时，R表和S表都按照桶分配到磁盘上了。然后，对每个Partition做一趟哈希连接</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/18.png"></p>
+<p>伪代码如下：</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/19.png"></p>
+<p>当然，这种Block Hash Join算法存在一定的限制</p>
+<p>如果每个Partition中R表的Block数量都少于B-1的话，那么算法需要对R、S表进行两趟访问：</p>
+<ul>
+<li>第一趟将他们读入内存然后进行 Partition, 再将它们刷盘</li>
+<li>第二趟将每个Partition读入内存，进行Hash Join</li>
+</ul>
+<p>但是，如果有Partition中的R表的Block数量大于B-1的话，需要在此基础上继续进行Partition，因此需要多趟算法</p>
+<p>如果按照正常的都小于B-1来说，Hash Join访问磁盘Block的次数为：$3N_R+3N_S$ 。 其中，第一趟算法读取和刷盘就包含了$2N_R+2N_S$ ，第二次读取包含了 $N_R+N_S$</p>
+<h5 id="Hybrid-Hash-Join"><a href="#Hybrid-Hash-Join" class="headerlink" title="Hybrid Hash Join"></a>Hybrid Hash Join</h5><p>还可以对Block Hash Join做进一步优化，也就是对部分 Partition 做一趟算法，部分用两趟算法</p>
+<ul>
+<li>假设构建k个桶，对其中m个桶完全保留在内存中，其他k-m个桶只保留一个block</li>
+</ul>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/20.png"></p>
+<h3 id="基于块的排序算法"><a href="#基于块的排序算法" class="headerlink" title="基于块的排序算法"></a>基于块的排序算法</h3><p>同样的，对于另外一个阻塞算子——排序，如果是基于块的情况下，是怎么样的？</p>
+<p>首先，我们有$N_R$ 个块，但内存只有 B-1 个块，$N_R&gt;B-1$ ， 此时该如何借助内存进行排序</p>
+<p>我们可以从$N_R$ 个块中每次取出 $B-1$ 个块，然后对其进行排序，排序完以后将其刷回磁盘，记为部分1；这样一直记录到部分x。</p>
+<p>这样一共会得到 x个排好序的部分，如果$x<B-1 $， 那么就可以继续做多路归并排序； 如果$x>B-1$ ，那么再对一些部分做归并。</B-1></p>
+<p>因此可能是两趟，也可能是多趟排序</p>
+<h2 id="查询优化器"><a href="#查询优化器" class="headerlink" title="查询优化器"></a>查询优化器</h2><p>查询优化器的目标是在众多查询计划中选择一个高效的查询执行计划。</p>
+<ul>
+<li>在集中式数据库中，高效的指标取决于I/O代价、CPU代价和查询的内存开销。</li>
+<li>在分布式数据库中，评估的总代价=I/O代价+CPU代价+通信代价</li>
+</ul>
+<p>之前我们说了有两种优化分类：</p>
+<ul>
+<li>逻辑优化主要是关系代数表达式的等价变化</li>
+<li>物理优化更加细致，主要可分三点<ul>
+<li>存取路径：索引、基本表</li>
+<li>底层操作算子的选择：连接算子的选择、聚合算子选择等</li>
+<li>多表连接顺序选择(其实也是一种关系代数表达式的变换)</li>
+</ul>
+</li>
+</ul>
+<h3 id="逻辑优化-关系表达式转换"><a href="#逻辑优化-关系表达式转换" class="headerlink" title="逻辑优化-关系表达式转换"></a>逻辑优化-关系表达式转换</h3><p>目标：通过对关系代数表达式的等价变换来提高查询效率</p>
+<p>如果两个关系代数表达式在每个合法数据库实例上生成相同的元组集，则称这两个关系代数表达式是等价的</p>
+<h4 id="逻辑优化案例"><a href="#逻辑优化案例" class="headerlink" title="逻辑优化案例"></a>逻辑优化案例</h4><p>下面是一个JOIN带选择的SQL语句</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> S.SN</span><br><span class="line"><span class="keyword">FROM</span> S,SC</span><br><span class="line"><span class="keyword">WHERE</span> S.S =SC.S  <span class="keyword">AND</span> SC.C =‘C2’;</span><br></pre></td></tr></table></figure>
+<p>假定学生－课程数据库中有1000个学生记录，10000个选课记录，其中选修C2课程的选课记录为50个。</p>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/24.png"></p>
+<p>这三种方法的评估计划时间的成本差异可能很大，可能是秒级与天级的差异</p>
+<p>从代价上看，第三种是最好的，也就是现在SC中做好选择，再去和S表做连接。这比前两种要快很多，几乎可以称为是一条规则了。</p>
+<h4 id="常用的等价变换规则"><a href="#常用的等价变换规则" class="headerlink" title="常用的等价变换规则"></a>常用的等价变换规则</h4><ol>
+<li>连接、笛卡尔积交换律</li>
+</ol>
+<p>设E1和E2是关系代数表达式，F 是连接运算的条件，则有</p>
+<script type="math/tex; mode=display">
+E_1\times E_2 ≡ E_2\times E_1\\
+E_1\bowtie E_2 ≡ E_2\bowtie E_1\\
+E_1\bowtie_F E_2 ≡ E_2\bowtie_F E_1</script><ol>
+<li>连接、笛卡尔积的结合律，设E1，E2，E3是关系代数表达式，F1和F2是连接运算的条件，则有：</li>
+</ol>
+<script type="math/tex; mode=display">
+(E_1\times E_2)\times E_3≡E_1\times(E_2\times E_3)\\
+(E_1\bowtie E_2)\bowtie E_3 ≡ E_1\bowtie(E_2\bowtie E_3)\\
+
+(E_1\bowtie_{F_1} E_2)\bowtie_{F_2} E_3 ≡ E_1\bowtie_{F_1}(E_2\bowtie_{F_2} E_3)\\</script><p>当然，这些只是改变表和表之间连接的顺序，可能需要放到物理优化中去，因为在逻辑优化中是看不出来哪个式子代价大的</p>
+<ol>
+<li>选择与笛卡尔积的交换律, 如果F中涉及的属性都是E1中的属性，则</li>
+</ol>
+<script type="math/tex; mode=display">
+\sigma_F(E_1\times E_2)≡\sigma_F(E_1) \times E_2\\</script><p>如果$F=F_1\land F_2$ ，并且 $F_1$ 只涉及 $E_1$ 中的属性，$F_2$ 只涉及$E_2$ 中的属性，则由上面的等价变换规则可推出：</p>
+<script type="math/tex; mode=display">
+\sigma_F(E_1\times E_2) ≡ \sigma_{F_1}(E_1)\times \sigma_{F_2}(E_2)</script><p>若$F_1$涉及$E_1$ 中的属性，$F_2$ 涉及$E_1$和$E_2$两者的属性，则仍有下式，它使得部分选择在笛卡尔积前先做</p>
+<script type="math/tex; mode=display">
+\sigma_F(E_1\times E_2) ≡ \sigma_{F_2}(\sigma_{F_1}(E_1)\times E_2)</script><h4 id="实现逻辑优化—基于规则优化"><a href="#实现逻辑优化—基于规则优化" class="headerlink" title="实现逻辑优化—基于规则优化"></a>实现逻辑优化—基于规则优化</h4><p>在逻辑优化阶段，我们对查询树依次执行设置的启发式规则，如果满足，则执行规则</p>
+<p>–  启发式规则。比如说，选择下推——编码时将选择操作绑定到扫描算子上</p>
+<p>– 如何实现？</p>
+<ul>
+<li><p>通常可以调整查询树的数据结构</p>
+</li>
+<li><p>有些规则需要独特编码方式实现</p>
+</li>
+</ul>
+<p>还有一些比较好用的规则，如下：</p>
+<p><strong>把投影运算和其他运算结合</strong></p>
+<p><strong>条件化简</strong></p>
+<p>利用等式和不等式的性质，可以将WHERE、HAVING和ON条件化简</p>
+<ul>
+<li>常量传递：使得条件分离后有效实施“条件下推”<ul>
+<li><code>Col_1 = Col_2 AND Col_2=3</code>化简为 <code>Col_1=3 AND Col2=3</code></li>
+</ul>
+</li>
+<li>消除死码：化简条件，去除不必要的条件<ul>
+<li><code>WHERE (0&gt;1 AND s1=5)</code>,条件恒假，则不必执行该SQL</li>
+</ul>
+</li>
+<li>表达式计算：加快计算效率<ul>
+<li><code>WHERE Col_1=1+2</code> 变换为 <code>WHERE Col_1=3</code></li>
+</ul>
+</li>
+<li>不等式变换：化简条件，去除不必要的条件<ul>
+<li><code>a&gt;10 AND b = 6 AND a&gt;2</code> 化简为<code>b=6 AND a&gt;10</code></li>
+</ul>
+</li>
+<li>谓词传递闭包：加速计算，有效实施“条件下推”<ul>
+<li><code>a&gt;b AND b&gt;2</code> 推导出 <code>a&gt;b AND b&gt;2 AND a&gt;2</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>子查询展开</strong></p>
+<p>又称子查询上拉，实质是把某些子查询重写为等价的多表连接操作</p>
+<p>优势：连接方法和连接顺序选择更加灵活</p>
+<p>比如说：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> t1,</span><br><span class="line">(<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> t2 <span class="keyword">WHERE</span> t2.a2&gt;<span class="number">10</span>) v_t2</span><br><span class="line"><span class="keyword">WHERE</span> t1.a1&lt;<span class="number">10</span> <span class="keyword">AND</span> v_t2.a2&lt;<span class="number">20</span>;</span><br></pre></td></tr></table></figure>
+<p>可以被优化为：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span></span><br><span class="line">t1,t2</span><br><span class="line"><span class="keyword">WHERE</span> t1.a1&lt;<span class="number">10</span> <span class="keyword">AND</span> t2.a2 &lt;<span class="number">20</span> <span class="keyword">AND</span> t2.a2&gt;<span class="number">10</span></span><br></pre></td></tr></table></figure>
+<p>因为第一种的方法，相当于t2表给限制了一部分，那么在选择的时候就没那么灵活。但是第二种方法就可以在WHERE中更加灵活地组织条件。</p>
+<p><strong>外连接消除</strong></p>
+<ul>
+<li>右表存在非Null条件</li>
+</ul>
+<p><code>SELECT * FROM T1 LEFT JOIN T2 ON T1.c1 = T2.c1 WHERE T2.c2 &gt; 0</code></p>
+<p>注意这里SQL执行顺序是先做JOIN，再做选择。通常使用外连接的话可以降低失误率,但外连接的代价比非外连接要大很多。那么在做查询优化的时候就可以消除外连接，然后把选择可以优化为：</p>
+<p><code>SELECT * FROM T1,T2 WHERE T1.c1 = T2.c1 and R.c2&gt;0</code></p>
+<ul>
+<li>满足传递性链式非NULL条件</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> T1 </span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> T2 <span class="keyword">ON</span> T1.c1 = T2.c1</span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> T3 <span class="keyword">ON</span> T2.c2 = T3.c2</span><br><span class="line"><span class="keyword">WHERE</span> T3.c3 &gt; <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>可以优化为：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> T1,T2,T3</span><br><span class="line"><span class="keyword">WHERE</span> T1.c1 = T2.c1 </span><br><span class="line"><span class="keyword">AND</span> T2.c2 = T3.c2</span><br><span class="line"><span class="keyword">AND</span> T3.c3 &gt; <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="物理优化"><a href="#物理优化" class="headerlink" title="物理优化"></a>物理优化</h3><p>逻辑优化改变查询语句中操作的次序和组合，不涉及底层的存取路径</p>
+<p>对于一个查询语句的算子有很多实现方案，它们的执行效率不同</p>
+<p>物理优化就是要选择高效合理的操作算子、数据访问路径和查询树结构，求得相对最优的查询计划</p>
+<ul>
+<li><p>基于规则的优化</p>
+</li>
+<li><p>基于代价的优化</p>
+</li>
+</ul>
+<h4 id="优化案例-路径选择"><a href="#优化案例-路径选择" class="headerlink" title="优化案例-路径选择"></a>优化案例-路径选择</h4><p>在查询引擎中，选择操作通常由两种实现方法：</p>
+<ol>
+<li>简单的全表扫描方法</li>
+</ol>
+<p>对查询的基本表顺序扫描，逐一检查每个元组是否满足选择条件，把满足条件的元组作为结果输出。这是和小表操作，但并不适合大表</p>
+<ol>
+<li>索引(或散列)扫描方法</li>
+</ol>
+<p>适合条件中的属性上有索引(B+树索引/哈希索引)，通过索引先找到满足条件的元组主码或者元祖指针，再通过元祖指针直接在查询的基本表中找到元组</p>
+<p>现在来看最典型的SQL查询： <code>SELECT * FROM student WHERE &lt;条件表达式&gt;</code> ，通常有这几种情况</p>
+<ul>
+<li>C1: 无条件</li>
+<li>C2: Sno=’200215121’</li>
+<li>C3: Sage&gt;20;</li>
+<li>C4: Sdept=’CS’ AND Sage&gt;20</li>
+</ul>
+<p>如果以C2为例，Sno上如果有索引，那么就可以使用索引得到Sno为’200215121‘ 元组的指针，通过元组指针在student表中检索到该学生。如果没有索引的话，就需要全表扫描了</p>
+<p>以C3为例，Sage&gt;20,并且Stage有B+树索引。那么，使用B+树索引可以找到Sage=20的索引项，以此为入口点在B+树的顺序集得到Sage&gt;20的所有元组指针。通过这些元组指针到student表中检索到所有年龄大于20的学生</p>
+<p>那么查询优化器该选择哪种方式呢？全表扫描还是利用索引+回表的方式进行查询</p>
+<ul>
+<li>如果预先知道结果比较少，就应该使用索引+回表的方式。</li>
+<li>如果最后的结果很多，甚至整张表都是，那么还是全表扫描比较快。因为找那么多索引再去点查的代价非常高</li>
+</ul>
+<p>这两种方法如果选的不好，可能是数十倍的差距，因此，代价评估就非常重要了。</p>
+<p>现在来看看更复杂的情况：以C4为例，<code>Sdept＝‘CS’ AND Sage&gt;20</code>，如果Sdept和Sage上都有索引：</p>
+<p><strong>算法一</strong>：分别用上面两种方法分别找到<code>Sdept＝‘CS’</code>的一组元组指针和<code>Sage&gt;20</code>的另一组元组指针。求这2组指针的交集，将其放到student表中检索，得到计算机系年龄大于20的学生</p>
+<p><strong>算法二</strong>：找到<code>Sdept＝‘CS’</code>的一组元组指针，那么通过这些元组指针到student表中检索，然后 对得到的元组检查另一些选择条件(如<code>Sage&gt;20</code>)是否满足。最后把满足条件的元组作为结果输出。</p>
+<p>在数据库中，第一种方法是不会去实现的，通常<strong>只会挑选一个属性去做索引查询</strong>。因此，问题被简化为三种情况：选择Sdept做索引查询、选择Sage做索引查询、全表扫描。<strong>最终选择那一种方法还是要看选择率的高低</strong></p>
+<ul>
+<li>如果表中只有一个通选学了CS，那么就应该选择Sdept作为索引</li>
+<li>如果表中Sage&gt;20的同学只有一两个，那么就需要选Sage做索引查询</li>
+<li>如果选择率都不是很低，那么应该做全表扫描</li>
+</ul>
+<h4 id="路径选择操作的启发式规则"><a href="#路径选择操作的启发式规则" class="headerlink" title="路径选择操作的启发式规则"></a>路径选择操作的启发式规则</h4><ul>
+<li><p>对于小关系(&lt;1000行):</p>
+<ul>
+<li>使用全表顺序扫描，即使选择列上有索引</li>
+</ul>
+</li>
+<li><p>对于大关系( 对于选择条件是主码＝值的查询)：</p>
+<ul>
+<li>查询结果最多是一个元组，可以选择主码索引</li>
+</ul>
+</li>
+<li><p>对于选择条件是非主属性＝值的查询，并且选择列上有索引</p>
+<ul>
+<li>估算查询结果的元组数目:比例较小(&lt;10%)可以使用索引扫描方法, 否则全表顺序扫描</li>
+</ul>
+</li>
+<li><p>对于选择条件是属性上的非等值查询或者范围查询，并且选择列上有索引</p>
+<ul>
+<li>估算查询结果的元组数目:比例较小(&lt;10%)可以使用索引扫描方法, 否则全表顺序扫描</li>
+</ul>
+</li>
+</ul>
+<h4 id="选择操作的启发式规则"><a href="#选择操作的启发式规则" class="headerlink" title="选择操作的启发式规则"></a>选择操作的启发式规则</h4><ul>
+<li><p>对于用AND连接的多路选择条件</p>
+<ul>
+<li><p>如果有涉及这些属性的组合索引, 优先采用组合索引扫描方法</p>
+</li>
+<li><p>如果某些属性上有一般的索引, 选择选择率最低的一个索引</p>
+</li>
+</ul>
+</li>
+<li><p>对于用OR连接的析取选择条件，一般使用全表顺序扫描</p>
+</li>
+</ul>
+<h4 id="连接操作的启发式规则"><a href="#连接操作的启发式规则" class="headerlink" title="连接操作的启发式规则"></a>连接操作的启发式规则</h4><ul>
+<li><p>如果2个表都已经按照连接属性排序</p>
+<ul>
+<li>选用排序-合并方法</li>
+</ul>
+</li>
+<li><p>如果前表较小，后表在连接属性上有索引</p>
+<ul>
+<li>选用Nest Loop索引连接方法</li>
+</ul>
+</li>
+<li><p>如果上面2个规则都不适用，其中一个表较小</p>
+<ul>
+<li>选用Hash join方法或内存Nest Loop Join</li>
+</ul>
+</li>
+<li><p>否则采用Block Nest Loop Join或Grace Hash Join</p>
+</li>
+</ul>
+<h3 id="基于代价的优化"><a href="#基于代价的优化" class="headerlink" title="基于代价的优化"></a>基于代价的优化</h3><p>必要条件</p>
+<ul>
+<li>实现数据统计信息，用于帮助计算代价</li>
+</ul>
+<p>核心代价模型</p>
+<ul>
+<li><p>访问路径</p>
+</li>
+<li><p>多表连接顺序</p>
+</li>
+<li><p>执行算子(很多情况下使用规则代替)</p>
+</li>
+<li>连接、聚集</li>
+</ul>
+<p>那么统计信息哪里来？我们可以列出如下几种</p>
+<h4 id="统计信息"><a href="#统计信息" class="headerlink" title="统计信息"></a>统计信息</h4><ol>
+<li><p>对每个基本表</p>
+<ul>
+<li>该表的元组总数(N)</li>
+<li>元组长度(l)</li>
+<li>占用的块数(B)</li>
+<li>占用的溢出块数(BO)</li>
+</ul>
+</li>
+<li><p>对基表的每个列</p>
+<ul>
+<li><strong>该列不同值的个数(m)</strong>(用于估算Join结果)</li>
+<li><p><strong>选择率(f)</strong></p>
+<ul>
+<li>如果不同值的分布是均匀的，f＝1/m</li>
+<li>如果不同值的分布不均匀，则每个值的选择率＝具有该值的元组数/N</li>
+</ul>
+</li>
+<li><p>该列最大值/最小值</p>
+</li>
+<li><p>该列上是否已经建立了索引</p>
+</li>
+<li><p>索引类型(B+树索引、Hash索引)</p>
+</li>
+</ul>
+</li>
+<li><p>对索引(如B+树索引)</p>
+<ul>
+<li><p>索引的层数(L)</p>
+</li>
+<li><p>不同索引值的个数</p>
+</li>
+<li><p>索引的选择基数S(有S个元组具有某个索引值)</p>
+</li>
+<li><p>索引的叶结点数(Y)</p>
+</li>
+</ul>
+</li>
+</ol>
+<h4 id="访问路径代价模型"><a href="#访问路径代价模型" class="headerlink" title="访问路径代价模型"></a>访问路径代价模型</h4><ul>
+<li><p>全表扫描算法的代价估算公式</p>
+<ul>
+<li><p>如果基本表大小为B块，全表扫描算法的代价cost＝B</p>
+</li>
+<li><p>如果选择条件是码＝值，那么平均搜索代价cost＝B/2</p>
+</li>
+</ul>
+</li>
+<li><p>索引扫描算法的代价估算公式</p>
+<ul>
+<li><p>如果选择条件是码＝值</p>
+<ul>
+<li>如［例-C2］，则采用该表的主索引<ul>
+<li>若为B+树，层数为L，需要存取B+树中从根结点到叶结点L块，再加上基本表中该元组所在的那一块，所以<code>cost=L+1</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>如果选择条件涉及非码属性</p>
+<ul>
+<li>如［例-C3］，若为B+树索引，选择条件是相等比较，S是索引的选择基数(有S个元组满足条件，选择率)</li>
+<li>最坏的情况下，满足条件的元组可能会保存在不同的块上，此时，cost=L+S</li>
+</ul>
+</li>
+<li><p>如果比较条件是＞，＞＝，＜，＜＝操作</p>
+<ul>
+<li>假设有一半的元组满足条件就要存取一半的叶结点</li>
+<li>通过索引访问一半的表存储块cost=L+B/2 </li>
+<li>如果可以获得更准确的选择基数，可以进一步修正B/2</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="多表连接顺序搜索策略"><a href="#多表连接顺序搜索策略" class="headerlink" title="多表连接顺序搜索策略"></a>多表连接顺序搜索策略</h4><p>常常使用启发式+基于代价的搜索，比如说枚举、DP算法等，也可以用随机算法</p>
+<p>连接顺序常常是树形结构(使用左深树),它有几个好处</p>
+<ul>
+<li>每个连接算子的右侧输入是一个关系（基本表），而不是连接后的中间结果</li>
+<li>基于成本的优化是昂贵的，但对于大型数据集的查询是有价值的（典型的查询具有较小的n，通常小于10）</li>
+</ul>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/23.png"></p>
+<p>左深树如上图所示，R和S做Join，然后其结果和T做Join，其结果在和U做Join</p>
+<p>但是在一些比较新的数据仓库中，会让B和C分别建一个哈希表，然后用A去探索这两个哈希表，实际上用的是右深树</p>
+<h3 id="几个难题"><a href="#几个难题" class="headerlink" title="几个难题"></a>几个难题</h3><p>为什么查询优化器对代价的估计可能估不准？查询优化器非常难设计。其实都集中在统计信息上。</p>
+<ul>
+<li>统计信息的选择自动收集与更新非常难，因为数据库在不断运行，数据在不断更新</li>
+<li><p>选择条件下数据的条件分布，(满足A的条件下去选择 B),这样导致原先统计数据在这种情况下是没什么用的。而我们又无法为所有的分布创建一个直方图，因此通常导致估算不准确。</p>
+</li>
+<li><p>计划不准导致的查询超时无法从理论上避免</p>
+</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li><p>逻辑优化</p>
+<ul>
+<li>定义一些启发式规则</li>
+</ul>
+</li>
+<li><p>物理优化</p>
+<ul>
+<li><p>先决定访问路径</p>
+</li>
+<li><p>启发式规则决定连接顺序与连接方式</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/25.png"></p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/" title="高级数据库系统-查询">https://jasonxqh.github.io/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" rel="tag"><i class="fa fa-tag"></i> 数据管理系统</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/03/08/AI-Searching/" rel="next" title="AI-Searching">
+                <i class="fa fa-chevron-left"></i> AI-Searching
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/" rel="prev" title="了解MapReduce">
+                了解MapReduce <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">420</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#查询"><span class="nav-number">1.</span> <span class="nav-text">查询</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#执行引擎"><span class="nav-number">1.1.</span> <span class="nav-text">执行引擎</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#parser"><span class="nav-number">1.1.0.1.</span> <span class="nav-text">parser</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Analyzer"><span class="nav-number">1.1.0.2.</span> <span class="nav-text">Analyzer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Rewriter"><span class="nav-number">1.1.0.3.</span> <span class="nav-text">Rewriter</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Planner"><span class="nav-number">1.1.0.4.</span> <span class="nav-text">Planner</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Executor"><span class="nav-number">1.1.0.5.</span> <span class="nav-text">Executor</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查询引擎-火山模型"><span class="nav-number">1.1.1.</span> <span class="nav-text">查询引擎-火山模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#阻塞算子"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">阻塞算子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#优缺点"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">优缺点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#流水线在内存数据库中的优化"><span class="nav-number">1.1.1.3.</span> <span class="nav-text">流水线在内存数据库中的优化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Join-算子实现"><span class="nav-number">1.2.</span> <span class="nav-text">Join 算子实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#连接算法"><span class="nav-number">1.2.1.</span> <span class="nav-text">连接算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Nest-Loop-Join"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">Nest Loop Join</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Hash-Join"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">Hash Join</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Merge-Join"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">Merge Join</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#连接算法结合火山模型"><span class="nav-number">1.2.2.</span> <span class="nav-text">连接算法结合火山模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Nest-Loop的火山模型"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">Nest Loop的火山模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Hash-Join的火山模型"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">Hash Join的火山模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Merge-Join的火山模型"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">Merge Join的火山模型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于块数据的连接算法"><span class="nav-number">1.2.3.</span> <span class="nav-text">基于块数据的连接算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Nest-Loop-Join-1"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">Nest Loop Join</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Index-Nest-Loop-join"><span class="nav-number">1.2.3.1.1.</span> <span class="nav-text">Index Nest Loop join</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Block-Nest-Loop-Join"><span class="nav-number">1.2.3.1.2.</span> <span class="nav-text">Block Nest Loop Join</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Block-Hash-Join"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">Block Hash Join</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Hybrid-Hash-Join"><span class="nav-number">1.2.3.2.1.</span> <span class="nav-text">Hybrid Hash Join</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于块的排序算法"><span class="nav-number">1.2.4.</span> <span class="nav-text">基于块的排序算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查询优化器"><span class="nav-number">1.3.</span> <span class="nav-text">查询优化器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#逻辑优化-关系表达式转换"><span class="nav-number">1.3.1.</span> <span class="nav-text">逻辑优化-关系表达式转换</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#逻辑优化案例"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">逻辑优化案例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常用的等价变换规则"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">常用的等价变换规则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#实现逻辑优化—基于规则优化"><span class="nav-number">1.3.1.3.</span> <span class="nav-text">实现逻辑优化—基于规则优化</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#物理优化"><span class="nav-number">1.3.2.</span> <span class="nav-text">物理优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#优化案例-路径选择"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">优化案例-路径选择</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#路径选择操作的启发式规则"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">路径选择操作的启发式规则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#选择操作的启发式规则"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">选择操作的启发式规则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#连接操作的启发式规则"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">连接操作的启发式规则</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于代价的优化"><span class="nav-number">1.3.3.</span> <span class="nav-text">基于代价的优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#统计信息"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">统计信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#访问路径代价模型"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">访问路径代价模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#多表连接顺序搜索策略"><span class="nav-number">1.3.3.3.</span> <span class="nav-text">多表连接顺序搜索策略</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#几个难题"><span class="nav-number">1.3.4.</span> <span class="nav-text">几个难题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.3.5.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1232.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+  
+
+  
+
+</body>
+</html>

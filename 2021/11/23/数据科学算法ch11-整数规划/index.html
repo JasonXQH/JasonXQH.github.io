@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="数据科学算法ch11-整数规划引入这章我们来学习离散变量的优化问题。这些问题的描述非常简单，但是由于”组合爆炸”的原因，导致求解此类问题的最优解变得非常困难。典型的问题有：旅行商问题(TSP),集合覆盖问题(SCP)等。这里给出几例 旅行商问题给定一组城市以及每两个城市间的旅行成本(或距离)，旅行商问题(TSP)旨在：在经过每个城市一次的情况下最后回到出发的城市，应该如何选择行进路线以使总行程最短">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据科学算法ch11-整数规划">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="数据科学算法ch11-整数规划引入这章我们来学习离散变量的优化问题。这些问题的描述非常简单，但是由于”组合爆炸”的原因，导致求解此类问题的最优解变得非常困难。典型的问题有：旅行商问题(TSP),集合覆盖问题(SCP)等。这里给出几例 旅行商问题给定一组城市以及每两个城市间的旅行成本(或距离)，旅行商问题(TSP)旨在：在经过每个城市一次的情况下最后回到出发的城市，应该如何选择行进路线以使总行程最短">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/17.png">
+<meta property="article:published_time" content="2021-11-23T14:27:16.000Z">
+<meta property="article:modified_time" content="2022-01-06T12:39:04.000Z">
+<meta property="article:author" content="Jason">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/11/23/数据科学算法ch11-整数规划/"/>
+
+
+
+
+
+  <title>数据科学算法ch11-整数规划 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据科学算法ch11-整数规划</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-11-23T22:27:16+08:00">
+                2021-11-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  4.8k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  20
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="数据科学算法ch11-整数规划"><a href="#数据科学算法ch11-整数规划" class="headerlink" title="数据科学算法ch11-整数规划"></a>数据科学算法ch11-整数规划</h1><h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>这章我们来学习<strong>离散变量的优化问题</strong>。这些问题的描述非常简单，但是由于”组合爆炸”的原因，导致求解此类问题的最优解变得非常困难。典型的问题有：旅行商问题(TSP),集合覆盖问题(SCP)等。这里给出几例</p>
+<h3 id="旅行商问题"><a href="#旅行商问题" class="headerlink" title="旅行商问题"></a>旅行商问题</h3><p>给定一组城市以及每两个城市间的旅行成本(或距离)，旅行商问题(TSP)旨在：在经过每个城市一次的情况下最后回到出发的城市，应该如何选择行进路线以使总行程最短？ </p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/1.png" style="zoom:67%;"></p>
+<p>即输入：包含n个点的几何，以及两两间的成本</p>
+<p>输出：如果遍访所有顶点，对 对称TSP问题 的可行解决方案为$\frac{(n-1)!}2$ </p>
+<p>目标函数：最小化旅行成本(或距离)的大小</p>
+<p>那么TSP就可以定义在一个无向图上：$G=(V,E)$,其中$V$为顶点集合 $E$为边的集合，且每条边的成本为 $c_{jj}$</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/18.png"></p>
+<p>约束的第一个式子：保证从一个城市出发只能去一个城市</p>
+<p>约束的第二个式子：保证每个城市只能被访问一次 </p>
+<p>约束的第三个式子：保证只有n个顶点构成的一个环，从而回到出发的城市。如果地图上有两个环，就不是TSP问题的解</p>
+<h3 id="集合覆盖问题-SCP"><a href="#集合覆盖问题-SCP" class="headerlink" title="集合覆盖问题(SCP)"></a>集合覆盖问题(SCP)</h3><p>输入：</p>
+<ul>
+<li>全集 $U = {u_1,u_2,\cdots,u_n}$</li>
+<li>子集簇 $S = {S_i|S_i\subseteq U ,i\in [1,\cdots,m]}$​​</li>
+<li>成本 $C = {c_1,\cdots,c_m}$</li>
+</ul>
+<p>目标：找到一个指标集 $I\in {1,\cdots,m}$ ，使得$\sum<em>{i\in I}c_i$ 最小且满足 $\bigcup</em>{i\in I}S_i = U$</p>
+<p>集合覆盖问题具有广泛的应用：</p>
+<ul>
+<li>全覆盖和最大覆盖</li>
+<li>顶点覆盖</li>
+<li>信息传播</li>
+<li>文本摘要</li>
+</ul>
+<h3 id="Fiver-游戏"><a href="#Fiver-游戏" class="headerlink" title="Fiver 游戏"></a>Fiver 游戏</h3><p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/2.png" style="zoom:67%;"></p>
+<p>问题定义：我们注意到，同一个圆圈被点击两次，又恢复了原样，若一个圆圈为红色，这个圆圈及其周围4个圆圈总共被点击的次数一定为一个奇数。</p>
+<p>因此我们可以定义：</p>
+<script type="math/tex; mode=display">
+x_{ij} = \cases{1,\text{circle}~(i,j) ~\text{is clicked}\\0,\text{otherwise}}</script><p>该问题可以建模为：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\min \sum_{i}^5\sum_i^5x_{ij}\\
+&x_{ij}+x_{i(j-1)}+x_{i(j+1)}+x_{(i-1)j}+x_{(i+1)j} ~\text{is odd}\\
+&x_{ij}\in\{0,1\},\forall i,j\in[1,5]\\
+&x_{ij}=0,\text{otherwise}\\
+\end{align}</script><p>然而，这并不是一个规划问题，因为其中的约束条件并不是线性的。我们知道最坏的条件就是一个圆圈被点击了五次变为红色(自己+左右上下)，那通过引入一个自由变量$y_{ij}$​, 令其取值为$[0,2]$,我们就可以将这个问题转化成一个整数规划的问题：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\min \sum_{i}^5\sum_i^5x_{ij}\\
+&x_{ij}+x_{i(j-1)}+x_{i(j+1)}+x_{(i-1)j}+x_{(i+1)j} -2y_{ij} =1\\
+&x_{ij}\in\{0,1\},\forall i,j\in[1,5]\\
+&x_{ij}=0,\text{otherwise}\\
+&0\leq y_{ij}\leq 2,y_{ij}\in N,1\leq i,j\leq 5
+\end{align}</script><p>这里，$y<em>{ij}=0$，就是取1的情况；$y</em>{ij}=1$ 就是取3的情况；$y_{ij}=2$​ ,就是填5的情况。也就是覆盖了所有情境，将自然语言转换成了优化条件</p>
+<p>以上举的三个例子，最后都转换成了线性整数规划，其要求就是输入和输出都是线性函数，可行解是所有满足这些线性等式(不等式)，且要满足完整性(即整数)，接下来详细来介绍一下：</p>
+<h2 id="整数规划"><a href="#整数规划" class="headerlink" title="整数规划"></a>整数规划</h2><p>线性整数规划化在我们初中的时候就已经学过了，就是一类需要用画图解决的应用题。但是难点就在于如何建模，使得自然语言转换成约束条件。</p>
+<p>线性整数规划类型可以分成下面三种：</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/3.png" style="zoom:67%;"></p>
+<p>第一种 混合线性整数规划。在这章中没有涉及，没有特别有效的方法来解决。</p>
+<p>第二种 线性整数规划，即目标函数是线性的，约束是线性条件，<strong>解的类型是整数</strong></p>
+<p>第三种 0-1线性规划，是线性整数规划的一种特殊类型，比如Fiver问题、TSP问题。其特点就是变量的类型都是布尔型。 </p>
+<p>比如说这里有一个整数规划的问题：</p>
+<script type="math/tex; mode=display">
+\max z = 3x+4y\\
+\text{约束条件}~ x+y\leq4\\
+2x+3y\leq 9\\
+0\leq x,y\in \boldsymbol Z</script><p>其可行域就是由空心点组成的集合：</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/4.png" style="zoom:67%;"></p>
+<h2 id="分支定界法"><a href="#分支定界法" class="headerlink" title="分支定界法"></a>分支定界法</h2><p>上面这个整数规划的例子，只有两个决策变量，即使每个可行解都试一遍，也很快就能得到该整数规划问题的解，那么如果有很多决策变量的情况该怎么办呢？</p>
+<p>我们要学习：枚举树</p>
+<p>比如下面这个例子</p>
+<script type="math/tex; mode=display">
+\max 24x_1+2x_2+20x_3+4x_4\\
+\text{约束条件} ~~~8x_1+x_2+20x_3+4x_4\leq 9\\
+x_i\in\{0,1\},1\leq i\leq 4</script><p>如果我们一一枚举，那么所有可能的取值有$2^4$种，但是在现实生活中，决策变量的数量可能为n，如果一个一个去，那么可行域的大小就可能是$2^n$ 。因此，如何有效地遍历整个可行域成为一个关键的问题。</p>
+<p>通常，我们可以利用枚举树把整个可行域迭代地分割为越来越小的子集，每个子集称为一个<strong>分支</strong>。</p>
+<p>在枚举树中，每个节点对应一个整数规划的问题，<strong>其中根节点是原始的整数规划问题</strong>，每个节点的孩子，是在父亲节点对应的整数规划问题上，通过<strong>固定某个决策变量</strong>的取值来得到一个新的整数规划问题。</p>
+<p>以上面这个整数规划问题为例，那么$IP(1)$ 对应的整数规划问题是：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\text{IP(1)}\\
+&\max 24x_1+2x_2+20x_3+4x_4\\
+&\text{约束条件} ~~~8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_i\in\{0,1\},1\leq i\leq 4\\
+\end{align}</script><p>那么根节点的两个孩子节点$IP(2)$和$IP(3)$ 分别为如下的整数规划问题：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\text{IP(2)}\\
+&\max 24x_1+2x_2+5x_3+4x_4\\
+&\text{约束条件} ~~~8x_1+x_2+20x_3+4x_4\leq 9\\
+&x_1=0\\
+&x_i\in\{0,1\},2\leq i\leq 4\\~\\
+&\text{IP(3)}\\
+&\max 24x_1+2x_2+20x_3+4x_4\\
+&\text{约束条件} ~~~8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=1\\
+&x_i\in\{0,1\},2\leq i\leq 4\\
+\end{align}</script><p>以此类推，每个节点都有两个孩子节点，对于整数规划问题$IP(1)$ ,可以构建下图所示的枚举树</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/5.png"></p>
+<h3 id="松弛和定界"><a href="#松弛和定界" class="headerlink" title="松弛和定界"></a>松弛和定界</h3><p>但这样也并不能解决变量一多以后的运算问题，如果能够去掉一些明显不会称为最优解的分支，那么求解整数规划的问题会变得更为高效。</p>
+<p>比如说对于上面这棵枚举树中的 $IP(4)$和$IP(7)$. </p>
+<p>关于$IP(4)$ ，我们的整数规划的定义如下：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\text{IP(4)}\\
+&\max 24x_1+2x_2+20x_3+4x_4\\
+&\text{约束条件} ~~~8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=0,x_2=0\\
+&x_i\in\{0,1\},3\leq i\leq 4\\
+\end{align}</script><p>我们已经知道了它的最优解，那么$IP(4)$ 的所有子孙结点都不需要在进行计算，因为$IP(4)$的最优解一定是其子孙结点的一个上界。</p>
+<p>我们需要把$IP(4)$中的整数约束去掉，问题就转化为如下的一个<strong>线性规划问题</strong>，这样的目的是，<strong>LP问题的最优解一定是IP问题的最优解的上界</strong>。</p>
+<p>记作$LP(4)$:</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\text{LP(4)}\\
+&\max 24x_1+2x_2+20x_3+4x_4\\
+&\text{约束条件} ~~~8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=0,x_2=0\\
+&0\leq x\leq1,3\leq i\leq 4\\
+\end{align}</script><p>我们很容易发现对于线性规划问题 $LP(4)$ ，很容易发现它的最优解是 $x_1=0,x_2=0,x_3=1,x_4=1,z=24$ .</p>
+<p>关于$IP(7)$ ，我们将其转化为线性规划问题：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\text{LP(7)}\\
+&\max 24x_1+2x_2+20x_3+4x_4\\
+&\text{约束条件} ~~~8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=1,x_2=1\\
+&0\leq x\leq1,3\leq i\leq 4\\
+\end{align}</script><p>同样可以发现其最优解为：$x<em>1=1,x_2=1,x_3=0,x_4=0,z</em>{IP(7)}=26$ .</p>
+<p>如果$IP(8)$的最优解不会超过$IP(7)$ ,那么包括节点$IP(8)$ 和它的自己孙节点也都不需要再进行计算了。</p>
+<p><strong>重点：</strong></p>
+<p>整数规划的松弛线性规划问题的解释整数规划问题解的上界。如果$IP(8)$ 对应的松弛线性规划问题$LP(8)$ 的解都不超过$IP(7)$,即：</p>
+<script type="math/tex; mode=display">
+Z_{IP}(8)\leq Z_{LP}(8)\leq Z_{IP}(7)</script><p>因此，通过整数规划问题的松弛找到了响应节点整数最优解的上界</p>
+<h3 id="分支定界算法"><a href="#分支定界算法" class="headerlink" title="分支定界算法"></a>分支定界算法</h3><p>现在我们来对枚举树进行剪枝规则</p>
+<ol>
+<li><strong>已经找到了某个节点的最优解</strong>，该节点的所有子孙结点都不需要再解。因此其所有的子孙结点都可以从枚举树中删除</li>
+<li>如果已知枚举树中某个节点的最优解，而当前节点的松弛线性规划问题的最优解都比已知的最优解要小，那么当前结点对应的整数规划问题不可能成为最优解，当前节点及其子孙结点都不用再解、因此当前节点及其子孙结点都可以直接从枚举树中删除</li>
+<li>如果当前结点对应的松弛线性规划问题没有可行解，那么当前节点及其子孙结点都不可能存在可行解。因此可以直接从枚举树中删除。</li>
+</ol>
+<p>我们可以用一下伪代码概括</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/6.png"></p>
+<p>算法中的 active结点，意味着这些节点对应的整数规划问题可能是该整数规划的最优解。只要枚举树中还有active结点，分支定界算法就要继续执行，直到没有为止</p>
+<p>算法记录当前位置所发现的最优解，记为$Z_I$ ，初始值为$-\infty$ 。算法基于线性规划问题$LP(j)$的最优解$x(j)$来判断：</p>
+<ol>
+<li>第一种情形：线性规划问题$LP(j)$无解，则枚举树中的节点$IP(j)$及其子孙结点会被剪枝</li>
+<li>第二种情形：如果$Z_{LP}(j)\leq Z_I$ ，则枚举树中的节点$IP(j)$及其子孙结点会被剪枝</li>
+<li><p>第三种情形：如果$Z<em>{LP}(j)&gt;Z_I$ ，且$x(j)$为整数解，即$x(j)$也是$IP(j)$ 的可行解，算法找到一个比当前最优解还要更优的一个可行整数解$x(j)$, 因此当前最优解$Z_I$ 更新为$Z</em>{LP}(j)=Z_{IP}(j)$，并将枚举树中的节点$IP(j)$ 及其子节点全部剪枝</p>
+</li>
+<li><p>第四种情形：如果$Z_{LP}(j)&gt;Z_I$，但是$x(j)$为<strong>非整数解</strong>，即 $x(j)$ 不是$IP(j)$ 的可行解，算法无法判断节点$IP(j)$的子孙结点中是否存在更优的解，因此将节点$IP(j)$的孩子标记为active结点</p>
+</li>
+</ol>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p>我们还是用刚才的整数规划例子：</p>
+<script type="math/tex; mode=display">
+\max 24x_1+2x_2+20x_3+4x_4\\
+\text{约束条件} ~~~8x_1+x_2+5x_3+4x_4\leq 9\\
+x_i\in\{0,1\},1\leq i\leq 4</script><h4 id="迭代1"><a href="#迭代1" class="headerlink" title="迭代1"></a>迭代1</h4><p>初始状态$IP(1)$的松弛线性规划$LP(1)$作为枚举树根节点，标记为active，当前最优解$Z_I=-\infty$ </p>
+<p>通过解决线性规划问题$LP(1)$，得到$LP(1)$的最优解为：</p>
+<script type="math/tex; mode=display">
+x_1=\frac{1}{2},x_2=0,x_3=1,x_4=0,z_{LP}(1)=32</script><p>（关于如何解决线性规划问题，可以通过python的pulp包来求解）</p>
+<p>因为$Z_{LP}(1)&gt;Z_I$ ，且$x(1)$为非整数解，即$x(1)$不是$IP(1)$的可行解，属于第4种情形，那么将$IP(1)$标记为inactive，并将$IP(1)$的两个孩子结点$IP(2)$和$IP(3)$ 标记为active结点</p>
+<h4 id="迭代2"><a href="#迭代2" class="headerlink" title="迭代2"></a>迭代2</h4><p>迭代2选择了结点$IP(2)$，如图所示</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/7.png"></p>
+<p>这里枚举树中的结点$IP(2)$ 的松弛线性规划问题为$LP(2)$。通过解决线性规划问题$LP(2)$可以得到最优解：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+LP(2):
+&\max 24x_1+2x_2+20x_3+4x_4\\~\\
+\text{s.t.}
+&8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=0\\
+&0\leq x_i\leq 1,2\leq i\leq 4\\
+&\text{解得:}~x_1=0,x_2=1,x_3=1,x_4=\frac{3}{4},Z_{LP}(2)=25
+\end{align}</script><p>由于$Z_{LP(2)}&gt;Z_I$ ，且$x(2)$ 为非整数解，即$x(2)$ 不是$IP(2)$ 的可行解，属于第4种情形。</p>
+<p>分支定界算法将$IP(2)$标记为inactive，并将$IP(2)$ 的两个孩子节点$IP(4)$和$IP(5)$ 标记为active结点 </p>
+<h4 id="迭代3"><a href="#迭代3" class="headerlink" title="迭代3"></a>迭代3</h4><p>第三次迭代选择$IP(3)$，如图所示：</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/8.png"></p>
+<p>这里枚举树中的结点$IP(3)$ 的松弛线性规划问题为$LP(3)$。通过解决线性规划问题$LP(3)$可以得到最优解：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+LP(3):
+&\max 24x_1+2x_2+20x_3+4x_4\\~\\
+\text{s.t.} &8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=1\\
+&0\leq x_i\leq 1,2\leq i\leq 4\\
+&\text{解得:}~~~x_1=1,x_2=0,x_3=\frac{1}{4},x_4=0,Z_{LP}(3)=28
+\end{align}</script><p>由于$Z_{LP(3)}&gt;Z_I$ ，且$x(3)$ 为非整数解，即$x(3)$ 不是$IP(3)$ 的可行解，属于第4种情形。</p>
+<p>分支定界算法将$IP(3)$标记为inactive，并将$IP(3)$ 的两个孩子节点$IP(6)$和$IP(7)$ 标记为active结点 </p>
+<h4 id="迭代4"><a href="#迭代4" class="headerlink" title="迭代4"></a>迭代4</h4><p>第四次选择了$IP(4)$,如下图：</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/9.png"></p>
+<p>这里枚举树中的结点$IP(4)$ 的松弛线性规划问题为$LP(4)$。通过解决线性规划问题$LP(4)$可以得到最优解：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+LP(4):
+&\max 24 x_1+2x_2+20x_3+4x_4\\~\\
+\text{s.t.} &8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=0,x_2=0\\
+&0\leq x_i\leq 1,3\leq i\leq 4\\
+&\text{解得:}~~~x_1=0,x_2=0,x_3=1,x_4=1,Z_{LP}(4)= 24
+\end{align}</script><p>由于$Z_{LP(4)}&gt;Z_I$ ，且$x(4)$ 是整数解，即$x(4)$  是$IP(4)$ 的可行解，属于第3种情形。</p>
+<p> 因此，分支定界算法将当前的最优解更新为：$Z<em>I=Z</em>{LP(4)}=Z_{IP(4)}$，并进一步将$IP(4)$所有的孩子结点剪枝</p>
+<h4 id="迭代5"><a href="#迭代5" class="headerlink" title="迭代5"></a>迭代5</h4><p>第5次迭代中，选择active结点$IP(5)$,如下图：</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/10.png"></p>
+<p>这里枚举树中的结点$IP(5)$ 的松弛线性规划问题为$LP(5)$。通过解决线性规划问题$LP(5)$可以得到最优解：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&LP(5):
+\max ~24 x_1+2x_2+20x_3+4x_4\\~\\
+\text{s.t.} &8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=0,x_2=1\\
+&0\leq x_i\leq 1,3\leq i\leq 4\\
+&\text{解得:}~~~x_1=0,x_2=1,x_1=1,x_4=\frac{3}{4},Z_{LP}(5)= 25
+\end{align}</script><p>由于$Z_{LP(5)}&gt;Z_I$ ，但$x(5)$ 为非整数解，即$x(5)$ 不是$IP(5)$ 的可行解，属于第4种情形。</p>
+<p>分支定界算法将$IP(5)$标记为inactive，并将$IP(5)$ 的两个孩子节点$IP(8)$和$IP(9)$ 标记为active结点 </p>
+<h4 id="迭代6"><a href="#迭代6" class="headerlink" title="迭代6"></a>迭代6</h4><p>选择active节点 $IP(6)$ ,如下图：</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/12.png"></p>
+<p>这里枚举树中的结点$IP(6)$ 的松弛线性规划问题为$LP(6)$。通过解决线性规划问题$LP(6)$可以得到最优解：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+LP(6):
+&\max ~24 x_1+2x_2+20x_3+4x_4\\~\\
+\text{s.t.} &8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=1,x_2=0\\
+&0\leq x_i\leq 1,3\leq i\leq 4\\
+&\text{解得:}~~~x_1=0,x_2=1,x_1=1,x_4=\frac{3}{4},Z_{LP}(6)= 25
+\end{align}</script><p>由于$Z_{LP(6)}&gt;Z_I$ ，但$x(6)$ 为非整数解，即$x(6)$ 不是$IP(6)$ 的可行解，属于第4种情形。</p>
+<p>分支定界算法将$IP(6)$标记为inactive，并将$IP(6)$ 的两个孩子节点$IP(10)$和$IP(11)$ 标记为active结点 </p>
+<h4 id="迭代7"><a href="#迭代7" class="headerlink" title="迭代7"></a>迭代7</h4><p>选择active节点 $IP(7)$ ,如下图：</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/13.png"></p>
+<p>这里枚举树中的结点$IP(7)$ 的松弛线性规划问题为$LP(7)$。通过解决线性规划问题$LP(7)$可以得到最优解：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+LP(7):
+&\max ~24 x_1+2x_2+20x_3+4x_4\\~\\
+\text{s.t.} &8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=1,x_2=1\\
+&0\leq x_i\leq 1,3\leq i\leq 4\\
+&\text{解得:}~~~x_1=1,x_2=1,x_1=0,x_4=0,Z_{LP}(7)= 26
+\end{align}</script><p>此时发现$Z<em>{LP}(7)&gt;Z_I$ 且$x(7)$为整数解，因此$x(7)$是$IP(7)$的可行解，属于第3种情形。因此，分支定界算法将当前的最优解更新为：$Z_I=Z</em>{LP}(7)=Z_{IP}(7)$,并进一步将$IP(7)$所有的孩子结点剪枝</p>
+<h4 id="迭代8"><a href="#迭代8" class="headerlink" title="迭代8"></a>迭代8</h4><p>选择active节点 $IP(8)$ ,如下图：</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/14.png"></p>
+<p>这里枚举树中的结点$IP(8)$ 的松弛线性规划问题为$LP(8)$。通过解决线性规划问题$LP(8)$可以得到最优解：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+LP(8):
+&\max ~24 x_1+2x_2+20x_3+4x_4\\~\\
+\text{s.t.} &8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=0,x_2=1,x_3=0\\
+&0\leq x_4\leq 1\\
+&\text{解得:}~~~x_1=0,x_2=1,x_1=0,x_4=1,Z_{LP}(8)= 6
+\end{align}</script><p>此时发现$Z_{LP}(8)&lt;Z_I$ ,属于第2种情形，分支定界算法将$IP(8)$标记为Inactive，并将IP(8)的两个孩子结点全部剪枝</p>
+<h4 id="迭代9"><a href="#迭代9" class="headerlink" title="迭代9"></a>迭代9</h4><p>选择active节点 $IP(9)$ ,如下图：</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/15.png"></p>
+<p>这里枚举树中的结点$IP(9)$ 的松弛线性规划问题为$LP(9)$。通过解决线性规划问题$LP(9)$可以得到最优解：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+LP(9):
+&\max ~24 x_1+2x_2+20x_3+4x_4\\~\\
+\text{s.t.} &8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=0,x_2=1,x_3=1\\
+&0\leq x_4\leq 1\\
+&\text{解得:}~~~x_1=0,x_2=1,x_1=1,x_4=\frac{3}{4},Z_{LP}(9)= 25
+\end{align}</script><p>由于$Z_{LP(9)}&lt;Z_I$ ， 属于第2种情形，分支定界算法将$IP(9)$标记为Inactive，并将$IP(9)$的两个孩子结点全部剪枝</p>
+<h4 id="迭代10"><a href="#迭代10" class="headerlink" title="迭代10"></a>迭代10</h4><p>选择active节点 $IP(9)$ ,如下图：</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/16.png"></p>
+<p>这里枚举树中的结点$IP(10)$ 的松弛线性规划问题为$LP(10)$。通过解决线性规划问题$LP(10)$可以得到最优解：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+LP(10):
+&\max ~24 x_1+2x_2+20x_3+4x_4\\~\\
+\text{s.t.} &8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=0,x_2=1,x_3=1\\
+&0\leq x_4\leq 1\\
+&\text{解得:}~~~x_1=1,x_2=0,x_1=0,x_4=\frac{1}{4},Z_{LP}(10)= 25
+\end{align}</script><p>由于$Z_{LP(9)}&lt;Z_I$ ， 属于第2种情形，分支定界算法将$IP(10)$标记为Inactive，并将$IP(10)$的两个孩子结点全部剪枝</p>
+<h4 id="迭代11"><a href="#迭代11" class="headerlink" title="迭代11"></a>迭代11</h4><p>选择active节点 $IP(11)$ ,如下图：</p>
+<p><img src="/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/17.png"></p>
+<p>这里枚举树中的结点$IP(11)$ 的松弛线性规划问题为$LP(11)$。通过解决线性规划问题$LP(11)$可以得到最优解：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+LP(11):
+&\max ~24 x_1+2x_2+20x_3+4x_4\\~\\
+\text{s.t.} &8x_1+x_2+5x_3+4x_4\leq 9\\
+&x_1=1,x_2=0,x_3=1\\
+&0\leq x_4\leq 1\\
+&\text{无解}
+\end{align}</script><p>因此，最终得到的结果是 $Z = 26$</p>
+<h2 id="割平面法"><a href="#割平面法" class="headerlink" title="割平面法"></a>割平面法</h2><p>找到合适的约束可以大大减低整数规划问题的求解过程，为了找到合适的约束条件，这里先定义有效不等式的概念。</p>
+<h3 id="有效不等式"><a href="#有效不等式" class="headerlink" title="有效不等式"></a>有效不等式</h3><p>给定一个整数规划问题，一个约束条件可以减小松弛线性规划问题的可行域，但却不减少任何整数的可行解，则称其为有效不等式，有事又被称为<strong>割平面</strong>或者<strong>割</strong></p>
+<h2 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h2><h3 id="1"><a href="#1" class="headerlink" title="1"></a>1</h3><p>将下列条件改成整数规划的约束，<strong>保证两个不等式中至少有一个成立</strong></p>
+<script type="math/tex; mode=display">
+x_1+x_2+x_3+x_4 \leq 4&&(1)\\
+3x_1-x_2-x_3+x_4\leq 3&&(2)</script><p>其中 $x_j\geq 0,j=1,\cdots,4$, 并且每一个变量都是整数。</p>
+<p>解：</p>
+<p>我们可以把这个问题变成0-1整数规划问题，令：</p>
+<script type="math/tex; mode=display">
+w = \begin{cases}
+1&x_1+x_2+x_3+x_4 \leq 4\\~\\
+0&-3x_1+x_2+x_3-x_4\geq -3
+\end{cases}</script><p>令 $M&gt;0$</p>
+<p>则有：</p>
+<script type="math/tex; mode=display">
+\begin{cases}
+x_1+x_2+x_3+x_4 \leq 4+M(1-w)\\~\\
+-3x_1+x_2+x_3-x_4\geq -3-Mw
+\end{cases}</script><p>其中 $w={0,1}$</p>
+<p>这样， 不管 $w$ 的取值如何，$(1),(2)$ 至少有一个成立</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/" title="数据科学算法ch11-整数规划">https://jasonxqh.github.io/2021/11/23/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch11-%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/20/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95-Project1/" rel="next" title="《数据科学与工程算法基础》实践报告">
+                <i class="fa fa-chevron-left"></i> 《数据科学与工程算法基础》实践报告
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch12-%E5%AD%90%E6%A8%A1%E5%87%BD%E6%95%B0/" rel="prev" title="数据科学算法ch12-子模函数">
+                数据科学算法ch12-子模函数 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">420</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据科学算法ch11-整数规划"><span class="nav-number">1.</span> <span class="nav-text">数据科学算法ch11-整数规划</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#引入"><span class="nav-number">1.1.</span> <span class="nav-text">引入</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#旅行商问题"><span class="nav-number">1.1.1.</span> <span class="nav-text">旅行商问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#集合覆盖问题-SCP"><span class="nav-number">1.1.2.</span> <span class="nav-text">集合覆盖问题(SCP)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fiver-游戏"><span class="nav-number">1.1.3.</span> <span class="nav-text">Fiver 游戏</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#整数规划"><span class="nav-number">1.2.</span> <span class="nav-text">整数规划</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分支定界法"><span class="nav-number">1.3.</span> <span class="nav-text">分支定界法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#松弛和定界"><span class="nav-number">1.3.1.</span> <span class="nav-text">松弛和定界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分支定界算法"><span class="nav-number">1.3.2.</span> <span class="nav-text">分支定界算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子"><span class="nav-number">1.3.3.</span> <span class="nav-text">例子</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代1"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">迭代1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代2"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">迭代2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代3"><span class="nav-number">1.3.3.3.</span> <span class="nav-text">迭代3</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代4"><span class="nav-number">1.3.3.4.</span> <span class="nav-text">迭代4</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代5"><span class="nav-number">1.3.3.5.</span> <span class="nav-text">迭代5</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代6"><span class="nav-number">1.3.3.6.</span> <span class="nav-text">迭代6</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代7"><span class="nav-number">1.3.3.7.</span> <span class="nav-text">迭代7</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代8"><span class="nav-number">1.3.3.8.</span> <span class="nav-text">迭代8</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代9"><span class="nav-number">1.3.3.9.</span> <span class="nav-text">迭代9</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代10"><span class="nav-number">1.3.3.10.</span> <span class="nav-text">迭代10</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代11"><span class="nav-number">1.3.3.11.</span> <span class="nav-text">迭代11</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#割平面法"><span class="nav-number">1.4.</span> <span class="nav-text">割平面法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#有效不等式"><span class="nav-number">1.4.1.</span> <span class="nav-text">有效不等式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例题"><span class="nav-number">1.5.</span> <span class="nav-text">例题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1"><span class="nav-number">1.5.1.</span> <span class="nav-text">1</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1232.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="操作系统," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="os-project4实验目标1.熟悉Minix操作系统的进程管理 2.学习Unix风格的内存管理 实验要求修改Minix3.1.2a的进程管理器，改进brk系统调用的实现，使得分配给进程的数据段+栈段空间耗尽时，brk系统调用给该进程分配一个更大的内存空间，并将原来空间中的数据复制至新分配的内存空间，释放原来的内存空间，并通知内核映射新分配的内存段。   环境配置这次的试验需要用到 Minix3">
+<meta property="og:type" content="article">
+<meta property="og:title" content="os-project4">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/06/14/os-project4/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="os-project4实验目标1.熟悉Minix操作系统的进程管理 2.学习Unix风格的内存管理 实验要求修改Minix3.1.2a的进程管理器，改进brk系统调用的实现，使得分配给进程的数据段+栈段空间耗尽时，brk系统调用给该进程分配一个更大的内存空间，并将原来空间中的数据复制至新分配的内存空间，释放原来的内存空间，并通知内核映射新分配的内存段。   环境配置这次的试验需要用到 Minix3">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/14/os-project4/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/14/os-project4/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/14/os-project4/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/14/os-project4/5.png">
+<meta property="article:published_time" content="2021-06-14T04:06:23.000Z">
+<meta property="article:modified_time" content="2022-08-23T06:22:18.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/06/14/os-project4/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/06/14/os-project4/"/>
+
+
+
+
+
+  <title>os-project4 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/06/14/os-project4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">os-project4</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-06-14T12:06:23+08:00">
+                2021-06-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  4.7k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  21
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="os-project4"><a href="#os-project4" class="headerlink" title="os-project4"></a>os-project4</h1><h2 id="实验目标"><a href="#实验目标" class="headerlink" title="实验目标"></a>实验目标</h2><p>1.熟悉Minix操作系统的进程管理</p>
+<p>2.学习Unix风格的内存管理</p>
+<h2 id="实验要求"><a href="#实验要求" class="headerlink" title="实验要求"></a>实验要求</h2><p>修改Minix3.1.2a的<strong>进程管理器</strong>，改进brk系统调用的实现，使得分配给进程的数据段+栈段空间耗尽时，brk系统调用给该进程<strong>分配一个更大的内存空间</strong>，并将原来空间中的数据复制至新分配的内存空间，释放原来的内存空间，并通知内核映射新分配的内存段。</p>
+<p><img src="/2021/06/14/os-project4/1.png" style="zoom:67%;"></p>
+<p><img src="/2021/06/14/os-project4/4.png" style="zoom:67%;"></p>
+<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><p>这次的试验需要用到 Minix3.1.2</p>
+<p>在配置3.1.2的过程中，我发现 VirtualBox 似乎没有修改硬件兼容性的设置，因此最后还是在VMware上进行开发。</p>
+<p>启动虚拟机时，在setup步骤中，网卡选择AMD LANCE，否则无法获得IP地址，其他可选择默认设置。安装完之后，输入shutdown，然后输入boot d0p0重启，后续关机都需输入shutdown，否则可能导致磁盘错误。</p>
+<p>输入<code>mv /etc/rc.daemons.dist  /etc/rc.daemons</code>。在网络模式为NAT模式时，这样在重启后可以看到IP地址(若无法连接ftp，检查该处是否修改)。</p>
+<p>在虚拟机终端输入<code>packman</code>可以安装额外的软件包（不能移除iso镜像），为了方便，可以选择全部安装（大概400MB）。安装完之后，open-ssh，vim等已经安装。输入passwd root为root用户创建密码，在重启后可用ftp连接虚拟机（仍然是NAT模式）</p>
+<p>能获得ip之后，在虚拟机窗口中输入：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ftp</span><br><span class="line">open 192.168.98.128</span><br></pre></td></tr></table></figure>
+<p>然后就可以在本机上通过ftp和ssh连接虚拟机了</p>
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
+<li>PM是用户进程，printf结果显示在虚拟机下，可以不需要串口输出。</li>
+<li><p>相关的函数</p>
+<ul>
+<li>alloc_mem 分配内存</li>
+<li>sys_abscopy 拷贝内存内容</li>
+<li>free_mem 释放内存</li>
+<li>sys_newmap 通知内核，注册内存段</li>
+<li>用户调用brk函数针对的是虚拟地址，而minix最底层内存管理是物理地址，不能混淆。</li>
+<li>需要小心处理clicks 和 bytes的单位换算和对齐。</li>
+</ul>
+</li>
+<li><p>本实验是修改brk系统调用的实现，所以不需要更改brk系统调用的接口，brk函数调用的参数和返回值请遵循原定义，请不要修改。</p>
+</li>
+<li><p>程序运行错误会可能产生体积很大的core文件，建议在磁盘空间较大的/home下做实验，否则可能会占满磁盘，导致无法开机。</p>
+</li>
+<li><p>如果break修改后导致程序的编译都无法正常进行（因为在程序编译的过程中可能需要brk系统调用）。在这种情况下，需从未修改过的内核中对程序进行编译。</p>
+</li>
+<li><p>CC编译器版本很老，语法检查很严格，编写C代码时不要引入非英文字符，或者使用高级语法。</p>
+</li>
+<li><p>本project使用的Minix版本号是3.1.2。</p>
+</li>
+</ul>
+<h3 id="实验步骤"><a href="#实验步骤" class="headerlink" title="实验步骤"></a>实验步骤</h3><h4 id="修改内存分配："><a href="#修改内存分配：" class="headerlink" title="修改内存分配："></a>修改内存分配：</h4><p>我们知道，Minix的内存管理非常简单: 存储管理器保存着一张按照内存地址排列的空洞列表。当由于执行系统调用FORK或者EXEC需要内存时，系统会使用 <code>first-fit</code> 的策略找出一个能放得下的hole。那么首先我们来看一下<code>hole</code>的结构：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NR_HOLES         128    <span class="comment">/* max # entries in hole table */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NIL_HOLE (struct hole *)0 <span class="comment">//说明这块是空的</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NIL_HOLE (struct hole *) 0</span></span><br><span class="line"></span><br><span class="line">PRIVATE <span class="class"><span class="keyword">struct</span> <span class="title">hole</span> &#123;</span></span><br><span class="line"> 	phys_clicks h_base;           <span class="comment">/* 空洞的开始地址*/</span></span><br><span class="line">	phys_clicks h_len;            <span class="comment">/* 空洞的长度 */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">hole</span> *<span class="title">h_next</span>;</span>          <span class="comment">/* 指向下一个空洞 */</span></span><br><span class="line">&#125; hole[NR_HOLES]; </span><br><span class="line"></span><br><span class="line">PRIVATE <span class="class"><span class="keyword">struct</span> <span class="title">hole</span> *<span class="title">hole_head</span>;</span> 	<span class="comment">/* pointer to first hole */</span> </span><br><span class="line"></span><br><span class="line">PRIVATE <span class="class"><span class="keyword">struct</span> <span class="title">hole</span> *<span class="title">free_slots</span>;</span>    <span class="comment">/* ptr to list of unused table slots */</span></span><br></pre></td></tr></table></figure>
+<p>那么现在，我们需要修改<code>/usr/src/servers/pm/alloc.c</code>中的<code>alloc_mem</code>函数，<strong>把first-fit修改成best-fit</strong>，即分配内存之前，先遍历整个空闲内存块列表，找到最佳匹配的空闲块。而之前的策略，是找到第一个能放下的空闲块。</p>
+<p>不妨先看一下原来的best-fit策略是怎么写的</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">PUBLIC phys_clicks <span class="title">alloc_mem</span><span class="params">(clicks)</span></span></span><br><span class="line"><span class="function">phys_clicks clicks</span>;       </span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">register</span> <span class="class"><span class="keyword">struct</span> <span class="title">hole</span> *<span class="title">hp</span>, *<span class="title">prev_ptr</span>;</span></span><br><span class="line"> 	phys_clicks old_base;</span><br><span class="line">	hp = hole_head;<span class="comment">/*从链表头开始遍历*/</span></span><br><span class="line"> 	<span class="keyword">while</span> (hp != NIL_HOLE) &#123;</span><br><span class="line">		<span class="keyword">if</span> (hp-&gt;h_len &gt;= clicks) &#123;</span><br><span class="line">    	old_base = hp-&gt;h_base;  <span class="comment">/* 记下老的基地址 */</span></span><br><span class="line">    	hp-&gt;h_base += clicks;   <span class="comment">/* 修改空洞的基地址 */</span></span><br><span class="line">     	hp-&gt;h_len -= clicks;    <span class="comment">/* 修改空洞的长度*/</span></span><br><span class="line">    	<span class="comment">/* 如果空洞没有用完，直接返回，old_base 就是所求*/</span></span><br><span class="line">        <span class="keyword">if</span> (hp-&gt;h_len != <span class="number">0</span>) <span class="keyword">return</span>(old_base);</span><br><span class="line">		<span class="comment">/* 整个空洞都用完了，把该空洞放到一个free list中*/</span></span><br><span class="line">        del_slot(prev_ptr, hp);</span><br><span class="line">       <span class="keyword">return</span>(old_base);</span><br><span class="line">  &#125;</span><br><span class="line"> 	prev_ptr = hp;</span><br><span class="line"> 	hp = hp-&gt;h_next;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">PUBLIC phys_clicks <span class="title">alloc_mem</span><span class="params">(clicks)</span></span></span><br><span class="line"><span class="function">    phys_clicks clicks</span>; <span class="comment">/* click即需要请求的内存大小 */</span></span><br><span class="line">&#123; </span><br><span class="line">    <span class="comment">/*search the whole linked list and allocate the minist space that can hold the process, which is called best-fit strategy*/</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">register</span> <span class="class"><span class="keyword">struct</span> <span class="title">hole</span> *<span class="title">hp</span>, *<span class="title">temp</span>,*<span class="title">temp_ptr</span>,*<span class="title">prev_ptr</span>;</span></span><br><span class="line">    phys_clicks old_base;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">do-while 代码段的意思是，当我们循环一遍都没找到合适的空洞，就可以把退出内存的进程赶出去，然后再循环</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">  <span class="keyword">do</span> &#123;</span><br><span class="line">     <span class="comment">//初始情况下， temp和及最佳适配hp都在链表头部</span></span><br><span class="line">    temp_ptr = hole_head;</span><br><span class="line">    prev_ptr=NIL_HOLE;</span><br><span class="line">    temp=hole_head;</span><br><span class="line">	hp = hole_head;</span><br><span class="line">    <span class="comment">//接下来遍历整个链表，找到最适合存放的block</span></span><br><span class="line">	<span class="keyword">while</span> (hp != NIL_HOLE &amp;&amp; hp-&gt;h_base &lt; swap_base) &#123;</span><br><span class="line">        <span class="comment">// 找到了一个空间大于clicks，就更新temp</span></span><br><span class="line">        <span class="keyword">if</span> (hp-&gt;h_len &gt;= clicks&amp;&amp;temp==hole_head) &#123;</span><br><span class="line">            temp=hp;</span><br><span class="line">            temp_ptr=prev_ptr;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/*找到比原来更合适的也更新temp*/</span></span><br><span class="line">        <span class="keyword">if</span>((hp-&gt;h_len &gt;= clicks&amp;&amp;hp-&gt;h_len&lt;temp-&gt;h_len)) &#123;</span><br><span class="line">            temp=hp;</span><br><span class="line">            temp_ptr=prev_ptr;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/*遍历链表*/</span></span><br><span class="line">		prev_ptr = hp;</span><br><span class="line">		hp = hp-&gt;h_next;</span><br><span class="line">	&#125; <span class="keyword">if</span>(temp!=hole_head)&#123;</span><br><span class="line">        <span class="comment">// 如果temp移动了就说明temp所在的位置就是最佳匹配。然后用hole_point指向它即可</span></span><br><span class="line">        hp=temp;</span><br><span class="line">        prev_ptr=temp_ptr;</span><br><span class="line">           old_base = hp-&gt;h_base;   <span class="comment">/* 记下老的基地址 */</span></span><br><span class="line">           hp-&gt;h_base += clicks;    <span class="comment">/* 修改空洞的基地址 */</span></span><br><span class="line">           hp-&gt;h_len -= clicks;    	<span class="comment">/* 修改空洞的长度*/</span></span><br><span class="line">          </span><br><span class="line">           <span class="comment">/* Remember new high watermark of used memory. */</span></span><br><span class="line">           <span class="keyword">if</span>(hp-&gt;h_base &gt; high_watermark)</span><br><span class="line">               high_watermark = temp-&gt;h_base;</span><br><span class="line">               <span class="comment">/*完全用完了，就删除，把该空洞放到一个free list中*/</span></span><br><span class="line">            <span class="keyword">if</span>(hp-&gt;h_len==<span class="number">0</span>)</span><br><span class="line">            del_slot(prev_ptr,hp);</span><br><span class="line">           <span class="keyword">return</span>(old_base);</span><br><span class="line">       &#125;</span><br><span class="line">  &#125; <span class="keyword">while</span> (swap_out());		<span class="comment">/* try to swap some other process out */</span></span><br><span class="line">   </span><br><span class="line">  <span class="keyword">return</span>(NO_MEM);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>修改/usr/src/servers/pm/break.c中的adjust函数，并增加了一个allocate_new_mem局部函数在adjust函数中调用。brk系统调用流程：</p>
+<ul>
+<li><p>do_brk函数<strong>计算数据段新的边界</strong>，然后调用adjust函数，adjust函数计算程序当前的空闲空间是否足够分配：</p>
+<ul>
+<li><p>若足够，则调整数据段指针，堆栈指针；通知内核程序的映像发生了变化，返回do_brk函数。</p>
+</li>
+<li><p>若不够，调用allocate_new_mem函数申请新的足够大的内存空间；将程序现有的数据段和堆栈段的内容分别拷贝至新内存区域的底部(bottom)和顶部(top)；通知内核程序的映像发生了变化；返回do_brk函数。</p>
+</li>
+<li><p>```c<br>r = adjust(rmp, new_clicks, new_sp); // 如果成功，adjust会返回OK<br>/<em>最后返回地址或者-1(报错)</em>/<br>rmp-&gt;mp_reply.reply_ptr = (r == OK ? m_in.addr : (char*)-1); </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">那么首先来看一下 &#96;adjust&#96; 函数的原理, 需要改动的地方其实不多。只是原本并没有不够用了就扩容的功能。当函数发现 &#96;lower&lt; gap_base&#96; 的时候，说明栈段和数据存储段发生了冲突，这时候调用 &#96;alloc_new_mem&#96; 并判断是否申请成功。是则返回0，否则就返回 ENOMEM，表示没空间了。</span><br><span class="line"></span><br><span class="line">&#96;&#96;&#96;c</span><br><span class="line">PUBLIC int adjust(rmp, data_clicks, sp) register struct mproc *rmp; &#x2F;* whose memory is being adjusted? *&#x2F;</span><br><span class="line">vir_clicks data_clicks;                                             &#x2F;* how big is data segment to become? *&#x2F;</span><br><span class="line">vir_bytes sp;                                                       &#x2F;* new value of sp *&#x2F;</span><br><span class="line">&#123;</span><br><span class="line">    </span><br><span class="line">    &#x2F;* </span><br><span class="line">    看栈段和数据段能否共存，有必要的话调整一下</span><br><span class="line">    需要注意的是，原版这里给出的注释是: 内存从未被分配或者是释放，它只是在数据段和栈段之间的空隙中加减罢了。如果gap的大小最终变为负数，说明这个调整失败了,此时就需要返回 ENOMEM</span><br><span class="line"> *&#x2F;</span><br><span class="line"></span><br><span class="line">    register struct mem_map *mem_sp, *mem_dp;</span><br><span class="line">    vir_clicks sp_click, gap_base, lower, old_clicks;</span><br><span class="line">    int changed, r, ft;</span><br><span class="line">    long base_of_stack, delta; &#x2F;* longs avoid certain problems *&#x2F;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    int results;</span><br><span class="line"></span><br><span class="line">    mem_dp &#x3D; &amp;rmp-&gt;mp_seg[D]; &#x2F;*数据段指针*&#x2F; </span><br><span class="line">    mem_sp &#x3D; &amp;rmp-&gt;mp_seg[S]; &#x2F;*栈段指针*&#x2F;</span><br><span class="line">    changed &#x3D; 0;              &#x2F;*一个 flag,用来放栈段&#x2F;数据段是否已被修改*&#x2F;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; 如果当前 栈段长度为0，说明栈为空，直接返回OK</span><br><span class="line">    if (mem_sp-&gt;mem_len &#x3D;&#x3D; 0)</span><br><span class="line">        return (OK); &#x2F;* don&#39;t bother init *&#x2F;</span><br><span class="line"></span><br><span class="line">    &#x2F;* See if stack size has gone negative (i.e., sp too close to 0xFFFF...) *&#x2F;</span><br><span class="line">    &#x2F;*</span><br><span class="line">    判断栈的大小是否已经为负</span><br><span class="line">    *&#x2F;</span><br><span class="line">    &#x2F;&#x2F;栈基为虚拟地址加栈长度</span><br><span class="line">    base_of_stack &#x3D; (long)mem_sp-&gt;mem_vir + (long)mem_sp-&gt;mem_len;</span><br><span class="line">    sp_click &#x3D; sp &gt;&gt; CLICK_SHIFT; &#x2F;* click containing sp *&#x2F;</span><br><span class="line">    if (sp_click &gt;&#x3D; base_of_stack)</span><br><span class="line">        return (ENOMEM); &#x2F;* sp too high *&#x2F;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    &#x2F;* 新旧栈指针的差 栈向下生长的距离,因为栈是向下生长的，所以要用当前的虚拟地址减*&#x2F;</span><br><span class="line">    </span><br><span class="line">    delta &#x3D; (long)mem_sp-&gt;mem_vir&#x2F;*旧*&#x2F; - (long)sp_click&#x2F;*新*&#x2F;;</span><br><span class="line">    &#x2F;&#x2F;r</span><br><span class="line">    lower &#x3D; (delta &gt; 0 ? sp_click : mem_sp-&gt;mem_vir);</span><br><span class="line"></span><br><span class="line">    &#x2F;* Add a safety margin for future stack growth. Impossible to do right. *&#x2F;</span><br><span class="line">#define SAFETY_BYTES (384 * sizeof(char *))</span><br><span class="line">#define SAFETY_CLICKS ((SAFETY_BYTES + CLICK_SIZE - 1) &#x2F; CLICK_SIZE)</span><br><span class="line">    gap_base &#x3D; mem_dp-&gt;mem_vir + data_clicks + SAFETY_CLICKS;</span><br><span class="line">    </span><br><span class="line">    &#x2F;*</span><br><span class="line">    origin:</span><br><span class="line">    说明栈段和数据存储段发生了冲突</span><br><span class="line">    if (lower &lt; gap_base) return(ENOMEM); &#x2F;* data and stack collided</span><br><span class="line">    new: 见下</span><br><span class="line">    *&#x2F;</span><br><span class="line">    &#x2F;* 现在，调用allocate_new_mem, 申请更大的内存空间 *&#x2F;</span><br><span class="line">    if (lower &lt; gap_base)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;*add the length of stack to the virtual address of stack</span><br><span class="line">        to get the length of the memory space*&#x2F;</span><br><span class="line">        results &#x3D; allocate_new_mem(rmp, data_clicks, delta, (phys_clicks)(rmp-&gt;mp_seg[S].mem_vir - rmp-&gt;mp_seg[D].mem_vir + rmp-&gt;mp_seg[S].mem_len));</span><br><span class="line">        &#x2F;&#x2F;判断是否申请成功</span><br><span class="line">        if (results &#x3D;&#x3D; ENOMEM)</span><br><span class="line">            return (ENOMEM);</span><br><span class="line">        else if (results &#x3D;&#x3D; OK)</span><br><span class="line">            return (OK);</span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">    &#x2F;* 如果栈段数据段不冲突，那么就更新数据段的长度. *&#x2F;</span><br><span class="line">    old_clicks &#x3D; mem_dp-&gt;mem_len;</span><br><span class="line">    if (data_clicks !&#x3D; mem_dp-&gt;mem_len)</span><br><span class="line">    &#123;</span><br><span class="line">        mem_dp-&gt;mem_len &#x3D; data_clicks;</span><br><span class="line">        &#x2F;&#x2F;设置Flag</span><br><span class="line">        changed |&#x3D; DATA_CHANGED;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;* 根据栈指针的变化修改栈的长度 *&#x2F;</span><br><span class="line">    if (delta &gt; 0)</span><br><span class="line">    &#123;</span><br><span class="line">		&#x2F;&#x2F;更新栈指针的虚拟地址和物理地址，地址向下增长</span><br><span class="line">        mem_sp-&gt;mem_vir -&#x3D; delta;</span><br><span class="line">        mem_sp-&gt;mem_phys -&#x3D; delta;</span><br><span class="line">        &#x2F;&#x2F;更新栈长度</span><br><span class="line">        mem_sp-&gt;mem_len +&#x3D; delta;</span><br><span class="line">        changed |&#x3D; STACK_CHANGED;</span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">    &#x2F;* 判断新的栈段、数据段大小是否适合地址空间 *&#x2F;</span><br><span class="line">    ft &#x3D; (rmp-&gt;mp_flags &amp; SEPARATE);</span><br><span class="line">#if (CHIP &#x3D;&#x3D; INTEL &amp;&amp; _WORD_SIZE &#x3D;&#x3D; 2)</span><br><span class="line">    r &#x3D; size_ok(ft, rmp-&gt;mp_seg[T].mem_len, rmp-&gt;mp_seg[D].mem_len,</span><br><span class="line">                rmp-&gt;mp_seg[S].mem_len, rmp-&gt;mp_seg[D].mem_vir, rmp-&gt;mp_seg[S].mem_vir);</span><br><span class="line">#else</span><br><span class="line">    r &#x3D; (rmp-&gt;mp_seg[D].mem_vir + rmp-&gt;mp_seg[D].mem_len &gt;</span><br><span class="line">         rmp-&gt;mp_seg[S].mem_vir)</span><br><span class="line">            ? ENOMEM</span><br><span class="line">            : OK;</span><br><span class="line">#endif</span><br><span class="line">    if (r &#x3D;&#x3D; OK)</span><br><span class="line">    &#123;</span><br><span class="line">        int r2;</span><br><span class="line">        if (changed &amp;&amp; (r2 &#x3D; sys_newmap(rmp-&gt;mp_endpoint, rmp-&gt;mp_seg)) !&#x3D; OK)</span><br><span class="line">            panic(__FILE__, &quot;couldn&#39;t sys_newmap in adjust&quot;, r2);</span><br><span class="line">        free_mem(old_base, old_clicks);</span><br><span class="line">        printf(&quot;free the old memory space\n&quot;);</span><br><span class="line">        return (OK);</span><br><span class="line">    &#125;</span><br><span class="line">    printf(&quot;size not ok!\n&quot;);</span><br><span class="line">    &#x2F;* New sizes don&#39;t fit or require too many page&#x2F;segment registers. Restore.*&#x2F;</span><br><span class="line">    if (changed &amp; DATA_CHANGED)</span><br><span class="line">    &#123;</span><br><span class="line"></span><br><span class="line">        mem_dp-&gt;mem_len &#x3D; cur_clicks;</span><br><span class="line">        mem_dp-&gt;mem_phys &#x3D; cur_base;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (changed &amp; STACK_CHANGED)</span><br><span class="line">    &#123;</span><br><span class="line">        printf(&quot;restore stack segment\n&quot;);</span><br><span class="line">        mem_sp-&gt;mem_vir &#x3D; cur_v_base;</span><br><span class="line">        mem_sp-&gt;mem_phys &#x3D; cur_s_base;</span><br><span class="line">        mem_sp-&gt;mem_len &#x3D; cur_s_click;</span><br><span class="line">    &#125;</span><br><span class="line">    return (ENOMEM);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2021/06/14/os-project4/6.png" style="zoom:67%;"></p>
+<p>那么 我们自己写的<code>allocate_new_mem</code> 的原理又如何呢？</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/*===========================================================================*</span></span><br><span class="line"><span class="comment"> *			allocate_new_mem 		             *</span></span><br><span class="line"><span class="comment"> *===========================================================================*/</span></span><br><span class="line"><span class="function">PUBLIC <span class="keyword">int</span> <span class="title">allocate_new_mem</span><span class="params">(rmp, d_clicks, delta, clicks)</span> <span class="keyword">register</span> struct mproc *rmp</span>;</span><br><span class="line">phys_clicks d_clicks;</span><br><span class="line"><span class="keyword">long</span> delta;</span><br><span class="line">phys_clicks clicks;</span><br><span class="line"><span class="comment">/*rmp指向进程的mproc结构，</span></span><br><span class="line"><span class="comment">d_clicks为adjust函数中的data_clicks</span></span><br><span class="line"><span class="comment">click指原来内存空间的大小;</span></span><br><span class="line"><span class="comment">delta代表新旧栈指针的差值，表示栈向下增长了多少</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">register</span> <span class="class"><span class="keyword">struct</span> <span class="title">mem_map</span> *<span class="title">mem_sp</span>, *<span class="title">mem_dp</span>;</span></span><br><span class="line"></span><br><span class="line">    phys_bytes old_bytes, data_bytes;</span><br><span class="line">    phys_bytes stak_bytes;</span><br><span class="line">    phys_bytes old_d_tran, new_d_tran;</span><br><span class="line">    phys_bytes old_s_tran, new_s_tran;</span><br><span class="line">    phys_clicks old_clicks, old_base;</span><br><span class="line">    phys_clicks new_clicks, new_base;</span><br><span class="line">    phys_clicks new_s_base;</span><br><span class="line">    phys_clicks old_s_base, stak_clicks;</span><br><span class="line">    phys_clicks cur_s_base, cur_base;</span><br><span class="line">    phys_clicks cur_clicks, cur_s_click;</span><br><span class="line">    vir_clicks cur_v_base, len_old;</span><br><span class="line">    <span class="keyword">int</span> c, d, e, s;</span><br><span class="line">    <span class="keyword">int</span> changed, r, ft;</span><br><span class="line">    changed = <span class="number">0</span>;</span><br><span class="line">    mem_dp = &amp;rmp-&gt;mp_seg[D];</span><br><span class="line">    mem_sp = &amp;rmp-&gt;mp_seg[S];</span><br><span class="line">    len_old = mem_sp-&gt;mem_len + (mem_sp-&gt;mem_vir - mem_dp-&gt;mem_vir);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*新的地址空间的大小是旧的2倍*/</span></span><br><span class="line">    old_clicks = clicks;</span><br><span class="line">    new_clicks = clicks * <span class="number">2</span>;</span><br><span class="line">    <span class="comment">/*调用alloc_mem并判断是否出错*/</span></span><br><span class="line">    <span class="keyword">if</span> ((new_base = alloc_mem(new_clicks)) == NO_MEM)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"allocate ---error!"</span>);</span><br><span class="line">        <span class="keyword">return</span> (ENOMEM);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*与此同时，保存下来原来的栈段和数据段的地址和大小*/</span></span><br><span class="line">    <span class="comment">/*change clicks to bytes*/</span></span><br><span class="line">    data_bytes = (phys_bytes)rmp-&gt;mp_seg[D].mem_len &lt;&lt; CLICK_SHIFT;</span><br><span class="line">    stak_bytes = (phys_bytes)rmp-&gt;mp_seg[S].mem_len &lt;&lt; CLICK_SHIFT;</span><br><span class="line"></span><br><span class="line">    old_base = rmp-&gt;mp_seg[D].mem_phys;</span><br><span class="line">    old_s_base = rmp-&gt;mp_seg[S].mem_phys;</span><br><span class="line">    <span class="comment">/*the top of the stack*/</span></span><br><span class="line">    new_s_base = new_base + new_clicks - mem_sp-&gt;mem_len;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*将新旧栈段和数据段基地址都转化为phys_bytes*/</span></span><br><span class="line">    new_d_tran = (phys_bytes)new_base &lt;&lt; CLICK_SHIFT;</span><br><span class="line">    old_d_tran = (phys_bytes)old_base &lt;&lt; CLICK_SHIFT;</span><br><span class="line">    </span><br><span class="line">    new_s_tran = (phys_bytes)new_s_base &lt;&lt; CLICK_SHIFT;</span><br><span class="line">    old_s_tran = (phys_bytes)old_s_base &lt;&lt; CLICK_SHIFT;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*从下往上，用0来填充新获得的内存*/</span></span><br><span class="line">    sys_memset(<span class="number">0</span>, new_d_tran, (new_clicks &lt;&lt; CLICK_SHIFT));</span><br><span class="line">	<span class="comment">/*将数据段和栈段分别复制到新的内存空间的底部和顶部并通过sys_abscopy返回值判断是否复制成功*/</span></span><br><span class="line">    d = sys_abscopy(old_d_tran, new_d_tran, data_bytes);</span><br><span class="line">    <span class="keyword">if</span> (d &lt; <span class="number">0</span>)</span><br><span class="line">        panic(__FILE__, <span class="string">" can't copy data segment in alloc_new_mem"</span>, d);</span><br><span class="line">    s = sys_abscopy(old_s_tran, new_s_tran, stak_bytes);</span><br><span class="line">    <span class="keyword">if</span> (s &lt; <span class="number">0</span>)</span><br><span class="line">        panic(__FILE__, <span class="string">" can't copy stack segment in alloc_new_mem"</span>, s);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/*保存当前的数据段和栈段的物理地址和虚拟地址*/</span></span><br><span class="line">    cur_base = rmp-&gt;mp_seg[D].mem_phys;</span><br><span class="line">    cur_s_base = rmp-&gt;mp_seg[S].mem_phys;</span><br><span class="line">    cur_v_base = rmp-&gt;mp_seg[S].mem_vir;</span><br><span class="line">    cur_s_click = mem_sp-&gt;mem_len;</span><br><span class="line">    <span class="comment">/*更新进程数据段和栈段的内存地址以及栈段的虚拟地址*/</span></span><br><span class="line">    rmp-&gt;mp_seg[D].mem_phys = new_base;</span><br><span class="line">    rmp-&gt;mp_seg[S].mem_phys = new_s_base;</span><br><span class="line">    rmp-&gt;mp_seg[S].mem_vir = rmp-&gt;mp_seg[D].mem_vir + new_clicks - mem_sp-&gt;mem_len;</span><br><span class="line">	<span class="comment">/*保存当前的数据段长度*/</span></span><br><span class="line">    cur_clicks = mem_dp-&gt;mem_len;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">/*更新数据段的长度*/</span></span><br><span class="line">    <span class="keyword">if</span> (d_clicks != mem_dp-&gt;mem_len)</span><br><span class="line">    &#123;</span><br><span class="line">        mem_dp-&gt;mem_len = d_clicks;</span><br><span class="line">        changed |= DATA_CHANGED;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 根据栈指针的变化更新栈长度. */</span></span><br><span class="line">    <span class="keyword">if</span> (delta &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"change stack segment\n"</span>);</span><br><span class="line">        mem_sp-&gt;mem_vir -= delta;</span><br><span class="line">        mem_sp-&gt;mem_phys -= delta;</span><br><span class="line">        mem_sp-&gt;mem_len += delta;</span><br><span class="line">        changed |= STACK_CHANGED;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* 判断新的栈段、数据段大小是否适合地址空间 */</span></span><br><span class="line">    ft = (rmp-&gt;mp_flags &amp; SEPARATE);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (CHIP == INTEL &amp;&amp; _WORD_SIZE == 2)</span></span><br><span class="line">    r = size_ok(ft, rmp-&gt;mp_seg[T].mem_len, rmp-&gt;mp_seg[D].mem_len,</span><br><span class="line">                rmp-&gt;mp_seg[S].mem_len, rmp-&gt;mp_seg[D].mem_vir, rmp-&gt;mp_seg[S].mem_vir);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">    r = (rmp-&gt;mp_seg[D].mem_vir + rmp-&gt;mp_seg[D].mem_len &gt;</span><br><span class="line">         rmp-&gt;mp_seg[S].mem_vir)</span><br><span class="line">            ? ENOMEM</span><br><span class="line">            : OK;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (r == OK)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">int</span> r2;</span><br><span class="line">        <span class="keyword">if</span> (changed &amp;&amp; (r2 = sys_newmap(rmp-&gt;mp_endpoint, rmp-&gt;mp_seg)) != OK)</span><br><span class="line">            panic(__FILE__, <span class="string">"couldn't sys_newmap in adjust"</span>, r2);</span><br><span class="line">        free_mem(old_base, old_clicks);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"free the old memory space\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> (OK);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">   </span><br><span class="line">    <span class="comment">//否则就是不OK了，那么就需要恢复栈段、数据段到旧的地址空间去</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"size not ok!\n"</span>);</span><br><span class="line">    <span class="keyword">if</span> (changed &amp; DATA_CHANGED)</span><br><span class="line">    &#123;</span><br><span class="line">        mem_dp-&gt;mem_len = cur_clicks;</span><br><span class="line">        mem_dp-&gt;mem_phys = cur_base;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (changed &amp; STACK_CHANGED)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"restore stack segment\n"</span>);</span><br><span class="line">        mem_sp-&gt;mem_vir = cur_v_base;</span><br><span class="line">        mem_sp-&gt;mem_phys = cur_s_base;</span><br><span class="line">        mem_sp-&gt;mem_len = cur_s_click;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (ENOMEM);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/06/14/os-project4/5.png" style="zoom:67%;"></p>
+<ul>
+<li>编译Minix：<ul>
+<li>进入/usr/src/servers目录，输入make image, 等编译成功之后输入make install 安装新的PM程序。</li>
+<li>进入/usr/src/tools目录，输入make hdboot, 成功之后再键入make install命令安装新的内核程序。</li>
+<li>键入shutdown 命令关闭虚拟机，进入boot monitor界面。设置启动新内核的选项，在提示符键入：  <code>newminix(5,start new kernel) {image=/boot/image/3.1.2ar1;boot;}</code></li>
+<li>然后回车，键入save命令保存设置。 5为启动菜单中的选择内核版本的键(数字键，可选其他数字键)，<strong>3.1.2ar1</strong>为在<code>/usr/src/tools</code>目录中输入<code>make install</code>之后生成的内核版本号，请记得在<code>/usr/src/tools</code>中执行<code>make install</code>命令之后记录生成的新内核版本号。 </li>
+<li>输入<code>menu</code>命令，然后敲数字键（上一步骤中设置的数字）启动新内核，登录进<code>minix 3</code>中测试。</li>
+</ul>
+</li>
+</ul>
+<h3 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h3><ul>
+<li>测试程序在编写时有特定要求，即将所有的变量申明放到main函数之外，让所有的变量变成全局变量，不允许使用局部变量。按照Minix3的规则全局变量保存在数据段中，不存放在堆栈中，所以可以通过测试。</li>
+<li>测试程序一只是简单测试sbrk调用，<strong>不断的调整数据段的上界</strong>，并未对新分配的内存空间进行访问。</li>
+</ul>
+<p>test1.c 代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="keyword">int</span> inc = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">int</span> total = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">int</span> i;</span><br><span class="line"><span class="function"><span class="keyword">char</span> *<span class="title">sbrk</span><span class="params">(<span class="keyword">int</span> incr)</span></span>;</span><br><span class="line"><span class="keyword">char</span> *result;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">int</span> **argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">    sbrk不是系统调用，是C库函数。sbrk/brk 是从堆中分配空间，本质是移动1个位置。向后移动是分配空间，向前移就是释放空间，sbrk用相对的证书值来确定位置，如果这个整数时整数，会从当前位置向后移若干字节，若为负数旧向前移动若干字节。在任何情况下，返回值永远时移动之前的位置</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    </span><br><span class="line">        <span class="keyword">while</span> (((<span class="keyword">int</span>)(result = sbrk(inc))) &gt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                total += inc;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"incremented by %d, total %d\n"</span>, inc, total);</span><br><span class="line">            	<span class="comment">//每次inc都翻倍</span></span><br><span class="line">                inc += inc;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改前如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">incremented by 1, total 1</span><br><span class="line">incremented by 2, total 3</span><br><span class="line">incremented by 4, total 7</span><br><span class="line">incremented by 8, total 15</span><br><span class="line">incremented by 16, total 31</span><br><span class="line">incremented by 32, total 63</span><br><span class="line">incremented by 64, total 127</span><br><span class="line">incremented by 128, total 255</span><br><span class="line">incremented by 256, total 511</span><br><span class="line">incremented by 512, total 1023</span><br><span class="line">incremented by 1024, total 2047</span><br><span class="line">incremented by 2048, total 4095</span><br><span class="line">incremented by 4096, total 8191</span><br><span class="line">incremented by 8192, total 16383</span><br><span class="line">incremented by 16384, total 32767</span><br><span class="line">incremented by 32768, total 65535</span><br></pre></td></tr></table></figure>
+<p>修改后如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">incremented by 1, total 1</span><br><span class="line">incremented by 2, total 3</span><br><span class="line">incremented by 4, total 7</span><br><span class="line">incremented by 8, total 15</span><br><span class="line">incremented by 16, total 31</span><br><span class="line">incremented by 32, total 63</span><br><span class="line">incremented by 64, total 127</span><br><span class="line">incremented by 128, total 255</span><br><span class="line">incremented by 256, total 511</span><br><span class="line">incremented by 512, total 1023</span><br><span class="line">incremented by 1024, total 2047</span><br><span class="line">incremented by 2048, total 4095</span><br><span class="line">incremented by 4096, total 8191</span><br><span class="line">incremented by 8192, total 16383</span><br><span class="line">incremented by 16384, total 32767</span><br><span class="line">incremented by 32768, total 65535</span><br><span class="line">incremented by 65536, total 131071</span><br><span class="line">incremented by 131072, total 262143</span><br><span class="line">incremented by 262144, total 524287</span><br><span class="line">incremented by 524288, total 1048575</span><br><span class="line">incremented by 1048576, total 2097151</span><br><span class="line">incremented by 2097152, total 4194303</span><br><span class="line">incremented by 4194304, total 8388607</span><br><span class="line">incremented by 8388608, total 16777215</span><br><span class="line">incremented by 16777216, total 33554431</span><br><span class="line">incremented by 33554432, total 67108863</span><br></pre></td></tr></table></figure>
+<ul>
+<li>测试程序二则对新分配的内存空间进行了访问。</li>
+</ul>
+<p>test2.c 代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="keyword">int</span> inc = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">int</span> total = <span class="number">0</span>;</span><br><span class="line"><span class="function"><span class="keyword">char</span> *<span class="title">sbrk</span><span class="params">(<span class="keyword">int</span> incr)</span></span>;</span><br><span class="line"><span class="keyword">char</span> *result;</span><br><span class="line"><span class="keyword">int</span> i;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">int</span> **argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (((<span class="keyword">int</span>)(result = sbrk(inc))) &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//向新分配的地址写一些东西</span></span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; inc; i++)</span><br><span class="line">            result[i] = <span class="number">0x12</span>;</span><br><span class="line">        total += inc;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"incremented by: %d, total: %d , result: %d\n"</span>, inc, total,   (<span class="keyword">int</span>)result);</span><br><span class="line">        inc += inc;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改前：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">incremented by: 1, total: 1 , result: 760</span><br><span class="line">incremented by: 2, total: 3 , result: 4096</span><br><span class="line">incremented by: 4, total: 7 , result: 4098</span><br><span class="line">incremented by: 8, total: 15 , result: 4102</span><br><span class="line">incremented by: 16, total: 31 , result: 4110</span><br><span class="line">incremented by: 32, total: 63 , result: 4126</span><br><span class="line">incremented by: 64, total: 127 , result: 4158</span><br><span class="line">incremented by: 128, total: 255 , result: 4222</span><br><span class="line">incremented by: 256, total: 511 , result: 4350</span><br><span class="line">incremented by: 512, total: 1023 , result: 4606</span><br><span class="line">incremented by: 1024, total: 2047 , result: 5118</span><br><span class="line">incremented by: 2048, total: 4095 , result: 6142</span><br><span class="line">incremented by: 4096, total: 8191 , result: 8190</span><br><span class="line">incremented by: 8192, total: 16383 , result: 12286</span><br><span class="line">incremented by: 16384, total: 32767 , result: 20478</span><br><span class="line">incremented by: 32768, total: 65535 , result: 36862</span><br></pre></td></tr></table></figure>
+<p>修改后：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">incremented by: 1, total: 1 , result: 760</span><br><span class="line">incremented by: 2, total: 3 , result: 4096</span><br><span class="line">incremented by: 4, total: 7 , result: 4098</span><br><span class="line">incremented by: 8, total: 15 , result: 4102</span><br><span class="line">incremented by: 16, total: 31 , result: 4110</span><br><span class="line">incremented by: 32, total: 63 , result: 4126</span><br><span class="line">incremented by: 64, total: 127 , result: 4158</span><br><span class="line">incremented by: 128, total: 255 , result: 4222</span><br><span class="line">incremented by: 256, total: 511 , result: 4350</span><br><span class="line">incremented by: 512, total: 1023 , result: 4606</span><br><span class="line">incremented by: 1024, total: 2047 , result: 5118</span><br><span class="line">incremented by: 2048, total: 4095 , result: 6142</span><br><span class="line">incremented by: 4096, total: 8191 , result: 8190</span><br><span class="line">incremented by: 8192, total: 16383 , result: 12286</span><br><span class="line">incremented by: 16384, total: 32767 , result: 20478</span><br><span class="line">incremented by: 32768, total: 65535 , result: 36862</span><br><span class="line">incremented by: 65536, total: 131071 , result: 69630</span><br><span class="line">incremented by: 131072, total: 262143 , result: 135166</span><br><span class="line">incremented by: 262144, total: 524287 , result: 266238</span><br><span class="line">incremented by: 524288, total: 1048575 , result: 528382</span><br><span class="line">incremented by: 1048576, total: 2097151 , result: 1052670</span><br><span class="line">incremented by: 2097152, total: 4194303 , result: 2101246</span><br><span class="line">incremented by: 4194304, total: 8388607 , result: 4198398</span><br><span class="line">incremented by: 8388608, total: 16777215 , result: 8392702</span><br><span class="line">incremented by: 16777216, total: 33554431 , result: 16781310</span><br><span class="line">incremented by: 33554432, total: 67108863 , result: 33558526</span><br></pre></td></tr></table></figure>
+<ul>
+<li>建议先通过测试程序一，再尝试测试程序二。通过修改brk，使得二个测试程序可以分配比之前更多的内存。测试程序最后的输出结果和分配给minix操作系统的物理内存数量有关。</li>
+</ul>
+<p>结果我们发现，通过修改 alloc_mem(分配策略) 和 adjust(调整策略) 之后，我们能申请到更多的内存空间了</p>
+<h2 id="实验结论"><a href="#实验结论" class="headerlink" title="实验结论"></a>实验结论</h2><p>通过这次实验，我对分配策略有了更深刻的认识(下个匹配与最佳匹配等)。并更全面的从底层了解了堆调整的策略(比如sys_abscopy,alloc_mem函数，click和byte之间的转化等)</p>
+<p>同时，对虚拟机的内核编译、代码调试也有了更多的经验。</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/06/14/os-project4/" title="os-project4">https://jasonxqh.github.io/2021/06/14/os-project4/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"><i class="fa fa-tag"></i> 操作系统</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/06/10/%E6%A6%82%E7%8E%87%E8%AE%BA%E7%AC%AC%E5%85%AD%E7%AB%A0/" rel="next" title="概率论第六章">
+                <i class="fa fa-chevron-left"></i> 概率论第六章
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/06/21/IO%E7%AE%A1%E7%90%86/" rel="prev" title="IO管理">
+                IO管理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">420</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#os-project4"><span class="nav-number">1.</span> <span class="nav-text">os-project4</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#实验目标"><span class="nav-number">1.1.</span> <span class="nav-text">实验目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验要求"><span class="nav-number">1.2.</span> <span class="nav-text">实验要求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#环境配置"><span class="nav-number">1.3.</span> <span class="nav-text">环境配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#注意事项"><span class="nav-number">1.3.1.</span> <span class="nav-text">注意事项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实验步骤"><span class="nav-number">1.3.2.</span> <span class="nav-text">实验步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#修改内存分配："><span class="nav-number">1.3.2.1.</span> <span class="nav-text">修改内存分配：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试用例"><span class="nav-number">1.3.3.</span> <span class="nav-text">测试用例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验结论"><span class="nav-number">1.4.</span> <span class="nav-text">实验结论</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1232.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>

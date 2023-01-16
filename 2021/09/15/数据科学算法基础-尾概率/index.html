@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="数据科学算法," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="数据科学算法基础-尾概率引入我们现在抛一枚均匀的硬币，正面和反面朝上的概率都是0.5，而且每次抛币都是独立的。知觉上，抛的次数越多正面朝上的概率越接近于0.5。如下图所示：  那么，如果我要计算到底抛多少次才能以$95\%$ 的概率保证正面朝上的频率和真实概率间的差距小于某个阈值(0.125)呢？ 为了回答这个问题，我们要用到尾概率不等式来计算概率上界，这边有三个方法： Markov不等式、Che">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据科学算法基础-尾概率">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="数据科学算法基础-尾概率引入我们现在抛一枚均匀的硬币，正面和反面朝上的概率都是0.5，而且每次抛币都是独立的。知觉上，抛的次数越多正面朝上的概率越接近于0.5。如下图所示：  那么，如果我要计算到底抛多少次才能以$95\%$ 的概率保证正面朝上的频率和真实概率间的差距小于某个阈值(0.125)呢？ 为了回答这个问题，我们要用到尾概率不等式来计算概率上界，这边有三个方法： Markov不等式、Che">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/4.png">
+<meta property="article:published_time" content="2021-09-15T08:14:48.000Z">
+<meta property="article:modified_time" content="2022-01-06T06:44:48.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据科学算法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/09/15/数据科学算法基础-尾概率/"/>
+
+
+
+
+
+  <title>数据科学算法基础-尾概率 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据科学算法基础-尾概率</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-09-15T16:14:48+08:00">
+                2021-09-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  697
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  2
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="数据科学算法基础-尾概率"><a href="#数据科学算法基础-尾概率" class="headerlink" title="数据科学算法基础-尾概率"></a>数据科学算法基础-尾概率</h1><h3 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h3><p>我们现在抛一枚均匀的硬币，正面和反面朝上的概率都是0.5，而且每次抛币都是独立的。知觉上，抛的次数越多正面朝上的概率越接近于0.5。如下图所示：</p>
+<p><img src="/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/1.jpg" style="zoom:67%;"></p>
+<p>那么，如果我要计算到底抛多少次才能以$95\%$ 的概率保证正面朝上的频率和真实概率间的差距小于某个阈值(0.125)呢？</p>
+<p>为了回答这个问题，我们要用到尾概率不等式来计算概率上界，这边有三个方法：</p>
+<p>Markov不等式、Chebyshev不等式、和Chernoff不等式</p>
+<h3 id="Markov-不等式"><a href="#Markov-不等式" class="headerlink" title="Markov 不等式"></a>Markov 不等式</h3><p>给定样本空间$\Omega$上的非负随机变量X，对 $\forall a\geq 0$ 有：</p>
+<script type="math/tex; mode=display">
+P(X>a)\leq \frac{E(X)}{a}</script><p>或者</p>
+<script type="math/tex; mode=display">
+P(X>aE(X))\leq \frac{1}{a}</script><h4 id="证明："><a href="#证明：" class="headerlink" title="证明："></a>证明：</h4><p>因为$X\geq 0$ ，我们得到：</p>
+<script type="math/tex; mode=display">
+E(X) = \int_0^\infty xp(x)dx = \int_0^a xp(x)dx +\int_a^\infty xp(x) dx\geq \int_0^\infty xp(x) dx\geq a\int_a^\infty p(x)dx = aP(X>a)</script><p>所以，我们得到 $P(X&gt;a)\leq \frac{E(X)}{a}$</p>
+<p>但是，Markov不等式给出的尾概率上界可能非常宽松，比如说，我们要求均匀硬币抛掷n次之后，正面朝 上次数X大于$\frac{3}{4}n$​的概率是：</p>
+<script type="math/tex; mode=display">
+P(X\geq \frac{3}{4}n)\leq \frac{n/2}{3n/4} = \frac{2}{3}</script><p>用常识来判断，随着n的不断增大，正面朝上次数X 这个概率是很小的，但是用Markov不等式得出的结论是不管n多大，上界都是不变的。</p>
+<h3 id="Chebyshev-不等式"><a href="#Chebyshev-不等式" class="headerlink" title="Chebyshev 不等式"></a>Chebyshev 不等式</h3><p>现在我们在马尔科夫不等式的基础上修改一下，令$Y = (X-\mu)^2$ ，带入Markov不等式可得：</p>
+<script type="math/tex; mode=display">
+P(Y > a^2)\leq \frac{E(Y)}{a^2}</script><p>然后，将概率中的$Y&gt;a^2$开平方，可以得到：</p>
+<script type="math/tex; mode=display">
+P(|X-\mu|\geq a)\leq \frac{\sigma^2}{a^2}</script><p>因此我们可以给出Chebshev不等式的定义：令X为定义在样本空间$\Omega$ 上的随机变量，对任意的一个正实数$\epsilon$，则：</p>
+<script type="math/tex; mode=display">
+P(|X-E(X)|\geq \epsilon) \leq \frac{Var(X)}{\epsilon^2}</script><p>切比雪夫不等式还可以写成如下形式：</p>
+<script type="math/tex; mode=display">
+P(|X-E(X)|<\varepsilon)\geq 1-\frac{Var(X)}{\varepsilon^2}</script><p>再分析一下抛硬币的例子，此时，概率P就变成了：</p>
+<script type="math/tex; mode=display">
+P(X>\frac34n)<P(|X-\frac{n}2|>\frac{n}{4})\leq \frac{Var(X)}{(n/4)^2}=\frac{16np(1-p)}{n^2}=\frac{4}{n}</script><p>如果抛掷均匀1000次，这一尾概率小于 0.004</p>
+<p>这个上界就比Markov小很多了。 </p>
+<h3 id="Chernoff-不等式"><a href="#Chernoff-不等式" class="headerlink" title="Chernoff 不等式"></a>Chernoff 不等式</h3><p>随着实验次数的增加，Chernoff 不等式将给出比Chebyshev不等式更紧的尾概率上界。</p>
+<p>定理：</p>
+<p>若$X<em>i$​ 为定义在样本空间$\Omega$​上的n个独立伯努利随机变量，且 $P(X_i=1)=p_i$​。 令 $X=\sum</em>{i=1}^nX<em>i$​和$\mu=\sum</em>{i=1}^np_i$​,对任意小的$\delta \in(0,1)$​ 有：</p>
+<p>结论1：</p>
+<script type="math/tex; mode=display">
+P(X<(1-\delta)\mu)<(\frac{e^{-\delta}}{(1-\delta)^{(1-\delta)}})^\mu</script><p>结论2：</p>
+<script type="math/tex; mode=display">
+P(X>(1+\delta)\mu)<(\frac{e^{\delta}}{(1+\delta)^{(1+\delta)}})^\mu</script><p>然而，在不等式中计算$(1-\delta)^{1-\delta}$和$(1+\delta)^{1+\delta}$这两个数是比较麻烦的，因此我们可以用Taylor展开对其进行更进一步的简化。</p>
+<p>已知：$\ln (1-\delta) = \sum_{i=1}^\infty -\frac{\delta^i}{i}$</p>
+<p>所以：</p>
+<script type="math/tex; mode=display">
+(1-\delta)\ln(1-\delta) = (1-\delta)\sum_{i=1}^\infty -\frac{\delta^i}{i}=(-\delta+\delta^2-\delta^2/2+\delta^3/2-\cdots)>-\delta+\frac{\delta^2}{2}</script><p>因此</p>
+<script type="math/tex; mode=display">
+(1-\delta)^{(1-\delta)} >\exp(-\delta+\delta^2/2)\\</script><p>进一步：</p>
+<script type="math/tex; mode=display">
+P(X<(1-\delta)\mu)<(\frac{e^{-\mu}}{(1-\delta)^{1-\delta}})^\mu\\
+<(\frac{e^{-\delta}}{\exp{(-\delta+\frac{\delta^2}{2})}})^\mu=\exp(\frac{-\mu\delta^2}{2})</script><p>同理，我们可以证明另外一种情况。</p>
+<h4 id="简化后的Chernoff不等式"><a href="#简化后的Chernoff不等式" class="headerlink" title="简化后的Chernoff不等式"></a>简化后的Chernoff不等式</h4><p>结论1：</p>
+<script type="math/tex; mode=display">
+P(X<(1-\delta)\mu) < \exp (\frac{-\mu\delta^2}{2})\\
+P(X>(1+\delta)\mu)<\exp (\frac{-\mu\delta^2}{4})</script><h2 id="Morris算法"><a href="#Morris算法" class="headerlink" title="Morris算法"></a>Morris算法</h2><p> 定义一个数据流, $i∈[1,m],a_i∈[1,n]$​​,频率向量$<fi>, i∈[1,n],f_i∈[1,m]$​​。  数据流是无限的，当数据流流过m个时，出现了N个$a_i$​。  请设计一个算法记录N的大小，要求空间复杂度为$loglog(N)$。</fi></p>
+<h3 id="Morris算法-1"><a href="#Morris算法-1" class="headerlink" title="Morris算法"></a>Morris算法</h3><p><strong>算法</strong></p>
+<p><img src="/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/2.png" style="zoom:67%;"></p>
+<ol>
+<li><p>将X初始化为0</p>
+</li>
+<li><p>循环</p>
+<p> 如果$a_ i$出现一次   就以$1/(2^X)$​的概率将X增加1</p>
+</li>
+<li><p>返回$\hat f=(2^X−1)$​</p>
+</li>
+</ol>
+<h4 id="证明的目标"><a href="#证明的目标" class="headerlink" title="证明的目标"></a>证明的目标</h4><p>我们期望返回的值与N的差别尽量小，换句话说就是如果$\hat f$与N的差的绝对值大于某一个很小的值的概率很小，那么我们就可以用这种方法进行计数。说得更通俗一点就是使这个算法计算出的结果偏离N不多，或者偏离太多的概率特别小。</p>
+<p>可以利用切比雪夫来证明这一点 $P{[|X - \mu| \geq \epsilon]} \leqslant \sigma^{2}/\epsilon^{2}$​​ </p>
+<h4 id="证明"><a href="#证明" class="headerlink" title="证明"></a>证明</h4><p>计算期望：$E[2^{X_{N} } - 1] = N$​</p>
+<script type="math/tex; mode=display">
+E[2^{X_N}-1]=E[2^{X_N}]-1\\
+E[2^{X_N}] = \sum_{i=0}^N 2^i\cdot P[X_n = i]\\
+=\sum_{i=0}^N\{2^i\cdot P[X_{N-1}=i]+2P[X_{N-1}=i-1]-P[X_{N-1}=i]\}=E[2^{X_{N-1}}] +1\\
+=E[2^{X_0}+N ]= N+1</script><p>因此 $E[2^{X_N}-1] = N$</p>
+<p>计算方差：$var[2^{X_{N} } - 1] = \frac{1}{2}N^2-\frac{1}{2}N$</p>
+<script type="math/tex; mode=display">
+\sigma^2 = E[X^2]-E[x]^2\\
+E[X^2] = E[4^{X_N}-2^{X_N+1}+1]=E[4^{X_N}]-(N^2+2N+1)\\
+E[4^{X_N}] = \sum_{i=0}^N 4^i \cdot P[X_N=i]\\
+=\sum_{i=0}^N\{4^i\cdot P[X_{N-1}=i] -2^i\cdot P[X_{N-1}=i]+2^{i+1}\cdot P[X_{N-1}=i-1]\}\\
+=\sum_{i=0}^N\{4^i\cdot P[X_{N-1}=i] \}-\sum_{i=0}^N\{2^i\cdot P[X_{N-1}=i\}+\sum_{i=0}^{N-1}\{2^{i+2}\cdot P[X_{N-1}=i] \}\\
+=E[4^{X_{N-1}}] +3N = \frac{3}{2}N^2+\frac{3}{2}N+1\\
+\sigma^2 = \frac{3}{2}N^2+\frac{3}{2}N+1-(N^2+2N+1) = O(N^2)</script><p>我们令切比雪夫不等式中的 $X = 2^{X_N}-1$​</p>
+<p>其中，$X_N$ 指的是$X$ 最终的值，是在这个计数器在流模型中经历了N个数字。则最终得到公式</p>
+<script type="math/tex; mode=display">
+P[|\hat N - N| \geq \epsilon N ] \leqslant\frac{n^2}{2\epsilon^2n^2}= \frac{1}{2\epsilon^{2} }</script><h4 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h4><p> Morris算法的优点是：输出结果是真实值的无偏估计</p>
+<p>但显而易见，模型的正确性并不好，仅当$\epsilon\geq 1$ 时，尾概率上界不大于1/2, 并且<strong>随着N的增大误差和发生误差的概率也会变得越来越大</strong>。</p>
+<p>关于近似计数有更加高效的算法morris+算法和morris++算法</p>
+<h3 id="Morris-算法"><a href="#Morris-算法" class="headerlink" title="Morris+算法"></a>Morris+算法</h3><p>为了降低Morris算法数据结果的方差，我们提出了Morris+算法</p>
+<p><img src="/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/3.png" style="zoom:67%;"></p>
+<p>用语言来描述就是：</p>
+<ol>
+<li>运行k次morris算法</li>
+<li>记录记录结果$(X_1,\cdots,X_k)$</li>
+<li>返回$\gamma = \frac{1}{k}\sum<em>{i = 1}^{k}(2^{X</em>{i} } - 1)$​</li>
+</ol>
+<h4 id="证明-1"><a href="#证明-1" class="headerlink" title="证明"></a>证明</h4><p> 直接获取各个$X_i$对应的期望和方差，这在证明morris算法的时候已经计算过了。</p>
+<p> 于是可以直接根据期望的性质计算期望$E[γ]=N$</p>
+<p> 因为各个变量之间是相互独立的，所以可以利用独立变量之间方差的性质计算方差$D[\gamma] = \frac{N^{2} - N}{2k}$</p>
+<p>令切比雪夫不等式中的X为$\frac{1}{k}\sum<em>{i = 1}^{k}(2^{X</em>{i} } - 1)$​​，代入计算得到：$P[|\gamma - N| \geq \epsilon] \leqslant \frac{N^{2}-N}{2k\epsilon^{2} }\approx O(\frac{1}{k\epsilon^2})$​​, 换一种描述就是：</p>
+<p>以1−c的概率，$\gamma = N \pm \sqrt{\frac{N^{2}-N}{2kc} }$​ 或者 $N\pm \frac{O(N)}{\sqrt k}$​</p>
+<h4 id="评价-1"><a href="#评价-1" class="headerlink" title="评价"></a>评价</h4><p>Morris+算法的复杂度为$O(\frac{1}{\delta\epsilon^2})$</p>
+<p>当N确定时，如果想以0.9的概率满足近似标准，使c=0.1，则有 ，我们会发现$k = \frac{5(N^{2} - N)}{\epsilon^{2} }$，这是你需要重复morris算法的次数。然而这么看代价也是不小的，因为这个算法为了保证准确性需要的k的个数并不少。</p>
+<h3 id="Morris-算法-1"><a href="#Morris-算法-1" class="headerlink" title="Morris++算法"></a>Morris++算法</h3><p><img src="/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/4.png" style="zoom:67%;"></p>
+<p>用语言来描述，就是：</p>
+<ol>
+<li>重复morris+算法 $m = O(log(\frac{1}{\delta}))$​次</li>
+<li>取m个结果的中位数</li>
+</ol>
+<p>为了得到$1−\delta$ 下的 $(1+\epsilon)$近似，使用morris+算法需要$k = O(\frac{1}{\epsilon^{2} \delta})$次计算，而morris++算法的工作就是将这一复杂度降低到了$O(\frac{1}{\epsilon^{2} }log(\frac{1}{\delta}))$​​​​说白了，也就是降低了计算次数。</p>
+<h4 id="算法分析"><a href="#算法分析" class="headerlink" title="算法分析"></a>算法分析</h4><p>我们假设运行 t 个 Morris+ 实例，每一个都有 1/3 的失败概率，即：</p>
+<script type="math/tex; mode=display">
+P(\abs{\hat n-n}>\epsilon n)<\frac{1}{k\epsilon^2} = \frac{1}{3},k = O(\frac{1}{\epsilon^2})</script><p>那么，输出所有 t 个 Morris+ 实例输出值的中位数的话，t个Morris+算法都失败的期望是不会超过$t/3$的。因此，Morris++如果输出了一个糟糕的估计，就会以为t个Morris+算法至少有一半都失败了。</p>
+<p>我们定义随机变量 $Y_i = \cases{1, \text{if} \abs{\hat n_i-n}&gt;\epsilon n\~\0,\text{otherwise}}$​ 来表示的是第i次 Morris+ 算法失败与否</p>
+<p>注意到：</p>
+<script type="math/tex; mode=display">
+\mu = E(\sum_{i} Y_i)\leq t/3</script><p>则根据Chernoff 不等式可以知道：</p>
+<script type="math/tex; mode=display">
+P(\sum_i Y_i > t/2) \leq P(\sum_i Y_i>(1+\frac{1}{2})\mu)\leq \exp(-\mu (1/2)^2/3)<\delta</script><p>也就是说得到了 $\exp (-\mu/12)&lt;\delta,\mu&lt;12\ln (1/\delta)$ </p>
+<p>因此，需要运行 $t = O(\ln (1/\delta))$次 Morris+算法，其结果的中位数才能符合精度要求的近似估计。</p>
+<h2 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h2><h3 id="1"><a href="#1" class="headerlink" title="1"></a>1</h3><p>已知随机变量X的期望 $\mu = E(x)$ 和方差 $\sigma^2 = E[(X-\mu)^2]$. 如果定义随机变量 $X^* = \frac{X-\mu}{\sigma}$ ，证明 </p>
+<script type="math/tex; mode=display">
+P[|X^*|\geq c] \leq \frac{1}{c^2}</script><p>我们通过求变形后的 $X$ ，结合切比雪夫不等式，来实现</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&E(X^*) = 0\\
+&Var(X^*) = \frac{1}{\sigma^2}Var(X) = 1\\
+&P(|X^*-0|\geq c)\leq \frac{1}{c^2}
+\end{align}</script><h3 id="2"><a href="#2" class="headerlink" title="2"></a>2</h3><p>假设抛一枚均匀的硬币n次，随机变量X定义为正面朝上的次数</p>
+<ul>
+<li>运用 Chebyshev 不等式给出事件 $X&lt;\frac{n}{4}$ 的概率上界</li>
+</ul>
+<script type="math/tex; mode=display">
+P(|X-\frac{n}{2}|\geq \frac{n}{4}) = P(X\leq \frac{n}{4})\leq \frac{n/4}{n^2/16} =4/n</script><ul>
+<li>运用 Chernoff 不等式给出事件 $X&lt;\frac{n}{4}$ 的概率上界</li>
+</ul>
+<script type="math/tex; mode=display">
+P(X<(1-\frac{1}{2})\frac{n}{2})\leq \exp(-\frac{\frac{n}{2}\cdot \frac{1}{4}}{2}) =\exp(-\frac{n}{16})</script><h3 id="3"><a href="#3" class="headerlink" title="3"></a>3</h3><p>设一组独立随机变量 $X<em>i\sim Bernoulli(p)$ ,其中$i=1,\cdots,n$ ，令 $\overline X = \frac{1}{n}\sum</em>{i=1}^n X_i$ 试回答当$n$ 取多少时，使得</p>
+<script type="math/tex; mode=display">
+P(|\overline X-p|\leq \epsilon p)\geq 1-\delta</script><ol>
+<li>首先，我们要改变符号</li>
+</ol>
+<script type="math/tex; mode=display">
+P(|\overline X-p|>\epsilon p)<\delta</script><ol>
+<li>同乘以n，得到：</li>
+</ol>
+<script type="math/tex; mode=display">
+P(|\sum_{i=1}^n X_i-np|>\epsilon np)<\delta</script><ol>
+<li>展开</li>
+</ol>
+<script type="math/tex; mode=display">
+P(\sum_{i=1}^n X_i>(\epsilon+1) np)+P(\sum_{i=1}^nX_i<(1-\epsilon)np) <\delta</script><p>我们发现，式子左侧可以变成两个Chernoff 不等式</p>
+<ol>
+<li>利用切诺夫不等式进行放缩</li>
+</ol>
+<script type="math/tex; mode=display">
+P(\sum_{i=1}^nX_i<(1-\epsilon)np)<\exp\{-\frac{np\epsilon^2}{2}\}\\
+P(\sum_{i=1}^nX_i>(1+\epsilon)np)<\exp\{-\frac{np\epsilon^2}{3}\}</script><ol>
+<li>反解</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&2\exp\{-\frac{np\epsilon^2}{2}\}<\delta \\
+&exp\{-\frac{np\epsilon^2}{2}\} <\frac \delta 2\\
+&\frac{np\epsilon^2}{2}>\ln(\frac{2}{\delta})\\
+&n>\frac{2\ln(2/\delta)}{p\epsilon^2}
+\end{align}</script>
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/" title="数据科学算法基础-尾概率">https://jasonxqh.github.io/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95/" rel="tag"><i class="fa fa-tag"></i> 数据科学算法</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/09/14/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E6%8A%BD%E6%A0%B7%E7%AE%97%E6%B3%95/" rel="next" title="数据科学算法基础-抽样算法">
+                <i class="fa fa-chevron-left"></i> 数据科学算法基础-抽样算法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/09/21/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F-%E6%96%87%E6%A1%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/" rel="prev" title="数据管理系统-文档数据库设计">
+                数据管理系统-文档数据库设计 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">420</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据科学算法基础-尾概率"><span class="nav-number">1.</span> <span class="nav-text">数据科学算法基础-尾概率</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#引入"><span class="nav-number">1.0.1.</span> <span class="nav-text">引入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Markov-不等式"><span class="nav-number">1.0.2.</span> <span class="nav-text">Markov 不等式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#证明："><span class="nav-number">1.0.2.1.</span> <span class="nav-text">证明：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Chebyshev-不等式"><span class="nav-number">1.0.3.</span> <span class="nav-text">Chebyshev 不等式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Chernoff-不等式"><span class="nav-number">1.0.4.</span> <span class="nav-text">Chernoff 不等式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#简化后的Chernoff不等式"><span class="nav-number">1.0.4.1.</span> <span class="nav-text">简化后的Chernoff不等式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Morris算法"><span class="nav-number">1.1.</span> <span class="nav-text">Morris算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Morris算法-1"><span class="nav-number">1.1.1.</span> <span class="nav-text">Morris算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#证明的目标"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">证明的目标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#证明"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">证明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#评价"><span class="nav-number">1.1.1.3.</span> <span class="nav-text">评价</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Morris-算法"><span class="nav-number">1.1.2.</span> <span class="nav-text">Morris+算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#证明-1"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">证明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#评价-1"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">评价</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Morris-算法-1"><span class="nav-number">1.1.3.</span> <span class="nav-text">Morris++算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#算法分析"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">算法分析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例题"><span class="nav-number">1.2.</span> <span class="nav-text">例题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1"><span class="nav-number">1.2.1.</span> <span class="nav-text">1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2"><span class="nav-number">1.2.2.</span> <span class="nav-text">2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3"><span class="nav-number">1.2.3.</span> <span class="nav-text">3</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1232.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>

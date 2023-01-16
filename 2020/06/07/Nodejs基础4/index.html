@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="JavaScript,web期末," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Authentication and AuthorizationIntroductionCreating the User ModelRegistering UsersUsing LodashHashing PasswordsAuthenticating UsersTesting the AuthenticationJSON Web TokensGenerating Authentication">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nodejs基础4">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/06/07/Nodejs%E5%9F%BA%E7%A1%804/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Authentication and AuthorizationIntroductionCreating the User ModelRegistering UsersUsing LodashHashing PasswordsAuthenticating UsersTesting the AuthenticationJSON Web TokensGenerating Authentication">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/07/Nodejs%E5%9F%BA%E7%A1%804/1.png">
+<meta property="article:published_time" content="2020-06-07T12:54:01.000Z">
+<meta property="article:modified_time" content="2020-06-30T02:38:46.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="web期末">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/06/07/Nodejs%E5%9F%BA%E7%A1%804/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2020/06/07/Nodejs基础4/"/>
+
+
+
+
+
+  <title>Nodejs基础4 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/06/07/Nodejs%E5%9F%BA%E7%A1%804/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Nodejs基础4</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-06-07T20:54:01+08:00">
+                2020-06-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/node/" itemprop="url" rel="index">
+                    <span itemprop="name">node</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  882
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  4
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Authentication-and-Authorization"><a href="#Authentication-and-Authorization" class="headerlink" title="Authentication and Authorization"></a>Authentication and Authorization</h2><h3 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h3><h3 id="Creating-the-User-Model"><a href="#Creating-the-User-Model" class="headerlink" title="Creating the User Model"></a>Creating the User Model</h3><h3 id="Registering-Users"><a href="#Registering-Users" class="headerlink" title="Registering Users"></a>Registering Users</h3><h3 id="Using-Lodash"><a href="#Using-Lodash" class="headerlink" title="Using Lodash"></a>Using Lodash</h3><h3 id="Hashing-Passwords"><a href="#Hashing-Passwords" class="headerlink" title="Hashing Passwords"></a>Hashing Passwords</h3><h3 id="Authenticating-Users"><a href="#Authenticating-Users" class="headerlink" title="Authenticating Users"></a>Authenticating Users</h3><h3 id="Testing-the-Authentication"><a href="#Testing-the-Authentication" class="headerlink" title="Testing the Authentication"></a>Testing the Authentication</h3><h3 id="JSON-Web-Tokens"><a href="#JSON-Web-Tokens" class="headerlink" title="JSON Web Tokens"></a>JSON Web Tokens</h3><h3 id="Generating-Authentication-Tokens"><a href="#Generating-Authentication-Tokens" class="headerlink" title="Generating Authentication Tokens"></a>Generating Authentication Tokens</h3><h3 id="Storing-Secrets-in-Environment-Variables"><a href="#Storing-Secrets-in-Environment-Variables" class="headerlink" title="Storing Secrets in Environment Variables"></a>Storing Secrets in Environment Variables</h3><h3 id="Setting-Response-Headers"><a href="#Setting-Response-Headers" class="headerlink" title="Setting Response Headers"></a>Setting Response Headers</h3><h3 id="Encapsulating-Logic-in-Mongoose-Models"><a href="#Encapsulating-Logic-in-Mongoose-Models" class="headerlink" title="Encapsulating Logic in Mongoose Models"></a>Encapsulating Logic in Mongoose Models</h3><h3 id="Authorization-Middleware"><a href="#Authorization-Middleware" class="headerlink" title="Authorization Middleware"></a>Authorization Middleware</h3><h3 id="Protecting-Routes"><a href="#Protecting-Routes" class="headerlink" title="Protecting Routes"></a>Protecting Routes</h3><h3 id="Getting-the-Current-User"><a href="#Getting-the-Current-User" class="headerlink" title="Getting the Current User"></a>Getting the Current User</h3><h3 id="Logging-Out-Users"><a href="#Logging-Out-Users" class="headerlink" title="Logging Out Users"></a>Logging Out Users</h3><h3 id="Role-based-Authorization"><a href="#Role-based-Authorization" class="headerlink" title="Role-based Authorization"></a>Role-based Authorization</h3><h3 id="Testing-the-Authorization"><a href="#Testing-the-Authorization" class="headerlink" title="Testing the Authorization"></a>Testing the Authorization</h3><h3 id="Authentication-and-Authorization-Recap"><a href="#Authentication-and-Authorization-Recap" class="headerlink" title="Authentication and Authorization Recap"></a>Authentication and Authorization Recap</h3><h2 id="Handling-and-Logging-Errors"><a href="#Handling-and-Logging-Errors" class="headerlink" title="Handling and Logging Errors"></a>Handling and Logging Errors</h2><h3 id="Introduction-1"><a href="#Introduction-1" class="headerlink" title="Introduction"></a>Introduction</h3><p>现在我们假设我们的应用没有发生什么错误，但是 too young too simple.现实生活中会有很多意外。</p>
+<p>所以我们最好能处理这些意外，并向客户端发送一个反馈，并把错误记录在日志里。</p>
+<p>比如mongodb宕机了1分钟，现在我们的app无法应对这种中断，也不会向客户端提供任何服务，甚至再恢复也不行</p>
+<h3 id="Handling-Rejected-Promises"><a href="#Handling-Rejected-Promises" class="headerlink" title="Handling Rejected Promises"></a>Handling Rejected Promises</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">router.get(<span class="string">"/"</span>, <span class="keyword">async</span> (req, res) =&gt; &#123;</span><br><span class="line">  <span class="keyword">try</span>&#123;</span><br><span class="line">    <span class="keyword">const</span> genres = <span class="keyword">await</span> Genre.find().sort(<span class="string">"name"</span>);</span><br><span class="line">    res.send(genres);</span><br><span class="line">  &#125;<span class="keyword">catch</span>(ex)&#123;</span><br><span class="line">    <span class="comment">//log errors</span></span><br><span class="line">    res.status(<span class="number">500</span>).send(<span class="string">"Something failed"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>现在mongodb再宕机的时候，就看不到 unhandled promise rejection了</p>
+<h3 id="Express-Error-Middleware"><a href="#Express-Error-Middleware" class="headerlink" title="Express Error Middleware"></a>Express Error Middleware</h3><p>但是，我们如果向修改记录日志的方式活着修改返回的信息，我们需要到处找try catch句块改，非常麻烦</p>
+<p>我们希望把所有的逻辑都集中起来，这样就只需要修改一个地方即可。</p>
+<p>还记得我们之前提到的中间件吗？现在我们就做一个发现异常的中间件</p>
+<p>middleware文件夹中新建一个error.js，然后处理我们的逻辑</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span> (<span class="params">err, req, res, next</span>) </span>&#123;</span><br><span class="line">  res.status(<span class="number">500</span>).send(<span class="string">"Something failed"</span>);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>index.js中我们引入这个中间键模块,然后在api之下写这个引用</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">app.use(error);</span><br></pre></td></tr></table></figure>
+<p>最后修改genre.js  当我们catch到错误的时候，我们把控制权交给下一个中间件，也就是上面所说的error.js去处理</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">router.get(<span class="string">"/"</span>, <span class="keyword">async</span> (req, res,next) =&gt; &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> genres = <span class="keyword">await</span> Genre.find().sort(<span class="string">"name"</span>);</span><br><span class="line">    res.send(genres);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">    next(ex);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="Removing-Try-Catch-Blocks"><a href="#Removing-Try-Catch-Blocks" class="headerlink" title="Removing Try Catch Blocks"></a>Removing Try Catch Blocks</h3><p>我们对上面的代码仍然不太满意，因为我们每次都要catch。next 太麻烦了</p>
+<p>新建一个 async中间件</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">asyncMiddleware</span>(<span class="params">handler</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">async</span> (req, res, next) =&gt; &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">await</span> handler(req, res);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">      next(ex);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在genre中引入后</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">router.get(</span><br><span class="line">  <span class="string">"/"</span>,</span><br><span class="line">  asyncMiddleware(<span class="keyword">async</span> (req, res) =&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> genres = <span class="keyword">await</span> Genre.find().sort(<span class="string">"name"</span>);</span><br><span class="line">    res.send(genres);</span><br><span class="line">  &#125;)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<h3 id="Express-Async-Errors"><a href="#Express-Async-Errors" class="headerlink" title="Express Async Errors"></a>Express Async Errors</h3><p>我们来介绍一下一个模块，这样就不用每次写asyncMiddleWare了。这个模块会将路由句柄包裹在类似的代码当中npm i express-async-errors</p>
+<p>index中，我们直接引入即可require(‘express-async-errors’) </p>
+<p>genre.js中我们保持原样，也不需要引入<em>const asyncMiddleware = require(“../middleware/async”);</em> 了</p>
+<p>但是这个模块仍然把我们的控制权自动转到了错误控制的模块</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">router.get(<span class="string">"/"</span>, <span class="keyword">async</span> (req, res) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> genres = <span class="keyword">await</span> Genre.find().sort(<span class="string">"name"</span>);</span><br><span class="line">  res.send(genres);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="Logging-Errors"><a href="#Logging-Errors" class="headerlink" title="Logging Errors"></a>Logging Errors</h3><p>我们需要在某处记录日志。在react基础课程中，我们使用了一morgan来记录日志，这里我们是用Winston</p>
+<p>npm i winston之后，我们引入</p>
+<p>const winston = require(‘winston’)</p>
+<p>这个winston是这个模块中默认的日志模块，我们可以自定义记录器。但这已经足够了</p>
+<p><img src="/2020/06/07/Nodejs%E5%9F%BA%E7%A1%804/1.png" style="zoom:80%;"></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> winston = <span class="built_in">require</span>(<span class="string">'winston'</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">err, req, res, next</span>)</span>&#123;</span><br><span class="line">  winston.error(err.message, err);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// error</span></span><br><span class="line">  <span class="comment">// warn</span></span><br><span class="line">  <span class="comment">// info</span></span><br><span class="line">  <span class="comment">// verbose</span></span><br><span class="line">  <span class="comment">// debug </span></span><br><span class="line">  <span class="comment">// silly</span></span><br><span class="line"></span><br><span class="line">  res.status(<span class="number">500</span>).send(<span class="string">'Something failed.'</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Logging-to-MongoDB"><a href="#Logging-to-MongoDB" class="headerlink" title="Logging to MongoDB"></a>Logging to MongoDB</h3><p>安装winston-mongodb</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">require(&#39;winston-mongodb&#39;);</span><br><span class="line">&#x2F;&#x2F;...</span><br><span class="line">winston.add(winston.transports.MongoDB,&#123;db:&#39;mongodb:&#x2F;&#x2F;localhost&#x2F;vidly&#39;&#125;);</span><br></pre></td></tr></table></figure>
+<p>我们还可以为存储到mongodb设置等级：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">winston.add(winston.transports.MongoDB,&#123;</span><br><span class="line">		db:&#39;mongodb:&#x2F;&#x2F;localhost&#x2F;vidly&#39;,</span><br><span class="line">		level:&#39;info&#39;&#x2F;&#x2F;info是第三等级，包含error和warn</span><br><span class="line">		</span><br><span class="line">		&#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<h3 id="Uncaught-Exceptions"><a href="#Uncaught-Exceptions" class="headerlink" title="Uncaught Exceptions"></a>Uncaught Exceptions</h3><h3 id="Unhandled-Promise-Rejections"><a href="#Unhandled-Promise-Rejections" class="headerlink" title="Unhandled Promise Rejections"></a>Unhandled Promise Rejections</h3><h3 id="Error-Handling-Recap"><a href="#Error-Handling-Recap" class="headerlink" title="Error Handling Recap"></a>Error Handling Recap</h3><h3 id="Extracting-Routes"><a href="#Extracting-Routes" class="headerlink" title="Extracting Routes"></a>Extracting Routes</h3><h3 id="Extracting-the-Db-Logic"><a href="#Extracting-the-Db-Logic" class="headerlink" title="Extracting the Db Logic"></a>Extracting the Db Logic</h3><h3 id="Extracting-the-Logging-Logic"><a href="#Extracting-the-Logging-Logic" class="headerlink" title="Extracting the Logging Logic"></a>Extracting the Logging Logic</h3><h3 id="Extracting-the-Config-Logic"><a href="#Extracting-the-Config-Logic" class="headerlink" title="Extracting the Config Logic"></a>Extracting the Config Logic</h3><h3 id="Extracting-the-Validation-Logic"><a href="#Extracting-the-Validation-Logic" class="headerlink" title="Extracting the Validation Logic"></a>Extracting the Validation Logic</h3><h3 id="Showing-Unhandled-Exceptions-on-the-Console"><a href="#Showing-Unhandled-Exceptions-on-the-Console" class="headerlink" title="Showing Unhandled Exceptions on the Console"></a>Showing Unhandled Exceptions on the Console</h3><h3 id="Handling-and-Logging-Errors-Recap"><a href="#Handling-and-Logging-Errors-Recap" class="headerlink" title="Handling and Logging Errors Recap"></a>Handling and Logging Errors Recap</h3>
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2020/06/07/Nodejs%E5%9F%BA%E7%A1%804/" title="Nodejs基础4">https://jasonxqh.github.io/2020/06/07/Nodejs%E5%9F%BA%E7%A1%804/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JavaScript/" rel="tag"><i class="fa fa-tag"></i> JavaScript</a>
+          
+            <a href="/tags/web%E6%9C%9F%E6%9C%AB/" rel="tag"><i class="fa fa-tag"></i> web期末</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/06/07/Nodejs%E5%9F%BA%E7%A1%803/" rel="next" title="Nodejs基础3">
+                <i class="fa fa-chevron-left"></i> Nodejs基础3
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/06/07/React%E6%A1%86%E6%9E%B6%E5%9C%A8%E4%BD%9C%E4%B8%9A%E5%BD%93%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" rel="prev" title="React框架在作业当中的应用">
+                React框架在作业当中的应用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">420</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Authentication-and-Authorization"><span class="nav-number">1.</span> <span class="nav-text">Authentication and Authorization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Introduction"><span class="nav-number">1.1.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating-the-User-Model"><span class="nav-number">1.2.</span> <span class="nav-text">Creating the User Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Registering-Users"><span class="nav-number">1.3.</span> <span class="nav-text">Registering Users</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Using-Lodash"><span class="nav-number">1.4.</span> <span class="nav-text">Using Lodash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hashing-Passwords"><span class="nav-number">1.5.</span> <span class="nav-text">Hashing Passwords</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Authenticating-Users"><span class="nav-number">1.6.</span> <span class="nav-text">Authenticating Users</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Testing-the-Authentication"><span class="nav-number">1.7.</span> <span class="nav-text">Testing the Authentication</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JSON-Web-Tokens"><span class="nav-number">1.8.</span> <span class="nav-text">JSON Web Tokens</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generating-Authentication-Tokens"><span class="nav-number">1.9.</span> <span class="nav-text">Generating Authentication Tokens</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Storing-Secrets-in-Environment-Variables"><span class="nav-number">1.10.</span> <span class="nav-text">Storing Secrets in Environment Variables</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Setting-Response-Headers"><span class="nav-number">1.11.</span> <span class="nav-text">Setting Response Headers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Encapsulating-Logic-in-Mongoose-Models"><span class="nav-number">1.12.</span> <span class="nav-text">Encapsulating Logic in Mongoose Models</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Authorization-Middleware"><span class="nav-number">1.13.</span> <span class="nav-text">Authorization Middleware</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Protecting-Routes"><span class="nav-number">1.14.</span> <span class="nav-text">Protecting Routes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Getting-the-Current-User"><span class="nav-number">1.15.</span> <span class="nav-text">Getting the Current User</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logging-Out-Users"><span class="nav-number">1.16.</span> <span class="nav-text">Logging Out Users</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Role-based-Authorization"><span class="nav-number">1.17.</span> <span class="nav-text">Role-based Authorization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Testing-the-Authorization"><span class="nav-number">1.18.</span> <span class="nav-text">Testing the Authorization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Authentication-and-Authorization-Recap"><span class="nav-number">1.19.</span> <span class="nav-text">Authentication and Authorization Recap</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Handling-and-Logging-Errors"><span class="nav-number">2.</span> <span class="nav-text">Handling and Logging Errors</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Introduction-1"><span class="nav-number">2.1.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Handling-Rejected-Promises"><span class="nav-number">2.2.</span> <span class="nav-text">Handling Rejected Promises</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Express-Error-Middleware"><span class="nav-number">2.3.</span> <span class="nav-text">Express Error Middleware</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Removing-Try-Catch-Blocks"><span class="nav-number">2.4.</span> <span class="nav-text">Removing Try Catch Blocks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Express-Async-Errors"><span class="nav-number">2.5.</span> <span class="nav-text">Express Async Errors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logging-Errors"><span class="nav-number">2.6.</span> <span class="nav-text">Logging Errors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logging-to-MongoDB"><span class="nav-number">2.7.</span> <span class="nav-text">Logging to MongoDB</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Uncaught-Exceptions"><span class="nav-number">2.8.</span> <span class="nav-text">Uncaught Exceptions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Unhandled-Promise-Rejections"><span class="nav-number">2.9.</span> <span class="nav-text">Unhandled Promise Rejections</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Error-Handling-Recap"><span class="nav-number">2.10.</span> <span class="nav-text">Error Handling Recap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Extracting-Routes"><span class="nav-number">2.11.</span> <span class="nav-text">Extracting Routes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Extracting-the-Db-Logic"><span class="nav-number">2.12.</span> <span class="nav-text">Extracting the Db Logic</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Extracting-the-Logging-Logic"><span class="nav-number">2.13.</span> <span class="nav-text">Extracting the Logging Logic</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Extracting-the-Config-Logic"><span class="nav-number">2.14.</span> <span class="nav-text">Extracting the Config Logic</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Extracting-the-Validation-Logic"><span class="nav-number">2.15.</span> <span class="nav-text">Extracting the Validation Logic</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Showing-Unhandled-Exceptions-on-the-Console"><span class="nav-number">2.16.</span> <span class="nav-text">Showing Unhandled Exceptions on the Console</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Handling-and-Logging-Errors-Recap"><span class="nav-number">2.17.</span> <span class="nav-text">Handling and Logging Errors Recap</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1232.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>

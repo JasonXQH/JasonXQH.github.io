@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CSAPP," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Shell Lab在这个 tsh.c 文件里面，我们需要完成7个函数的编写： 12345678void eval(char *cmdline);int builtin_cmd(char **argv, char *cmdline);void do_bgfg(char **argv, char *cmdline);void waitfg(pid_t pid); void sigchld_handle">
+<meta property="og:type" content="article">
+<meta property="og:title" content="shell-lab">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/01/29/shell-lab/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Shell Lab在这个 tsh.c 文件里面，我们需要完成7个函数的编写： 12345678void eval(char *cmdline);int builtin_cmd(char **argv, char *cmdline);void do_bgfg(char **argv, char *cmdline);void waitfg(pid_t pid); void sigchld_handle">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-01-29T07:52:13.000Z">
+<meta property="article:modified_time" content="2021-01-31T13:18:52.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="CSAPP">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/01/29/shell-lab/"/>
+
+
+
+
+
+  <title>shell-lab | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/01/29/shell-lab/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">shell-lab</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-01-29T15:52:13+08:00">
+                2021-01-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.4k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  11
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Shell-Lab"><a href="#Shell-Lab" class="headerlink" title="Shell Lab"></a>Shell Lab</h1><p>在这个 <code>tsh.c</code> 文件里面，我们需要完成7个函数的编写：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv, <span class="keyword">char</span> *cmdline)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">do_bgfg</span><span class="params">(<span class="keyword">char</span> **argv, <span class="keyword">char</span> *cmdline)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">waitfg</span><span class="params">(<span class="keyword">pid_t</span> pid)</span></span>;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sigchld_handler</span><span class="params">(<span class="keyword">int</span> sig)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sigtstp_handler</span><span class="params">(<span class="keyword">int</span> sig)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sigint_handler</span><span class="params">(<span class="keyword">int</span> sig)</span></span>;</span><br></pre></td></tr></table></figure>
+<h2 id="eval-char-cmdline"><a href="#eval-char-cmdline" class="headerlink" title="eval(char * cmdline)"></a>eval(char * cmdline)</h2><p>在调用<code>parseline</code>解析输出后，我们首先判断这是一个内置命令（shell实现）还是一个程序（本地文件）。</p>
+<p>fg %jobnumber 将后台的任务拿到前台来处理<br>bg %jobnumber 将任务放到后台中去处理</p>
+<p>setpgid的用法：</p>
+<p>1.如果pgid设置为0，该进程的进程组ID会被设置为该进程的ID </p>
+<p>2.如果pid和pgid都指向同一个进程，那么就会重新创建一个进程组，该进程会成为该进程组的首进程 </p>
+<p>3.如果pid与pgid不一样，那么就会把pid指向的进程移动到另外一个进程组</p>
+<p>4.如果pid设置为0，那么调用进程的进程组ID就会发生变化</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span><span class="comment">//evaluation </span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *argv[MAXARGS];</span><br><span class="line">    <span class="keyword">int</span> bg_flag;</span><br><span class="line"></span><br><span class="line">    bg_flag = parseline(cmdline, argv);<span class="comment">/* BG job的话为1，FG job为0 */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (builtin_cmd(argv, cmdline)) <span class="comment">/* built-in command */</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span>;<span class="comment">//如果是内置命令，就进入builtin_cmd</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="comment">/* program (file) 否则创建子进程并在job列表里完成添加*/</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//注意先要用access来判断是否存在这个文件，不然fork以后是无法回收的。</span></span><br><span class="line">        <span class="keyword">if</span> (access(argv[<span class="number">0</span>], F_OK)) <span class="comment">/* do not fork and addset! */</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%s: Command not found\n"</span>, argv[<span class="number">0</span>]);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">		<span class="comment">//添加到job列表。</span></span><br><span class="line">        <span class="keyword">pid_t</span> pid;</span><br><span class="line">        <span class="keyword">sigset_t</span> mask, prev;</span><br><span class="line">        sigemptyset(&amp;mask);</span><br><span class="line">        sigaddset(&amp;mask, SIGCHLD);</span><br><span class="line">        <span class="comment">//防止add_job和delete_job竞争</span></span><br><span class="line">        sigprocmask(SIG_BLOCK, &amp;mask, &amp;prev); <span class="comment">/* block SIG_CHLD */</span></span><br><span class="line">		<span class="comment">//fork子进程 </span></span><br><span class="line">        <span class="keyword">if</span> ((pid=fork()) == <span class="number">0</span>) <span class="comment">/* child */</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//如果是子进程就要先解锁</span></span><br><span class="line">            sigprocmask(SIG_SETMASK, &amp;prev, <span class="literal">NULL</span>); <span class="comment">/* unblock SIG_CHLD */</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!setpgid(<span class="number">0</span>, <span class="number">0</span>))</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">//这里如果fork子进程出现了错误应该使用_exit()</span></span><br><span class="line">                <span class="keyword">if</span> (execve(argv[<span class="number">0</span>], argv, environ))<span class="comment">//运行这个可执行文件</span></span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%s: Failed to execve\n"</span>, argv[<span class="number">0</span>]);</span><br><span class="line">                    _exit(<span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">/* context changed */</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"Failed to invoke setpgid(0, 0)\n"</span>);</span><br><span class="line">                _exit(<span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (pid &gt; <span class="number">0</span>)<span class="comment">/* 父进程就是当前的shell ， tsh */</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (!bg_flag) <span class="comment">/*执行前端任务,立刻执行，结束后才进行下一个 */</span></span><br><span class="line">            &#123;</span><br><span class="line">                fg_pid = pid;</span><br><span class="line">                fg_pid_reap = <span class="number">0</span>;</span><br><span class="line">                addjob(jobs, pid, FG, cmdline);<span class="comment">//把这个进程状态设置为FG</span></span><br><span class="line">                sigprocmask(SIG_SETMASK, &amp;prev, <span class="literal">NULL</span>); <span class="comment">/* unblock SIG_CHLD */</span></span><br><span class="line">                waitfg(pid);<span class="comment">//忙等，只有当子进程回收之后才能进行下一个</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> <span class="comment">/* 执行后端任务，后端直接加工作，打印信息后就结束了，等有空再做后端 */</span></span><br><span class="line">            &#123;</span><br><span class="line">                addjob(jobs, pid, BG, cmdline);<span class="comment">//把进程状态设置为BG</span></span><br><span class="line">                sigprocmask(SIG_SETMASK, &amp;prev, <span class="literal">NULL</span>); <span class="comment">/* unblock SIG_CHLD */</span></span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"[%d] (%d) %s"</span>, maxjid(jobs), pid, cmdline);<span class="comment">//打印</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            unix_error(<span class="string">"Failed to fork child"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>另外要注意一个线程并行竞争（race）的问题：<code>fork</code>以后会在job列表里添加job，信号处理函数<code>sigchld_handler</code> 回收进程后会在job列表中删除，如果信号来的比较早，那么就可能会发生先删除后添加的情况。这样这个job永远不会在列表中消失了（内存泄露），所以我们要先block <code>SIGCHLD</code> 这个信号，添加以后再还原。</p>
+<h2 id="builtin-cmd-char-argv-char-cmdline"><a href="#builtin-cmd-char-argv-char-cmdline" class="headerlink" title="builtin_cmd(char **argv,char *cmdline)"></a>builtin_cmd(char **argv,char *cmdline)</h2><p>这个函数分情况判断是哪一个内置命令。如果用户仅仅按下回车键，那么<code>argv</code> 的第一个变量将是一个空指针。如果用这个空指针去调用 <code>strcmp</code>函数会引发 segmentation fault</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv, <span class="keyword">char</span> *cmdline)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *first_arg = argv[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (first_arg == <span class="literal">NULL</span>) <span class="comment">//直接敲空格的情况</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(first_arg, <span class="string">"quit"</span>))<span class="comment">//如果第一个参数是quit，那就直接退出</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(first_arg, <span class="string">"jobs"</span>))<span class="comment">//如果第一个参数是jobs，那就列出当前的jobs</span></span><br><span class="line">    &#123;</span><br><span class="line">        listjobs(jobs);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(first_arg, <span class="string">"bg"</span>) || !<span class="built_in">strcmp</span>(first_arg, <span class="string">"fg"</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//如果是bg和fg中的一种，就交个 do_bgfg这个函数去单独处理</span></span><br><span class="line">        do_bgfg(argv, cmdline);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="do-bgfg-char-argv-char-cmdline"><a href="#do-bgfg-char-argv-char-cmdline" class="headerlink" title="do_bgfg(char *argv, char cmdline);"></a>do_bgfg(char <em>*argv, char </em>cmdline);</h2><p>这个函数单独处理了<code>bg</code>和<code>fg</code>这两个内置命令。这个函数的核心就两点：</p>
+<ol>
+<li><p>区分bg和fg命令，以及传入pid或者jid参数对应的进程的状态。前者if，后者switch就可以包括所用的情况</p>
+</li>
+<li><p>注意用户输入错误处理，比如参数数量不够或者参数传入错误的情况</p>
+</li>
+</ol>
+<p>要注意<code>fg</code>有两个对应的情况：</p>
+<ol>
+<li><p>后台程序是stopped的状态，这时我们需要设置相关变量，然后发送继续的信号。</p>
+</li>
+<li><p>如果这个进程本身就在运行，我们就只需要改变job的状态，设置相关变量，然后进入<code>waitfg</code>等待这个新的前台进程执行完毕。</p>
+</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">void</span> <span class="title">do_bgfg</span><span class="params">(<span class="keyword">char</span> **argv, <span class="keyword">char</span> *cmdline)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *first_arg = argv[<span class="number">0</span>];</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(first_arg, <span class="string">"bg"</span>))<span class="comment">//如果是后端的工作</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (argv[<span class="number">1</span>] == <span class="literal">NULL</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"bg command requires PID or %%jobid argument\n"</span>);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (argv[<span class="number">1</span>][<span class="number">0</span>] == <span class="string">'%'</span>) <span class="comment">/* JID是%+数字的格式 */</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">int</span> jid = atoi(argv[<span class="number">1</span>] + <span class="number">1</span>);<span class="comment">//跳过百分号读取JID</span></span><br><span class="line">            <span class="keyword">if</span> (jid)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">//获取当前job的指针</span></span><br><span class="line">            	<span class="class"><span class="keyword">struct</span> <span class="title">job_t</span> *<span class="title">job_tmp</span> = <span class="title">getjobjid</span>(<span class="title">jobs</span>, <span class="title">jid</span>);</span></span><br><span class="line">                <span class="keyword">if</span> (job_tmp != <span class="literal">NULL</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                	job_tmp-&gt;state = BG;<span class="comment">//将当前job状态换成BG</span></span><br><span class="line">                	<span class="built_in">printf</span>(<span class="string">"[%d] (%d) %s"</span>, jid, job_tmp-&gt;pid, job_tmp-&gt;cmdline);</span><br><span class="line">                    <span class="comment">//打印当前jid, job的pid和cmdline</span></span><br><span class="line">                	stopped_resume_child = job_tmp-&gt;pid;</span><br><span class="line">                    <span class="comment">//获取当前job的pid之后，给进程发送一个SIGCONT的信号</span></span><br><span class="line">                    <span class="comment">//因为之前这个进程可能处于停止的状态。</span></span><br><span class="line">                    killpg(job_tmp-&gt;pid, SIGCONT);</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span></span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%%%s: No such job\n"</span>, argv[<span class="number">1</span>] + <span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span><span class="comment">//如果只打了一个百分号，没有数字。</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%%%s: No such job\n"</span>, argv[<span class="number">1</span>] + <span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="comment">/* PID */</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//获取pid</span></span><br><span class="line">            <span class="keyword">pid_t</span> pid = atoi(argv[<span class="number">1</span>]);</span><br><span class="line">            <span class="keyword">if</span>(pid)</span><br><span class="line">            &#123;</span><br><span class="line">            	<span class="class"><span class="keyword">struct</span> <span class="title">job_t</span> *<span class="title">job_tmp</span> = <span class="title">getjobpid</span>(<span class="title">jobs</span>, <span class="title">pid</span>);</span><span class="comment">//获取job的指针</span></span><br><span class="line">                <span class="keyword">if</span> (job_tmp != <span class="literal">NULL</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                	job_tmp-&gt;state = BG;<span class="comment">//状态设为BG</span></span><br><span class="line">                	<span class="built_in">printf</span>(<span class="string">"[%d] (%d) %s"</span>, job_tmp-&gt;jid, pid, job_tmp-&gt;cmdline);</span><br><span class="line">                	stopped_resume_child = job_tmp-&gt;pid;</span><br><span class="line">                    killpg(pid, SIGCONT);</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span></span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"(%s): No such process\n"</span>, argv[<span class="number">1</span>]);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"bg: argument must be a PID or %%jobid\n"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span><span class="comment">//如果是前端的工作</span></span><br><span class="line">    &#123;</span><br><span class="line">    	<span class="comment">/* there are two case when using fg:</span></span><br><span class="line"><span class="comment">    	1. the job stopped </span></span><br><span class="line"><span class="comment">    	2. the job is running</span></span><br><span class="line"><span class="comment">    	*/</span></span><br><span class="line"></span><br><span class="line">    	<span class="keyword">if</span> (argv[<span class="number">1</span>] == <span class="literal">NULL</span>)<span class="comment">//第二个参数没有的话，就直接返回</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"fg command requires PID or %%jobid argument\n"</span>);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (argv[<span class="number">1</span>][<span class="number">0</span>] == <span class="string">'%'</span>) <span class="comment">/* JID */</span></span><br><span class="line">        <span class="comment">//如果第二个参数的第一个字符是%，就代表着是个JID</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">int</span> jid = atoi(argv[<span class="number">1</span>] + <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">if</span> (jid)</span><br><span class="line">            &#123;</span><br><span class="line">            	<span class="class"><span class="keyword">struct</span> <span class="title">job_t</span> *<span class="title">job_tmp</span> = <span class="title">getjobjid</span>(<span class="title">jobs</span>, <span class="title">jid</span>);</span></span><br><span class="line">                <span class="keyword">if</span> (job_tmp != <span class="literal">NULL</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                	<span class="keyword">int</span> state = job_tmp-&gt;state;</span><br><span class="line">                	fg_pid = job_tmp-&gt;pid; </span><br><span class="line">                    <span class="comment">/* this is the new foreground process */</span></span><br><span class="line">                	fg_pid_reap = <span class="number">0</span>;</span><br><span class="line">                	job_tmp-&gt;state = FG;</span><br><span class="line">                	<span class="keyword">if</span> (state == ST)<span class="comment">//如果当前处于暂停状态</span></span><br><span class="line">                	&#123;</span><br><span class="line">                		stopped_resume_child = job_tmp-&gt;pid; </span><br><span class="line">                        <span class="comment">/* set the global var in case of wait in SIGCHLD handler */</span></span><br><span class="line">                    	killpg(job_tmp-&gt;pid, SIGCONT);</span><br><span class="line">                	&#125;</span><br><span class="line">                	<span class="comment">//等待前台进程结束，进行下一个命令</span></span><br><span class="line">                    waitfg(job_tmp-&gt;pid); </span><br><span class="line">                    <span class="comment">/* wait until the foreground terminate/stop */</span></span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span></span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%%%s: No such job\n"</span>, argv[<span class="number">1</span>] + <span class="number">1</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%%%s: No such job\n"</span>, argv[<span class="number">1</span>] + <span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="comment">/* PID */</span></span><br><span class="line">            <span class="comment">//否则就是个PID</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">pid_t</span> pid = atoi(argv[<span class="number">1</span>]);</span><br><span class="line">            <span class="keyword">if</span>(pid)</span><br><span class="line">            &#123;</span><br><span class="line">            	<span class="class"><span class="keyword">struct</span> <span class="title">job_t</span> *<span class="title">job_tmp</span> = <span class="title">getjobpid</span>(<span class="title">jobs</span>, <span class="title">pid</span>);</span></span><br><span class="line">                <span class="keyword">if</span> (job_tmp != <span class="literal">NULL</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                	<span class="keyword">int</span> state = job_tmp-&gt;state;</span><br><span class="line">                	fg_pid = job_tmp-&gt;pid; <span class="comment">/* this is the new foreground process */</span></span><br><span class="line">                	fg_pid_reap = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">                	job_tmp-&gt;state = FG;</span><br><span class="line"></span><br><span class="line">                	<span class="keyword">if</span> (state == ST)</span><br><span class="line">                	&#123;</span><br><span class="line">                		stopped_resume_child = job_tmp-&gt;pid;</span><br><span class="line">                        <span class="comment">/* set the global var in case of wait in SIGCHLD handler */</span></span><br><span class="line">                    	killpg(pid, SIGCONT);</span><br><span class="line">                	&#125;</span><br><span class="line">                	</span><br><span class="line">                    waitfg(job_tmp-&gt;pid); </span><br><span class="line">                    <span class="comment">/* wait until the foreground terminate/stop */</span></span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span></span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"(%s): No such process\n"</span>, argv[<span class="number">1</span>]);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"fg: argument must be a PID or %%jobid\n"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="void-waitfg-pid-t-pid"><a href="#void-waitfg-pid-t-pid" class="headerlink" title="void waitfg(pid_t pid)"></a>void waitfg(pid_t pid)</h2><p>之前声明了一个<code>volatile sig_atomic_t</code>的全局变量<code>fg_pid_reap</code> ，只要信号处理函数回收了前台进程，它就会将<code>fg_pid_reap</code> 置1，这样我们的<code>waitfg</code>函数就会退出，接着读取用户的下一个输入。在这里我们使用busy sleep,会导致一定的延迟</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">waitfg</span><span class="params">(<span class="keyword">pid_t</span> pid)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (!fg_pid_reap)<span class="comment">//如果没有回收前台进程，就一直在问回收了没，回收了没</span></span><br><span class="line">    &#123;</span><br><span class="line">        sleep(<span class="number">1</span>);<span class="comment">//休眠 </span></span><br><span class="line">    &#125;</span><br><span class="line">    fg_pid_reap = <span class="number">0</span>;<span class="comment">//回收以后，就</span></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="void-sigchld-handler-int-sig"><a href="#void-sigchld-handler-int-sig" class="headerlink" title="void sigchld_handler(int sig)"></a>void sigchld_handler(int sig)</h2><p>从这里开始，是3个信号处理程序函数。</p>
+<p>首先是 sigchld_handler ,也就是当一个子进程终止或者结束的时候,父进程会发送一个SIGCHLD给子进程，然后回收它</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sigchld_handler</span><span class="params">(<span class="keyword">int</span> sig)</span> </span></span><br><span class="line"><span class="function"><span class="comment">/* When a child process stops or terminates, SIGCHLD is sent to the parent process. */</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 回收子进程之前先保留之前的错误信息</span></span><br><span class="line">	<span class="keyword">int</span> olderrno = errno;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (stopped_resume_child)</span><br><span class="line">	&#123;</span><br><span class="line">		stopped_resume_child = <span class="number">0</span>;</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> status;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//如果任何一个子进程暂停/结束了，然后用这个函数来回收</span></span><br><span class="line">    <span class="keyword">if</span> ((pid = waitpid(<span class="number">-1</span>, &amp;status, WUNTRACED)) &gt; <span class="number">0</span>) <span class="comment">/* don't use while! */</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (pid == fg_pid)<span class="comment">//如果返回的是当前的前端进程的pid</span></span><br><span class="line">        &#123;</span><br><span class="line">            fg_pid_reap = <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">		<span class="comment">//如果子进程是正常结束的，那么就将这个子进程删除。</span></span><br><span class="line">        <span class="keyword">if</span> (WIFEXITED(status)) <span class="comment">/* returns true if the child terminated normally */</span></span><br><span class="line">        &#123;</span><br><span class="line">            deletejob(jobs, pid);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (WIFSIGNALED(status)) </span><br><span class="line">        <span class="comment">/*如果这个子进程是收到一个信号之后结束的，就会返回true,打印SIGNAL之后再删除 */</span></span><br><span class="line">        <span class="comment">/* since job start from zero, we add it one */</span></span><br><span class="line">        &#123;</span><br><span class="line">         <span class="built_in">printf</span>(<span class="string">"Job [%d] (%d) terminated by signal %d\n"</span>, pid2jid(pid), pid, WTERMSIG(status));</span><br><span class="line">         deletejob(jobs, pid);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="comment">//如果是暂停的,就不删除,而是将这个进程的状态改成ST(stop),并打印</span></span><br><span class="line">        &#123;</span><br><span class="line">            struct <span class="keyword">job_t</span> *p = getjobpid(jobs, pid);</span><br><span class="line">            p-&gt;state = ST; <span class="comment">/* Stopped */</span></span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"Job [%d] (%d) stopped by signal 20\n"</span>, pid2jid(pid), pid);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    errno = olderrno;<span class="comment">//将errno复原,保持回收子进程前后错误信息不能变.</span></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="void-sigint-handler-int-sig"><a href="#void-sigint-handler-int-sig" class="headerlink" title="void sigint_handler (int sig)"></a>void sigint_handler (int sig)</h2><p>这个函数是说 当我们使用 ctrl+c 的时候，kernel会使用kill函数给shell发一个 SIGINT信号给前台进程组。注意，这里是群发，因此要使用 <code>killpg</code> </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sigint_handler</span><span class="params">(<span class="keyword">int</span> sig)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> olderrno = errno;</span><br><span class="line">    <span class="keyword">pid_t</span> pgid = fgpid(jobs);</span><br><span class="line">    <span class="keyword">if</span> (pgid)</span><br><span class="line">        killpg(pgid, SIGINT);</span><br><span class="line"></span><br><span class="line">    errno = olderrno;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="void-sigtstp-handler-int-sig"><a href="#void-sigtstp-handler-int-sig" class="headerlink" title="void sigtstp_handler(int sig)"></a>void sigtstp_handler(int sig)</h2><p>和 sigint一样，这次发送的信号是 SIGTSTP</p>
+<p>输入<code>Ctrl+Z</code>会发送一个SIGTSTP信号到前台进程组中的每个进程。默认情况下，结果是<strong>停止(挂起suspend)前台作业</strong>。在博客的这一章节 <a href="https://jasonxqh.github.io/2021/01/06/异常控制流（ECF）2/#从键盘发送信号">从键盘发送信号</a> 有说过 </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sigtstp_handler</span><span class="params">(<span class="keyword">int</span> sig)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> olderrno = errno;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">pid_t</span> pgid = fgpid(jobs);</span><br><span class="line">    <span class="keyword">if</span> (pgid)</span><br><span class="line">    &#123;</span><br><span class="line">        killpg(pgid, SIGTSTP);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    errno = olderrno;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/01/29/shell-lab/" title="shell-lab">https://jasonxqh.github.io/2021/01/29/shell-lab/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CSAPP/" rel="tag"><i class="fa fa-tag"></i> CSAPP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/01/28/matlab%E5%87%BD%E6%95%B0%E8%A1%A5%E5%85%85/" rel="next" title="matlab函数补充">
+                <i class="fa fa-chevron-left"></i> matlab函数补充
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/01/31/datalab/" rel="prev" title="datalab">
+                datalab <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">420</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Shell-Lab"><span class="nav-number">1.</span> <span class="nav-text">Shell Lab</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#eval-char-cmdline"><span class="nav-number">1.1.</span> <span class="nav-text">eval(char * cmdline)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#builtin-cmd-char-argv-char-cmdline"><span class="nav-number">1.2.</span> <span class="nav-text">builtin_cmd(char **argv,char *cmdline)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#do-bgfg-char-argv-char-cmdline"><span class="nav-number">1.3.</span> <span class="nav-text">do_bgfg(char *argv, char cmdline);</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#void-waitfg-pid-t-pid"><span class="nav-number">1.4.</span> <span class="nav-text">void waitfg(pid_t pid)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#void-sigchld-handler-int-sig"><span class="nav-number">1.5.</span> <span class="nav-text">void sigchld_handler(int sig)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#void-sigint-handler-int-sig"><span class="nav-number">1.6.</span> <span class="nav-text">void sigint_handler (int sig)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#void-sigtstp-handler-int-sig"><span class="nav-number">1.7.</span> <span class="nav-text">void sigtstp_handler(int sig)</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1232.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>

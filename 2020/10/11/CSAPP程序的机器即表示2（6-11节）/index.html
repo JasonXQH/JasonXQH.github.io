@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CSAPP," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="CSAPP程序的机器即表示2控制通常，C 语言中的语句和机器代码中的指令都是按照它们在程序中出现的次序，顺序执行的。用jump 指令可以改变一组机器代码指令的执行顺序，jump 指令指定控制应该被传递到程序的某个其他部分，可能是依赖于某个测试的结果。编译器必须产生构建在这种低级机制基础之上的指令序列，来实现C 语言的控制结构。 我们先谈谈实现条件操作的两种方式，然后描述表达循环的switch 语句">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CSAPP程序的机器即表示2（6~11节）">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="CSAPP程序的机器即表示2控制通常，C 语言中的语句和机器代码中的指令都是按照它们在程序中出现的次序，顺序执行的。用jump 指令可以改变一组机器代码指令的执行顺序，jump 指令指定控制应该被传递到程序的某个其他部分，可能是依赖于某个测试的结果。编译器必须产生构建在这种低级机制基础之上的指令序列，来实现C 语言的控制结构。 我们先谈谈实现条件操作的两种方式，然后描述表达循环的switch 语句">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/24.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/25.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/26.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/27.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/28.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/29.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/30.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/31.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/32.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/33.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/34.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/35.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/36.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/37.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/38.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/39.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/40.png">
+<meta property="article:published_time" content="2020-10-11T01:22:59.000Z">
+<meta property="article:modified_time" content="2020-11-13T00:48:04.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="CSAPP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/24.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2020/10/11/CSAPP程序的机器即表示2（6-11节）/"/>
+
+
+
+
+
+  <title>CSAPP程序的机器即表示2（6~11节） | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">CSAPP程序的机器即表示2（6~11节）</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-10-11T09:22:59+08:00">
+                2020-10-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  9.3k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  37
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="CSAPP程序的机器即表示2"><a href="#CSAPP程序的机器即表示2" class="headerlink" title="CSAPP程序的机器即表示2"></a>CSAPP程序的机器即表示2</h1><h2 id="控制"><a href="#控制" class="headerlink" title="控制"></a>控制</h2><p>通常，C 语言中的语句和机器代码中的指令都是按照它们在程序中出现的次序，顺序执行的。用jump 指令可以改变一组机器代码指令的执行顺序，jump 指令指定控制应该被传递到程序的某个其他部分，可能是依赖于某个测试的结果。编译器必须产生构建在这种低级机制基础之上的指令序列，来实现C 语言的控制结构。</p>
+<p>我们先谈谈实现条件操作的两种方式，然后描述表达循环的switch 语句的方法。</p>
+<h3 id="条件码"><a href="#条件码" class="headerlink" title="条件码"></a>条件码</h3><p>除了整数寄存器，CPU 还维护着一组<strong>单个位(byte)</strong> 的条件码(condition code) 寄存器。我们可以检测这些寄存器来执行条件分支指令。</p>
+<p>一下是最常用的条件码</p>
+<p><strong>CF</strong> : 进位标志。最近的操作使高位产生了进位。可用来检查<strong>无符号操作</strong>的<strong>溢出</strong></p>
+<p><strong>ZF</strong>: 零标志。最近的操作得出的结果为<strong>0</strong></p>
+<p><strong>SF</strong> : 符号标志。最近的操作得到的结果为<strong>负数</strong></p>
+<p><strong>OF</strong>: 溢出标志。最近的操作导致一个补码的溢出—-正\负溢出</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/24.png" style="zoom:100%;"></p>
+<p>比如说，我们用一条 ADD指令完成等价于C表达式 $t=a+b$ 的功能，a、b、t都是整形的。然后根据下面的C表达式来设置条件码</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/23.png" style="zoom:100%;"></p>
+<p> 有几类指令能够修改条件码：</p>
+<ol>
+<li>算术指令：既改变操作数，也有肯能改变条件码。</li>
+<li>CMP指令：右操作数减左操作数，只可能改变条件码。</li>
+<li>TEST指令：两操作数相与，只可能改变条件码。</li>
+</ol>
+<h3 id="访问条件码"><a href="#访问条件码" class="headerlink" title="访问条件码"></a>访问条件码</h3><p>条件码寄存器不能直接读取，有三种方法：</p>
+<ul>
+<li>set指令：根据条件码，设置一个字节。</li>
+</ul>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/25.png" style="zoom:100%;"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">comp</span><span class="params">(<span class="keyword">data_t</span> a,<span class="keyword">data_t</span> b)</span></span></span><br><span class="line">a in %rdi,b in %rsi</span><br><span class="line">comp:</span><br><span class="line"> 	cmpq 	%rsi, 	%rdi 	<span class="comment">//Compare a:b</span></span><br><span class="line"> 	setl 	%al 			<span class="comment">//Set low-order byte of %eax to 0 or 1</span></span><br><span class="line"> 	movzbl 	%al, 	%eax 	<span class="comment">//Clear rest of %eax (and rest of %rax)</span></span><br><span class="line"> 	ret</span><br></pre></td></tr></table></figure>
+<p>第二行是cmp指令，也就是通过%rdi-%rsi 的状态来设置状态码的</p>
+<p>第三行是 set 指令，setl %al之后，al寄存器中的值就为比较命令 cmp执行后状态位 $SF\wedge  OF$ 的值</p>
+<p>第四行是将 %al 赋值给 eax 的低8bits，然后再将eax的高位设置为0</p>
+<p>我们就拿sete来举例，即 “set when equal” 指令。</p>
+<p>当a = b 时，会得到 $t=0$ ,因此零标志置为就表示相等。</p>
+<p>类似的我们来考虑setl,即”set when less” 指令</p>
+<p>当没有发生溢出的时候，OF设置为0，那么只有当 $a-b&lt;0$ 的时候，SF会等于1；<br>如果发生了溢出，那么OF设置为1，那么要让a仍然小于b，就要让a为负、b为正，a-b 会下溢变成正数，于是 SF会等于0</p>
+<p>那么只有当 SF^OF ，才能保证将每一种情况都包含在内，才能表达出 a&lt;b 是否为真。</p>
+<h3 id="跳转指令"><a href="#跳转指令" class="headerlink" title="跳转指令"></a>跳转指令</h3><ul>
+<li>jump指令：根据条件码进行跳转，即控制的条件转移。</li>
+</ul>
+<p>跳转指令会导致执行切换到程序中一个全新的位置。在汇编代码中，这些跳转的目的地通常用一个标号(label) 指明.比如说:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">	movq $0,%rax 		Set %rax to 0</span><br><span class="line">	jmp .L1 			Goto .L1</span><br><span class="line">	movq (%rax),%rdx 	Null pointer dereference (skipped)</span><br><span class="line">.L1:</span><br><span class="line">	popq %rdx 			Jump target</span><br></pre></td></tr></table></figure>
+<p>指令jmp.L1 会导致程序跳过movq 指令，而从popq 指令开始继续执行。在产生目标代码文件时，汇编器会确定所有带标号指令的地址，并将跳转目标（目的指令的地址）编码为跳转指令的一部分。</p>
+<p>下面列举了不同的跳转指令：</p>
+<ul>
+<li>jmp 是无条件跳转，它可以是<strong>直接跳转</strong>，即<strong>跳转目标</strong>是作为指令的<strong>一部分</strong> 编码的。也可以是<strong>间接跳转</strong>，即跳转目标是从寄存器或者内存位置中读出的<ul>
+<li>汇编语言中，直接跳转是给出一个标号作为跳转目标的，例如上面所示代码中的标号“.L1”。间接跳转的写法是 ”*“ 后面跟一个操作数指示符</li>
+<li>例如 <code>jmp *%rax</code> 用寄存器 %rax 中的值作为跳转目标，而 <code>jmp *(%rax)</code> 是以%rax中的值作为地址，从内存中读取跳转目标。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/26.png" style="zoom:100%;"></p>
+<p>上表所示的其他跳转指令都是有条件的：它们根据条件码的某种组合，或者跳转，或者继续执行代码序列中下一条指令。这些指令的名字和跳转条件与SET指令的名字和设置条件是相匹配的。</p>
+<p>同SET指令一样，一些底层的机器指令有多个名字，<strong>条件跳转只能是直接跳转</strong>。</p>
+<ul>
+<li>cmov条件传送指令：根据条件码决定是否进行mov操作（其性能要优于控制的条件转移P141）也就是有条件地传送数据。</li>
+</ul>
+<p>注意点： je 是判断 ZF的，如果ZF=1(计算结果为0) 那么就会跳转；反之，jne是判断 <code>~ZF</code> 的，如果ZF=0(计算结果不为0)，则会跳转</p>
+<p>同时我们也应该了解到，<code>sub</code> 和 <code>add</code> 这类指令也会影响符号位，所以说会出现这样的汇编代码：</p>
+<p>这段代码我们这么理解： 首先让rdx寄存器中的数字减去1，判断是否为0，若为0则将ZF置为1，若不为0则将ZF置为0。然后用jne进行条件跳转。最后的逻辑就是</p>
+<p><code>if rdx-1 != 0</code> 则跳转，等于0则返回。     </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">subq	$1, %rdx</span><br><span class="line">jne		.L10</span><br></pre></td></tr></table></figure>
+<h3 id="跳转指令的编码"><a href="#跳转指令的编码" class="headerlink" title="跳转指令的编码"></a>跳转指令的编码</h3><p>在汇编代码中，跳转目标用符号标号书写。汇编器，以及后来的链接器，会产生跳转目标的适当编码。跳转指令有几种不同的编码，但是最常用都是<strong>PC-relative</strong>。也就是说它们会将<strong>目标指令的地址</strong>与<strong>紧跟在跳转指令后面那条指令的地址</strong>之间的差作为编码 这些地址偏移量可以编码为1、2 或4 个字节。</p>
+<p>第二种编码方法是给出“绝对”地址，用4 个字节直接指定目标。汇编器和链接器会选择适当的跳转目的编码。</p>
+<p>下面是一个PC-relative的例子，它包含两个跳转：第二行的jmp指令前向跳转到更高的地址，而第7行的jg指令后向跳转到较低的地址。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"> 	movq 	%rdi, %rax</span><br><span class="line"> 	jmp 	.L2</span><br><span class="line">.L3:</span><br><span class="line"> 	sarq 	%rax</span><br><span class="line">.L2:</span><br><span class="line"> 	testq 	%rax, %rax</span><br><span class="line"> 	jg 		.L3</span><br><span class="line"> 	rep; 	ret</span><br></pre></td></tr></table></figure>
+<p>仍然是同一个函数，汇编器产生的 “.o” 格式的反汇编版本如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0: 48 89 f8 	mov 	%rdi,%rax</span><br><span class="line">3: eb 03 		jmp 	8&lt;loop+0x8&gt;</span><br><span class="line">5: 48 d1 f8 	sar 	%rax</span><br><span class="line">8: 48 85 c0 	test 	%rax,%rax</span><br><span class="line">b: 7f f8 		jg 		5&lt;loop+0x5&gt;</span><br><span class="line">d: f3 c3 		repz 	retq</span><br></pre></td></tr></table></figure>
+<p>我们看到反汇编版本生成的汇编语言没有label，<code>jmp + label</code>的直接跳转也变成了 <code>jmp+地址</code> 的间接跳转。那么我们刚才说了，产生跳转目标的编码是由<strong>目标指令的地址与紧跟在跳转指令后面那条指令的地址之间的差</strong>得出的。我们现在就可以来验证这个是否正确。</p>
+<p>我们观察到第2行中跳转指令的跳转目标指明为0x8,观察指令的字节编码，会看到第一条跳转指令的目标编码(在第二个字节当中)为0x03 ，然后将其加上<strong>紧跟在跳转指令后面那条指令的地址</strong>0x5 就得到了跳转目标地址0x8 也就是第4行指令的地址。</p>
+<p>同样的，第二个跳转指令的目标编码是0xf8(十进制的-8) .将这个数加上<strong>紧跟在跳转指令后面那条指令的地址</strong> 0xd 即得到0x5 ，即第三行指令的地址。</p>
+<p>这说明在执行，当执行PC 相对寻址时，程序计数器的值是跳转指令后面的那条指令的地址，而不是跳转指令本身的地址。</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/27.png" style="zoom:100%;"></p>
+<p>A:  02+4003fc = 4003fe</p>
+<p>B:  因为 0xf4 是-12的补码所以这里是 400431-12 = 400425</p>
+<p>C:  根据反汇编器产生的注释，跳转目标是绝对地址 0x400547.那么根据字节编码，一定在距离pop 0x2 的地址处。减去这个值就得到地址 0x400545. 注意，ja指令的编码需要2个字节，它一定位于地址0x400543处。</p>
+<p>D: jmpq 是 e9, XXXXXX = 0xffffff73(负数)+0x4005ed =0x400560</p>
+<h3 id="用条件控制来实现条件分支"><a href="#用条件控制来实现条件分支" class="headerlink" title="用条件控制来实现条件分支"></a>用条件控制来实现条件分支</h3><p>其实在代码中，我们更多的是要使用控制结构(循环，if-else, switch 等)现在我们要思考怎么用刚学的条件位、comp、jump指令来实现这些控制结构。那么我们一般写的控制结构是没有goto的，因为goto会让程序变得很乱，可读性会变差。但是我们的汇编代码在实现这些控制结构的时候，用了非常类似于goto的代码。只不过goto利用jump来实现。</p>
+<p>我们可以先来写一个C语言代码，然后写一个goto风格的C语言代码，最后将其汇编代码贴出。比较一下它们之间的相似于不同。这个函数是让我们求两个整数之间差的绝对值</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">(a) <span class="function">Original C <span class="title">code</span>								<span class="params">(b)</span> Equivalent <span class="keyword">goto</span> version</span></span><br><span class="line"><span class="function"><span class="keyword">long</span> lt_cnt </span>= <span class="number">0</span>;								<span class="function"><span class="keyword">long</span> <span class="title">gotodiff_se</span><span class="params">(<span class="keyword">long</span> x, <span class="keyword">long</span> y)</span></span></span><br><span class="line"><span class="function"><span class="keyword">long</span> ge_cnt </span>= <span class="number">0</span>;								&#123;		</span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">absdiff_se</span><span class="params">(<span class="keyword">long</span> x, <span class="keyword">long</span> y)</span>						<span class="keyword">long</span> result</span>;</span><br><span class="line">&#123;													<span class="keyword">if</span> (x &gt;= y)</span><br><span class="line">	<span class="keyword">long</span> result;										<span class="keyword">goto</span> x_ge_y;	</span><br><span class="line">	<span class="keyword">if</span> (x &lt; y) &#123;									lt_cnt++;</span><br><span class="line">		lt_cnt++;									result = y - x;</span><br><span class="line">		result = y - x;								<span class="keyword">return</span> result;</span><br><span class="line">	&#125;											  x_ge_y:</span><br><span class="line">	<span class="keyword">else</span> &#123;											ge_cnt++;</span><br><span class="line">		ge_cnt++;									result = x - y;</span><br><span class="line">		result = x - y;								<span class="keyword">return</span> result;</span><br><span class="line">	&#125;											&#125;</span><br><span class="line">	<span class="keyword">return</span> result;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们看到 b)是goto风格的C语言代码，这类代码在一段语句块之前有一个标签(label) ，只要goto 后面加一个标签名字，那么整个程序就会跳转到那个标签去运行。</p>
+<p>那么我们再来看看这个程序产生的汇编代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">(c) Generated assembly code</span><br><span class="line"><span class="comment">//long absdiff_se(long x, long y)</span></span><br><span class="line"><span class="comment">//x in %rdi, y in %rsi</span></span><br><span class="line">absdiff_se:</span><br><span class="line">cmpq %rsi, %rdi 						Compare x:y</span><br><span class="line">jge .L2 								If &gt;= <span class="keyword">goto</span> x_ge_y</span><br><span class="line">addq $<span class="number">1</span>, lt_cnt(%rip) 					lt_cnt++</span><br><span class="line">movq %rsi, %rax</span><br><span class="line">subq %rdi, %rax 						result = y - x</span><br><span class="line">ret 									Return<span class="comment">//Return的缺省值就是%rax </span></span><br><span class="line">.L2: x_ge_y:</span><br><span class="line">addq $<span class="number">1</span>, ge_cnt(%rip) 					ge_cnt++</span><br><span class="line">movq %rdi, %rax</span><br><span class="line">subq %rsi, %rax 						result = x - y</span><br><span class="line">ret 									Return</span><br></pre></td></tr></table></figure>
+<p>我们看到汇编语言和goto风格的C语言是非常相似的。其实这就是 if- else 控制流在汇编语言中的实现原理。在汇编中我们会使用 jx(jump+条件) 条件跳转命令来模拟goto, 这里的 jge就是当大于等于的时候跳转 ，</p>
+<p>对于一个 if-else 语句，在C语言里的模板是这样的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">if(test-expr)</span><br><span class="line">	then-statement</span><br><span class="line">else</span><br><span class="line">	else-statement</span><br></pre></td></tr></table></figure>
+<p>这里的test-expr 是一个整数表达式，他的取值为0或者为非0。这两个分支语句中 (then-statement 或者else-statement) 只会执行一个。</p>
+<p>在汇编语言里，通常转换成下面这个模板，我们用C语法来描述：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">t = test-expr;</span><br><span class="line"><span class="keyword">if</span>(!t)</span><br><span class="line">	<span class="keyword">goto</span> <span class="literal">false</span>;</span><br><span class="line">then-statement</span><br><span class="line"><span class="keyword">goto</span> done;</span><br><span class="line"><span class="literal">false</span>:</span><br><span class="line">	<span class="keyword">else</span> statement</span><br><span class="line">done:</span><br></pre></td></tr></table></figure>
+<p>也就是说，汇编器为 $then-statement$ 和 $else-statement$ 产生了各自的代码块，它会插入条件和无条件的分支，以保证执行正确的代码块</p>
+<h3 id="用条件传送来实现条件分支"><a href="#用条件传送来实现条件分支" class="headerlink" title="用条件传送来实现条件分支"></a>用条件传送来实现条件分支</h3><p>现在我们再来看看 General Conditional Expression 也就是条件表达式在汇编语言中的呈现情况</p>
+<p>比如下面这句条件表达式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val = x &gt; y ? x-y:y-x;</span><br></pre></td></tr></table></figure>
+<p>这句和上面的if-else 的表达效果是一样的，可以被总结为这种模式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val = Tese? Then_Expr : Else_Expr;</span><br></pre></td></tr></table></figure>
+<p>那么这句话用goto风格的C语言是这样表现的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">	ntest &#x3D; !Test;</span><br><span class="line">	if(ntest) goto ELse;</span><br><span class="line">	val &#x3D; Then_Expr;</span><br><span class="line">	goto Done;</span><br><span class="line">Else:</span><br><span class="line">	val &#x3D; ELse_Expr;</span><br><span class="line">Done:</span><br><span class="line">	...</span><br></pre></td></tr></table></figure>
+<p>还有一种方法，而是将 Then_Expr 和 Else_Expr 表达式都算出来，然后再做一个判断</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">result = Then_Expr;</span><br><span class="line">eval = Else_Expr;</span><br><span class="line">nt = !Test;</span><br><span class="line"><span class="keyword">if</span>(nt) result = eval;</span><br><span class="line"><span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
+<p>在这样一个没有goto版本的控制流中，每一步都是顺着往下执行的。</p>
+<p>这和刚才的goto版本是不一样的，因为<strong>goto语句会降低程序的性能</strong>。 我们可以这样来解释：<br>        CPU在执行一条语句的时候，事实上已经将后面好几条将要被执行的语句放到cache里面了，然而这时候如果出现了goto语句，cpu就要到内存里面去找goto后面的语句，而cache中的语句这时候就没有用了。而到内存中去找语句的速度是远远慢于直接从cache里面取出语句的，所以多用goto会导致程序的效率低下。所以我们这样写，是为了减少goto语句的发生。</p>
+<p>下面来看看goto风格和不用goto的代码之间的差别</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">t = test-expr;							result = Then_Expr;</span><br><span class="line"><span class="keyword">if</span>(!t)									eval = Else_Expr;</span><br><span class="line">	<span class="keyword">goto</span> <span class="literal">false</span>;							nt = !Test;</span><br><span class="line">then-<span class="function">statement							<span class="title">if</span><span class="params">(nt)</span> result </span>= eval;</span><br><span class="line"><span class="keyword">goto</span> done;								<span class="keyword">return</span> result;</span><br><span class="line"><span class="literal">false</span>:		</span><br><span class="line">	<span class="keyword">else</span> statement</span><br><span class="line">done:</span><br></pre></td></tr></table></figure>
+<p>我们看到如果是 if-else 风格的代码，他只会在then_Expr 和 Else_Expr 中计算一个代码块，但是右边的条件表达式语句则是对then_Expr和Else_Expr 都进行了一个计算。</p>
+<p>其实，条件表达式就是<strong>用条件传送来实现条件分支</strong>的一个例子。我们可以来看看它的汇编代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(c) Generated assembly code</span><br><span class="line">long absdiff(long x, long y)</span><br><span class="line">x in %rdi, y in %rsi</span><br><span class="line">absdiff:</span><br><span class="line">	movq %rsi, %rax</span><br><span class="line">	subq %rdi, %rax		rval &#x3D; y-x</span><br><span class="line">	movq %rdi, %rdx</span><br><span class="line">	subq %rsi, %rdx 	eval &#x3D; x-y</span><br><span class="line">	cmpq %rsi, %rdi 	Compare x:y</span><br><span class="line">	cmovge %rdx, %rax 	If &gt;&#x3D;, rval &#x3D; eval</span><br><span class="line">	ret 				Return tval</span><br></pre></td></tr></table></figure>
+<p>我们来解释一下这段汇编代码，首先它计算了 y-x和x-y 并分别存储到 rval和eval之中，然后它对x、y进行了一个比较。关键在于汇编代码的第七行 cmovge 指令 实现了 cmovdiff的条件复制。只有当第六行的 cmpq指令表明一个值大于等于另一个值(cmovge最后的ge已经表明) ,才会把数据源寄存器传送到目的。</p>
+<p>下图列举了 x86-64上一些可用的传送指令。每条指令都有两个操作数：<strong>源寄存器或者内存地址S </strong>, <strong>目的寄存器R</strong> ,和SET、Jump指令一样，cmov指令的结果取决于条件码的值。源值可以从内存或者源寄存器中读取，但是<strong>只有在指定的条件满足时，指令把原值S复制到目的R</strong>。</p>
+<p>源和目的 的值可以是16、32、64 位场。不支持单字节的条件传送。无条件指令的操作数的长度显式地编码在指令名中，汇编器可以从目标寄存器的名字推断出条件传送指令的操作数长度。</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/2.png" style="zoom:80%;"></p>
+<p>但是条件表达式也存在很多弊端，这里列出几个例子：</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/1.png" style="zoom:80%;"></p>
+<p>第一个就是Else_Expr和Then_Expr 计算起来都非常复杂，导致整行语句要运行非常长的时间</p>
+<p>第二个就是如果一个表达式计算起来是非法的话，整个代码就会报错。</p>
+<p>最后一个就是如果对x自身进行操作，那么我们就会得到意想不到的结果。比如上图我们的意图是如果 x&gt;0 那么就x是原来的7倍，反之则是原来基础上加3。 事实上因为这两个表达式都被计算了，因此我们不管怎么样得到的答案都是原来的七倍再加上三。</p>
+<p>所以在写条件表达式之前我们要想想是否有弊端，否则我们就老老实实去写If-then-else </p>
+<h3 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h3><p>C语言中有 do-while, while ,for 三种循环结构。但是在汇编语言中没有相应的指令存在。可以通过条件测试和跳转的组合来实现循环的效果。我们先来看看do-while 循环</p>
+<h4 id="do-while-循环"><a href="#do-while-循环" class="headerlink" title="do-while 循环"></a>do-while 循环</h4><p>do-while 循环的语句通用模板如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">do</span></span><br><span class="line">	body-statement</span><br><span class="line">	<span class="keyword">while</span>(test=expr);</span><br></pre></td></tr></table></figure>
+<p>也就是说每次循环程序都会执行循环体中的语句，然后执行测试表达式。如果测试为真，就回去再执行一次循环。我们可以看到 body-statement 至少会执行一次。</p>
+<p>用 <code>goto</code> 风格的C语言可以这样改写：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">loop:</span><br><span class="line">	body-statement</span><br><span class="line">	t = test-expr</span><br><span class="line">	<span class="keyword">if</span>(t)</span><br><span class="line">		<span class="keyword">goto</span> loop;</span><br></pre></td></tr></table></figure>
+<p>我们具体举一个例子来分析：这个函数的目的是数一数一个二进制字符串中有几个1</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//C code												Goto Version</span></span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">pcount_do</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">long</span> x)</span>							<span class="keyword">long</span> <span class="title">pcount_do</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">long</span> x)</span>					</span></span><br><span class="line"><span class="function"></span>&#123;														&#123;</span><br><span class="line">	<span class="keyword">long</span> result = <span class="number">0</span>;										<span class="keyword">long</span> result = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">do</span>&#123;													  loop:</span><br><span class="line">		result+= x&amp;<span class="number">0x1</span>;										result+= x&amp;<span class="number">0x1</span>;</span><br><span class="line">		x&gt;&gt;=<span class="number">1</span>;		<span class="comment">/*x=x&gt;&gt;1*/</span>								x&gt;&gt;=<span class="number">1</span>;</span><br><span class="line">	&#125;<span class="keyword">while</span>(x);												<span class="keyword">if</span>(x) <span class="keyword">goto</span> loop;</span><br><span class="line">	<span class="keyword">return</span> result;											<span class="keyword">return</span> result;</span><br><span class="line">&#125;														&#125;</span><br></pre></td></tr></table></figure>
+<p>那么用汇编语言是这样来表达的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">	movl 	$0  ,%eax   		# result &#x3D; 0</span><br><span class="line">.L2:							# loop:</span><br><span class="line">	movq 	%rdi,%rdx</span><br><span class="line">	andl	$1	,%eax			# t &#x3D; x&amp;0x1</span><br><span class="line">	addq 	%rdx,%rax			# result +&#x3D;t</span><br><span class="line">	shrq 	%rdi				# x&gt;&gt;&#x3D;1</span><br><span class="line">	jne		.L2					# if(x) goto loop</span><br><span class="line">	rep;ret</span><br></pre></td></tr></table></figure>
+<p>​                                                                                                                                                                                                                                                                                                                                  </p>
+<h4 id="while循环"><a href="#while循环" class="headerlink" title="while循环"></a>while循环</h4><p>那么while循环可以在do-while循环上修改一下即可</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (Test)			------&gt;							<span class="keyword">goto</span> test;</span><br><span class="line">	Body											loop:</span><br><span class="line">														Body</span><br><span class="line">													test:</span><br><span class="line">														<span class="keyword">if</span>(Test)</span><br><span class="line">															<span class="keyword">goto</span> loop;</span><br><span class="line">													done:</span><br></pre></td></tr></table></figure>
+<p>我们只要一上来直接<code>goto</code> test： 即可。这种方法叫做 <strong>jump to middle</strong></p>
+<p>还是一样的例子我们用while重写：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//C code												Goto Version</span></span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">pcount_while</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">long</span> x)</span>						<span class="keyword">long</span> <span class="title">pcount_do</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">long</span> x)</span>					</span></span><br><span class="line"><span class="function"></span>&#123;														&#123;</span><br><span class="line">	<span class="keyword">long</span> result = <span class="number">0</span>;										<span class="keyword">long</span> result = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span>(x)&#123;												<span class="keyword">goto</span> test;</span><br><span class="line">		result+= x&amp;<span class="number">0x1</span>;									  loop: </span><br><span class="line">		x&gt;&gt;=<span class="number">1</span>;		<span class="comment">/*x=x&gt;&gt;1*/</span>								 result += x&amp;<span class="number">0x1</span>;</span><br><span class="line">	&#125;												 		 x&gt;&gt;=<span class="number">1</span>;</span><br><span class="line">	<span class="keyword">return</span> result;										  test:</span><br><span class="line">    														 <span class="keyword">if</span>(x) <span class="keyword">goto</span> loop;</span><br><span class="line">&#125;														 	 <span class="keyword">return</span> result;	</span><br><span class="line">														&#125;</span><br></pre></td></tr></table></figure>
+<p>我们还有第二种翻译方法，称之为 guarded-do, 首先用条件分支，进来就判断，如果初始条件不成立就跳过循环，把代码变换为do-while 循环。当使用较高优化等级编译的时候，例如使用命令行 -O1，GCC就会采用这种策略</p>
+<p> 可以用下面这种模板来表达这种方法，把通用的while循环格式翻译成 do-while 循环：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//C code												go-to Style</span></span><br><span class="line">t = test-expr;											t = test-expr;</span><br><span class="line"><span class="keyword">if</span> (!t)                        							<span class="keyword">if</span> (!t)  </span><br><span class="line">	<span class="keyword">goto</span> done;												<span class="keyword">goto</span> done;</span><br><span class="line"><span class="keyword">do</span> 														loop:</span><br><span class="line">	body-statement											body-statement</span><br><span class="line">	<span class="keyword">while</span>(test-expr);										t = test-expr;</span><br><span class="line"><span class="function">done														<span class="title">if</span><span class="params">(t)</span></span></span><br><span class="line"><span class="function">    															<span class="keyword">goto</span> loop</span>;</span><br><span class="line">														done:</span><br></pre></td></tr></table></figure>
+<p>思考题：<code>jump  to middle</code> 和 <code>guared-do</code> 什么时候是好的，什么时候是不好的？</p>
+<p> guarded-do 是直接进行判断。这个之所以更加高效，是因为一开始进入循环时，通常不会不满足循环条件，即一开始不会跳转到后面，所以会直接顺序一直执行循环体。</p>
+<h4 id="for循环"><a href="#for循环" class="headerlink" title="for循环"></a>for循环</h4><p>for循环是我们很常用的一种循环体，其特点就是结束时间很明确，每一步都很标准。而while则更加自由。</p>
+<p>for循环的模板：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(init;Test;Update)</span><br><span class="line">	Body</span><br></pre></td></tr></table></figure>
+<p>我们需要的就是将 for 循环转换成 while循环</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Init;</span><br><span class="line"><span class="keyword">while</span>(Test)&#123;</span><br><span class="line">	Body</span><br><span class="line">	Update;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里有很多表达式 ，还是拿原来的例子说</p>
+<p>初始条件 Init:  <code>i=0</code></p>
+<p>测试条件 Test:  <code>i&lt;WSIZE</code></p>
+<p>更新跳步 Update: <code>i++</code></p>
+<p>循环主题</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="built_in">bit</span> = (x&gt;&gt;i)&amp;<span class="number">0x1</span>;</span><br><span class="line">	retult += <span class="built_in">bit</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>根据上面的模板，我们可以对这段代码进行一个转换：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">pcount_for_while</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">long</span> x)</span></span>&#123;</span><br><span class="line">	<span class="keyword">size_t</span> i;</span><br><span class="line">	<span class="keyword">long</span> result = <span class="number">0</span>;</span><br><span class="line">	i=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span>(i&lt;WSIZE)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">unsigned</span> <span class="built_in">bit</span> = (x&gt;&gt;i)&amp;<span class="number">0x1</span>;</span><br><span class="line">		result += <span class="built_in">bit</span>;</span><br><span class="line">		i++;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们还可以将For循环转换成 Do-While 循环</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">pcount_for_goto_dw</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">long</span> x)</span></span>&#123;</span><br><span class="line">	<span class="keyword">size_t</span> i;</span><br><span class="line">	<span class="keyword">long</span> result = <span class="number">0</span>;</span><br><span class="line">	i=<span class="number">0</span>;								<span class="comment">//Init</span></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	if(!(i&lt;WSIZE))						//可以删除的Test</span></span><br><span class="line"><span class="comment">		goto done;</span></span><br><span class="line"><span class="comment">	*/</span></span><br><span class="line">  loop:</span><br><span class="line">	<span class="keyword">while</span>(i&lt;WSIZE)						<span class="comment">//Body</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">unsigned</span> <span class="built_in">bit</span> = (x&gt;&gt;i)&amp;<span class="number">0x1</span>;</span><br><span class="line">		result += <span class="built_in">bit</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	i++;								<span class="comment">//Update</span></span><br><span class="line">	<span class="keyword">if</span>(!(i&lt;WSIZE))						<span class="comment">//Test</span></span><br><span class="line">		<span class="keyword">goto</span> done;</span><br><span class="line">  done:	</span><br><span class="line">	<span class="keyword">return</span> result;						</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为什么可以删除第一个Test呢，因为这里for循环第一次肯定是满足条件的。</p>
+<h3 id="switch-语句"><a href="#switch-语句" class="headerlink" title="switch 语句"></a>switch 语句</h3><p>switch 语句常常用在做命令行下的用户界面或者自动客服。当在写多分叉、较复杂的分支结构时，用if-else会导致可读性下降。</p>
+<p>switch 不仅提高了C代码的可读性，而且通过使用跳转表(jump table) 这种数据结构让实现更加高效。GCC根据switch的数量和值的稀疏成都来翻译switch语句。当switch情况数量比较多,且值得范围跨度比较小的时候，就会使用跳转表。</p>
+<p>下面是一个Jump Table 示意图</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/3.png" style="zoom:80%;"></p>
+<p>我们将每个代码块的地址填到Jump Table里面去。当我们执行switch中的代码块的时候，我们就使用 <code>goto *JTab[x]</code> 命令  <code>*Jtab[x]</code> 就是一段地址，我们会用goto直接跳到这个地址去。</p>
+<p>我们来细致得解读一个例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">my_switch</span><span class="params">(<span class="keyword">long</span> x,<span class="keyword">long</span> y,<span class="keyword">long</span> z)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">long</span> w=<span class="number">1</span>;</span><br><span class="line">	<span class="keyword">switch</span>(x)&#123;</span><br><span class="line">	<span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">		w = y*z;</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	<span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">		w=y/z;</span><br><span class="line">		<span class="comment">/*Fall Through*/</span></span><br><span class="line">	<span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">		w+=z;</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	<span class="keyword">case</span> <span class="number">5</span>:</span><br><span class="line">	<span class="keyword">case</span> <span class="number">6</span>:</span><br><span class="line">		w-=z;</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		w=<span class="number">2</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> w;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段代码编译出来的Jump table和switch得对应关系是这样的：</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/4.png" style="zoom:80%;"></p>
+<ul>
+<li>当 x==1 的时候：</li>
+</ul>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/5.png" style="zoom:80%;"></p>
+<ul>
+<li>x==2的时候，因为没有break语句，所以执行完case2会继续执行 case3。 这个过程称为 Fall Through</li>
+</ul>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/6.png" style="zoom:80%;"></p>
+<ul>
+<li>x\=\=2 ，x\=\=3 时候的代码块如下：</li>
+</ul>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/7.png" style="zoom:80%;"></p>
+<ul>
+<li>x\=\=5 ,x\=\= 6  和defalut的代码块如下：</li>
+</ul>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/8.png" style="zoom:80%;"></p>
+<h3 id="Summarizing"><a href="#Summarizing" class="headerlink" title="Summarizing"></a>Summarizing</h3><h4 id="C-Control"><a href="#C-Control" class="headerlink" title="C Control"></a>C Control</h4><p>▪    if-then-else<br>▪    do-while<br>▪    while, for<br>▪    switch</p>
+<h4 id="Assembler-Control"><a href="#Assembler-Control" class="headerlink" title="Assembler Control"></a>Assembler Control</h4><p>▪    Conditional jump<br>▪    Conditional move<br>▪    Indirect jump (via jump tables)<br>▪    Compiler generates code sequence to implement more complex control</p>
+<h4 id="Standard-Techniques"><a href="#Standard-Techniques" class="headerlink" title="Standard Techniques"></a>Standard Techniques</h4><p>▪    Loops converted to do-while or jump-to-middle form<br>▪    Large switch statements use jump tables<br>▪    Sparse switch statements may use decision trees (if-elseif-elseif-else)</p>
+<h2 id="过程"><a href="#过程" class="headerlink" title="过程"></a>过程</h2><ul>
+<li>Mechanisms</li>
+<li>Stack Structure</li>
+<li>Calling Conventions<ul>
+<li>Passing control</li>
+<li>Passing data</li>
+<li>Managing local data</li>
+</ul>
+</li>
+<li>Illustration of Recursion</li>
+</ul>
+<h3 id="Mechanisms-机制"><a href="#Mechanisms-机制" class="headerlink" title="Mechanisms(机制)"></a>Mechanisms(机制)</h3><p>要提供对过程的机器级支持，必须要处理许多不同的属性。为了讨论方便，假设过程P 调用过程Q， Q 执行后返回到P。 这些动作包括下面一个或多个机制：</p>
+<ul>
+<li>传递控制 ： 在进入过程Q的时候，程序计数器必须被设置为Q 的代码的起始地址，然后在返回时，要把程序计数器设置为p中调用Q后面那条指令的地址。</li>
+<li>传递数据： P 必须能够向Q提供一个或者多个参数，Q必须能够向P返回一个值</li>
+<li>内存管理：在开始时，Q可能需要为局部变量分配空间，而在返回前，又必须释放这些存储空间。</li>
+</ul>
+<p>可以简单地说：过程 = 传递控制 + 传递参数 + 分配和释放内存</p>
+<p>接下来，我们一步步地构建起不同的机制，先描述控制，再描述数据传递，最后是内存管理。</p>
+<h3 id="运行时栈"><a href="#运行时栈" class="headerlink" title="运行时栈"></a>运行时栈</h3><p>首先我们来看看栈结构，右侧长条是地址：</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/9.png" style="zoom:80%;"></p>
+<p>我们看到，栈顶指针指向最底下，因为x86-64的栈向低地址方向增长。</p>
+<p>将栈放大来看，并标出地址增长和减小的方向：</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/10.png" style="zoom:100%;"></p>
+<p>我们可以用 pushq和popq指令来将数据存入栈中或者是从栈中取出。</p>
+<h3 id="Push"><a href="#Push" class="headerlink" title="Push"></a>Push</h3><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/11.png" style="zoom:100%;"></p>
+<ul>
+<li><p>首先将source中的操作数取出</p>
+</li>
+<li><p>然后将栈顶指针指向的地址减去8, 因为下移8个byte之后，多出来 8*8 = 64 个bit可以用来存储一个64位的地址</p>
+</li>
+<li>最后将这个操作数的地址写入栈顶指针</li>
+</ul>
+<h4 id="Pop"><a href="#Pop" class="headerlink" title="Pop"></a>Pop</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/12.png" style="zoom:100%;"></p>
+<ul>
+<li>首先将 %rsp 栈顶指针中的值读出</li>
+<li>然后将栈顶指针加上8</li>
+<li>最后将读出的值存入到寄存器当中</li>
+</ul>
+<p>所以不管是 Push还是Pop，都是值改变了 $\%rsp$ 的值，并没有改变内存 。</p>
+<h4 id="栈帧"><a href="#栈帧" class="headerlink" title="栈帧"></a>栈帧</h4><p>下面我们仔细谈论栈帧的概念。</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/13.png" style="zoom:100%;"></p>
+<p>当过程需要的存储空间超出寄存器能够存放的大小时，就会在栈上分配空间。这个部分称为过程的栈帧(Frame)。上图就是运行时栈的通用结构。</p>
+<ul>
+<li>当前正在执行的过程的帧总是在栈顶。</li>
+<li>当过程P调用过程Q的时候,会把返回地址压入栈中，指明Q返回时，要从p程序的哪个位置继续执行。我们会把这个返回地址当作p的栈帧的一部分，因为他存放的是于P相关的状态。</li>
+</ul>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/14.png" style="zoom:100%;"></p>
+<ul>
+<li>Q 的代码会扩展当前栈的边界，分配它的栈帧所需的空间。在这个空间中，它可以保存寄存器的值，分配局部变量空间，为它调用的过程设置参数。</li>
+<li>大多数过程的栈帧都是定长的，在过程的开始就分配好了</li>
+<li>通过寄存器，过程P 可以传递最多6 个整数值(也就是指针和整数), 但是如果Q 需要更多的参数，P 可以在调用Q 之前在自己的栈帧里存储好这些参数。</li>
+</ul>
+<hr>
+<h3 id="转移控制"><a href="#转移控制" class="headerlink" title="转移控制"></a>转移控制</h3><p>P调用Q，Q运行完之后返回P，这个函数转移的底层是<strong>用栈实现</strong>的：</p>
+<ul>
+<li>首先将程序计数器(PC) 设置为 Q 的代码的起始位置。</li>
+<li>稍后从Q返回的时候，处理器用指令call Q 调用过程Q来记录好过程P需要继续执行的代码的位置，这个指令会把地址A压入栈中，并将PC设置为Q的起始地址。</li>
+<li>压入的地址A被称为返回地址，是紧跟在 call 指令后面的那条指令的地址。对应的指令ret会从栈中弹出地址A,并把pc设置为A</li>
+</ul>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/15.png" style="zoom:100%;"></p>
+<p>call 指令有一个目标，<strong>即指明被调用过程起始的指令地址</strong>。 调用可以是直接的也可以是间接的。在汇编代码中，直接调用的目标是一个Label，而间接调用的目标是 *加上一个操作数指示符</p>
+<p>现在我们用一个具体的例子来理解：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Beginning of function multstore</span><br><span class="line">0000000000400540 &lt;multstore&gt;:</span><br><span class="line">400540: 53 					push %rbx</span><br><span class="line">400541: 48 89 d3 			mov %rdx,%rbx</span><br><span class="line">. . .</span><br><span class="line">Return from function multstore</span><br><span class="line">40054d: c3 					retq</span><br><span class="line">. . .</span><br><span class="line">Call to multstore from main</span><br><span class="line">400563: e8 d8 ff ff ff 		callq 400540 &lt;multstore&gt;</span><br><span class="line">400568: 48 8b 54 24 08 		mov 0x8(%rsp),%rdx</span><br></pre></td></tr></table></figure>
+<p>从上面这段代码中我们可以看到，在main函数中，地址为 0x400563 的call指令调用函数 multstore. 此时栈中的状态如图所示：</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/16.png" style="zoom:100%;"></p>
+<p>调用完call之后，栈中的状态如图：</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/17.png" style="zoom:100%;"></p>
+<p>也就是说，call的小姑就是将400563的后一句400568给压入栈中，并跳转到函数multistore的第一条指令，地址为 0x400540. 然后函数multstore继续执行，一直到遇上地址 0x40054d处的ret指令。</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/18.png" style="zoom:100%;"></p>
+<p>ret指令从栈中弹出值 0x400568,然后跳转到这个地址，就在call之后一句，然后继续main函数的执行。</p>
+<p>再来看看上课居的例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">multstore</span><span class="params">(<span class="keyword">long</span> x, <span class="keyword">long</span> y, <span class="keyword">long</span> *dest)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">long</span> t = mult2(x, y); </span><br><span class="line">	*dest = t;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">mult2</span><span class="params">(<span class="keyword">long</span> a, <span class="keyword">long</span> b)</span></span></span><br><span class="line"><span class="function"></span>&#123;	</span><br><span class="line">	<span class="keyword">long</span> s = a * b; </span><br><span class="line">	<span class="keyword">return</span> s;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将其编译成汇编语言，得到：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">0000000000400540 &lt;multstore&gt;:</span><br><span class="line">400540: push	%rbx 			# Save %rbx </span><br><span class="line">400541: mov 	%rdx,%rbx 		# Save dest </span><br><span class="line">400544: callq 	400550 &lt;mult2&gt;	# mult2(x,y) </span><br><span class="line">400549: mov 	%rax,(%rbx)		# Save at dest</span><br><span class="line">40054c: pop 	%rbx			# Restore %rbx</span><br><span class="line">40054d: retq					# Return</span><br><span class="line">0000000000400550 &lt;mult2&gt;:</span><br><span class="line">400550: 	mov  	  %rdi,%rax   	# a </span><br><span class="line">400553:		imul 	  %rsi,%rax		# a * b </span><br><span class="line">400557: 	retq					# Return</span><br></pre></td></tr></table></figure>
+<p>首先，运行到0x400544这一段，程序计数器%rip中存储的就是0x400544,他会调用 400550 地址的函数也就是 mult2</p>
+<p>call运行完之后，%rip 中的地址变成了 0x400550 ，同时将call的后一句的地址压栈，并修改%rsp 的值</p>
+<p>解这运行到了 400557 这行命令，就要return了，return操作是将栈顶取出放入 %rip 并退栈，最后%rip 的值为 0x400549</p>
+<h3 id="数据传送"><a href="#数据传送" class="headerlink" title="数据传送"></a>数据传送</h3><p>当调用一个过程时，除了要把控制传递给它沐在过程返回时再传递回来之外，过程调用还可能包括把数据作为参数传递。我们大部分过程间的数据传送是通过寄存器实现的。</p>
+<p>比如当过程P调用过程Q的时候，P的代码必须收i按将参数复制到合适的寄存器中。类似的，当Q返回到P的时候，P的代码可以访问寄存器 %rax 中的返回值。</p>
+<p>x86-64中，可以通过寄存器<strong>最多传递6 个整型（例如整数和指针）参数</strong>(Argument)。寄存器的使用是有特殊顺序的.<strong>寄存器是按照特殊顺序来使用的，而使用的名字是根据参数的大小来确定的</strong></p>
+<p>比如：可以通过64 位寄存器适当的部分访问小于64 位的参数。如果第一个参数是32 位的，那么可以用％edi 来访问它。</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/19.png" style="zoom:100%;"></p>
+<p><strong>重点</strong>：如果一个函数有大于6个整形的参数，超出六个的部分就要通过栈来传递。假设过程P调用过程Q，有n个参数，且n&gt;6.那么p的代码分配的栈帧就必须要能容纳第七到第n号参数的存储空间。</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/14.png" style="zoom:100%;"></p>
+<p>通过栈传递参数时，所有的数据大小都<strong>向8的倍数对齐</strong>。参数到位以后，程序就可以执行call指令间控制转移到过程Q了。<strong>过程Q可以通过寄存器访问参数，也可以通过栈来访问</strong>。</p>
+<p>相应的，如果Q也调用了某个有超过6个参数的函数，他也需要在自己的栈帧中为超出6个部分的参数分配空间。也就是分配到下图中 “Argument Build Area” (参数构造区) 的区域</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/20.png" style="zoom:100%;"></p>
+<p>下面是一个具体的例子：</p>
+<p>有多个不同类型参数的函数示例。参数1~6 通过寄存器传递，而参数7~8 通过栈传递</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">(a) C code</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">proc</span><span class="params">(	<span class="keyword">long</span> a1, <span class="keyword">long</span> *a1p,</span></span></span><br><span class="line"><span class="function"><span class="params">		  	<span class="keyword">int</span> a2, <span class="keyword">int</span> *a2p,</span></span></span><br><span class="line"><span class="function"><span class="params">		  	short a3, short *a3p,</span></span></span><br><span class="line"><span class="function"><span class="params">			<span class="keyword">char</span> a4, <span class="keyword">char</span> *a4p	)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	*a1p += a1;</span><br><span class="line">	*a2p += a2;</span><br><span class="line">	*a3p += a3;</span><br><span class="line">	*a4p += a4;</span><br><span class="line">&#125;</span><br><span class="line">(b) Generated assembly code</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">proc</span><span class="params">(a1, a1p, a2, a2p, a3, a3p, a4, a4p)</span></span></span><br><span class="line"><span class="function">    Arguments passed as follows:</span></span><br><span class="line">        a1 in %rdi (64 bits)</span><br><span class="line">        a1p in %rsi (<span class="number">64</span> bits)</span><br><span class="line">        a2 in %edx (<span class="number">32</span> bits)</span><br><span class="line">        a2p in %rcx (<span class="number">64</span> bits)</span><br><span class="line">        a3 in %r8w (<span class="number">16</span> bits)</span><br><span class="line">        a3p in %r9 (<span class="number">64</span> bits)</span><br><span class="line">        a4 at %rsp+<span class="number">8</span> ( <span class="number">8</span> bits)</span><br><span class="line">        a4p at %rsp+<span class="number">16</span> (<span class="number">64</span> bits)</span><br><span class="line">proc:</span><br><span class="line">	movq <span class="number">16</span>(%rsp), %<span class="function">rax 	Fetch <span class="title">a4p</span> <span class="params">(<span class="number">64</span> bits)</span></span></span><br><span class="line">	addq %rdi, (%rsi)		*a1p += a1 (64 bits)</span><br><span class="line">	addl %edx, (%rcx) 		*a2p += a2 (<span class="number">32</span> bits)</span><br><span class="line">	addw %r8w, (%r9) 		*a3p += a3 (<span class="number">16</span> bits)</span><br><span class="line">	movl <span class="number">8</span>(%rsp), %edx 		Fetch a4 ( <span class="number">8</span> bits)</span><br><span class="line">	addb %dl, (%rax) 		*a4p += a4 ( <span class="number">8</span> bits)</span><br><span class="line">	ret 				    Return</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/21.png" style="zoom:100%;"></p>
+<p>可以看到，作为过程调用的一部分，返回地址被压入栈中。因而这两个参数位于相对于<strong>栈指针</strong>距离为8 和16 的位置。在这段代码中，我们可以看到根据操作数的大小，使用了ADD 指令的不同版本：</p>
+<ul>
+<li><code>al(long)</code>使用<code>addq</code></li>
+<li><code>a2(int)</code>使用<code>addl</code></li>
+<li><code>a3(short)</code>使用<code>addw</code></li>
+<li><code>a4(char)</code>使用<code>addb</code></li>
+<li>请注意第6行的<code>movl</code>指令从内存读人4 字节，而后面的<code>addb</code>指令只使用其中的低位一字节。</li>
+</ul>
+<h3 id="栈上的局部存储"><a href="#栈上的局部存储" class="headerlink" title="栈上的局部存储"></a>栈上的局部存储</h3><p>有些时候，局部数据必须存放在内存中，常见的情况包括：</p>
+<ul>
+<li>寄存器不足够存放所有的本地数据。</li>
+<li>对一个局部变量使用地址运算符 ‘&amp;’，. 因此必须能够为它产生一个地址。</li>
+</ul>
+<ul>
+<li>某些局部变量是数组或结构，因此必须能够通过数组或结构引用被访问到。</li>
+</ul>
+<p>一般来说，过程通过<strong>减小</strong> 栈指针在栈上分配空间。分配的结果作为栈帧的一部分，标号为”局部变量”</p>
+<p>(a) Code for swap_add and calling function</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">swap_add</span><span class="params">(<span class="keyword">long</span> *xp, <span class="keyword">long</span> *yp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">long</span> x = *xp;</span><br><span class="line">	<span class="keyword">long</span> y = *yp;</span><br><span class="line">	*xp = y;</span><br><span class="line">	*yp = x;</span><br><span class="line">	<span class="keyword">return</span> x + y;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">caller</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">long</span> arg1 = <span class="number">534</span>;</span><br><span class="line">	<span class="keyword">long</span> arg2 = <span class="number">1057</span>;</span><br><span class="line">	<span class="keyword">long</span> sum = swap_add(&amp;arg1, &amp;arg2);</span><br><span class="line">	<span class="keyword">long</span> diff = arg1 - arg2;</span><br><span class="line">	<span class="keyword">return</span> sum * diff;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们可以从下面这段汇编语言分析出caller是如何用栈帧来实现这些局部变量的。</p>
+<ul>
+<li>代码开始的时候把栈指针减了16，这是在栈上分配了16个字节</li>
+<li>将534，1057压栈，可以看到<code>&amp;arg2 = S+8 &amp;arg1 = S</code>.因此可以推断局部变量 arg1和arg2 存放在栈帧中的位置相对于栈顶指针的偏移量为0和8</li>
+<li>add调用完成后，caller的代码会从栈上取出这两个值(因为进行过了swap操作，两个地址指向的值已经交换了)，并计算它们的差，再乘以 swap_add 在寄存器 %rax 中返回的值</li>
+<li>最后，该函数将栈顶指针加上16来释放栈帧。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">long caller()</span><br><span class="line">caller:</span><br><span class="line">	subq 	$16, %rsp 				Allocate 16 bytes for stack frame</span><br><span class="line">	movq 	$534, (%rsp) 			Store 534 in arg1</span><br><span class="line">	movq 	$1057, 8(%rsp)			Store 1057 in arg2</span><br><span class="line">	leaq 	8(%rsp), %rsi 			Compute &amp;arg2 as second argument</span><br><span class="line">	movq 	%rsp, %rdi 				Compute &amp;arg1 as first argument</span><br><span class="line">	call 	swap_add 				Call swap_add(&amp;arg1, &amp;arg2)</span><br><span class="line">	movq 	(%rsp), %rdx 			Get arg1</span><br><span class="line">	subq 	8(%rsp), %rdx 			Compute diff &#x3D; arg1 - arg2</span><br><span class="line">	imulq 	%rdx, %rax 				Compute sum * diff</span><br><span class="line">	addq 	$16, %rsp 				Deallocate stack frame</span><br><span class="line">	ret 							Return</span><br></pre></td></tr></table></figure>
+<p>下面是一个更复杂的例子。它给出了一个必须在栈上分配局部变量存储空间的函数，同时还要向有8个参数的proc传递值。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">call_proc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="keyword">long</span> x1 = <span class="number">1</span>; <span class="keyword">int</span> x2 = <span class="number">2</span>;</span><br><span class="line">short x3 = <span class="number">3</span>; <span class="keyword">char</span> x4 = <span class="number">4</span>;</span><br><span class="line">proc(x1, &amp;x1, x2, &amp;x2, x3, &amp;x3, x4, &amp;x4);</span><br><span class="line"><span class="keyword">return</span> (x1+x2)*(x3-x4);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">long call_proc()</span><br><span class="line">call_proc:</span><br><span class="line">&#x2F;&#x2F;Set up arguments to proc</span><br><span class="line">subq 	$32, %rsp 			Allocate 32-byte stack frame</span><br><span class="line">movq 	$1, 24(%rsp) 		Store 1 in &amp;x1</span><br><span class="line">movl 	$2, 20(%rsp) 		Store 2 in &amp;x2</span><br><span class="line">movw 	$3, 18(%rsp) 		Store 3 in &amp;x3</span><br><span class="line">movb 	$4, 17(%rsp) 		Store 4 in &amp;x4</span><br><span class="line">leaq 	17(%rsp), %rax 		Create &amp;x4</span><br><span class="line">movq 	%rax, 8(%rsp) 		Store &amp;x4 as argument 8</span><br><span class="line">movl 	$4, (%rsp) 			Store 4 as argument 7</span><br><span class="line">leaq 	18(%rsp), %r9 		Pass &amp;x3 as argument 6</span><br><span class="line">movl 	$3, %r8d 			Pass 3 as argument 5</span><br><span class="line">leaq 	20(%rsp), %rcx 		Pass &amp;x2 as argument 4</span><br><span class="line">movl 	$2, %edx 			Pass 2 as argument 3</span><br><span class="line">leaq 	24(%rsp), %rsi 		Pass &amp;x1 as argument 2</span><br><span class="line">movl 	$1, %edi			Pass 1 as argument 1</span><br><span class="line">&#x2F;&#x2F;Call proc</span><br><span class="line">call 	proc</span><br><span class="line">&#x2F;&#x2F;Retrieve changes to memory</span><br><span class="line">movslq 	20(%rsp), %rdx 		Get x2 and convert to long</span><br><span class="line">addq 	24(%rsp), %rdx 		Compute x1+x2</span><br><span class="line">movswl 	18(%rsp), %eax 		Get x3 and convert to int</span><br><span class="line">movsbl 	17(%rsp), %ecx 		Get x4 and convert to int</span><br><span class="line">subl 	%ecx, %eax 			Compute x3-x4</span><br><span class="line">cltq 						Convert to long</span><br><span class="line">imulq 	%rdx, %rax 			Compute (x1+x2) * (x3-x4)</span><br><span class="line">addq 	$32, %rsp 			Deallocate stack frame</span><br><span class="line">ret 						Return</span><br></pre></td></tr></table></figure>
+<p>可以看到代码中一大部分是为调用proc做准备。其中包括为局部变量和参数建立栈帧，将函数参数加载至寄存器。</p>
+<h3 id="寄存器中的局部存储空间"><a href="#寄存器中的局部存储空间" class="headerlink" title="寄存器中的局部存储空间"></a>寄存器中的局部存储空间</h3><h4 id="被调用者保存寄存器"><a href="#被调用者保存寄存器" class="headerlink" title="被调用者保存寄存器"></a>被调用者保存寄存器</h4><p>寄存器 %rbx 、%rbp 和 %r12~%r15 被划分为被调用者保存寄存器</p>
+<p>过程P 调用过程 Q 的时候，Q必须保存这些寄存器的值，保证他们的值在Q返回到P时与Q被调用时是一样的。这时候有两种可能性，要门就是根本不去改变它，要么就是把原始值压入栈中，改变寄存器的值，然后再返回前从栈中弹出旧值。</p>
+<h4 id="调用者保存寄存器"><a href="#调用者保存寄存器" class="headerlink" title="调用者保存寄存器"></a>调用者保存寄存器</h4><p>除了%rsp和被调用者保存寄存器，剩下的都是调用者保存寄存器。这就意味着任何函数都能修改它们。</p>
+<p>可以这样来理解“调用者保存”这个名字：过程P 在某个此类寄存器中有局部数据，然后调用过程Q 因为Q 可以随意修改这个寄存器，所以在调用之前首先保存好这个数据是P(调用者）的责任。</p>
+<p>可以看看下面这个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">long(long x,long y)</span><br><span class="line">&#123;</span><br><span class="line">	long u &#x3D; Q(y);</span><br><span class="line">	long v &#x3D; Q(x);</span><br><span class="line">	return u+v;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译成汇编代码如下</p>
+<p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/22.png" style="zoom:100%;"></p>
+<p>可以看出来:%rbp 保存 x %rbx 保存计算出来的Q(y) 的值。</p>
+<ul>
+<li>在函数的开头，把两个寄存器的值保存到栈中(2~3行) 因为这两个寄存器之前可能有值</li>
+<li>第一次调用之前，把参数复制到 %rbp</li>
+<li>在第二次调用Q之前，把%rax(第一次计算的结果) 放到%rbx中</li>
+<li>在函数的结尾，将 %rbp和%rbx 从栈中弹出，恢复这两个被调用者保存寄存器的值，注意他们的弹出顺序和压入顺序相反。</li>
+</ul>
+<h3 id="递归过程"><a href="#递归过程" class="headerlink" title="递归过程"></a>递归过程</h3><p>每个过程调用在栈中都有它自己的私有空间，因此多个未完成调用的局部变量不会相互影响。此外，栈的原则很自然地就提供了适当的策略，当过程被调用时分配局部存储，当返回时释放存储。</p>
+<p>下面给出了递归的阶乘函数的C代码和汇编代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">(a) <span class="function">C <span class="title">code</span>								<span class="params">(b)</span> Generated assembly code <span class="comment">//n in %rdi</span></span></span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">rfact</span><span class="params">(<span class="keyword">long</span> n)</span>						rfact:</span></span><br><span class="line"><span class="function"></span>&#123;											pushq %rbx 			Save %rbx</span><br><span class="line">    <span class="keyword">long</span> result;							movq %rdi, %rbx		Store n in callee-saved <span class="keyword">register</span></span><br><span class="line">    <span class="keyword">if</span> (n &lt;= <span class="number">1</span>)								movl $<span class="number">1</span>, %eax		Set <span class="keyword">return</span> value = <span class="number">1</span></span><br><span class="line">    	result = <span class="number">1</span>;							cmpq $<span class="number">1</span>, %rdi		Compare n:<span class="number">1</span></span><br><span class="line">    <span class="keyword">else</span>									jle .L35 			If &lt;=, <span class="keyword">goto</span> done</span><br><span class="line">	    result = n * rfact(n<span class="number">-1</span>);			leaq <span class="number">-1</span>(%rdi), %rdi Compute n<span class="number">-1</span></span><br><span class="line">    <span class="keyword">return</span> result;							<span class="function">call rfact			Call <span class="title">rfact</span><span class="params">(n<span class="number">-1</span>)</span></span></span><br><span class="line">&#125;											imulq %rbx, %rax 	Multiply result by n</span><br><span class="line">										.L35:</span><br><span class="line">											popq %rbx 			Restore %rbx</span><br><span class="line">											ret 				Return</span><br></pre></td></tr></table></figure>
+<p>我们可以看到，汇编代码使用寄存器 <code>%rbx</code>来保存参数n，先把已经有的值保存在栈上(2行)随后在返回前恢复该值(12行)</p>
+<p>根据栈的使用特性和寄存器保存规则，可以保证当递归调用 <code>rfact(n-1)</code>返回时(第9行) 会发生：</p>
+<ul>
+<li>该次调用的结果会保存在寄存器 <code>%rax</code> 中</li>
+<li>参数n的值仍然存在寄存器 <code>%rbx</code> 中</li>
+</ul>
+<p>把这两个值相乘就能得到期望的结果</p>
+<p>从这个例子我们可以看到，递归调用一个函数本身与调用其他函数是一样的。栈规则提供了一种机制，每次函数调用都有它自己私有的状态信息（保存的返回位置和被调用者保存寄存器的值)存储空间。如果需要，它还可以提供局部变量的存储。栈分配和释放的规则很自然地就与函数调用-返回的顺序匹配。这种实现函数调用和返回的方法甚至对更复杂的情况也适用，包括相互递归调用（例如，过程P 调用Q，Q 再调用P)。</p>
+<h2 id="课后练习"><a href="#课后练习" class="headerlink" title="课后练习"></a>课后练习</h2><h4 id="1"><a href="#1" class="headerlink" title="1"></a>1</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/28.png" style="zoom:100%;"></p>
+<h4 id="2"><a href="#2" class="headerlink" title="2"></a>2</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/29.png" style="zoom:100%;"></p>
+<h4 id="3"><a href="#3" class="headerlink" title="3"></a>3</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/30.png" style="zoom:100%;"></p>
+<h4 id="4"><a href="#4" class="headerlink" title="4"></a>4</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/31.png" style="zoom:100%;"></p>
+<h4 id="5"><a href="#5" class="headerlink" title="5"></a>5</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/32.png" style="zoom:100%;"></p>
+<h4 id="6"><a href="#6" class="headerlink" title="6"></a>6</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/33.png" style="zoom:100%;"></p>
+<h4 id="7"><a href="#7" class="headerlink" title="7"></a>7</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/34.png" style="zoom:100%;"></p>
+<h4 id="8"><a href="#8" class="headerlink" title="8"></a>8</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/35.png" style="zoom:100%;"></p>
+<h4 id="9"><a href="#9" class="headerlink" title="9"></a>9</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/36.png" style="zoom:100%;"></p>
+<h4 id="10"><a href="#10" class="headerlink" title="10"></a>10</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/37.png" style="zoom:100%;"></p>
+<h4 id="11"><a href="#11" class="headerlink" title="11"></a>11</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/38.png" style="zoom:100%;"></p>
+<h4 id="12"><a href="#12" class="headerlink" title="12"></a>12</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/39.png" style="zoom:100%;"></p>
+<h4 id="13"><a href="#13" class="headerlink" title="13"></a>13</h4><p><img src="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/40.png" style="zoom:100%;">z   </p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/" title="CSAPP程序的机器即表示2（6~11节）">https://jasonxqh.github.io/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CSAPP/" rel="tag"><i class="fa fa-tag"></i> CSAPP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/10/10/%E8%AF%84%E4%BC%B0%E4%B8%8E%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/" rel="next" title="评估与选择合适的回归模型">
+                <i class="fa fa-chevron-left"></i> 评估与选择合适的回归模型
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/10/11/Logistic-Regression/" rel="prev" title="Logistic_Regression">
+                Logistic_Regression <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">420</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP程序的机器即表示2"><span class="nav-number">1.</span> <span class="nav-text">CSAPP程序的机器即表示2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#控制"><span class="nav-number">1.1.</span> <span class="nav-text">控制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#条件码"><span class="nav-number">1.1.1.</span> <span class="nav-text">条件码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#访问条件码"><span class="nav-number">1.1.2.</span> <span class="nav-text">访问条件码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#跳转指令"><span class="nav-number">1.1.3.</span> <span class="nav-text">跳转指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#跳转指令的编码"><span class="nav-number">1.1.4.</span> <span class="nav-text">跳转指令的编码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用条件控制来实现条件分支"><span class="nav-number">1.1.5.</span> <span class="nav-text">用条件控制来实现条件分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用条件传送来实现条件分支"><span class="nav-number">1.1.6.</span> <span class="nav-text">用条件传送来实现条件分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#循环"><span class="nav-number">1.1.7.</span> <span class="nav-text">循环</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#do-while-循环"><span class="nav-number">1.1.7.1.</span> <span class="nav-text">do-while 循环</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#while循环"><span class="nav-number">1.1.7.2.</span> <span class="nav-text">while循环</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#for循环"><span class="nav-number">1.1.7.3.</span> <span class="nav-text">for循环</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#switch-语句"><span class="nav-number">1.1.8.</span> <span class="nav-text">switch 语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Summarizing"><span class="nav-number">1.1.9.</span> <span class="nav-text">Summarizing</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#C-Control"><span class="nav-number">1.1.9.1.</span> <span class="nav-text">C Control</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Assembler-Control"><span class="nav-number">1.1.9.2.</span> <span class="nav-text">Assembler Control</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Standard-Techniques"><span class="nav-number">1.1.9.3.</span> <span class="nav-text">Standard Techniques</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#过程"><span class="nav-number">1.2.</span> <span class="nav-text">过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mechanisms-机制"><span class="nav-number">1.2.1.</span> <span class="nav-text">Mechanisms(机制)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行时栈"><span class="nav-number">1.2.2.</span> <span class="nav-text">运行时栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Push"><span class="nav-number">1.2.3.</span> <span class="nav-text">Push</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Pop"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">Pop</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#栈帧"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">栈帧</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#转移控制"><span class="nav-number">1.2.4.</span> <span class="nav-text">转移控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据传送"><span class="nav-number">1.2.5.</span> <span class="nav-text">数据传送</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#栈上的局部存储"><span class="nav-number">1.2.6.</span> <span class="nav-text">栈上的局部存储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#寄存器中的局部存储空间"><span class="nav-number">1.2.7.</span> <span class="nav-text">寄存器中的局部存储空间</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#被调用者保存寄存器"><span class="nav-number">1.2.7.1.</span> <span class="nav-text">被调用者保存寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#调用者保存寄存器"><span class="nav-number">1.2.7.2.</span> <span class="nav-text">调用者保存寄存器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#递归过程"><span class="nav-number">1.2.8.</span> <span class="nav-text">递归过程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#课后练习"><span class="nav-number">1.3.</span> <span class="nav-text">课后练习</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1"><span class="nav-number">1.3.0.1.</span> <span class="nav-text">1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2"><span class="nav-number">1.3.0.2.</span> <span class="nav-text">2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3"><span class="nav-number">1.3.0.3.</span> <span class="nav-text">3</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4"><span class="nav-number">1.3.0.4.</span> <span class="nav-text">4</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5"><span class="nav-number">1.3.0.5.</span> <span class="nav-text">5</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6"><span class="nav-number">1.3.0.6.</span> <span class="nav-text">6</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7"><span class="nav-number">1.3.0.7.</span> <span class="nav-text">7</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8"><span class="nav-number">1.3.0.8.</span> <span class="nav-text">8</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9"><span class="nav-number">1.3.0.9.</span> <span class="nav-text">9</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10"><span class="nav-number">1.3.0.10.</span> <span class="nav-text">10</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#11"><span class="nav-number">1.3.0.11.</span> <span class="nav-text">11</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#12"><span class="nav-number">1.3.0.12.</span> <span class="nav-text">12</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#13"><span class="nav-number">1.3.0.13.</span> <span class="nav-text">13</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1232.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+  
+
+  
+
+</body>
+</html>

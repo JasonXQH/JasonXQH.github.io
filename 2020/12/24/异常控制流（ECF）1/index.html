@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CSAPP," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="异常控制流（ECF）1控制流首先我们要了解控制流的概念,从给处理器加点到断电为止，程序计数器假设一个值得序列如下：  其中  $inst_k$ 代表着一条条指令。每次从 $inst_1$ 到 $inst_2$ 的过渡被称为控制转移。这样的控制转移序列叫做处理器的控制流。 更改控制流我们知道，进程有三个状态，running(拿到CPU并运行)，waiting(在等一个事件发生，在这个事件没有发生之前">
+<meta property="og:type" content="article">
+<meta property="og:title" content="异常控制流（ECF）1">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="异常控制流（ECF）1控制流首先我们要了解控制流的概念,从给处理器加点到断电为止，程序计数器假设一个值得序列如下：  其中  $inst_k$ 代表着一条条指令。每次从 $inst_1$ 到 $inst_2$ 的过渡被称为控制转移。这样的控制转移序列叫做处理器的控制流。 更改控制流我们知道，进程有三个状态，running(拿到CPU并运行)，waiting(在等一个事件发生，在这个事件没有发生之前">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/24.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/25.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/26.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/27.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/28.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/29.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/30.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/31.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/32.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/33.png">
+<meta property="article:published_time" content="2020-12-24T05:02:24.000Z">
+<meta property="article:modified_time" content="2022-06-25T14:39:22.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="CSAPP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/2.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2020/12/24/异常控制流（ECF）1/"/>
+
+
+
+
+
+  <title>异常控制流（ECF）1 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">异常控制流（ECF）1</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-12-24T13:02:24+08:00">
+                2020-12-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  7.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  28
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="异常控制流（ECF）1"><a href="#异常控制流（ECF）1" class="headerlink" title="异常控制流（ECF）1"></a>异常控制流（ECF）1</h1><h2 id="控制流"><a href="#控制流" class="headerlink" title="控制流"></a>控制流</h2><p>首先我们要了解控制流的概念,从给处理器加点到断电为止，程序计数器假设一个值得序列如下：</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/2.png" style="zoom:100%;"></p>
+<p>其中  $inst_k$ 代表着一条条指令。每次从 $inst_1$ 到 $inst_2$ 的过渡被称为控制转移。这样的控制转移序列叫做处理器的控制流。</p>
+<h3 id="更改控制流"><a href="#更改控制流" class="headerlink" title="更改控制流"></a>更改控制流</h3><p>我们知道，进程有三个状态，running(拿到CPU并运行)，waiting(在等一个事件发生，在这个事件没有发生之前即使拿到了CPU也做不了事)，ready(已就绪，但是还没拿到CPU，等拿到了立即可以执行)</p>
+<p>当哪些事件发生的时候系统会更改控制流呢？</p>
+<h4 id="two-mechanisms-for-changing-control-flow"><a href="#two-mechanisms-for-changing-control-flow" class="headerlink" title="two mechanisms for changing control flow"></a>two mechanisms for changing control flow</h4><ul>
+<li>Jump and branches</li>
+<li>Call and return</li>
+</ul>
+<h4 id="Insufficient-for-a-useful-system"><a href="#Insufficient-for-a-useful-system" class="headerlink" title="Insufficient for a useful system"></a>Insufficient for a useful system</h4><ul>
+<li>Data arrives from a disk or a network adapter <ul>
+<li>当磁盘或者网络的数据到达的时候，系统会发出一个事件，代表数据传输完成。这时候从waiting进入到ready状态。这时候就需要操作系统中的代码来做。操作系统会把一个队列移动到另一个队列去，特别是这个进程优先级很高，我们甚至要直接把现在在running的进程拉下来然后把这个进程直接拿到CPU去运行</li>
+</ul>
+</li>
+<li>Instruction divides by zero<ul>
+<li>代码除以0了。这也需要操作系统来做。</li>
+</ul>
+</li>
+<li>User hits Ctrl-C at the key board<ul>
+<li>按Ctrl-C 退出程序。这时候也是操作系统来执行的</li>
+</ul>
+</li>
+<li>System timer expires                    <ul>
+<li>如果一个操作系统很多人在运行，那么操作系统会让每个人轮流运行一段时长。时间一到操作系统会把当前执行的挂起，状态设置为ready，然后把下一个进程放到CPU当中去</li>
+</ul>
+</li>
+</ul>
+<p>因此，系统需要一个 ECF的机制，也就是异常控制流来对这些变化做出反应。</p>
+<h2 id="异常控制流"><a href="#异常控制流" class="headerlink" title="异常控制流"></a>异常控制流</h2><p>在异常发生的时候，很多时候要执行的代码并不是用户写的，而是操作系统写的。这些操作系统执行的代码块就放置在地址空间中的Kernel code and data 层里面，如下图所示：</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/1.png" style="zoom:80%;"></p>
+<p>异常控制流在计算机系统的各个层级都有涉及。</p>
+<h3 id="底层"><a href="#底层" class="headerlink" title="底层"></a>底层</h3><ul>
+<li><p>Exceptions</p>
+<ul>
+<li><p>Change in control flow in response to a system event</p>
+</li>
+<li><p>implemented using combination of hardware and OS software</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>在操作系统层面是比较底层的Exception(也叫interruption)，这时候需要硬件和软件来共同完成。</p>
+<h3 id="高层"><a href="#高层" class="headerlink" title="高层"></a>高层</h3><p>在操作系统层面以上的，一共有三种</p>
+<ul>
+<li>Process context switch</li>
+</ul>
+<p>一个进程在运行过程中的状态被称为context。 那么当状态切换的时候，就是context switch。再说得简单一点，就是进程切换</p>
+<p>context switch要做这样一些工作：</p>
+<ol>
+<li>保留寄存器(包括栈顶指针)</li>
+<li>状态字需要保留</li>
+<li>pc要保留，并指向新的进程开始的第一条指令</li>
+</ol>
+<ul>
+<li>Signals  - Implemented by OS software</li>
+</ul>
+<p>一个进程可以主动的发一个signal，比如说 kill 指令可以杀死一个进程；或者yield指令，可以将CPU让出来让别人用；sleep指令可以先睡眠，过一会再回来运行</p>
+<ul>
+<li>Nonlocal jumps：setjump() 和 longjmp()</li>
+</ul>
+<p>跳到很远的地方去执行</p>
+<h2 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h2><p>异常(exception)就是控制流中的突变，用来响应处理器状态中的某些变化。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/3.png" style="zoom:120%;"></p>
+<h3 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h3><p>在这张图中，当处理器状态中发生一个重要变化的时候，处理器正在处理 $I_{current}$ 。在处理器中，状态被编码为不同的位和信号。状态变化称为 event(事件)。</p>
+<p>事件可能和当前指令的执行直接相关。比如发生内存缺页、算术溢出、或者一条指令试图除以0等等。<br>另一方面，事件也可能和当前指令的执行没有关系，比如一个系统定时器产生信号或者一个I/O请求完成</p>
+<p>在任何情况下，当处理器检测到有事件发生的时候，它就会通过一张  异常表 的跳转表来跳到一个专门设计用来处理这类事件的操作系统子程序。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/4.png" style="zoom:120%;"></p>
+<p>当异常处理程序完成处理后，根据引起的异常的事件的类型，会发生一下三种情况：</p>
+<ol>
+<li>处理程序将控制返回给当前指令 $I_{curr}$ ，即当事件发生的时候正在执行的指令。比如说缺页 page fault</li>
+<li>处理程序将控制返回给 $I_{next}$，如果没有异常将会执行下一条指令。比如说 arithmetic overflow 溢出了</li>
+<li>处理程序终止被中断的程序。比如说 ctrl+c</li>
+</ol>
+<h3 id="异常类别"><a href="#异常类别" class="headerlink" title="异常类别"></a>异常类别</h3><p>首先我们要了解同步和异步的概念。</p>
+<p>同步代表着我必须马上回应出现的异常，处理完才能进行下一步操作。异步则代表我可以先执行其他操作，让系统去处理这个异常，等处理完后再回来也可以。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/5.png"></p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/10.png"></p>
+<h4 id="Interrupts-中断"><a href="#Interrupts-中断" class="headerlink" title="Interrupts(中断)"></a>Interrupts(中断)</h4><p>中断时异步发生的，这是来自处理器<strong>外部</strong> 的I/O设备信号的结果。硬件中断<strong>并不是由任何一条专门的指令造成的</strong>，从这个意义上说他是异步的。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/6.png"></p>
+<p>当处理程序返回时，它就将控制返回给下一条指令(也即如果没有发生中断，在控制流中会在当前指令之后的那条指令)。结果是程序继续执行，就好像没有发生过一样</p>
+<p>比如说：Timer interrupt，这个意思是说我的时钟周期到了，不给我用了，系统强制把我的进程中断，执行其他进程。</p>
+<p>又比如说外部的I/O设备中断，比如我按下 Ctrl-C，直接退出进程；网络或者磁盘上的数据到了，那么这个时候就会去执行其他进程</p>
+<h4 id="Trap-陷阱"><a href="#Trap-陷阱" class="headerlink" title="Trap(陷阱)"></a>Trap(陷阱)</h4><p>陷阱是有意的异常，是执行一条指令的结果。就像中断处理程序一样，陷阱处理程序将控制返回到下一条指令。陷阱最重要的用途是在用户程序和内核之间提供一个像过程一样的接口，叫做<strong>系统调用</strong>。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/7.png"></p>
+<p>用户程序经常需要向内核请求服务，比如读一个文件（read)、创建一个新的进程(fork) 加载一个新的程序（execve)，或者终止当前进程（exit)。为了允许对这些内核服务的受控的访问，处理器提供了一条特殊的<code>syscall n</code>指令，当用户程序想要请求服务n时，可以执行这条指令。执行<code>syscall</code>指令会导致一个到异常处理程序的陷阱, 这个处理程序解析参数，并调用适当的内核程序。</p>
+<p>比如说我们在用 gdb调试的时候设置的breakpoints</p>
+<h4 id="Fault"><a href="#Fault" class="headerlink" title="Fault"></a>Fault</h4><p>故障由错误情况引起，它可能能够被故障处理程序<strong>修正</strong>。当故障发生时，处理器将控制转移给故障处理程序。如果处理程序能够修正这个错误情况，它就将控制返回到引起故障的指令，从而<strong>重新执行它</strong>。否则，处理程序返回到内核中的abort 例程，abort 例程会终止引起故障的应用程序</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/8.png"></p>
+<h4 id="Aborts-终止"><a href="#Aborts-终止" class="headerlink" title="Aborts(终止)"></a>Aborts(终止)</h4><p>终止是不可恢复的致命错误造成的结果，通常是一些硬件错误，比如DRAM 或者 SRAM 位被损坏时发生的奇偶错误。终止处理程序从不将控制返回给应用程序。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/9.png"></p>
+<h4 id="Linux-x86-64-系统中的异常"><a href="#Linux-x86-64-系统中的异常" class="headerlink" title="Linux/x86-64 系统中的异常"></a>Linux/x86-64 系统中的异常</h4><p>x86-64 系统定义了256种不同的异常类型。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/10.png"></p>
+<h4 id="x86-64-的故障与终止"><a href="#x86-64-的故障与终止" class="headerlink" title="x86-64 的故障与终止"></a>x86-64 的故障与终止</h4><p><strong>除法错误</strong>。当应用试图除以零时，或者当一个除法指令的结果对于目标操作数来说太大了的时候，就会发生除法错误（异常0)。Unix 不会试图从除法错误中恢复，而是选择终止程序。Linux shell 通常会把除法错误报告为“浮点异常(Floatmg exception)”</p>
+<p><strong>一般保护故障</strong>。许多原因都会导致不为人知的一般保护故障（异常13)，通常是因为一个程序引用了一个未定义的虚拟内存区域，或者因为程序试图写一个只读的文本段。Linux 不会尝试恢复这类故障。Linux shell 通常会把这种一般保护故障报告为“段故障(Segmentation fault)”</p>
+<p><strong>缺页</strong>(异常14)是会重新执行产生故障的指令的一个异常示例。处理程序将适当的磁盘上虚拟内存的一个页面映射到物理内存的一个页面，然后重新执行这条产生故障的指令。我们将在第9 章中看到缺页是如何工作的细节。</p>
+<p><strong>机器检查</strong>。机器检査（异常18)是在导致故障的指令执行中检测到致命的硬件错误时发生的。机器检査处理程序从不返回控制给应用程序。</p>
+<h4 id="x86-64-的系统调用"><a href="#x86-64-的系统调用" class="headerlink" title="x86-64 的系统调用"></a>x86-64 的系统调用</h4><p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/12.png"></p>
+<p>当我们system call的时候，汇编指令用的是 syscall，注意，这时候rsp并不是在用户栈里面，而会把栈指针指导Kernel里面去</p>
+<h2 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h2><h3 id="进程和线程的区别"><a href="#进程和线程的区别" class="headerlink" title="进程和线程的区别"></a>进程和线程的区别</h3><p>进程：进程就是在运行中的程序。CPU在使用的时候都是以进程为单位的。</p>
+<p>线程：随着我们的应用程序越来越复杂，我们希望CPU能处理一个程序的并行任务。也就是一个进程里面有多个指令执行的序列，这些序列可以是异步的。比如说把一个人比作一个进程，那么他可以学算法、可以学CSAPP、可以学音乐，这些科目就是线程，它们共享人的大脑、书包、宿舍(cache,memory等资源)</p>
+<p>注意，当有多个线程的时候，每个线程的stack是不共享的，因为他们有不同的指令序列。</p>
+<p>上下文：上下文是由程序正确运行所需的状态组成的。这个状态包括存放在内存中的程序的代码和数据，它的<strong>栈</strong>、<strong>通用目的寄存器的内容</strong>、<strong>程序计数器</strong>、<strong>环境变量</strong>以及 <strong>打开文件描述符的集合</strong></p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/13.png" style="zoom:67%;"></p>
+<p>每次用户通过向shell 输人一个可执行目标文件的名字，运行程序时，shell 就会创建一个新的进程，然后在这个新进程的上下文中运行这个可执行目标文件。应用程序也能够创建新进程，并且在这个新进程的上下文中运行它们自己的代码或其他应用程序。</p>
+<p>在这一节，我们将关注进程提供给应用程序的关键抽象：</p>
+<ul>
+<li>Logical control flow：一个独立的逻辑控制流，它提供了一个假象，好像我们程序独占地使用处理器</li>
+<li>Private address space：一个私有的地址空间，它提供了一个假象，好像我们的程序独占地使用内存系统</li>
+</ul>
+<h3 id="逻辑控制流"><a href="#逻辑控制流" class="headerlink" title="逻辑控制流"></a>逻辑控制流</h3><p>multi-programming 多道程序，也就是是多个进程的意思。</p>
+<p>multi-threading: 多线程</p>
+<p>multi-tasking: 多任务，机器进行多项任务批处理，交互性差</p>
+<p>multi-processing ： 多任务处理</p>
+<p>Time sharing(分时)：将时间划分成时间片，进程按时间片轮流执行</p>
+<p>Multi-programming(多道)：系统中存在多个程序同时执行，增加CP的利用率。</p>
+<p>区别：分时主要针对提高系统的响应速度，改善用户体验；多道主要针对增加系统的利用</p>
+<p>multi-threading 和 multi-tasking 是一回事。</p>
+<p>我们刚才说了进程会向每个人提供一种假象，好像它在独占地使用处理器。那么我们如果这时候去看PC(程序计数器)的值，就会发现这些值唯一地对应于包含在程序的可执行目标文件中的指令。这个PC值得序列就叫做逻辑控制流(简称逻辑流)</p>
+<p>比如说下图，一个运行着三个进程的系统。处理器的一个物理控制流被分成了三个逻辑流，每个进程一个。 每个竖直的条表示一个进程的逻辑流的一部分。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/14.png"></p>
+<p>在这个例子中，三个逻辑流的执行是交错的。进程A运行了一会儿，然后是进程B开始运行到完成。然后，进程C运行了一会，进程A接着运行直到完成。最后进程C可以运行到结束了。</p>
+<p>上图的关键点在于进程是轮流使用处理器的。每个进程执行它的流的一部分，然后被抢占(暂时挂起)，然后轮到其他进程。对于一个运行在这些进程之一的上下文中的程序，它看上去就像是在独占地使用处理器。</p>
+<p>但是如果我们精确地测量每条指令使用的时间，会发现在程序中一些指令的执行之间，CPU好像会周期性地停顿。但是这并不会改变程序内存位置或者寄存器的内容。</p>
+<h3 id="并发流"><a href="#并发流" class="headerlink" title="并发流"></a>并发流</h3><p>一个逻辑流的执行在时间上与另一个流重叠，称为并发流(concurrent flow)，这两个流被称为并发地运行。</p>
+<p>比如说流X和Y互相并发，当且仅当 (X在Y开始之后和Y结束之前开始|Y在X开始之后和X结束之前开始)</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/15.png"></p>
+<p>在这张图中，进程A和B并发地运行，A和C也是并发运行，但是B和C不是并发运行，因为B的最后一条指令在C的第一条指令之前执行</p>
+<p>多个流并发地执行的一般现象被称为并发（concurrency)。一个进程和其他进程轮流运行的概念称为多任务（multitasking)。一个进程执行它的控制流的一部分的每一时间段叫做时间片（time slicing) 因此，多任务也叫做时间分片（time slicing).比如说上图，进程A的流是由两个时间片组成的。</p>
+<p>但是在真正的执行过程中间，它们是不相交的，分离的。不过从用户的角度来看，并发地进程是相交的。因此在用户看来，三个进程是这样运行的。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/16.png"></p>
+<h3 id="私有地址空间"><a href="#私有地址空间" class="headerlink" title="私有地址空间"></a>私有地址空间</h3><p>进程会为每个程序提供它自己的私有地址空间。一般而言，和这个空间中某个地址相关联的那个内存字节是不能被其他进程读或者写的，因此说这个地址空间是私有的。</p>
+<p>每一个地址空间的组织结构都是类似的。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/17.png"></p>
+<h3 id="上下文切换"><a href="#上下文切换" class="headerlink" title="上下文切换"></a>上下文切换</h3><p>内核为每一个进程都维持一个上下文。上下文就是内核重新启动一个被抢占的进程所需的状态。</p>
+<p>它由一些对象的值组成，这些对象包括<strong>通用目的寄存器</strong>、<strong>浮点寄存器</strong>、<strong>程序计数器</strong>、<strong>用户栈</strong>、<strong>状态寄存器</strong>、<strong>内核栈</strong>、<strong>各种内核数据结构(页表、进程表、文件表等)</strong></p>
+<p>在进程执行的某些时刻，内核可以决定抢占当前进程，并重新开始一个先前被抢占了的进程。这种决策就叫<strong>调度</strong>，是由内核中称为调度器的代码处理的。</p>
+<p>在内核调度了一个新的进程运行后，它就抢占当前的进程，并使用一种称为上下文切换的机制来将控制转移到新的进程</p>
+<p>上下文切换有三个步骤：</p>
+<ol>
+<li>保存当前进程的上下文</li>
+<li>恢复某个先前被抢占的进程被保存的上下文</li>
+<li>将控制传递给这个新恢复的进程</li>
+</ol>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/18.png"></p>
+<p>如上图所示，进程A进行了read的系统调用，此时内核不会只等待读取的完成而什么都不做，而是切换到进程B继续执行。磁盘发出中断信号表面数据以及存入内存中，此时内核又会切换回进程A，继续执行read后的指令。</p>
+<h2 id="进程控制"><a href="#进程控制" class="headerlink" title="进程控制"></a>进程控制</h2><h3 id="System-Call-Error-Handling"><a href="#System-Call-Error-Handling" class="headerlink" title="System Call Error Handling"></a>System Call Error Handling</h3><p>在出现错误时，Linux系统级函数通常返回-1和设置全局变量errno来指示原因</p>
+<p>比如说fork()函数，它是用来创建一个新进程的。如果它的pid小于0，就说明创建新进程失败了，因此我们需要报告并打印这个错误信息。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ((pid = fork()) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"fork error: %s\n"</span>, strerror(errno));</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是我们对每个错误都这样写的话，会非常麻烦而且容易出错，因此我们可以把这个函数封装一下。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unix_error</span><span class="params">(<span class="keyword">char</span> *msg)</span> <span class="comment">/* Unix-style error */</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%s: %s\n"</span>, msg, strerror(errno));</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> ((pid = fork()) &lt; <span class="number">0</span>)</span><br><span class="line">	unix_error(<span class="string">"fork error"</span>);</span><br></pre></td></tr></table></figure>
+<p>这样以后，我只要 写一个<code>unix_error</code>函数,然后调用即可</p>
+<h4 id="Wrappers"><a href="#Wrappers" class="headerlink" title="Wrappers"></a>Wrappers</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">Fork</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> ((pid = fork()) &lt; <span class="number">0</span>)</span><br><span class="line">    	unix_error(<span class="string">"Fork error"</span>);</span><br><span class="line">    <span class="keyword">return</span> pid;</span><br><span class="line">&#125;</span><br><span class="line">/..../</span><br><span class="line">pid = Fork();</span><br></pre></td></tr></table></figure>
+<p>我们可以写得更有层次一点，将fork()函数封装在Fork()函数当中</p>
+<p>这里我们再关注一下fork()函数，fork()是仅有的调用一次返回两次的函数。return的数值有两种情况，一种是return自己的 <code>pid</code>，另一种是return 子进程的 <code>pid</code></p>
+<h4 id="Obtaining-Process-IDs"><a href="#Obtaining-Process-IDs" class="headerlink" title="Obtaining Process IDs"></a>Obtaining Process IDs</h4><p><code>pid_t getpid(void)</code> 这个函数返回当前进程的PID</p>
+<p><code>pid_t getppid(void)</code>这个函数返回父进程的PID</p>
+<h3 id="创建和终止进程"><a href="#创建和终止进程" class="headerlink" title="创建和终止进程"></a>创建和终止进程</h3><p>从一个程序员的角度，我们可以认为一个进程一定是这三个状态中的一个</p>
+<p><strong>Running:</strong></p>
+<p>Running 状态就是拿到CPU直接可以运行；也可以说是Ready，即现在还没拿到CPU,但是拿到CPU之后可以马上运行</p>
+<p><strong>Stopping:</strong></p>
+<p>进程的执行被挂起，处于等待状态。当收到 SIGSTOP、SIGTSTP、SIGTTIN或者SIGTTOU信号时，进程就会停止，并且保持停止到它收到一个SIGCONT信号，在这个时刻，进程再次开始运行</p>
+<p><strong>Terminated:</strong></p>
+<p>结束状态，但是分配给进程的资源还没有回收。这种状态也叫做Zombie ，也就是我们常说的僵尸进程。</p>
+<h4 id="Terminating"><a href="#Terminating" class="headerlink" title="Terminating"></a>Terminating</h4><p>当发生以下三个情况的时候，进程就会被终止</p>
+<ul>
+<li>Receiving a signal whose default action is to terminate </li>
+<li>Returning from the main routine</li>
+<li>Calling the exit function</li>
+</ul>
+<p>exit 函数 <code>void exit(int status)</code></p>
+<ul>
+<li>Terminates with an <em>exit status</em> of status </li>
+<li>Convention: normal return status is 0,nonzero on error</li>
+<li>Another way to explicitly set the exit status is to return an integer value from the main routine</li>
+</ul>
+<p>exit没有return，只有call。因此在exit()后面写代码是毫无意义的。</p>
+<h4 id="Creating-Processes"><a href="#Creating-Processes" class="headerlink" title="Creating Processes"></a>Creating Processes</h4><p>当我们调用fork函数的时候，父进程会创造一个新的子进程</p>
+<p><code>int fork(void)</code> 的一些注意点</p>
+<ul>
+<li><p>Returns 0 to the child process,child’s PID to parent process</p>
+<ul>
+<li>即如果我拿到了一个PID，就说明我是父进程；如果我拿到了一个0，就说明我是一个子进程</li>
+</ul>
+</li>
+<li><p>子进程和父进程基本是一样的：</p>
+<ul>
+<li>子进程得到了一个和父进程一模一样的虚拟地址空间，连页表都是相等的。但是请注意，只是长得一样，他们的地址空间还是相互独立的，并不会因为子进程修改了某个值从而影响父进程中的值</li>
+<li>子进程拿到的资源、打开文件的列表，也是和父进程一样的</li>
+<li>只有PID和父进程是不一样的。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/19.png"></p>
+<p>下面是一段fork的例子，当pid\=\=0,代表这是一个子进程，并++x; 否则就说明这是一个父进程,并—x。</p>
+<p>请注意</p>
+<ul>
+<li>父进程和子进程是并发运行的==父进程和子进程谁先拿到CPU是没有规定的==, 因此不能预测谁先回来谁后回来。</li>
+<li>Duplicate but separate address space.也就是我上面所说，修改父进程中的x是不会对子进程中的x造成影响的，反之亦然</li>
+<li>Shared open files，父进程打开的文件，子进程看到的话也是打开着的</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    <span class="keyword">int</span> x = <span class="number">1</span>;</span><br><span class="line">    pid = Fork();</span><br><span class="line">    <span class="keyword">if</span> (pid == <span class="number">0</span>) &#123; <span class="comment">/* Child */</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"child : x=%d\n"</span>, ++x);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* Parent */</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"parent: x=%d\n"</span>, --x);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/20.png"></p>
+<p>如果我们一定要某一个进程在另一个进程之后，我们可以这样来设计我们的程序。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* fork wrapper function */</span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">fork</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    initialize();</span><br><span class="line">    <span class="keyword">int</span> parent_delay = choose_delay();</span><br><span class="line">    <span class="keyword">int</span> child_delay = choose_delay();</span><br><span class="line">    <span class="keyword">pid_t</span> parent_pid = getpid();</span><br><span class="line">    <span class="keyword">pid_t</span> child_pid_or_zero = real_fork();</span><br><span class="line">    <span class="comment">//如果大于0，就说明这是个父进程，那么我们就打印子进程、要等多少；父进程，要等多少时间</span></span><br><span class="line">    <span class="keyword">if</span> (child_pid_or_zero &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">/* Parent */</span></span><br><span class="line">        <span class="keyword">if</span> (verbose) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(</span><br><span class="line">            <span class="string">"Fork. Child pid=%d, delay = %dms. Parent pid=%d, delay = %dms\n"</span>,</span><br><span class="line">                child_pid_or_zero, child_delay,</span><br><span class="line">                parent_pid, parent_delay);</span><br><span class="line">        fflush(<span class="built_in">stdout</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    ms_sleep(parent_delay);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* Child，那么子进程就等待一段时间*/</span></span><br><span class="line">        ms_sleep(child_delay);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> child_pid_or_zero;<span class="comment">//返回子进程的PID</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Modeling-fork-with-Process-Graphs"><a href="#Modeling-fork-with-Process-Graphs" class="headerlink" title="Modeling fork with Process Graphs"></a>Modeling fork with Process Graphs</h3><p>我们可以针对fork之后的进程画一张进程图。流程图是捕获并发程序中语句的偏序关系的有用工具。</p>
+<ul>
+<li>在这张图中每一个结点是我代码中的一条指令。</li>
+<li>$a\rightarrow b$ 代表着 a在b之前发生</li>
+<li>边能够打标签，表示某一个变量的值</li>
+<li><code>printf</code>  结点可以被标为 输出</li>
+<li>每张图最早的是由一个没有入读的结点开始的。</li>
+</ul>
+<p>对于这张图，我们做拓扑排序。并且图的任何拓扑类型都对应于一个可行的总体排序</p>
+<p>下面是一个例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    <span class="keyword">int</span> x = <span class="number">1</span>;</span><br><span class="line">    pid = Fork();</span><br><span class="line">    <span class="keyword">if</span> (pid == <span class="number">0</span>) &#123; <span class="comment">/* Child */</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"child : x=%d\n"</span>, ++x);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* Parent */</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"parent: x=%d\n"</span>, --x);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于之前那个例子，我们画出流程图如下</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/21.png"></p>
+<p>此外，我们还可以画出更加抽象的 Relabled Graph , Feasible total ordering </p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/22.png"></p>
+<h4 id="小练习1"><a href="#小练习1" class="headerlink" title="小练习1"></a>小练习1</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">fork2</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"L0\n"</span>);</span><br><span class="line">    fork();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"L1\n"</span>);</span><br><span class="line">    fork();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Bye\n"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们对这个程序画流程图，如下：</p>
+<p>第一次是乘2，第二次对子进程和父进程同时乘2.因此会出来两个L1，4个Bye</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/23.png"></p>
+<p>根据这幅图 我们可以得到一个可行的输出</p>
+<p>$L0\rightarrow L1\rightarrow Bye\rightarrow Bye\rightarrow L1\rightarrow Bye\rightarrow Bye$</p>
+<p>我们知道L1必定在两个Bye之前，但是这两个分支输出的顺序是不知道的。</p>
+<h4 id="小练习2"><a href="#小练习2" class="headerlink" title="小练习2"></a>小练习2</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">fork4</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"L0\n"</span>);</span><br><span class="line">    <span class="keyword">if</span> (Fork() != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"L1\n"</span>);</span><br><span class="line">        <span class="keyword">if</span> (Fork() != <span class="number">0</span>) &#123;</span><br><span class="line">        	<span class="built_in">printf</span>(<span class="string">"L2\n"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Bye\n"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当代码中存在if 判断的时候，那么流程图又该怎么画？</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/24.png"></p>
+<p>我们看到if的条件是 <code>Fork()!=0</code> ，也就是必须是父进程才能进行L1和L2的输出，如果是子进程，那么会直接输出Bye</p>
+<p>一个可能的答案是： $L0\rightarrow L1\rightarrow Bye\rightarrow Bye\rightarrow L2\rightarrow Bye$ </p>
+<h4 id="小练习3"><a href="#小练习3" class="headerlink" title="小练习3"></a>小练习3</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">fork5</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"L0\n"</span>);</span><br><span class="line">    <span class="keyword">if</span> (fork() == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"L1\n"</span>);</span><br><span class="line">        <span class="keyword">if</span> (fork() == <span class="number">0</span>) &#123;</span><br><span class="line">        	<span class="built_in">printf</span>(<span class="string">"L2\n"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Bye\n"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>和练习2不同，这里是只有子进程能输出L1、L2，父进程是只能输出Bye的</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/25.png"></p>
+<p>我们可以通过拓扑排序输出一个可行的序列</p>
+<p>$L0\rightarrow Bye\rightarrow L1\rightarrow L2\rightarrow Bye\rightarrow Bye$ </p>
+<h3 id="回收子进程"><a href="#回收子进程" class="headerlink" title="回收子进程"></a>回收子进程</h3><p>当一个进程由于某种原因终止时，内核并不是立即把它从系统中清除。相反，进程被保持在一种已终止的状态中，直到被它的父进程回收（reaped)。当父进程回收已终止的子进程时，内核将子进程的退出状态传递给父进程，然后抛弃已终止的进程，从此时开始,该进程就不存在了。一个<strong>终止了</strong>但还<strong>未被回收</strong>的进程称为 僵尸进程</p>
+<p>如果一个父进程先于子进程终止，那么Kernel会安排init进程(PID=1,在系统启动时由内核创建)作为孤儿进程的养父。然后由init进程来回收他们。然而长时间运行的程序(shell/服务器)，总是应该回收他们的僵尸子进程，因为即使它们没有运行，也会消耗系统的内存资源。</p>
+<p>父进程可以通过<code>wait</code>或者<code>waitpid</code>函数来等待 它的子进程终止或者停止</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">waitpid</span><span class="params">(<span class="keyword">pit_t</span> pid,<span class="keyword">int</span> *statusp,<span class="keyword">int</span> options)</span></span>;</span><br><span class="line"><span class="comment">/*返回值：如果成功，则为子进程的PID;如果WNOHANG,则为0;如果是其他错误,则为-1*/</span></span><br></pre></td></tr></table></figure>
+<p>父进程得到返回值之后，Kernel需要将僵尸子进程删除。</p>
+<h4 id="例子1：Zombie-Example"><a href="#例子1：Zombie-Example" class="headerlink" title="例子1：Zombie Example"></a>例子1：Zombie Example</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">fork7</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (fork() == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">/* Child */</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Terminating Child, PID = %d\n"</span>, getpid());</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"Running Parent, PID = %d\n"</span>, getpid());</span><br><span class="line">            <span class="keyword">while</span> (<span class="number">1</span>);</span><br><span class="line">            <span class="comment">/* Infinite loop */</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>父进程是6639，子进程是6640</p>
+<p>因为子进程先exit(0)了，但是父进程没有收回子进程，所以子进程现在是 defunct的，说明这个进程是僵尸进程。</p>
+<p>这时候我们如果 <code>kill 6639</code> ，那么会同时回收父进程和子进程。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/26.png">     </p>
+<h4 id="例子2-Non-terminating-Child-Example"><a href="#例子2-Non-terminating-Child-Example" class="headerlink" title="例子2: Non-terminating Child Example"></a>例子2: Non-terminating Child Example</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">fork8</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (fork() == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">/* Child */</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Running Child, PID = %d\n"</span>,getpid());</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>); <span class="comment">/* Infinite loop */</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Terminating Parent, PID = %d\n"</span>,getpid());</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这里，如果我们先终止的是父进程，我们发现即使父进程已经被终止了，但是子进程还是在运行当中。我们一定要显式地Kill 子进程才能终止。</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/27.png"></p>
+<h3 id="wait-Synchronizing-with-Children"><a href="#wait-Synchronizing-with-Children" class="headerlink" title="wait: Synchronizing with Children"></a>wait: Synchronizing with Children</h3><p>如果我不去杀掉父进程，如何仍能在子进程 $exit(0)$ 的时候收回子进程？我们可以用wait函数。wait函数可以通过系统调用和子进程的状态进行同步。</p>
+<p><code>int wait (int *child_status)</code> 这是wait函数的用法，后面跟的时子进程的状态</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/28.png"></p>
+<p>调用wait之后，父进程就会进入一个suspended状态，等到子进程的特定的状态产生，才会做后面的事情。也就是做一个同步的工作。wait函数的返回值就是这个被终止掉的子进程的 <code>pid</code>，如果<code>child_status!=NULL</code>,那么它所指向的整数将被设置为一个值，该值指示子进程终止的原因和退出状态:</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/29.png"></p>
+<h4 id="例子1"><a href="#例子1" class="headerlink" title="例子1"></a>例子1</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">fork9</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> child_status;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (fork() == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"HC: hello from child\n"</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"HP: hello from parent\n"</span>);</span><br><span class="line">        wait(&amp;child_status);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"CT: child has terminated\n"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Bye\n"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>请画出这个例子的流程图：</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/30.png"></p>
+<p>我们看到，在fork之后，子进程会打印<code>HC: hello from child</code> ；而父进程会打印 <code>HP: hello from parent</code> 打印完之后父进程并不会直接打印 <code>CT</code> ，因为这时候他在等待子进程结束，等子进程结束之后，父进程才会打印<code>CT: child has terminated</code> 最后打印Bye</p>
+<p>所以 <code>Feasible output</code> 可以为 HC HF CT Bye 或者 HP HC CT Bye</p>
+<h4 id="例子2"><a href="#例子2" class="headerlink" title="例子2"></a>例子2</h4><p>如果多个子进程结束了，这时候该怎么办？ 这时候wait会接收任何一个子进程发出的信号。这时候对于父进程，需要得到终止的到底是哪个子进程，然后将终止的子进程的pid和子进程终止的状态显示出来。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">fork10</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid[N];</span><br><span class="line">    <span class="keyword">int</span> i, child_status;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; N; i++)</span><br><span class="line">    <span class="keyword">if</span> ((pid[i] = fork()) == <span class="number">0</span>) &#123;</span><br><span class="line">    	<span class="built_in">exit</span>(<span class="number">100</span>+i); <span class="comment">/* Child */</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; N; i++) &#123; <span class="comment">/* Parent */</span></span><br><span class="line">        <span class="keyword">pid_t</span> wpid = wait(&amp;child_status);</span><br><span class="line">        <span class="keyword">if</span> (WIFEXITED(child_status))</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"Child %d terminated with exit status %d\n"</span>,wpid, WEXITSTATUS(child_status));</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line"> 		    <span class="built_in">printf</span>(<span class="string">"Child %d terminate abnormally\n"</span>, wpid);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果我有很多的子进程，但我只关心某一个特定的子进程，那么我可以使用<code>waitpid</code>这个函数。通过这个函数，我们可以按照顺序依次回收进程。如果前面一个进程没有结束，那么后面一个进程也不能提前被回收。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">fork11</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid[N];</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">int</span> child_status;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; N; i++)</span><br><span class="line">        <span class="keyword">if</span> ((pid[i] = fork()) == <span class="number">0</span>)</span><br><span class="line">        	<span class="built_in">exit</span>(<span class="number">100</span>+i); <span class="comment">/* Child */</span></span><br><span class="line">    <span class="keyword">for</span> (i = N<span class="number">-1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">        <span class="keyword">pid_t</span> wpid = waitpid(pid[i], &amp;child_status, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (WIFEXITED(child_status))</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"Child %d terminated with exit status %d\n"</span>,wpid, WEXITSTATUS(child_status));</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">	        <span class="built_in">printf</span>(<span class="string">"Child %d terminate abnormally\n"</span>, wpid);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="execve"><a href="#execve" class="headerlink" title="execve"></a>execve</h3><p>Fork是创建一个进程，但是这个进程所有的东西都是和父亲共享的。但是有时候我们想要一个进程运行一个新的程序。这时候我们就需要构建一个程序的代码并加载程序，这时候就需要<code>execve</code> 来帮助我们完成</p>
+<p><code>int execve(char *filename,char *argv[],char *envp[])</code></p>
+<p><code>filename</code> 表明了文件在哪个地方，<code>*argv[]</code>是一个指针数组 <code>argv[0]</code>就是指这个filename ，没有<code>*argc[]</code> 的原因是因为 <code>argc</code> 代表了参数的个数，但是<code>execve</code>并不需要这个量 </p>
+<p>作用就是 Overwrites code, data, and stack . 保留了 PID, open files and signal context</p>
+<ul>
+<li><code>execve</code> 函数仅调用一次，(成功的话)并且不会返回，这是因为函数将栈清除了，也就是说return地址没了，所以不会返回。<code>fork</code>是调用则会返回两次</li>
+<li>但是如果<code>execve</code>调用不成功，那么就会返回-1</li>
+</ul>
+<p>比如说这样一段代码，首先创建一个子进程，然后对其执行 <code>/bin/ls -lt /usr/include</code> 命令。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ((pid = Fork()) == <span class="number">0</span>) &#123; <span class="comment">/* Child runs program */</span></span><br><span class="line">    <span class="keyword">if</span> (execve(myargv[<span class="number">0</span>], myargv, environ) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%s: Command not found.\n"</span>, myargv[<span class="number">0</span>]);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/31.png"></p>
+<p>在<code>execve</code> 加载了 filename之后，它调用了启动代码。启动代码设置栈，并将控制传递给了新程序的主函数，该主函数有如下形式的原型：<code>int main(int argc,char **argv,char **envp);</code> </p>
+<p>当main开始执行的时候，用户栈的组织结构如下图所示 。让我们从栈底(高地址)往栈顶(低地址)依次看一看。首先是参数和环境字符串。全局变量<code>environ</code>指向这些指针中的第一个 <code>envp[0]</code>.紧随环境变量数组之后的是以null 结尾的argv[]数组，其中每个元素都指向栈中的一个参数字符串.</p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/32.png" style="zoom:67%;"></p>
+<p><img src="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/33.png" style="zoom:67%;"></p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/" title="异常控制流（ECF）1">https://jasonxqh.github.io/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CSAPP/" rel="tag"><i class="fa fa-tag"></i> CSAPP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/" rel="next" title="CSAPP动态内存分配">
+                <i class="fa fa-chevron-left"></i> CSAPP动态内存分配
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/12/29/%E6%9C%80%E5%A4%A7%E6%B5%81/" rel="prev" title="最大流">
+                最大流 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">420</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#异常控制流（ECF）1"><span class="nav-number">1.</span> <span class="nav-text">异常控制流（ECF）1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#控制流"><span class="nav-number">1.1.</span> <span class="nav-text">控制流</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#更改控制流"><span class="nav-number">1.1.1.</span> <span class="nav-text">更改控制流</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#two-mechanisms-for-changing-control-flow"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">two mechanisms for changing control flow</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Insufficient-for-a-useful-system"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">Insufficient for a useful system</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常控制流"><span class="nav-number">1.2.</span> <span class="nav-text">异常控制流</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#底层"><span class="nav-number">1.2.1.</span> <span class="nav-text">底层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#高层"><span class="nav-number">1.2.2.</span> <span class="nav-text">高层</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常"><span class="nav-number">1.3.</span> <span class="nav-text">异常</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#异常处理"><span class="nav-number">1.3.1.</span> <span class="nav-text">异常处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#异常类别"><span class="nav-number">1.3.2.</span> <span class="nav-text">异常类别</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Interrupts-中断"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Interrupts(中断)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Trap-陷阱"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">Trap(陷阱)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Fault"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">Fault</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Aborts-终止"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">Aborts(终止)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux-x86-64-系统中的异常"><span class="nav-number">1.3.2.5.</span> <span class="nav-text">Linux&#x2F;x86-64 系统中的异常</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#x86-64-的故障与终止"><span class="nav-number">1.3.2.6.</span> <span class="nav-text">x86-64 的故障与终止</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#x86-64-的系统调用"><span class="nav-number">1.3.2.7.</span> <span class="nav-text">x86-64 的系统调用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进程"><span class="nav-number">1.4.</span> <span class="nav-text">进程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#进程和线程的区别"><span class="nav-number">1.4.1.</span> <span class="nav-text">进程和线程的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#逻辑控制流"><span class="nav-number">1.4.2.</span> <span class="nav-text">逻辑控制流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#并发流"><span class="nav-number">1.4.3.</span> <span class="nav-text">并发流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#私有地址空间"><span class="nav-number">1.4.4.</span> <span class="nav-text">私有地址空间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#上下文切换"><span class="nav-number">1.4.5.</span> <span class="nav-text">上下文切换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进程控制"><span class="nav-number">1.5.</span> <span class="nav-text">进程控制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#System-Call-Error-Handling"><span class="nav-number">1.5.1.</span> <span class="nav-text">System Call Error Handling</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Wrappers"><span class="nav-number">1.5.1.1.</span> <span class="nav-text">Wrappers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Obtaining-Process-IDs"><span class="nav-number">1.5.1.2.</span> <span class="nav-text">Obtaining Process IDs</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建和终止进程"><span class="nav-number">1.5.2.</span> <span class="nav-text">创建和终止进程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Terminating"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">Terminating</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Creating-Processes"><span class="nav-number">1.5.2.2.</span> <span class="nav-text">Creating Processes</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Modeling-fork-with-Process-Graphs"><span class="nav-number">1.5.3.</span> <span class="nav-text">Modeling fork with Process Graphs</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#小练习1"><span class="nav-number">1.5.3.1.</span> <span class="nav-text">小练习1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#小练习2"><span class="nav-number">1.5.3.2.</span> <span class="nav-text">小练习2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#小练习3"><span class="nav-number">1.5.3.3.</span> <span class="nav-text">小练习3</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#回收子进程"><span class="nav-number">1.5.4.</span> <span class="nav-text">回收子进程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例子1：Zombie-Example"><span class="nav-number">1.5.4.1.</span> <span class="nav-text">例子1：Zombie Example</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#例子2-Non-terminating-Child-Example"><span class="nav-number">1.5.4.2.</span> <span class="nav-text">例子2: Non-terminating Child Example</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wait-Synchronizing-with-Children"><span class="nav-number">1.5.5.</span> <span class="nav-text">wait: Synchronizing with Children</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例子1"><span class="nav-number">1.5.5.1.</span> <span class="nav-text">例子1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#例子2"><span class="nav-number">1.5.5.2.</span> <span class="nav-text">例子2</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#execve"><span class="nav-number">1.5.6.</span> <span class="nav-text">execve</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1232.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+  
+
+  
+
+</body>
+</html>

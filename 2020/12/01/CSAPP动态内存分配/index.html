@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CSAPP," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="CSAPP动态内存分配动态内存分配器维护着一个进程的虚拟内存区域，称为堆。 比如说 malloc，我们用malloc来申请一段虚拟内存的时候，操作系统分配给我们的是一段 block ，但这个block和之前提到的page、cache中的block是不一样的，这边每个block的大小是不一样的。  分配过来的blocks，有两种。  一种是allocated也就是被分配的，已分配的块显式地保留 供应">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CSAPP动态内存分配">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="CSAPP动态内存分配动态内存分配器维护着一个进程的虚拟内存区域，称为堆。 比如说 malloc，我们用malloc来申请一段虚拟内存的时候，操作系统分配给我们的是一段 block ，但这个block和之前提到的page、cache中的block是不一样的，这边每个block的大小是不一样的。  分配过来的blocks，有两种。  一种是allocated也就是被分配的，已分配的块显式地保留 供应">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/24.png">
+<meta property="article:published_time" content="2020-12-01T13:22:38.000Z">
+<meta property="article:modified_time" content="2022-06-25T08:21:54.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="CSAPP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2020/12/01/CSAPP动态内存分配/"/>
+
+
+
+
+
+  <title>CSAPP动态内存分配 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">CSAPP动态内存分配</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-12-01T21:22:38+08:00">
+                2020-12-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  5.2k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  18
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="CSAPP动态内存分配"><a href="#CSAPP动态内存分配" class="headerlink" title="CSAPP动态内存分配"></a>CSAPP动态内存分配</h1><p>动态内存分配器维护着一个进程的虚拟内存区域，称为<strong>堆</strong>。 比如说 malloc，我们用malloc来申请一段虚拟内存的时候，操作系统分配给我们的是一段 block ，但这个block和之前提到的page、cache中的block是不一样的，这边每个block的<strong>大小是不一样</strong>的。</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/1.png" style="zoom:80%;"></p>
+<p>分配过来的blocks，有两种。</p>
+<ul>
+<li>一种是allocated也就是被分配的，已分配的块显式地保留 <strong>供应用程序使用</strong><ul>
+<li>一个已分配的块保持已分配状态，直到它被释放，这种释放要么是应用<strong>程序显式执行的</strong>，要么是内<strong>存分配器自身隐式执行</strong>的。</li>
+</ul>
+</li>
+<li>还有一种是free，也就是没有被分配的，因此可以用来分配。</li>
+</ul>
+<p>分配器也有两种：显式的分配器和隐式的分配器</p>
+<ul>
+<li>显式分配器：比如说 C语言中的malloc和free，C++当中的new和delete</li>
+<li>隐式分配器：比如说 Java语言中的垃圾回收系统。</li>
+</ul>
+<h2 id="显式分配器"><a href="#显式分配器" class="headerlink" title="显式分配器"></a>显式分配器</h2><p>现在我们主要讨论显式分配器的设计与实现。</p>
+<h3 id="malloc和free函数"><a href="#malloc和free函数" class="headerlink" title="malloc和free函数"></a>malloc和free函数</h3><h4 id="malloc"><a href="#malloc" class="headerlink" title="malloc"></a>malloc</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">malloc</span><span class="params">(<span class="keyword">size_t</span> <span class="built_in">size</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+<p><code>malloc</code>函数返回一个指针。执行完需要进行判断，因为不一定每次申请分配内存都能成功。如果申请不成功就返回一个空指针，并设置一个errno；若申请成功就返回一个大小至少为size字节的内存块，还有可能比size更大,因为给我们的块会为可能包含在这个块内的任何数据对象类型做对齐。在64位模式中，malloc返回的块的地址总是16的倍数。</p>
+<h4 id="free"><a href="#free" class="headerlink" title="free"></a>free</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">free</span><span class="params">(<span class="keyword">void</span> *p)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>free适合malloc对应的，我们可以利用这个函数来回收之前分配的内存。注意，这个 * p 一定要是 malloc，calloc和realloc这三个函数的返回值，否则会报错。</p>
+<h4 id="sbrk"><a href="#sbrk" class="headerlink" title="sbrk"></a>sbrk</h4><p>sbrk 函数通过将内核的brk 指针增加incr 来扩展和收缩堆。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">sbrk</span><span class="params">(<span class="keyword">intptr_t</span> incr)</span></span></span><br></pre></td></tr></table></figure>
+<p>下面是malloc和free函数实际使用例子：</p>
+<p>首先我们用malloc申请一个长度为n的数值类型为long的数组。然后对数组进行一个赋值以及后续操作。最后在程序结束时将其free</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt; #include &lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">long</span> n)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">long</span> i, *p;</span><br><span class="line">	<span class="comment">/* Allocate a block of n longs */</span></span><br><span class="line">	p = (<span class="keyword">long</span> *) <span class="built_in">malloc</span>(n * <span class="keyword">sizeof</span>(<span class="keyword">long</span>)); </span><br><span class="line">	<span class="keyword">if</span> (p == <span class="literal">NULL</span>) &#123;</span><br><span class="line">		perror(<span class="string">"malloc"</span>); </span><br><span class="line">		<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">/* Initialize allocated block */</span></span><br><span class="line">    <span class="keyword">for</span> (i=<span class="number">0</span>; i&lt;n; i++)</span><br><span class="line">   		p[i] = i;</span><br><span class="line">    <span class="comment">/* Do something with p */</span></span><br><span class="line">    . . .</span><br><span class="line">    <span class="comment">/* Return allocated block to the heap */</span></span><br><span class="line">    <span class="built_in">free</span>(p);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="malloc-和free-实现管理堆"><a href="#malloc-和free-实现管理堆" class="headerlink" title="malloc 和free 实现管理堆"></a>malloc 和free 实现管理堆</h4><p>假设下面是一个堆的模型，我们定义两条规则：</p>
+<ul>
+<li><p>Show 8-byte words as squares 没一格子代表了一个 word</p>
+</li>
+<li><p>Allocations are double-word aligned. 双字对齐</p>
+</li>
+</ul>
+<p><code>#define SIZ sizeof(size_t)</code></p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/2.png" style="zoom:80%;"></p>
+<ul>
+<li>我们一开始申请4倍的SIZ ,于是就有了黄色的4个格子</li>
+<li>紧接着我们申请5倍的SIZ，因为要<strong>双字对齐</strong>，因此我们要划出6个格子来。</li>
+<li>我们申请6倍的SIZ,malloc 就从空闲块的前部切出一个6字的块</li>
+<li>调用free后，会释放掉第二部申请的5*SIZ 的块。</li>
+<li>程序请求一个2字的块。在这种情况中，malloc分配在前一步中被释放的那个块的一部分并返回一个指向这个新块的指针。</li>
+</ul>
+<p><strong>一些分配和回收时的约束</strong></p>
+<ul>
+<li>处理任意请求序列。一个应用可以有任意的分配请求和释放请求序列，只要满足约束条件：每个释放请求必须对应于一个当前已分配块，这个块是由一个以前的分配请求获得的。因此，<strong>分配器不可以假设分配和释放请求的顺序</strong>。例如，分配器不能假设<strong>所有</strong>的分配请求<strong>都有</strong>相匹配的释放请求，或者有相匹配的分配和空闲请求是嵌套的。</li>
+<li>立即响应请求。分配器<strong>必须立即响应</strong>分配请求。因此，<strong>不允许</strong>分配器为了提髙性能<strong>重新排列或者缓冲</strong>请求。不能是异步的</li>
+<li>只使用堆。为了使分配器是可扩展的，分配器使用的任何非标量数据结构都必须保存在堆里。</li>
+<li>对齐块（对齐要求）。分配器必须对齐块，使得它们可以保存任何类型的数据对象。</li>
+<li>不修改已分配的块。分配器只能操作或者改变空闲块。特别是，一旦块被分配了，就不允许修改或者移动它了。因此，诸如压缩已分配块这样的技术是不允许使用的。(就是把中间的空的blocks压出来，这种是不可以的)</li>
+</ul>
+<h3 id="衡量分配器性能的一些指数："><a href="#衡量分配器性能的一些指数：" class="headerlink" title="衡量分配器性能的一些指数："></a>衡量分配器性能的一些指数：</h3><h4 id="吞吐率"><a href="#吞吐率" class="headerlink" title="吞吐率"></a>吞吐率</h4><p>现在我们假设 假定n 个分配和释放请求的某种序列 $R<em>0,R_1,\cdots,R_k,\cdots ,R</em>{n-1}$；我们希望一个分配器的吞吐率最大化,吞吐率的定义就是每个单位时间里完成的请求数。</p>
+<p>例如，如果一个分配器在1 秒内完成500 个分配请求和500 个释放请求，那么它的吞吐率就是每秒1000 次操作</p>
+<h4 id="内存利用率"><a href="#内存利用率" class="headerlink" title="内存利用率"></a>内存利用率</h4><p>我们要知道内存虚拟内存是一个有限的空间，我们不能一直向他申请blocks，因此我们必须高效地使用虚拟内存。对于可能被要求分配和释放大块内存的动态内存分配器来说，尤其如此。</p>
+<h4 id="峰值利用率"><a href="#峰值利用率" class="headerlink" title="峰值利用率"></a>峰值利用率</h4><p>对于n 个分配和释放请求的某种序列 $R<em>0,R_1,\cdots,R_k,\cdots ,R</em>{n-1}$</p>
+<p>如果说一个应用程序请求一个 p 字节的块，那么得到的已分配块地<strong>payload</strong> 是 p字节。</p>
+<p>在请求 $R_k$ 完成之后，aggregate payload(聚集有效载荷) 表示为 $P_k$,即当前已分配的块地有效载荷之和。</p>
+<p>$H_k$表示堆地当前的大小(单调非递减)</p>
+<p>那么，前面 k+1 个请求得峰值利用率，表示为 $U<em>k$, $U_k = \frac{max</em>{i\leq k}P_i}{H_k}$ </p>
+<p>我们看到，分配器的目标就是在整个序列中使 $U_{n-1}$ 最大化。但是最大化吞吐率和最大化利用率之间是相互牵制的。</p>
+<p>当我们以<strong>堆利用率为代价时</strong> ，很容易编写出<strong>吞吐率最大化的</strong>分配器。</p>
+<h3 id="Fragmentation"><a href="#Fragmentation" class="headerlink" title="Fragmentation"></a>Fragmentation</h3><p>碎片即分配内存时产生的额外开销，它也是造成堆利用率很低的主要原因</p>
+<p>有两种形式的碎片：内部碎片(internal fragmentation)和外部碎片（external fragmentation)</p>
+<h4 id="internal-fragmentation"><a href="#internal-fragmentation" class="headerlink" title="internal fragmentation"></a>internal fragmentation</h4><p>内部碎片就是<strong>已经被分配</strong>出去（能明确指出属于哪个进程）<strong>却不能被利用</strong>的内存空间</p>
+<p>占有这些区域或页面的<strong>进程并不使用这个存储块</strong>。而在进程占有这块存储块时，<strong>系统无法利用</strong>它。直到进程释放它，或进程结束时，系统才有可能利用这个存储块。</p>
+<p>当一个已分配块(allocated block) 比有效载荷(payload) 大的时候，内部碎片就会发生</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/3.png" style="zoom:80%;"></p>
+<h4 id="external-fragmentation"><a href="#external-fragmentation" class="headerlink" title="external fragmentation"></a>external fragmentation</h4><p>外部碎片是位于任何两个 <strong>操作系统分配的用于装载进程的内存区域</strong> 或<strong>页面之间</strong>的空闲区域</p>
+<p>外部碎片指的是还没有被分配出去（不属于任何进程），但由于<strong>太小了</strong>无法分配给申请内存空间的新进程的内存空闲区域。</p>
+<p>外部碎片是处于任何两个已分配区域或页面之间的空闲存储块。这些存储块的<strong>总和可以满足当前申请</strong>的长度要求，但是由于它们的<strong>地址不连续</strong>或其他原因，使得系统无法满足当前申请。</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/4.png" style="zoom:80%;"></p>
+<p>比如说对于第五个请求，heap中明明有8个格子，但是却无法给7*SIZ分配空间</p>
+<h3 id="实现一个分配器"><a href="#实现一个分配器" class="headerlink" title="实现一个分配器"></a>实现一个分配器</h3><p>要实现一个分配器，我们必须要解决这样几个问题</p>
+<ul>
+<li><p>How do we know how much memory to free given just a pointer?</p>
+<ul>
+<li>给free一个指针，那么分配器要怎么知道释放多少大小的内存空间？</li>
+</ul>
+</li>
+<li><p>空闲块组织：How do we keep track of the free blocks? </p>
+<ul>
+<li>我们怎么知道那些blocks是空的呢？怎么知道这一块空的区域的大小呢？</li>
+</ul>
+</li>
+<li>分割：What do we do with the extra space when allocating a structure that is smaller than the free block it is placed in?<ul>
+<li>当分配一个比它所在的空闲块还小的结构时，我们如何处理额外的空间 (比如说6块空的分配掉4块，那么剩下两块怎么标记？)</li>
+</ul>
+</li>
+<li>放置：How do we pick a block to use for allocation — many might fit?<ul>
+<li>如果我有多个满足条件的空间，我应该选择哪一个进行分配</li>
+</ul>
+</li>
+<li>合并：How do we reuse a block that has been freed?<ul>
+<li>释放出来后的内存空间我怎么重新利用？比如前面也是空的，后面也是空的，我要不要将他们合并在一起？</li>
+</ul>
+</li>
+</ul>
+<h3 id="隐式空闲链表"><a href="#隐式空闲链表" class="headerlink" title="隐式空闲链表"></a>隐式空闲链表</h3><p>因为像放置、分割以及合并这样的基本技术贯穿在许多不同的空闲块组织中，所以我们将在一种叫做隐式空闲链表的简单空闲块组织结构中来介绍它们。</p>
+<p>隐式分配器：会自动回收用户使用的存储空间，简单来说就是带GC功能，如Java使用的就是隐式的堆分配器</p>
+<p>显式分配器：要求用户显示的分配/释放堆空间，如C/C++用的就是显式的堆分配器</p>
+<h4 id="释放多少大小的内存空间"><a href="#释放多少大小的内存空间" class="headerlink" title="释放多少大小的内存空间"></a>释放多少大小的内存空间</h4><p>如果我们要知道在释放时应该是放多少空间，那么我们可以在每一块block的前面放一个word来记录这个block的大小。比如说我这里申请了4个SIZ，分配了6个SIZ，那么就在一个word中记录这个block的大小：即48.</p>
+<p>前面的word是这个block的header；后面的多余的空格即这个block的Padding(填充物)</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/5.png" style="zoom:80%;"></p>
+<h4 id="1-0-Keeping-Track-of-Free-Blocks"><a href="#1-0-Keeping-Track-of-Free-Blocks" class="headerlink" title="1.0 Keeping Track of Free Blocks"></a>1.0 Keeping Track of Free Blocks</h4><p>对于隐式的链表来说：</p>
+<p>我们知道，每一个payload开始的位置必须是偶数个word，但是上面说了，每一个block的第一个word记录了这个block的大小。因此在堆的一开始我们必须空出来一个word。</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/7.png" style="zoom:80%;"></p>
+<p> 此外还有三种方法：</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/9.png" style="zoom:80%;"></p>
+<p>将一个block放大，我们可以看到这样的结构：</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/6.png" style="zoom:80%;"></p>
+<p>也就是说一个block 是由一个字的header、payload 以及一些padding组成的。header编码了这个块的大小，以及这个块是已分配的还是空闲的。如果我们强加一个双字的对齐约束条件，那么块大小就总是8 的倍数，且块大小的最低3 位总是零。(因为这是一个二进制数，因此只要满足后三位总是0，那么<strong>前面29位所表达的块的大小</strong> 就始终是8的倍数)因此，我们只需要内存大小的29 个高位，释放剩余的3 位来编码其他信息。</p>
+<p>我们用3位中的最低位a来指明这个块是分配的还是空闲的。那么这个头部的大小计算公式就是：</p>
+<p><code>block-&gt;header = size|alloc;</code></p>
+<p>比如说一个分配的块的大小是24字节，那么它的头部就等于 </p>
+<p><code>0x00000018|0x1 = 0x00000019</code></p>
+<p>一个块大小为40(0x28) 字节的<strong>空闲块</strong>具有如下的头部</p>
+<p><code>0x00000028|0x0 = 0x00000028</code></p>
+<p>假设块的格式如上图所示，我们可以将堆组织为一个连续的已分配块和空闲块的序列</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/8.png" style="zoom:80%;"></p>
+<p>我们称这种结构为隐式空闲链表，是因为空闲块是通过头部中的大小字段隐含地连接着的。分配器可以通过遍历堆中所有的块，从而间接地遍历整个空闲块的集合。</p>
+<p>注意，我们需要某种特殊标记的结束块，在这个示例中，就是一个设置了<strong>已分配位而大小为零</strong>的<strong>终止头部</strong>(end block)</p>
+<p><strong>隐式空闲链表的优点是简单。显著的缺点是任何操作的开销，例如放置分配的块，要求对空闲链表进行搜索，该搜索所需时间与堆中已分配块和空闲块的总数呈线性关系。</strong></p>
+<p>很重要的一点就是意识到系统<strong>对齐要求</strong>和<strong>分配器对块格式的选择</strong>会对分配器上的<strong>最小块大小</strong>有<strong>强制的要求</strong>。没有已分配块或者空闲块可以比这个最小值还小。例如，如果我们假设一个双字的对齐要求，那么每个块的大小都必须是双字（8 字节）的倍数。因此,9-35的块格式就导致<strong>最小的块大小为两个字</strong>：一个字作头，另一个字维持对齐要求。即使应用只请求一字节，分配器也仍然需要创建一个两字的块。</p>
+<h4 id="放置策略-placement-policy"><a href="#放置策略-placement-policy" class="headerlink" title="放置策略(placement policy)"></a>放置策略(placement policy)</h4><p>当一个应用请求一个k字节的块的时候，分配器就会搜索空闲列表来查找一个足够大的可以放置所请求块的空闲块。我们有很多种放置策略：</p>
+<h5 id="首次适配"><a href="#首次适配" class="headerlink" title="首次适配"></a>首次适配</h5><p>首次适配即从链表头开始查找，选择第一个合适的空闲块。</p>
+<p>优点就是它趋向于将大的空闲块保留在链表后面</p>
+<p>缺点是它趋向于在靠近链表起始处留下小空闲块的“碎片”，这就增加了对较大块的搜索时间</p>
+<h5 id="下一次适配"><a href="#下一次适配" class="headerlink" title="下一次适配"></a>下一次适配</h5><p>下一次适配和首次适配相似，只不过不是从链表的起始处开始搜索，而是<strong>从上一次查询结束的地方开始</strong></p>
+<p>下一次适配比首次适配运行起来明显要快一些。但是内存利用率要比首次适配低得多。</p>
+<h5 id="最佳适配"><a href="#最佳适配" class="headerlink" title="最佳适配"></a>最佳适配</h5><p>最佳适配是检査每个空闲块，选择适合所需请求大小的最小空闲块</p>
+<p>最佳适配比首次是配合下一次适配的利用率都要高一点，但在<strong>简单空闲链表组织结构(如隐式空闲链表)当中</strong>，使用最佳适配的缺点就是它要求对堆进行彻底的搜索。</p>
+<h4 id="分割空闲块"><a href="#分割空闲块" class="headerlink" title="分割空闲块"></a>分割空闲块</h4><p>当我们找到一个匹配的空闲块之后，我们就需要分配这个空闲块中的空间。</p>
+<p>我们自然可以选用整个空闲块，但是这样就会造成很多内部碎片。但如果放置策略趋向于产生较好的匹配，那么额外的内部碎片也是可以接受的。</p>
+<p>但是如果匹配得不太好，那么分配器就通常会选择将这个空闲块分割为两部分。第一部分变成分配块，剩下的空间形成一个新的空闲块。</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/10.png" style="zoom:80%;"></p>
+<p>比如说上图，我们在size = 48的空闲块中插入一个size = 32的block，这时候空间块就会被拆成一个长为32的分配块、一个长为16的空闲块</p>
+<h4 id="释放、合并空闲块"><a href="#释放、合并空闲块" class="headerlink" title="释放、合并空闲块"></a>释放、合并空闲块</h4><p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/11.png" style="zoom:80%;"></p>
+<p>在释放块是时，我们不需要对被释放的块的header进行修改。我们只需要跳过这个block，将前一个header指向下下个block的header即可。</p>
+<p>上面所说的是和后面的block相连，但是如果想要和<strong>前一个block相连</strong>，那么事情就变得复杂起来了。因为如果我们的模型只是一个带头部的隐式空闲链表，就没有一个指针指向前面一个block。那么我们只能是搜索整个链表，同时记住前面块的位置。那么如果这样操作，我们会发现每次调用free所需要的时间都和堆的大小成线性关系。即使使用更复杂更精细的空闲链表，搜索时间也不会是常数。</p>
+<h4 id="2-0-带边界标记的合并"><a href="#2-0-带边界标记的合并" class="headerlink" title="2.0 带边界标记的合并"></a>2.0 带边界标记的合并</h4><p>于是我们可以将刚才提出的模型进行一个修改。这个修改是knuth提出来的。对于一个free block(空闲的块)，我们可以把这个块的结尾处改成一个footer。其中，<strong>footer是header的一个副本</strong>。这个设计十分巧妙，如果每个块都包括这样一个footer，那么分配器就可以通过检查它的footer，来判断前面一个块的起始位置和状态。</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/12.png" style="zoom:80%;"> </p>
+<p>那么当分配器释放当前块的时候，可能存在有以下四种情况</p>
+<p><strong>1) 前面的块和后面的块都是已分配的</strong></p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/14.png" style="zoom:80%;"></p>
+<p>对于这种情况，我们只要将中间这个空闲块的header和footer的占用位从1改成0即可。</p>
+<p><strong>2) 前面的块是已分配的，后面的块是空闲的</strong></p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/15.png" style="zoom:80%;"></p>
+<p>对于这种情况，新的header的和就等于释放的这一块的header+它后面那块free block的header，然后对footer也进行相应的修改。并将二者的占用位改成0</p>
+<p><strong>3) 前面的块是空闲的，后面的块是已分配的</strong></p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/16.png" style="zoom:80%;"></p>
+<p>这种情况和2一样。</p>
+<p><strong>4) 前面的和后面的块都是空闲的</strong></p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/17.png" style="zoom:80%;"></p>
+<p>对于前面的块和后面的块都是free block的情况，我们需要修改前面的块的header和后面的块的footer。其大小就是将三个块的大小相加。对于中间这些数据，都被跳过了，不用去修改它们。</p>
+<p>于是整个模型如下图所示：</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/13.png" style="zoom:80%;"></p>
+<p>我们发现<strong>最前面和最后面的两块空间是利用不起来的</strong>。因为malloc返回的地址并不是header的起始地址，而是<strong>payload的起始地址</strong>。而payload的起始地址必须是偶数对齐的，因此必须要有一个word空出来的。</p>
+<p>因为heap是自底向上生长的，因此我们定义Dummy footer是在第一个block之前的；Dummy header是在最后一个block之后的。而且他们都要被标记成已分配，这是因为他们不能和block进行合并操作。</p>
+<h4 id="3-0-No-Boundary-Tag-for-Allocated-Blocks"><a href="#3-0-No-Boundary-Tag-for-Allocated-Blocks" class="headerlink" title="3.0 No Boundary Tag for Allocated Blocks"></a>3.0 No Boundary Tag for Allocated Blocks</h4><p>对于已经分配了的blocks来说，如果要有footer，由于对齐的原因，有可能要多两个字节来存放。因此，我们可以对分配了的block进行一些修改：</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/19.png" style="zoom:80%;"></p>
+<p>我们可以进一步地用2位来表示状态，多出来的一位可以用来表示前一个block是满的还是空的。这样，我们仅仅用一位就能节省额外地footer，分配了的block仅保留一个header。但是对于payload为空的块，我们还是保留footer。</p>
+<p>那么上面所说的4种情况就要发生一些细小的改变了：</p>
+<p><strong>1) 前面的块和后面的块都是已分配的</strong></p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/20.png" style="zoom:80%;"></p>
+<p><strong>2) 前面的块是已分配的，后面的块是空闲的</strong></p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/21.png" style="zoom:80%;"></p>
+<p><strong>3) 前面的块是空闲的，后面的块是已分配的</strong></p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/22.png" style="zoom:80%;"></p>
+<p><strong>4) 前面的和后面的块都是空闲的</strong></p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/23.png" style="zoom:80%;"></p>
+<h3 id="隐式空闲链表总结"><a href="#隐式空闲链表总结" class="headerlink" title="隐式空闲链表总结"></a>隐式空闲链表总结</h3><ul>
+<li>Implementation 实现是比较简单的</li>
+<li>Allocate cost：<ul>
+<li>Linear time worst case 最差情况下分配时间是线性的</li>
+</ul>
+</li>
+<li>Free cost：<ul>
+<li>constant time worst case 最差情况下也是常数时间</li>
+<li>even with coalescing   </li>
+</ul>
+</li>
+<li>Memory overhead<ul>
+<li>will depend on placement policy 时间复杂的决定于放置策略</li>
+<li>First-fit ,next-fit ,best-fit 有三种放置策略</li>
+</ul>
+</li>
+<li>Not used in practice for malloc/free because of linear time allocation <ul>
+<li>used in many special purpose applications</li>
+</ul>
+</li>
+<li>However ,the concepts of splitting and boundary tag coalescing are general to all allocators</li>
+</ul>
+<h3 id="显式空闲链表"><a href="#显式空闲链表" class="headerlink" title="显式空闲链表"></a>显式空闲链表</h3><p>显示链表是说我并不需要管理分配的空间，而是要管好那些空闲的空间. 因为块分配与堆块的总数呈线性关系，所以对于通用的分配器，隐式空闲链表是不适合的。</p>
+<p><img src="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/24.png" style="zoom:80%;"></p>
+<p>一种更好的方法是将空闲块组织为某种形式的显式数据结构。因为根据定义，程序不需要一个空闲块的主体，所以实现这个数据结构的指针可以存放在这些空闲块的主体里面。例如，堆可以组织成一个双向空闲链表，在每个空闲块中，都包含一个pred(前驱）和succ(后继指针)</p>
+<p>使用双向链表而不是隐式空闲链表，使首次适配的分配时间从块总数的线性时间减少到了空闲块数量的线性时间。不过，释放一个块的时间可以是线性的，也可能是个常数，这取决于我们所选择的空闲链表中块的排序策略。</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/" title="CSAPP动态内存分配">https://jasonxqh.github.io/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CSAPP/" rel="tag"><i class="fa fa-tag"></i> CSAPP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/11/26/OptimalBST/" rel="next" title="OptimalBST">
+                <i class="fa fa-chevron-left"></i> OptimalBST
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/12/24/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%891/" rel="prev" title="异常控制流（ECF）1">
+                异常控制流（ECF）1 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">420</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP动态内存分配"><span class="nav-number">1.</span> <span class="nav-text">CSAPP动态内存分配</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#显式分配器"><span class="nav-number">1.1.</span> <span class="nav-text">显式分配器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#malloc和free函数"><span class="nav-number">1.1.1.</span> <span class="nav-text">malloc和free函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#malloc"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">malloc</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#free"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">free</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sbrk"><span class="nav-number">1.1.1.3.</span> <span class="nav-text">sbrk</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#malloc-和free-实现管理堆"><span class="nav-number">1.1.1.4.</span> <span class="nav-text">malloc 和free 实现管理堆</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#衡量分配器性能的一些指数："><span class="nav-number">1.1.2.</span> <span class="nav-text">衡量分配器性能的一些指数：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#吞吐率"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">吞吐率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内存利用率"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">内存利用率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#峰值利用率"><span class="nav-number">1.1.2.3.</span> <span class="nav-text">峰值利用率</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fragmentation"><span class="nav-number">1.1.3.</span> <span class="nav-text">Fragmentation</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#internal-fragmentation"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">internal fragmentation</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#external-fragmentation"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">external fragmentation</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现一个分配器"><span class="nav-number">1.1.4.</span> <span class="nav-text">实现一个分配器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#隐式空闲链表"><span class="nav-number">1.1.5.</span> <span class="nav-text">隐式空闲链表</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#释放多少大小的内存空间"><span class="nav-number">1.1.5.1.</span> <span class="nav-text">释放多少大小的内存空间</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-0-Keeping-Track-of-Free-Blocks"><span class="nav-number">1.1.5.2.</span> <span class="nav-text">1.0 Keeping Track of Free Blocks</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#放置策略-placement-policy"><span class="nav-number">1.1.5.3.</span> <span class="nav-text">放置策略(placement policy)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#首次适配"><span class="nav-number">1.1.5.3.1.</span> <span class="nav-text">首次适配</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#下一次适配"><span class="nav-number">1.1.5.3.2.</span> <span class="nav-text">下一次适配</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#最佳适配"><span class="nav-number">1.1.5.3.3.</span> <span class="nav-text">最佳适配</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分割空闲块"><span class="nav-number">1.1.5.4.</span> <span class="nav-text">分割空闲块</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#释放、合并空闲块"><span class="nav-number">1.1.5.5.</span> <span class="nav-text">释放、合并空闲块</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-0-带边界标记的合并"><span class="nav-number">1.1.5.6.</span> <span class="nav-text">2.0 带边界标记的合并</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-0-No-Boundary-Tag-for-Allocated-Blocks"><span class="nav-number">1.1.5.7.</span> <span class="nav-text">3.0 No Boundary Tag for Allocated Blocks</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#隐式空闲链表总结"><span class="nav-number">1.1.6.</span> <span class="nav-text">隐式空闲链表总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#显式空闲链表"><span class="nav-number">1.1.7.</span> <span class="nav-text">显式空闲链表</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1232.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+  
+
+  
+
+</body>
+</html>
