@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="数据科学算法," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="随机游走引入首先我们来复习一下联合概率分布 给定n个离散随机变量 $X_1,X_2,\cdots,X_n$ 分别取值为$x_1,x_2\cdots,x_n$的联合概率 $f(x_1,x_2\cdots,x_n)$ 表示为：  f(x_1,x_2\cdots,x_n) &#x3D; P(X_1 &#x3D; x_1,X_2&#x3D; x_2,\cdots,X_n&#x3D;x_n)如果n个离散随机变量$X_1,X_2\cdots,X_n">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据科学算法ch7-随机游走">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="随机游走引入首先我们来复习一下联合概率分布 给定n个离散随机变量 $X_1,X_2,\cdots,X_n$ 分别取值为$x_1,x_2\cdots,x_n$的联合概率 $f(x_1,x_2\cdots,x_n)$ 表示为：  f(x_1,x_2\cdots,x_n) &#x3D; P(X_1 &#x3D; x_1,X_2&#x3D; x_2,\cdots,X_n&#x3D;x_n)如果n个离散随机变量$X_1,X_2\cdots,X_n">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/7.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/8.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/9.png">
+<meta property="article:published_time" content="2021-10-31T08:54:30.000Z">
+<meta property="article:modified_time" content="2022-01-06T12:03:46.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据科学算法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/10/31/数据科学算法ch7-随机游走/"/>
+
+
+
+
+
+  <title>数据科学算法ch7-随机游走 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据科学算法ch7-随机游走</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-10-31T16:54:30+08:00">
+                2021-10-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  3.6k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  15
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="随机游走"><a href="#随机游走" class="headerlink" title="随机游走"></a>随机游走</h1><h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>首先我们来复习一下联合概率分布</p>
+<p>给定n个离散随机变量 $X_1,X_2,\cdots,X_n$ 分别取值为$x_1,x_2\cdots,x_n$的联合概率 $f(x_1,x_2\cdots,x_n)$ 表示为：</p>
+<script type="math/tex; mode=display">
+f(x_1,x_2\cdots,x_n) = P(X_1 = x_1,X_2= x_2,\cdots,X_n=x_n)</script><p>如果n个离散随机变量$X_1,X_2\cdots,X_n$ 是相互独立的，那么它们取值$x_1,x_2\cdots,x_n$ 的联合概率可以很方便得计算为</p>
+<script type="math/tex; mode=display">
+f(x_1\cdots,x_n) =\prod_{i=1}^nP(X_i=x_i)=\prod_{i=1}^n f_{X_i}(x_i)</script><p>但是，如果$X$之间并不相互独立，那么</p>
+<script type="math/tex; mode=display">
+f(x_1,\cdots,x_n) = \prod_{i=2}^m P(X_i = x_i|X_{i-1}=x_{i-1},\cdots,X_1 = x_1)\\</script><p>这就是链式法则</p>
+<p>但是，对于大规模的数据，会很难处理，因为联合概率的计算复杂度会非常高。此时，需要对数据间的相关关系进行简化。对文本数据或者音频数据建模时，常常假设序列数据点之间存在<strong>一阶相关</strong>关系，即</p>
+<script type="math/tex; mode=display">
+P(X_i = x_i|X_{i-1}=x_{i-1},\cdots,X_1 = x_1) =P(X_i = x_i |X_{i-1}=x_{i-1})</script><p>因为有些词常常是一前一后出现的。比如在”今天天气炎热，我们去游泳“这一句话中，”天气”与“炎热”这两个词常常一前一后出现，但是“天气”和”游泳”不太可能会出现前后出现。</p>
+<p>同样的，对股票价格数据建模时，会假设序列数据点之间存在<strong>t阶相关</strong>关系，即</p>
+<script type="math/tex; mode=display">
+P(X_i = x_i|X_{i-1}=x_{i-1},\cdots,X_1 = x_1) = P(X_i = x_i|X_{i-1} = x_{i-1}\cdots,X_{i-t}=x_{i-t})</script><h2 id="随机过程"><a href="#随机过程" class="headerlink" title="随机过程"></a>随机过程</h2><p>现在我们来学习随机过程，随机过程${X(t,\omega),t\in T ,\omega\in \Omega}$ 是与时间t有关的一个随机变量序列，现实生活中有很多问题都可以用随机过程来建模，比如说文本数据、语音数据、股票价格和用户上网行为等等。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>例子</th>
+<th>时间集合</th>
+<th>状态空间</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>浏览网页</td>
+<td>步数</td>
+<td>所有网页</td>
+</tr>
+<tr>
+<td>自然语言</td>
+<td>单词位置</td>
+<td>字典</td>
+</tr>
+<tr>
+<td>股票价格</td>
+<td>交易日</td>
+<td>价格</td>
+</tr>
+<tr>
+<td>赌博</td>
+<td>下注次数</td>
+<td>筹码数量</td>
+</tr>
+<tr>
+<td>液体分子</td>
+<td>时间</td>
+<td>容器空间</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>现在我们来具体讲几个随机过程的例子：</p>
+<h4 id="抛币游戏"><a href="#抛币游戏" class="headerlink" title="抛币游戏"></a>抛币游戏</h4><p>游戏规则：</p>
+<ul>
+<li>假设开始有 $10, 参加一场公平无限期抛硬币游戏<ul>
+<li>正面朝上，赢得1</li>
+<li>反面朝上，输掉1</li>
+</ul>
+</li>
+<li>我们用$X_n$ 表示n次抛币后手上剩余的美元</li>
+<li>如果$X_0 = 10$,则 ${X_n:n\in N}$ 构成一个随机序列<ul>
+<li>假设$X<em>n = 12$，则$X</em>{n+1}=11$或者13</li>
+<li>在第(n+1)次抛币后手上剩余的美元和$X<em>{n-1}$​​​​​值没有关系。是一阶相关关系，即：$P(X</em>{i+1} = x<em>{i+1}|X</em>{i}=x<em>{i},\cdots,X_1 = x_1) = P(X</em>{i+1} = x<em>{i+1}|X</em>{n} = x_{n})$​​​​​</li>
+</ul>
+</li>
+</ul>
+<p>在这个抛币游戏中，手上剩余的钱是一个随机过程</p>
+<ul>
+<li>时间：抛币次数</li>
+<li>状态：非负集合</li>
+</ul>
+<p>在这个游戏中，稳定状态就是输光所有的钱</p>
+<h4 id="象棋"><a href="#象棋" class="headerlink" title="象棋"></a>象棋</h4><p>象棋中帅的位置变化</p>
+<ul>
+<li>按照规则，帅在每个位置都可以向周围移动</li>
+<li>$X_n$ 表示n步后帅所在的位置<ul>
+<li>如果 $X<em>n = 2$, 则$X</em>{n+1}=1,3,5$</li>
+<li>$(n+1)$步帅所在的位置和$X<em>{n-1}$ 的值没有关系，即：$P(X</em>{i+1} = x<em>{i+1}|X</em>{i}=x<em>{i},\cdots,X_1 = x_1) = P(X</em>{i+1} = x<em>{i+1}|X</em>{n} = x_{n})$​</li>
+</ul>
+</li>
+</ul>
+<p>因此${X_n:n\in N}$ 构成一个随机过程</p>
+<ul>
+<li>时间：步数</li>
+<li>状态：1到9之间的整数</li>
+</ul>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/1.png" alt="1" style="zoom:67%;"></p>
+<h4 id="网页浏览"><a href="#网页浏览" class="headerlink" title="网页浏览"></a>网页浏览</h4><p>每个网页都有可能对外的锚连接，</p>
+<ul>
+<li>$X_n$ 表示n步之后停留的页面<ul>
+<li>如果$X=ECNU$， 则$X_{n+1}$ 可以是 MOE、DASE、或者SEI</li>
+<li>(n+1)步停留的页面和 $X<em>{n-1}$的所停留的页面无关，即$P(X</em>{i+1} = x<em>{i+1}|X</em>{i}=x<em>{i},\cdots,X_1 = x_1) = P(X</em>{i+1} = x<em>{i+1}|X</em>{n} = x_{n})$</li>
+</ul>
+</li>
+</ul>
+<p>因此${X_n:n\in N}$ 构成一个随机过程</p>
+<ul>
+<li>时间：步数</li>
+<li>状态：所有网页组成的集合</li>
+</ul>
+<h3 id="马尔科夫过程"><a href="#马尔科夫过程" class="headerlink" title="马尔科夫过程"></a>马尔科夫过程</h3><h4 id="马尔科夫性质"><a href="#马尔科夫性质" class="headerlink" title="马尔科夫性质"></a>马尔科夫性质</h4><p>如果随机过程 ${X(t)\in S,t\in I }$​ , 满足</p>
+<script type="math/tex; mode=display">
+P(X(t_{n+1}) = x_{n+1}|X({t_0})=x_{0},\cdots,X(t_n) = x_n) = P(X(t_{n+1}) = x_{n+1}|X(t_{n}) = x_{n})</script><p>其中，$t<em>0&lt;t_1&lt;\cdots&lt;t_n&lt;t</em>{n+1}\in I,x_i\in S$​,则称该随机过程满足马尔科夫性质</p>
+<ul>
+<li>如果 $t<em>n$ 表示当前时间，$t</em>{n+1}$ 表示将来，$t<em>1,\cdots,t</em>{n-1}$ 则表示过去</li>
+<li>可以理解为：已知现在，将来与过去独立</li>
+</ul>
+<p>之前我们说的，咖啡溶质的扩散、网络、赌博、象棋，都是满足马尔科夫性质</p>
+<h4 id="马尔科夫过程-1"><a href="#马尔科夫过程-1" class="headerlink" title="马尔科夫过程"></a>马尔科夫过程</h4><p>若随机过程满足马尔科夫性质，则称其为<strong>马尔科夫过程</strong></p>
+<p>设 ${X(t),t\in T}$ 的空间状态为S，如果$\forall n \geq 0,\forall t<em>0&lt;t_1&lt;\cdots&lt;t_n&lt;t</em>{n+1}\in T$,在条件  $X(t<em>i) = x_i,x_i\in S,i=0,1\cdots,n$ 下，$X(t</em>{n+1})$ 的条件概率刚好等于在条件$X(t_n)=x_n$ 下的条件概率，即：</p>
+<script type="math/tex; mode=display">
+P(X(t_{n+1}) = x_{n+1}|X({t_0})=x_{0},\cdots,X(t_n) = x_n) = P(X(t_{n+1}) = x_{n+1}|X(t_{n}) = x_{n})</script><p>则称${X(t),t\in T}$ 为马尔科夫过程</p>
+<h4 id="马尔科夫链"><a href="#马尔科夫链" class="headerlink" title="马尔科夫链"></a>马尔科夫链</h4><p>马尔科夫链是特殊的马尔科夫过程，它满足：</p>
+<ul>
+<li>离散的时间集合：步数、下注次数</li>
+<li>离散的状态空间：网页、计数 </li>
+</ul>
+<p>因此，布朗运动是马尔科夫过程，但不是马尔科夫链。</p>
+<p>在本章举的例子，马尔科夫过程等于马尔科夫链</p>
+<h4 id="转移概率"><a href="#转移概率" class="headerlink" title="转移概率"></a>转移概率</h4><p>假定随机游走的状态空间为 $\Omega =[n]$ 矩阵 $\bold{P}^{(t+1)}\in\mathbb R^{n\times n}$ 被称为该随机游走的<strong>第(t+1)步概率转移矩阵</strong>，如果$p<em>{x,y}^{t+1} = P(X</em>{t+1}=y|X_t=x)$​</p>
+<ul>
+<li>其中 $p_{x,y}^{(t+1)}$ 表示在$(t+1)$ 步随机游走从状态x转移到y的概率</li>
+<li>概率转移矩阵的每行概率和为1，即：</li>
+</ul>
+<script type="math/tex; mode=display">
+\sum_y p_{x,y}^{t+1} = \sum_{y} \frac{P(X_{t+1}=y|X_t= x)}{P(X_t = x)}=1</script><p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/3.png" alt="1" style="zoom:67%;"></p>
+<h4 id="齐次马氏链"><a href="#齐次马氏链" class="headerlink" title="齐次马氏链"></a>齐次马氏链</h4><p>如果随机游走满足：</p>
+<script type="math/tex; mode=display">
+P(X_{t+s}=y|X_t = x)= P(X_s = y|X_0 = x)</script><ul>
+<li>即经过t步后，从状态x走到状态y的概率与起始步数s无关，则该随机游走是齐次的</li>
+</ul>
+<p>也就是说，无论当前是第几步，只要起点相同，一步转移到目标顶点的概率是相同的马氏链被称为齐次马氏链。</p>
+<p>例如：在抛币游戏中，无论是开始手上有10元，还是第100次抛币之后手上有10元，下一步手上有11元的概率是相通的，也就是说，抛币游戏中的马氏链是齐次的。也就是说是无记忆性的</p>
+<p>例如：</p>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/4.png" style="zoom:100%;"></p>
+<p>给定图$G=(V,E)$ 如上图，假设$S=\mathbb Z$ ，无论当前是什么时刻，只要当前在状态a，那么下一步的转移概率为：</p>
+<script type="math/tex; mode=display">
+p_a(a-1)=\frac{1}{2}\\p_a(a+1)=\frac{1}{2}\\p_{ab} = 0(b\neq a\pm 1)</script><p>因此，这个马尔科夫链也是齐次的。如果$\pi(a)$ 表示该马尔科夫链初始时刻在状态a的概率，那么$\pi(10)=1,\pi(a)=0(a\neq 10)$ 意味着在时刻0马尔科夫链一定是从坐标10出发的</p>
+<h3 id="随机游走-1"><a href="#随机游走-1" class="headerlink" title="随机游走"></a>随机游走</h3><p>在学习随机游走之前我们需要了解以下定义：图、度、无向图、路劲、连通分量、邻接矩阵、邻接表</p>
+<p>现给出随机游走的定义：随机游走模型是针对图建立的抽象马氏链模型，因此图上的马氏链都可以被称为<strong>随机游走</strong>。图上的随机游走是指给定一个图和一个出发点，随机地选择一个邻居节点，移动到邻居节点上，然后把当前节点作为出发点，重复以上过程。那些被随机选出的节点序列就构成了一个该图上的随机游走。</p>
+<p>我们可以将随机游走和之前说的齐次马尔科夫链结合起来理解：现在有状态转移图如下：</p>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/5.png" style="zoom:100%;"></p>
+<p>假设$\pi(a) = 1,\pi(i) = 0(i\neq a)$ 意味着在时刻0该随机游走从状态a出发。在第一步，该随机游走可能到达顶点c、e、f、g. 随机游走会随机选择一个顶点，其中：</p>
+<script type="math/tex; mode=display">
+p_{ac}=p_{ae}=p_{af}=p_{ag}= \frac{1}{4}\\</script><p> 走到第二个点，又有好几种不同的选择。以此类推，可以得到在图G上的一个随机序列。因此，随机游走是一类<strong>特殊的马氏链</strong></p>
+<p>无论何时出发，只要当前停留在状态a,那么下一步到达c、e、f、g的概率是相同的。因此，该随机游走对应的马氏链也是齐次的</p>
+<h3 id="平稳分布"><a href="#平稳分布" class="headerlink" title="平稳分布"></a>平稳分布</h3><p>之前我们说了概率转移矩阵，基于概率转移矩阵我们提出了平稳分布的概念。</p>
+<h4 id="状态分布"><a href="#状态分布" class="headerlink" title="状态分布"></a>状态分布</h4><p>我们令$\pi^{(t)}$为状态空间为S的马氏链<strong>在时刻t</strong>的状态分布，即：</p>
+<script type="math/tex; mode=display">
+\pi_x^{(t)} = P(X_t = x)</script><p>特别地，将$\pi^{(0)}$ 称为初始分布。</p>
+<p>进一步，对于一个概率转移矩阵为P的马氏链，其状态分布$\pi^{(t)}$ 具有如下性质</p>
+<ul>
+<li>$\pi^{(t)}$​ 的每个分量满足$0\leq\pi_i^{(t)}\leq 1$</li>
+<li>$\sum_{j\in S}\pi_j^{(t)} = 1$ 即每行的和为1</li>
+<li>$\pi^{(t+1)}= \pi^{(t)}P(t)$</li>
+</ul>
+<p>比如对于矩阵：</p>
+<script type="math/tex; mode=display">
+P=\begin{pmatrix}\frac{1}{2}&\frac{1}{2}&0&0\\\frac{1}{3}&\frac{2}{3}&0&0\\0&0&\frac{3}{4}&\frac{1}{4}\\0&0&\frac{1}{4}&\frac{3}{4} \end{pmatrix}</script><p>我们给定第t步的状态分布为$\pi^{(t)}=(0.4,0.6,0,0)$,那么:</p>
+<script type="math/tex; mode=display">
+\pi^{(t+1)} = \pi^{(t)} P = (0.4,0.6,0,0)\\</script><p>我们给定第t步的状态分布为$\pi^{(t)}=(0,0,0.5,0.5)$​,那么:</p>
+<script type="math/tex; mode=display">
+\pi^{(t+1)} = \pi^{(t)}P=(0,0,0.5,0.5)\\</script><p>我们给定第t步的状态分布为$\pi^{(t)}=(0.1,0.9,0,0)$​​,那么:</p>
+<script type="math/tex; mode=display">
+\pi^{(t+1)} = \pi^{(t)}P=(0.35,0.65,0,0)\\</script><h4 id="平稳分布-1"><a href="#平稳分布-1" class="headerlink" title="平稳分布"></a>平稳分布</h4><p>对于一个转移概率矩阵为$\boldsymbol P$ 的有限状态马氏链，若状态分布$\pi$满足：</p>
+<script type="math/tex; mode=display">
+\pi\boldsymbol P = \pi</script><p>则称$\pi$​ 为该马氏链的平稳分布· </p>
+<p>有矩阵为 $P =\begin{pmatrix}\frac{1}{2}&amp;\frac{1}{2} \\frac{1}{4}&amp;\frac{3}{4} \end{pmatrix} $​ 试求其平稳分布：</p>
+<p>我们可以令$\pi = (x,y)$​, 那么 $\cases{\frac{1}{2}x+\frac{1}{4}y = x\\frac{1}{2}x+\frac{3}{4}y = y}$ 解得$y=2x$，又要满足平稳分布的行和为1，所以解为：$(\frac{1}{3},\frac{2}{3})$</p>
+<h4 id="可约与不可约"><a href="#可约与不可约" class="headerlink" title="可约与不可约"></a>可约与不可约</h4><p>如果从状态x可以通过有限步转移到达状态y,并且从状态y可以通过有限步转移到达x，那么称状态x与y是<strong>连通</strong>的。如果马氏链中任意两个状态都是连通的，那么称该马氏链是<strong>不可约</strong>的</p>
+<ul>
+<li>马氏链中任意两个状态都是联通的，那么就意味着存在一个n使得矩阵$\boldsymbol P^{(n)}$ 中任意一个元素都大于0</li>
+<li>如果一张图是<strong>强连通</strong>的，那么它一定是不可约的，否则这个图所对应的马氏链是<strong>可约的</strong></li>
+</ul>
+<p>比如对于这张图，马氏链是可月的，因为对于状态2，他没有出边，因此它无法通过有限步到达其他状态。因此状态2与其他状态并不连通，因此该马尔科夫链是可约的</p>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/6.png" style="zoom:100%;"></p>
+<h4 id="反周期"><a href="#反周期" class="headerlink" title="反周期"></a>反周期</h4><p>状态x的周期$d<em>x$ 是集合${n|(P^n)</em>{x,x}&gt;0}$的<strong>最大公约数</strong>，特别地，如果$\forall n\geq 1,(\boldsymbol P^{(n)})_{x,x}=0$,那么$d_x=\infty$ 。而如果<strong>一个马氏链所有的状态的周期都为1</strong>，则称这个马氏链是反周期的</p>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/7.jpeg" style="zoom:100%;"></p>
+<p>比如说对于这张图，对于每一个状态其集合都为${2,4,6\cdots}$ 其最大公约数为2，因此这个马氏链是周期的。 </p>
+<h2 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h2><h3 id="1"><a href="#1" class="headerlink" title="1"></a>1</h3><p>给定一个转移矩阵 $P$ 和状态向量$\pi$ </p>
+<script type="math/tex; mode=display">
+\boldsymbol P = \begin{pmatrix}0.5&0.5\\0.25&0.75\end{pmatrix}&\pi =  \begin{pmatrix}1\\0\end{pmatrix}</script><ul>
+<li>证明 $\pi P^n$ 的结果接近一个常数向量</li>
+</ul>
+<p>这个常数向量，就是平稳分布。</p>
+<p>我们令 $\pi P^n = (x<em>{(n,1)},x</em>{(n,2)})$，那么，对于$n\geq 1$, 我们有：</p>
+<script type="math/tex; mode=display">
+x_{(n,1)} = \frac{1}{2}x_{(n-1,1)} +\frac{1}{4}x_{(n-1,2)}\\
+x_{(n,2)} = \frac{1}{2}x_{(n-1,1)} +\frac{3}{4}x_{(n-1,2)}\\</script><p>由于状态向量$\pi$ 的向量和一定为1，因此 $x<em>{(n-1,2)}=1-x</em>{(n-1,1)}$ ,带入得到：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+x_{(n,1)} &= \frac{1}{2}x_{(n-1,1)}+\frac{1}{4}(1-x_{(n-1,1)})\\~\\
+&=\frac{1}{4}x_{(n-1,1)} +\frac{1}{4}
+\end{align}</script><p>这是一个很简单的一阶递推</p>
+<script type="math/tex; mode=display">
+(x_{(n,1)}-\frac{1}{3})=\frac{1}{4}(x_{(n-1,1)}-\frac{1}{3})</script><p>解得：</p>
+<script type="math/tex; mode=display">
+x_{(n,1)} = \frac{2}{3}\times (\frac{1}{4})^n+\frac{1}{3},n\geq 1</script><p>当$n\rightarrow \infty$ 时，$x<em>{(n,1)}=\frac{1}{3}$ ，进而可以知道 $x</em>{(n,2)}= \frac{2}{3}$ </p>
+<h3 id="2"><a href="#2" class="headerlink" title="2"></a>2</h3><p>对于一个转移概率矩阵为 $\boldsymbol P$ 的马氏链</p>
+<script type="math/tex; mode=display">
+\boldsymbol P = \begin{pmatrix}0.5&0.5\\p&1-p\end{pmatrix}\\</script><p>已知实验多次之后，转移概率矩阵对应的马氏链停在状态1的概率大约为 $20\%$, 停在状态2的概率为$80\%$ ，p为未知参数</p>
+<ol>
+<li>计算未知参数$p$ 的合理估计值，并给出解释</li>
+</ol>
+<p>首先，根据题意是我们知道最终的平稳分布 $(0.2,0.8)$ ，又 $\pi \boldsymbol P = \pi $ ，可知 $0.1+0.8p = 0.2~~p=\frac{1}{8}$</p>
+<ol>
+<li>这个马氏链是否可约，是否反周期？</li>
+</ol>
+<p>是否可约呢？我们看到这边只有两个状态，两个状态是相互联通的，因此是不可约的。</p>
+<p>如图：</p>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/8.jpeg" style="zoom:100%;"></p>
+<p>那么是否反周期呢？我们看到，状态1、2的集合为：${1,2\cdots}$ ，其最大公约数都是1，因此这个马氏链是反周期的。</p>
+<h3 id="3"><a href="#3" class="headerlink" title="3"></a>3</h3><p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/9.png" style="zoom:100%;"></p>
+<ul>
+<li>对于7.5<ul>
+<li>状态1和状态2都是相互连通的，因此是不可约的</li>
+<li>状态1的集合为 ${1,2,\cdots}$ ，状态2的集合为 ${2,3,4\cdots}$ ，两者最大公约数都是1，周期都是1，因此是反周期的</li>
+</ul>
+</li>
+<li>对于7.6<ul>
+<li>一共有4个状态，所有状态都是连通的，因此是不可约的</li>
+<li>四个状态，每个状态的集合都是 ${2,4,6,\cdots}$ ，最大公约数都是2，因此是非反周期(周期)的</li>
+</ul>
+</li>
+</ul>
+<h2 id="Page-Rank"><a href="#Page-Rank" class="headerlink" title="Page Rank"></a>Page Rank</h2>
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/" title="数据科学算法ch7-随机游走">https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95/" rel="tag"><i class="fa fa-tag"></i> 数据科学算法</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/" rel="next" title="数据科学算法ch5-数据流模型及频繁项挖掘">
+                <i class="fa fa-chevron-left"></i> 数据科学算法ch5-数据流模型及频繁项挖掘
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/01/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E5%88%86%E6%9E%90-%E7%9F%A9%E9%98%B5%E7%89%88/" rel="prev" title="线性回归分析-矩阵版">
+                线性回归分析-矩阵版 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">425</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#随机游走"><span class="nav-number">1.</span> <span class="nav-text">随机游走</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#引入"><span class="nav-number">1.1.</span> <span class="nav-text">引入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#随机过程"><span class="nav-number">1.2.</span> <span class="nav-text">随机过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#抛币游戏"><span class="nav-number">1.2.0.1.</span> <span class="nav-text">抛币游戏</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#象棋"><span class="nav-number">1.2.0.2.</span> <span class="nav-text">象棋</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#网页浏览"><span class="nav-number">1.2.0.3.</span> <span class="nav-text">网页浏览</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#马尔科夫过程"><span class="nav-number">1.2.1.</span> <span class="nav-text">马尔科夫过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#马尔科夫性质"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">马尔科夫性质</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#马尔科夫过程-1"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">马尔科夫过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#马尔科夫链"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">马尔科夫链</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#转移概率"><span class="nav-number">1.2.1.4.</span> <span class="nav-text">转移概率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#齐次马氏链"><span class="nav-number">1.2.1.5.</span> <span class="nav-text">齐次马氏链</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#随机游走-1"><span class="nav-number">1.2.2.</span> <span class="nav-text">随机游走</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#平稳分布"><span class="nav-number">1.2.3.</span> <span class="nav-text">平稳分布</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#状态分布"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">状态分布</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#平稳分布-1"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">平稳分布</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可约与不可约"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">可约与不可约</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#反周期"><span class="nav-number">1.2.3.4.</span> <span class="nav-text">反周期</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例题"><span class="nav-number">1.3.</span> <span class="nav-text">例题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1"><span class="nav-number">1.3.1.</span> <span class="nav-text">1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2"><span class="nav-number">1.3.2.</span> <span class="nav-text">2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3"><span class="nav-number">1.3.3.</span> <span class="nav-text">3</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Page-Rank"><span class="nav-number">1.4.</span> <span class="nav-text">Page Rank</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1245k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="数据管理系统," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="数据库扩展性问题NoSQLNoSQL数据库有四大分类：     分类 Examples 典型应用场景 数据模型 优点 缺点     键值 key-value Riak,Redis,Voldmort 内容缓存，用于处理大量数据的高访问负载，也用于一些日志系统等 Key指向Value的键值对，通常用哈希表实现 查找速度快 数据无结构化，通常只被当做字符串或者二进制数据   列存储数据库 wide-co">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库扩展性问题">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="数据库扩展性问题NoSQLNoSQL数据库有四大分类：     分类 Examples 典型应用场景 数据模型 优点 缺点     键值 key-value Riak,Redis,Voldmort 内容缓存，用于处理大量数据的高访问负载，也用于一些日志系统等 Key指向Value的键值对，通常用哈希表实现 查找速度快 数据无结构化，通常只被当做字符串或者二进制数据   列存储数据库 wide-co">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/8.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/9.jpeg">
+<meta property="article:published_time" content="2022-01-01T02:48:27.000Z">
+<meta property="article:modified_time" content="2022-06-24T02:00:46.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据管理系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2022/01/01/数据库扩展性问题/"/>
+
+
+
+
+
+  <title>数据库扩展性问题 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据库扩展性问题</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2022-01-01T10:48:27+08:00">
+                2022-01-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  5.2k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  18
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="数据库扩展性问题"><a href="#数据库扩展性问题" class="headerlink" title="数据库扩展性问题"></a>数据库扩展性问题</h1><h2 id="NoSQL"><a href="#NoSQL" class="headerlink" title="NoSQL"></a>NoSQL</h2><p>NoSQL数据库有四大分类：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>Examples</th>
+<th>典型应用场景</th>
+<th>数据模型</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>键值 key-value</td>
+<td>Riak,Redis,Voldmort</td>
+<td>内容缓存，用于处理大量数据的高访问负载，也用于一些日志系统等</td>
+<td>Key指向Value的键值对，通常用哈希表实现</td>
+<td>查找速度快</td>
+<td>数据无结构化，通常只被当做字符串或者二进制数据</td>
+</tr>
+<tr>
+<td>列存储数据库 wide-column</td>
+<td>Cassandra,HBase</td>
+<td>分布式的文件系统</td>
+<td>以列簇式存储，将同一列数据存在一起</td>
+<td>查找速度快，可扩展性强，更容易进行分布式扩展</td>
+<td>功能相对局限</td>
+</tr>
+<tr>
+<td>文档型数据 document</td>
+<td>MongoDB, CouchDB</td>
+<td>web应用</td>
+<td>Key-Value对应的键值对，Value为结构化数据</td>
+<td>数据结构要求不严格，表结构可变，不需要像关系型数据库一样，需要预先定义表结构</td>
+<td>查询性能不高，而且缺乏统一查询语法</td>
+</tr>
+<tr>
+<td>图形数据库 Graph</td>
+<td>Neo4J,HyperGraphDB</td>
+<td>社交网络，推荐系统。专注于构建关系图谱</td>
+<td>图结构</td>
+<td>利用图结构相关算法</td>
+<td>很多时候需要对整个图做计算才能得出需要的信息。不太好做分布式扩展</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="NoSQL和SQL不同的开发过程"><a href="#NoSQL和SQL不同的开发过程" class="headerlink" title="NoSQL和SQL不同的开发过程"></a>NoSQL和SQL不同的开发过程</h3><ul>
+<li>传统的SQL数据库设计流程</li>
+</ul>
+<p>概念模型(Conceptual Model) ——&gt; 模式(Schema) ——&gt; 物理设计优化(Physical Design) ——&gt; 分库分表(Sharding)</p>
+<ul>
+<li>NoSQL的数据库设计流程</li>
+</ul>
+<p>应用功能 (App Operation) ——&gt; 模式(Schema) ——&gt; 横向扩展(Scaling)</p>
+<h3 id="NOSQL的优势"><a href="#NOSQL的优势" class="headerlink" title="NOSQL的优势"></a>NOSQL的优势</h3><ul>
+<li><p><strong>易扩展</strong><br>NoSQL数据库种类繁多，但是一个共同的特点都是去掉关系数据库的关系型特性。数据之间无关系，这样就非常容易扩展。也无形之间，在架构的层面上带来了可扩展的能力。</p>
+</li>
+<li><p><strong>大数据量，高性能</strong><br>NoSQL数据库都具有非常高的读写性能，尤其在大数据量下，同样表现优秀。这得益于它的无关系性，数据库的结构简单。一般MySQL使用Query Cache，每次表的更新Cache就失效，是一种大粒度的Cache，在针对web2.0的交互频繁的应用，Cache性能不高。而NoSQL的Cache是记录级的，是一种细粒度的Cache，所以NoSQL在这个层面上来说就要性能高很多了。</p>
+</li>
+<li><p><strong>灵活的数据模型</strong><br>NoSQL无需事先为要存储的数据建立字段，随时可以存储自定义的数据格式。而在关系数据库里，增删字段是一件非常麻烦的事情。如果是非常大数据量的表，增加字段简直就是一个噩梦。</p>
+</li>
+<li><p><strong>高可用</strong><br>NoSQL在不太影响性能的情况，就可以方便的实现高可用的架构。比如Cassandra，HBase模型，通过复制模型也能实现高可用。</p>
+</li>
+</ul>
+<h3 id="SQL-的劣势"><a href="#SQL-的劣势" class="headerlink" title="SQL 的劣势"></a>SQL 的劣势</h3><ul>
+<li><p><strong>大数据场景下I/O较高</strong></p>
+<p>因为数据是按行存储，即使只针对其中某一列进行运算，关系型数据库也会将整行数据从存储设备中读入内存，导致I/O较高</p>
+</li>
+<li><p><strong>存储的是行记录，无法存储数据结构</strong> </p>
+</li>
+<li><p><strong>表结构schema扩展不方便</strong><br> 如要需要修改表结构，需要执行执行DDL(data definition language)，语句修改，修改期间会导致锁表，部分服务不可用</p>
+</li>
+<li><p><strong>全文搜索功能较弱</strong><br> 关系型数据库下只能够进行子字符串的匹配查询，当表的数据逐渐变大的时候，like查询的匹配会非常慢，即使在有索引的情况下。况且关系型数据库也不应该对文本字段进行索引</p>
+</li>
+<li><p><strong>存储和处理复杂关系型数据功能较弱</strong><br> 许多应用程序需要了解和导航高度连接数据之间的关系，才能启用社交应用程序、推荐引擎、欺诈检测、知识图谱、生命科学和 IT/网络等用例。然而传统的关系数据库并不善于处理数据点之间的关系。它们的表格数据模型和严格的模式使它们很难添加新的或不同种类的关联信息。</p>
+</li>
+</ul>
+<h2 id="CAP"><a href="#CAP" class="headerlink" title="CAP"></a>CAP</h2><p>CAP理论非常重要，在分布式数据库的设计中起了很关键的理论支持(包括区块链)。我们先对CAP进行定义：</p>
+<ul>
+<li>C（一致性 Consistency）：所有节点访问同一份最新的数据副本。(副本既可以是备份数据，也可以是冗余数据，比如索引)</li>
+<li>A（可用性 Availability）：每次请求都能获取到非错的响应——但是不保证获取的数据是否为最新的数据</li>
+<li>P（分区容错 Partitioning Tolerance）：通信故障的时候，系统的任意节点都可以正常工作。(以实际效果而言，分区就相当于对通信的时限要求，系统如果不能在时限内达成数据一致性，就意味着发生了分区的情况，必须就当前操作在C和A之间做出选择)</li>
+</ul>
+<p>任何一个分布式数据库只能在C、A和P三者中兼顾两个</p>
+<h3 id="一致性"><a href="#一致性" class="headerlink" title="一致性"></a>一致性</h3><p><strong>这里指的是强一致性，而最终一致性后续讨论</strong><br>在写操作完成后开始的任何读操作都必须返回该值，或者后续写操作的结果<br>也就是说，在一致性系统中，一旦客户端将值写入任何一台服务器并获得响应，那么之后client从其他任何服务器读取的都是刚写入的数据</p>
+<p><strong>用如下系统进行解释</strong></p>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/1.png"></p>
+<ol>
+<li>客户端向G1写入数据v1，并等待响应</li>
+<li>此时，G1服务器的数据为v1，而G2服务器的数据为v0，两者不一致</li>
+<li>接着，在返回响应给客户端之前，G2服务器会自动同步G1服务器的数据，使得G2服务器的数据也是v1</li>
+<li>一致性保证了不管向哪台服务器（比如这边向G1）写入数据，其他的服务器（G2）能实时同步数据</li>
+<li>G2已经同步了G1的数据，会告诉G1，我已经同步了</li>
+<li>G1接收了所有同步服务器的已同步的报告，才将“写入成功”信息响应给client</li>
+<li>client再发起请求，读取G2的数据</li>
+<li>此时得到的响应是v1，即使client从未写入数据到G2</li>
+</ol>
+<h3 id="可用性"><a href="#可用性" class="headerlink" title="可用性"></a>可用性</h3><p>系统中非故障节点收到的每个请求都必须有响应<br>在可用系统中，如果我们的客户端向服务器发送请求，并且服务器未崩溃，则服务器必须最终响应客户端，不允许服务器忽略客户的请求</p>
+<h3 id="分区容错性"><a href="#分区容错性" class="headerlink" title="分区容错性"></a>分区容错性</h3><p><strong>允许网络丢失从一个节点发送到另一个节点的任意多条消息，即不同步 </strong><br>也就是说，G1和G2发送给对方的任何消息都是可以放弃的，也就是说G1和G2可能因为各种意外情况，导致无法成功进行同步，分布式系统要能容忍这种情况。</p>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/2.png"></p>
+<h3 id="CAP三者不可能同时满足"><a href="#CAP三者不可能同时满足" class="headerlink" title="CAP三者不可能同时满足"></a>CAP三者不可能同时满足</h3><p>假设确实存在三者能同时满足的系统</p>
+<ul>
+<li>那么我们要做的第一件事就是分区我们的系统，由于满足分区容错性，也就是说可能因为通信不佳等情况，G1和G2之间是没有同步</li>
+</ul>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/3.png"></p>
+<ul>
+<li>接下来，我们的客户端将v1写入G1，但G1和G2之间是不同步的，所以如下G1是v1数据，G2是v0数据。</li>
+</ul>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/4.png"></p>
+<ul>
+<li>由于要满足可用性，即一定要返回数据，所以G1必须在数据没有同步给G2的前提下返回数据给client，如下</li>
+</ul>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/5.png"></p>
+<ul>
+<li>接下去，client请求的是G2服务器，由于G2服务器的数据是v0，所以client得到的数据是v0</li>
+</ul>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/6.png"></p>
+<p>很明显，G1返回的是v1数据，G2返回的是v0数据，两者不一致。<br>其余情况也有类似推导，也就是说CAP三者不能同时出现。</p>
+<h3 id="CAP三者如何权衡"><a href="#CAP三者如何权衡" class="headerlink" title="CAP三者如何权衡"></a>CAP三者如何权衡</h3><h4 id="三选二利弊如何"><a href="#三选二利弊如何" class="headerlink" title="三选二利弊如何"></a>三选二利弊如何</h4><ul>
+<li>CA (Consistency + Availability)：关注一致性和可用性，它需要非常严格的全体一致的协议，比如“两阶段提交”（2PC）。CA 系统不能容忍网络错误或节点错误，一旦出现这样的问题，整个系统就会拒绝写请求，因为它并不知道对面的那个结点是否挂掉了，还是只是网络问题。唯一安全的做法就是把自己变成只读的。<ul>
+<li>注意：redis 和 MongoDB 均满足CP原则。</li>
+</ul>
+</li>
+<li>CP (consistency + partition tolerance)：关注一致性和分区容忍性。它关注的是系统里大多数人的一致性协议，比如：Paxos 算法 (Quorum 类的算法)。这样的系统只需要保证大多数结点数据一致，而少数的结点会在没有同步到最新版本的数据时变成不可用的状态。这样能够提供一部分的可用性。</li>
+<li>AP (availability + partition tolerance)：这样的系统关心可用性和分区容忍性。因此，这样的系统不能达成一致性，需要给出数据冲突，给出数据冲突就需要维护数据版本。Dynamo 就是这样的系统。</li>
+</ul>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/7.png"></p>
+<h4 id="如何进行三选二"><a href="#如何进行三选二" class="headerlink" title="如何进行三选二"></a>如何进行三选二</h4><p><strong>权衡三者的关键点取决于业务</strong><br>放弃了一致性，满足分区容错，那么节点之间就有可能失去联系，为了高可用，每个节点只能用本地数据提供服务，而这样会容易导致全局数据不一致性。对于互联网应用来说（如新浪，网易），机器数量庞大，节点分散，网络故障再正常不过了，那么此时就是保障AP，放弃C的场景，而从实际中理解，像门户网站这种偶尔没有一致性是能接受的，但不能访问问题就非常大了。</p>
+<p>对于银行来说，就是<strong>必须保证强一致性</strong>，也就是说C必须存在，那么就只用CA和CP两种情况。</p>
+<ul>
+<li>当保障强一致性和可用性（CA），那么一旦出现通信故障，系统将完全不可用。</li>
+<li>另一方面，如果保障了强一致性和分区容错（CP），那么就具备了部分可用性。</li>
+</ul>
+<p>实际究竟应该选择什么，是需要通过业务场景进行权衡的（并不是所有情况都是CP好于CA，只能查看信息但不能更新信息有时候还不如直接拒绝服务）</p>
+<h2 id="NewSQL"><a href="#NewSQL" class="headerlink" title="NewSQL"></a>NewSQL</h2><p>newSQL 提供了与 noSQL 相同的可扩展性，而且仍基于关系模型，还保留了极其成熟的 SQL 作为查询语言，保证了ACID事务特性。</p>
+<p>简单来讲，newSQL 就是在传统关系型数据库上集成了 noSQL 强大的可扩展性。</p>
+<p>传统的SQL架构设计基因中是没有分布式的，而 newSQL 生于云时代，天生就是分布式架构。</p>
+<p>newSQL 的主要特性：</p>
+<ul>
+<li>SQL 支持，支持复杂查询和大数据分析。</li>
+<li>支持 ACID 事务，支持隔离级别。</li>
+<li>弹性伸缩，扩容缩容对于业务层完全透明。</li>
+<li>高可用，自动容灾。</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>SQL</th>
+<th>NoSQL</th>
+<th>NewSQL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>关系模型</td>
+<td>Yes</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>SQL语句</td>
+<td>Yes</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ACID</td>
+<td>Yes</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>水平扩展</td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>大数据</td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>无结构化</td>
+<td>No</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="CAP再探"><a href="#CAP再探" class="headerlink" title="CAP再探"></a>CAP再探</h3><p>当在分布式系统上发生通信故障的时候(Partitioning)，由于P是必须要有的，因此只有CP和AP两种选择。</p>
+<p>对于A，也有两种方式： Node Avalability 和 Service Availability</p>
+<ul>
+<li>Node Availability (nA)<ul>
+<li>通信故障发生时，任一节点都可用。 </li>
+</ul>
+</li>
+<li>Service Availability (sA)<ul>
+<li>通信故障发生时，部分节点不可用。但是，总有一部分节点可用。系统可以将用户自动切换到可用的节点。使得服务不中断。</li>
+</ul>
+</li>
+</ul>
+<p>因此，对于 CnAP来说，只能在CP和nAP中二选一，但是对于CsAP，在某种条件下，可以兼顾(使用Raft.Paxos)</p>
+<h3 id="Spanner数据库"><a href="#Spanner数据库" class="headerlink" title="Spanner数据库"></a>Spanner数据库</h3><p>Spanner 就是利用 CsAP的NewSQL数据库。Spanner最重要的设计点就是做全球数据库，要求可扩展性、多数据版本、多replica数据一致性和事务。是第一个款能实现全球数据分布而且还能实现分布式事务的数据库系统，从他的架构图来看底层也是基于Colossus(GFS二代)来存储文件，只不过上层的tablet还通过Paxos协议在做数据的replica。这点和HBase当前1.1版本引进的region高可用有点类似，但看起来又不全是。 </p>
+<h4 id="整体架构"><a href="#整体架构" class="headerlink" title="整体架构"></a>整体架构</h4><p>Spanner 是由一系列的 zone 组成, zone 是 Spanner 中的部署的单元, 一般会在某 datacenter 部署一个 zone, 但是也可以有多个 zone。数据副本就是存放在这一系列的 zone 中, zone 之间的物理距离越大, 数据的安全性越高。</p>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/8.jpeg" style="zoom:150%;"></p>
+<blockquote>
+<p>universemaster：是一个控制台, 监控universe里所有zone状态信息, 用于debug；</p>
+<p>placement driver：帮助维持特定副本数量，自动搬迁数据，实现负载均衡；</p>
+<p>zonemaster：管理 spanserver 上的数据；</p>
+<p>location proxy：作用不详, 可能是为 client 提供数据的位置信息, client 要先访问它来定位需要访问的 spanserver；</p>
+<p>spanserver：对 client 提供服务, 包括读写数据。</p>
+</blockquote>
+<p> <strong>Spanserver 架构</strong></p>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/9.jpeg" style="zoom:150%;"></p>
+<p>在Spanner中，tablet的概念和Bigtable类似，都是B-tree的存储结构，和HBase的region对等关系。只不过在Spanner中创造了目录的概念，把不同表中相同rowkey前缀的数据放入到同一个directory中。这也是之所有能在几十TB数据量情况下做到多表关联的必要条件(而并非现在传说的遵循标准关系型数据库的schema模式可以随意来设计) </p>
+<p>同时，Spanner引入了Group概念，这个和HBase当前的Region Group类似，不同的Dir归属于不同的Group，数据以Group为单位进行逻辑上的存储。Group内数据被同一个Paxos管理起来，而不同的Group间Paxos不同。当然目录可以在Group之间来回移动，以达到负载均衡和容灾的目的。 </p>
+<p>为了实现分布式事务，除了Paxos协议和两阶段提交。还有一个非常重要的前提，就是不同客户端提交的<strong>事务时间戳需要非常精确</strong>，因为这个决定了究竟哪个事务在前，哪个事务在后。这个时间戳的概念比较容易被误读成数据时间戳。在这里Spanner定义了读写事务、只读事务、快照读。读写事务对时间精确性要求较高，也许在10ms内会同时有客户端在读写同一条数据，谁先谁后对最终结果影响很大。只读事务和快照读目前还没分太清楚，大概是指定时间戳版本的读，读当前最新还是读一个历史版本 </p>
+<h4 id="Timestamps-Based-Protocals"><a href="#Timestamps-Based-Protocals" class="headerlink" title="Timestamps-Based Protocals"></a>Timestamps-Based Protocals</h4><p><a href="https://blog.csdn.net/weixin_45583158/article/details/100143234" target="_blank" rel="noopener">https://blog.csdn.net/weixin_45583158/article/details/100143234</a></p>
+<p>每个事务在进入系统时都会被授予一个时间戳。如果一个旧的事务 $T_i$有时间戳 $TS(T_i)$，一个新的交易$T_j$被分配时间戳$TS(T_j)$，使$TS(T_i)&lt;TS(T_j)$。</p>
+<p>该协议管理并发的执行，使时间戳决定可序列化的顺序。</p>
+<p>为了保证这种行为，协议为每个数据Q保持两个时间戳值。</p>
+<ul>
+<li>W-timestamp(Q)是任何成功执行<strong>write(Q)</strong> 的事务的最大时间戳。</li>
+<li>R-timestamp(Q)是任何成功执行<strong>read(Q)</strong> 的事务的最大时间戳。</li>
+</ul>
+<h4 id="Multiversion-Schemes"><a href="#Multiversion-Schemes" class="headerlink" title="Multiversion Schemes"></a>Multiversion Schemes</h4><p>Multiversion Schemes 保留数据项的旧版本，以增加并发性。</p>
+<ul>
+<li>Multiversion Timestamp Ordering</li>
+<li>Multiversion Two-Phase Locking</li>
+</ul>
+<p>每一次成功的写入都会导致所写数据项的新版本的产生。</p>
+<p>我们使用时间戳来标记版本。</p>
+<p>当一个read(Q)操作被发出时，根据事务的时间戳选择Q的适当版本，并返回所选版本的值。 </p>
+<p>执行读取操作时不必等待，因为适当的版本会立即返回。</p>
+<h4 id="Multiversion-Timestamp-Ordering"><a href="#Multiversion-Timestamp-Ordering" class="headerlink" title="Multiversion Timestamp Ordering"></a>Multiversion Timestamp Ordering</h4><p>每个数据项Q都有一连串的版本<Q1, q2,...., qm>。每个版本$Q_k$包含三个数据字段。</Q1,></p>
+<ul>
+<li>Content — 版本$Q_k$的值。</li>
+<li>W-timestamp($Q_k$) — 创建(写) 版本$Q_k$的事务的时间戳</li>
+<li>R-timestamp($Q_k$) — 成功读取版本$Q_k$的事务的最大时间戳</li>
+</ul>
+<p>当一个事务$T_i$创建了Q的新版本$Q_k$，$Q_k$的 W-timestamp和R-timestamp 被初始化为$TS(T_i)$。<br>每当一个事务$T_j$读取$Q_k$，并且$TS(T_j)&gt;R-timestamp(Q_k)$时，$Q_k$的R-timestamp被更新。</p>
+<p>假设事务$T_i$发出一个<strong>read(Q)</strong>或<strong>write(Q)</strong>操作。 让$Q_k$表示$Q$的版本，其写入时间戳是小于或等于$TS(T_i)$的最大写入时间戳。</p>
+<ol>
+<li>如果事务$T_i$发出 read(Q)，那么返回的值就是版本$Q_k$的内容。</li>
+<li>如果事务$T_i$发出一个 write(Q)<ol>
+<li>如果$TS(T_i)&lt; R-timestamp(Q_k)$，则事务$T_i$被回滚。</li>
+<li>如果$TS(T_i) = W-timestamp(Q_k)$，$Q_k$的内容被覆盖。</li>
+<li>否则将创建一个新的Q版本。</li>
+</ol>
+</li>
+</ol>
+<p>请注意</p>
+<ul>
+<li>读取总是成功的</li>
+<li>如果其他事务$T_j$（在由时间戳值定义的序列化顺序中）应该读取$T_i$的写，但已经读取了比$T_i$更早的事务创建的版本，那么$T_i$的写就会被拒绝。</li>
+<li>协议保证可序列化</li>
+</ul>
+<h4 id="Reads-in-spanner"><a href="#Reads-in-spanner" class="headerlink" title="Reads in spanner"></a>Reads in spanner</h4><h5 id="Snapshot-read"><a href="#Snapshot-read" class="headerlink" title="Snapshot read"></a>Snapshot read</h5><p>Snapshot read 指的是读取过去时间的某个快照, 无需加锁。</p>
+<p>client可以指定一个 timestamp t, 或者时间范围，Spanner 会寻找一个数据充分更新好的 replica 来提供读服务。</p>
+<p>所谓数据充分更新好, 是指 t &lt;= tsafe，其中 tsafe 定义如下:</p>
+<script type="math/tex; mode=display">
+t_{safe} = \min(t_{safe}^{paxos},t_{safe}^{TM})</script><p>前者指的已经提交的事务 timestamp, 后者指的是正在 2PC 过程中未决的事务 timestamp - 1。</p>
+<p>如果 t &gt; tsafe，Spanner 需要等待 replica 一段时间, 待 tsafe 推进后再进行读操作。</p>
+<p>基于 External Consistency 特性，Spanner 可以感知操作的先后顺序, 给定一个时间戳 t, Spanner 能够明确哪些是历史数据, 并提供一致的快照。 </p>
+<h4 id="Read-only-transactions"><a href="#Read-only-transactions" class="headerlink" title="Read-only transactions"></a>Read-only transactions</h4><ul>
+<li><p>Assign timestamp sread and do snapshot read at sread</p>
+</li>
+<li><p>$s_{read}  = TT.now().latest() $ 保证外部一致性（线性化）。</p>
+</li>
+<li><p>应该分配最古老的时间戳，保持外部一致性，以避免阻塞。</p>
+<ul>
+<li>For read at single paxos group: <ul>
+<li>Let LastTS() = timestamp of the last committed write at the Paxos group. </li>
+<li>如果没有准备好的事务，让 $s_{read} = LastTS()$很容易满足外部一致性：事务将看到最后一次写入的结果。</li>
+</ul>
+</li>
+<li>在一般情况下，选择TT.now().latest()更简单。</li>
+</ul>
+</li>
+</ul>
+<h4 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h4><p>Spanner 的 TureTime API 设计非常巧妙, 保证了绝对时间一定是落在 TT.now() 返回的区间之中。基于这个保证, 使得分布在全球的 spanserver 分配的 timestamp 都是基于同一参考系, 具有可比性。进而让 Spanner 能够感知分布式系统中的事件的先后顺序, 保证了 External Consistency。</p>
+<p>但是 TureTime API 要求对误差的测量具有非常高的要求, 如果实际误差 &gt; 预计的误差, 那么绝对时间很可能就飘到了区间之外, 后续的操作都无法保证宣称的 External Consistency。另外, Spanener 的大部分响应时间与误差的大小是正相关的。</p>
+<p>自 Spanner 在 OSDI12 发表论文后, Spanner 一直在努力减少误差, 并提高测量误差的技术[3], 但是并没有透露更多细节。</p>
+<p>在一个大规模的分布式系统中，集中分配时间戳是不可行的。解决方案: TrueTime设备</p>
+<ul>
+<li>GPS时钟</li>
+<li>原子钟</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>分布式多版本数据库<ul>
+<li>General-Purpose Transactions（ACID）</li>
+<li>SQL查询语言</li>
+<li>模式化的表(Schematized Tables)</li>
+<li>半关系型数据模型（F1 is more relational/SQL）</li>
+</ul>
+</li>
+<li>重点：管理跨数据中心的复制</li>
+<li>特点：提供外部一致的读写。<ul>
+<li>提供外部一致的读和写。</li>
+<li>全局一致的跨数据库读取 </li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>F1最初定位是一个SQL查询引擎，本来是架构在Mysql的分布式集群上。由于Mysql本身的reshared以及分布式事务上的冲突几乎是无解，最终放弃Mysql分布式存储，而转而使用Spanner。单独的F1并不能称为一款数据库。这点在F1论文题目有所误导，更准确的来讲F1是一款SQL执行引擎，包含了二级索引等一些常见的传统数据库功能。和Spanner结合起来才完成了Nosql+Sql=newSQL的壮举。</p>
+</blockquote>
+<p>Spanner/F1似乎是第一个能称得上可真正扩展的分布式SQL系统。</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/" title="数据库扩展性问题">https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" rel="tag"><i class="fa fa-tag"></i> 数据管理系统</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/" rel="next" title="分布式数据库事务">
+                <i class="fa fa-chevron-left"></i> 分布式数据库事务
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/01/01/OLAP/" rel="prev" title="OLAP">
+                OLAP <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">425</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据库扩展性问题"><span class="nav-number">1.</span> <span class="nav-text">数据库扩展性问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#NoSQL"><span class="nav-number">1.1.</span> <span class="nav-text">NoSQL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NoSQL和SQL不同的开发过程"><span class="nav-number">1.1.1.</span> <span class="nav-text">NoSQL和SQL不同的开发过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NOSQL的优势"><span class="nav-number">1.1.2.</span> <span class="nav-text">NOSQL的优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SQL-的劣势"><span class="nav-number">1.1.3.</span> <span class="nav-text">SQL 的劣势</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CAP"><span class="nav-number">1.2.</span> <span class="nav-text">CAP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一致性"><span class="nav-number">1.2.1.</span> <span class="nav-text">一致性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可用性"><span class="nav-number">1.2.2.</span> <span class="nav-text">可用性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分区容错性"><span class="nav-number">1.2.3.</span> <span class="nav-text">分区容错性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CAP三者不可能同时满足"><span class="nav-number">1.2.4.</span> <span class="nav-text">CAP三者不可能同时满足</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CAP三者如何权衡"><span class="nav-number">1.2.5.</span> <span class="nav-text">CAP三者如何权衡</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#三选二利弊如何"><span class="nav-number">1.2.5.1.</span> <span class="nav-text">三选二利弊如何</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何进行三选二"><span class="nav-number">1.2.5.2.</span> <span class="nav-text">如何进行三选二</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NewSQL"><span class="nav-number">1.3.</span> <span class="nav-text">NewSQL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CAP再探"><span class="nav-number">1.3.1.</span> <span class="nav-text">CAP再探</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spanner数据库"><span class="nav-number">1.3.2.</span> <span class="nav-text">Spanner数据库</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#整体架构"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">整体架构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Timestamps-Based-Protocals"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">Timestamps-Based Protocals</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Multiversion-Schemes"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">Multiversion Schemes</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Multiversion-Timestamp-Ordering"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">Multiversion Timestamp Ordering</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Reads-in-spanner"><span class="nav-number">1.3.2.5.</span> <span class="nav-text">Reads in spanner</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Snapshot-read"><span class="nav-number">1.3.2.5.1.</span> <span class="nav-text">Snapshot read</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Read-only-transactions"><span class="nav-number">1.3.2.6.</span> <span class="nav-text">Read-only transactions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#小结"><span class="nav-number">1.3.2.7.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.3.3.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1245k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>

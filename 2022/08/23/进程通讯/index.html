@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="操作系统," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="进程通讯参考博客：https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;c1015f5ffa74 进程间通信的概念每个进程各自有不同的用户地址空间，任何一个进程的全局变量在另一个进程中都看不到，所以进程之间要交换数据必须通过内核，在内核中开辟一块缓冲区，进程1把数据从用户空间拷到内核缓冲区，进程2再从内核缓冲区把数据读走，内核提供的这种机制称为进程间通信（IPC，InterProcess Commu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="进程通讯">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="进程通讯参考博客：https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;c1015f5ffa74 进程间通信的概念每个进程各自有不同的用户地址空间，任何一个进程的全局变量在另一个进程中都看不到，所以进程之间要交换数据必须通过内核，在内核中开辟一块缓冲区，进程1把数据从用户空间拷到内核缓冲区，进程2再从内核缓冲区把数据读走，内核提供的这种机制称为进程间通信（IPC，InterProcess Commu">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/2.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/3.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/4.png">
+<meta property="article:published_time" content="2022-08-23T06:42:18.000Z">
+<meta property="article:modified_time" content="2022-08-23T14:44:08.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2022/08/23/进程通讯/"/>
+
+
+
+
+
+  <title>进程通讯 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">进程通讯</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2022-08-23T14:42:18+08:00">
+                2022-08-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  7k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  25
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="进程通讯"><a href="#进程通讯" class="headerlink" title="进程通讯"></a>进程通讯</h1><p>参考博客：<a href="https://www.jianshu.com/p/c1015f5ffa74" target="_blank" rel="noopener">https://www.jianshu.com/p/c1015f5ffa74</a></p>
+<h2 id="进程间通信的概念"><a href="#进程间通信的概念" class="headerlink" title="进程间通信的概念"></a>进程间通信的概念</h2><p>每个进程各自有不同的用户地址空间，任何一个进程的全局变量在另一个进程中都看不到，所以进程之间要交换数据<strong>必须通过内核</strong>，在内核中开辟一块缓冲区，进程1把数据从用户空间拷到内核缓冲区，进程2再从内核缓冲区把数据读走，内核提供的这种机制称为<strong>进程间通信（IPC，InterProcess Communication）</strong></p>
+<h2 id="进程间通信的7种方式"><a href="#进程间通信的7种方式" class="headerlink" title="进程间通信的7种方式"></a>进程间通信的7种方式</h2><h3 id="管道-匿名管道-pipe"><a href="#管道-匿名管道-pipe" class="headerlink" title="管道/匿名管道(pipe)"></a>管道/匿名管道(pipe)</h3><p>管道是半双工的，数据只能向一个方向流动；需要双方通信时，需要建立起两个管道。</p>
+<p>只能用于父子进程或者兄弟进程之间(具有亲缘关系的进程);</p>
+<p>单独构成一种独立的文件系统：管道对于管道两端的进程而言，就是一个文件，但它不是普通的文件，它不属于某种文件系统，而是自立门户，单独构成一种文件系统，并且只存在与内存中。</p>
+<p>数据的读出和写入：一个进程向管道中写的内容被管道另一端的进程读出。写入的内容每次都添加在管道缓冲区的末尾，并且每次都是从缓冲区的头部读出数据。</p>
+<p><img src="/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/1.jpg" style="zoom:150%;"></p>
+<p><strong>管道的实质：</strong><br>管道的实质是一个内核缓冲区，进程以先进先出的方式从缓冲区存取数据，管道一端的进程顺序的将数据写入缓冲区，另一端的进程则顺序的读出数据。</p>
+<p>该缓冲区可以看做是一个循环队列，读和写的位置都是自动增长的，不能随意改变，一个数据只能被读一次，读出来以后在缓冲区就不复存在了。</p>
+<p> 当缓冲区读空或者写满时，有一定的规则控制相应的读进程或者写进程进入等待队列，当空的缓冲区有新数据写入或者满的缓冲区有数据读出来时，就唤醒等待队列中的进程继续读写。</p>
+<p><strong>管道的局限：</strong><br> 管道的主要局限性正体现在它的特点上：</p>
+<ul>
+<li>只支持单向数据流；</li>
+<li>只能用于具有亲缘关系的进程之间；</li>
+<li>没有名字；</li>
+<li>管道的缓冲区是有限的（管道制存在于内存中，在管道创建时，为缓冲区分配一个页面大小）；</li>
+<li>管道所传送的是无格式字节流，这就要求管道的读出方和写入方必须事先约定好数据的格式，比如多少字节算作一个消息（或命令、或记录）等等；</li>
+</ul>
+<h4 id="管道实践-C"><a href="#管道实践-C" class="headerlink" title="管道实践(C++)"></a>管道实践(C++)</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> fds[<span class="number">2</span>]; 		<span class="comment">//2个元素的int类型的数组，filedes[0]读端、filedes[1]写端。</span></span><br><span class="line">    <span class="keyword">int</span> len;</span><br><span class="line">    <span class="keyword">char</span> buf[<span class="number">100</span>]=&#123;&#125;;<span class="comment">// 缓冲区</span></span><br><span class="line">    <span class="keyword">if</span>(pipe(fds)==<span class="number">-1</span>) <span class="comment">//创建管道</span></span><br><span class="line">        perror(<span class="string">"pipe"</span>),<span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">while</span>(fgets(buf,<span class="number">100</span>,<span class="built_in">stdin</span>)) <span class="comment">//把输入先读入buf当中</span></span><br><span class="line">    &#123;</span><br><span class="line">        len = <span class="built_in">strlen</span>(buf);							<span class="comment">//求出buf中字符串的长度</span></span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">write</span>(fds[<span class="number">1</span>],buf,len)==<span class="number">-1</span>) 	<span class="comment">//把内容写进管道</span></span><br><span class="line">            perror(<span class="string">"write"</span>),<span class="built_in">exit</span>(<span class="number">1</span>);		</span><br><span class="line">        <span class="built_in">memset</span>(buf,<span class="number">0x00</span>,<span class="keyword">sizeof</span>(<span class="keyword">char</span>)*<span class="number">100</span>);<span class="comment">//把buf缓存初始化掉</span></span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">read</span>(fds[<span class="number">0</span>],buf,len)==<span class="number">-1</span>) 		<span class="comment">//再从管道里面读取内容到数组中</span></span><br><span class="line">            perror(<span class="string">"read"</span>),<span class="built_in">exit</span>(<span class="number">1</span>);			</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">write</span>(STDOUT_FILENO,buf,len)==<span class="number">-1</span>) 				<span class="comment">//把从管道里读出的内容写到标准输出</span></span><br><span class="line">            perror(<span class="string">"write"</span>),<span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>父子进程之间的管道通讯：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> fd[<span class="number">2</span>];<span class="comment">//定义管道的读、写端文件描述符</span></span><br><span class="line">    <span class="keyword">int</span> ret;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">char</span>* str = <span class="string">"hello pipe\n"</span>;<span class="comment">//指定写数据</span></span><br><span class="line">    <span class="keyword">char</span> buf[<span class="number">1024</span>];<span class="comment">//定义接收缓冲区</span></span><br><span class="line">    ret = pipe(fd);<span class="comment">//调用pipe()函数就已将管道打开</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(ret == <span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        perror(<span class="string">"pipe error"</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    pid = fork();	<span class="comment">// fork子进程</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(pid &gt; <span class="number">0</span>)<span class="comment">//父进程</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">close</span>(fd[<span class="number">0</span>]);</span><br><span class="line">        <span class="built_in">write</span>(fd[<span class="number">1</span>],str,<span class="built_in">strlen</span>(str));<span class="comment">//写到管道中</span></span><br><span class="line">        <span class="built_in">close</span>(fd[<span class="number">1</span>]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(pid == <span class="number">0</span>)<span class="comment">//子进程</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">close</span>(fd[<span class="number">1</span>]);</span><br><span class="line">        ret = <span class="built_in">read</span>(fd[<span class="number">0</span>],buf,<span class="keyword">sizeof</span>(buf));<span class="comment">//从管道中的读，返回读到的字节数</span></span><br><span class="line">        <span class="built_in">write</span>(STDOUT_FILENO,buf,ret);<span class="comment">//写到标准输出</span></span><br><span class="line">        <span class="built_in">close</span>(fd[<span class="number">0</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="有名管道-FIFO"><a href="#有名管道-FIFO" class="headerlink" title="有名管道(FIFO)"></a>有名管道(FIFO)</h3><p>匿名管道，由于没有名字，只能用于亲缘关系的进程间通信。为了克服这个缺点，提出了有名管道(FIFO)。</p>
+<p>有名管道不同于匿名管道之处在于它提供了一个路径名与之关联，<strong>以有名管道的文件形式存在于文件系统中</strong>，这样，<strong>即使与有名管道的创建进程不存在亲缘关系的进程，只要可以访问该路径，就能够彼此通过有名管道相互通信</strong>，因此，通过有名管道不相关的进程也能交换数据。值的注意的是，有名管道严格遵循<strong>先进先出(first in first out)</strong>,对匿名管道及有名管道的读总是从开始处返回数据，对它们的写则把数据添加到末尾。它们不支持诸如<code>lseek()</code>等文件定位操作。<strong>有名管道的名字存在于文件系统中，内容存放在内存中。</strong></p>
+<p><strong>匿名管道和有名管道总结：</strong><br> （1）管道是特殊类型的文件，在满足先入先出的原则条件下可以进行读写，但不能进行定位读写。<br> （2）匿名管道是单向的，只能在有亲缘关系的进程间通信；有名管道以磁盘文件的方式存在，可以实现本机任意两个进程通信。<br> （3）<strong>无名管道阻塞问题：</strong>无名管道无需显示打开，创建时直接返回文件描述符，在读写时需要确定对方的存在，否则将退出。如果当前进程向无名管道的一端写数据，必须确定另一端有某一进程。如果写入无名管道的数据超过其最大值，写操作将阻塞，如果管道中没有数据，读操作将阻塞，如果管道发现另一端断开，将自动退出。<br> （4）<strong>有名管道阻塞问题：</strong>有名管道在打开时需要确实对方的存在，否则将阻塞。即以读方式打开某管道，在此之前必须一个进程以写方式打开管道，否则阻塞。此外，可以以读写（O_RDWR）模式打开有名管道，即当前进程读，当前进程写，不会阻塞。</p>
+<h3 id="信号-Signal"><a href="#信号-Signal" class="headerlink" title="信号(Signal)"></a><strong>信号(Signal)</strong></h3><ul>
+<li>信号是Linux系统中用于进程间互相通信或者操作的一种机制，信号可以在任何时候发给某一进程，而无需知道该进程的状态。</li>
+<li>如果该进程当前并未处于执行状态，则该信号就有内核保存起来，知道该进程回复执行并传递给它为止。</li>
+<li>如果一个信号被进程设置为阻塞，则该信号的传递被延迟，直到其阻塞被取消是才被传递给进程。</li>
+</ul>
+<h4 id="Linux系统中常用信号："><a href="#Linux系统中常用信号：" class="headerlink" title="Linux系统中常用信号："></a><strong>Linux系统中常用信号：</strong></h4><p> （1）<strong>SIGHUP：</strong>用户从终端注销，所有已启动进程都将收到该进程。系统缺省状态下对该信号的处理是终止进程。<br> （2）<strong>SIGINT：</strong>程序终止信号。程序运行过程中，按<code>Ctrl+C</code>键将产生该信号。<br> （3）<strong>SIGQUIT：</strong>程序退出信号。程序运行过程中，按<code>Ctrl+\\</code>键将产生该信号。<br> （4）<strong>SIGBUS和SIGSEGV：</strong>进程访问非法地址。<br> （5）<strong>SIGFPE：</strong>运算中出现致命错误，如除零操作、数据溢出等。<br> （6）<strong>SIGKILL：</strong>用户终止进程执行信号。shell下执行<code>kill -9</code>发送该信号。<br> （7）<strong>SIGTERM：</strong>结束进程信号。shell下执行<code>kill 进程pid</code>发送该信号。<br> （8）<strong>SIGALRM：</strong>定时器信号。<br> （9）<strong>SIGCLD：</strong>子进程退出信号。如果其父进程没有忽略该信号也没有处理该信号，则子进程退出后将形成僵尸进程。</p>
+<h4 id="信号来源"><a href="#信号来源" class="headerlink" title="信号来源"></a>信号来源</h4><p> 信号是软件层次上对中断机制的一种模拟，是一种异步通信方式，信号可以在用户空间进程和内核之间直接交互，内核可以利用信号来通知用户空间的进程发生了哪些系统事件，信号事件主要有两个来源：</p>
+<ul>
+<li>硬件来源：用户按键输入<code>Ctrl+C</code>退出、硬件异常如无效的存储访问等。</li>
+<li>软件终止：终止进程信号、其他进程调用kill函数、软件异常产生信号。</li>
+</ul>
+<h4 id="信号生命周期和处理流程"><a href="#信号生命周期和处理流程" class="headerlink" title="信号生命周期和处理流程"></a>信号生命周期和处理流程</h4><ol>
+<li><p>信号被某个进程产生，并设置此信号传递的对象（一般为对应进程的pid），然后传递给操作系统；</p>
+</li>
+<li><p>操作系统根据接收进程的设置（是否阻塞）而选择性的发送给接收者，如果接收者阻塞该信号（且该信号是可以阻塞的），操作系统将暂时保留该信号，而不传递，直到该进程解除了对此信号的阻塞（如果对应进程已经退出，则丢弃此信号），如果对应进程没有阻塞，操作系统将传递此信号。</p>
+</li>
+<li>目的进程接收到此信号后，将根据当前进程对此信号设置的预处理方式，暂时终止当前代码的执行，保护上下文（主要包括临时寄存器数据，当前程序位置以及当前CPU的状态）、转而执行中断服务程序，执行完成后在回复到中断的位置。当然，对于抢占式内核，在中断返回时还将引发新的调度。</li>
+</ol>
+<p><img src="/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/2.jpg" style="zoom:150%;"></p>
+<h4 id="信号实践-C"><a href="#信号实践-C" class="headerlink" title="信号实践(C++)"></a>信号实践(C++)</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> childpid;</span><br><span class="line">    <span class="keyword">int</span> status;</span><br><span class="line">    <span class="keyword">int</span> retval;</span><br><span class="line"></span><br><span class="line">    childpid = fork();  <span class="comment">// 创建子进程</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">-1</span> == childpid)  <span class="comment">//判断是否创建失败</span></span><br><span class="line">    &#123;</span><br><span class="line">        perror(<span class="string">"fork()"</span>);</span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (<span class="number">0</span> == childpid)<span class="comment">// 子进程创建成功</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"In child process"</span>);</span><br><span class="line">        sleep(<span class="number">1000</span>); <span class="comment">//让子进程睡眠，以便父进程查看其行为</span></span><br><span class="line">        <span class="built_in">exit</span>(EXIT_SUCCESS);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="number">0</span> == (waitpid(childpid, &amp;status, WNOHANG))) <span class="comment">//判断子进程是否已经退出</span></span><br><span class="line">        &#123;</span><br><span class="line">          <span class="comment">//发送SIGKILL给子进程，要求其停止运行。成功返回0，不成功就返回-1；</span></span><br><span class="line">            retval = kill(childpid, SIGKILL);  </span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (retval)   <span class="comment">//判断是否发生信号，</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">puts</span>(<span class="string">"kill failed."</span>);</span><br><span class="line">                perror(<span class="string">"kill"</span>);</span><br><span class="line">                waitpid(childpid, &amp;status, <span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"%d killed\n"</span>, childpid);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">exit</span>(EXIT_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<p><code>55382 killed</code></p>
+<h3 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h3><p><strong>消息(Message)队列</strong></p>
+<ul>
+<li>消息队列是存放在内核中的消息链表，每个消息队列由消息队列标识符表示。</li>
+<li>与管道（无名管道：只存在于内存中的文件；命名管道：存在于实际的磁盘介质或者文件系统）不同的是消息队列存放在内核中，只有在内核重启(即，操作系统重启)或者显示地删除一个消息队列时，该消息队列才会被真正的删除。</li>
+<li>另外与管道不同的是，消息队列在某个进程往一个队列写入消息之前，并不需要另外某个进程在该队列上等待消息的到达。</li>
+</ul>
+<p><strong>消息队列特点总结：</strong></p>
+<ol>
+<li>消息队列是消息的链表,具有特定的格式,存放在内存中并由消息队列标识符标识.</li>
+<li>消息队列允许一个或多个进程向它写入与读取消息. </li>
+<li>管道和消息队列的通信数据都是先进先出的原则。</li>
+<li>消息队列可以<strong>实现消息的随机查询</strong>,消息不一定要以先进先出的次序读取,也可以按消息的类型读取.比FIFO更有优势。</li>
+<li>消息队列克服了信号承载信息量少，管道只能承载无格式字节流以及缓冲区大小受限等缺。</li>
+<li>目前主要有两种类型的消息队列：POSIX消息队列以及System V消息队列，System V消息队列目前被大量使用。System V消息队列是随内核持续的，只有在内核重起或者人工删除时，该消息队列才会被删除。</li>
+</ol>
+<h3 id="共享内存-share-memory"><a href="#共享内存-share-memory" class="headerlink" title="共享内存(share memory)"></a>共享内存(share memory)</h3><h4 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h4><p>在<a href="https://jasonxqh.github.io/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/">CSAPP虚拟内存</a>这篇博客中，我们学习到虚拟内存可以简化共享。例如，每个进程必须调用相同的<strong>操作系统内核代码</strong>，而每个C 程序都会调用C 标准库中的程序，比如 <code>printf()</code> . 操作系统通过<strong>将不同进程中适当的虚拟页面映射到相同的物理页面</strong>，从而安排<strong>多个进程共享这部分代码的一个副本</strong>，而不是在每个进程中都包括单独的内核和C标准库的副本</p>
+<p>那么，将共享内存用来进程之间的通讯，以传送数据为目的，显然这是进程通信中速度最快的一种方式（例：进程一向共享内存传送数据，进程二能够立马看见传送的数据，少了若干次拷贝）</p>
+<p>为了在多个进程间交换信息，内核专门留出了一块内存区，可以由需要访问的进程将其映射到自己的私有地址空间。进程就可以直接读写这一块内存而不需要进行数据的拷贝，从而大大提高效率</p>
+<p>共享内存生命周期跟随内核，共享没有自带同步或互斥，由用户来维护共享内存。因此，信号量+共享内存通常结合在一起使用，信号量用来同步对共享内存的访问</p>
+<h4 id="共享内存的优缺点"><a href="#共享内存的优缺点" class="headerlink" title="共享内存的优缺点"></a>共享内存的优缺点</h4><p>1、优点：我们可以看到使用共享内存进行进程间的通信真的是非常方便，而且函数的接口也简单，数据的共享还使进程间的数据不用传送，而是直接访问内存，也加快了程序的效率。同时，它也不像匿名管道那样要求通信的进程有一定的父子关系。</p>
+<p>2、缺点：共享内存没有提供同步的机制，这使得我们在使用共享内存进行进程间通信时，往往要借助其他的手段来进行进程间的同步工作。(如信号量)</p>
+<h4 id="共享内存接口"><a href="#共享内存接口" class="headerlink" title="共享内存接口"></a>共享内存接口</h4><p>在C++中，有关于和共享内存的库是<code>#include &lt;sys/shm.h&gt;</code>，里面有对共享内存的方法：</p>
+<h5 id="共享内存的创建："><a href="#共享内存的创建：" class="headerlink" title="共享内存的创建："></a>共享内存的创建：</h5><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ipc.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/shm.h&gt;</span></span></span><br><span class="line"><span class="comment">//如果共享内存不存在，创建共享内存，如果存在就打开共享内存</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">shmget</span><span class="params">(<span class="keyword">key_t</span> key, <span class="keyword">size_t</span> size, <span class="keyword">int</span> shmflg)</span></span>;</span><br><span class="line"><span class="comment">//返回值：成功返回共享内存的标识符，失败返回-1</span></span><br></pre></td></tr></table></figure>
+<p>参数：共享内存的关键字key</p>
+<blockquote>
+<p>共享内存的标识符，获取方法和消息队列 key的方法一致，也可认为key就是共享内存的名字</p>
+</blockquote>
+<p>参数：共享内存的大小size：</p>
+<blockquote>
+<p>由你自己指定，一般指定为4k的倍数（内存4k为一页）</p>
+</blockquote>
+<p>参数：共享内存的访问权限shmflg</p>
+<blockquote>
+<p>共享内存的权限，它与文件的访问权限一样<br><code>IPC_CREAT</code>:创建新的共享内存。</p>
+<p><code>IPC_EXCL</code>:与IPC_CREAT一同使用，表示如果要创建的共享内存已经存在，则返回错误。 </p>
+<p><code>IPC_NOWAIT</code>:读写共享内存要求无法满足时，不阻塞</p>
+<p>0：如果是打开文件，即文件已存在，写0</p>
+</blockquote>
+<h5 id="共享内存的挂载"><a href="#共享内存的挂载" class="headerlink" title="共享内存的挂载"></a>共享内存的挂载</h5><p>共享内存的挂载</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/shm.h&gt;</span></span></span><br><span class="line"><span class="comment">//将共享内存链接到进程地址空间</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">shmat</span><span class="params">(<span class="keyword">int</span> shmid, <span class="keyword">const</span> <span class="keyword">void</span> *shmaddr, <span class="keyword">int</span> shmflg)</span></span>;</span><br><span class="line"><span class="comment">//返回值：失败返回NULL,成功返回一个指针，为地址空间的虚拟地址，并且连接数加1（nattch）</span></span><br></pre></td></tr></table></figure>
+<p>参数：共享内存的标识符shmid</p>
+<blockquote>
+<p>shmget的返回值</p>
+</blockquote>
+<p>参数：指定连接进程地址空间的地址shmaddr</p>
+<blockquote>
+<p>共享存储段连接到调用进程的哪个地址上与addr参数以及在flag中是否指定<code>SHM_RND</code>位有关</p>
+<p>如果addr为0，则此段连接到由内核选择的第一个可用地址上。这是推荐的使用方式。</p>
+<p>如果addr非0，并且没有指定SHM_RND，则此段连接到addr所指定的地址上。</p>
+<p>如果addr非0,并且指定了SHM_ RND，则此段连接到（shmaddr -（shmaddr % SHMLBA））所表示的地址上。SHM_RND命令的意思是取整。SHMLBA的意思是低边界地址倍数，它总是2的乘方。该算式是将地址向下取最近1个SHMLBA的倍数。</p>
+<p>注：除非只计划在一种硬件上运行应用程序（这在当今是不大可能的），否则不应指定共享段所连接到的地址。所以一般应指定addr为0，以便由内核选择地址</p>
+</blockquote>
+<p>参数：共享内存的权限shmflg</p>
+<blockquote>
+<p>shmflg = SHM_RDONLY，表示连接操作作用来只读共享内存</p>
+</blockquote>
+<h5 id="共享内存的卸载"><a href="#共享内存的卸载" class="headerlink" title="共享内存的卸载"></a>共享内存的卸载</h5><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/shm.h&gt;</span></span></span><br><span class="line"><span class="comment">//将共享内存与当前连接进程脱离</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">shmdt</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span>* shmaddr)</span></span></span><br><span class="line"><span class="function"><span class="comment">//返回值：成功返回0,失败返回-1</span></span></span><br><span class="line"><span class="function"><span class="comment">//参数：由shmat返回的指针</span></span></span><br><span class="line"><span class="function"><span class="comment">//注意：将共享内存与进程脱离不等于删除共享内存</span></span></span><br></pre></td></tr></table></figure>
+<h5 id="共享内存的控制"><a href="#共享内存的控制" class="headerlink" title="共享内存的控制"></a>共享内存的控制</h5><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ipc.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/shm.h&gt;</span></span></span><br><span class="line"><span class="comment">//shmctl系统调用对shmid标识的共享内存执行cmd操作</span></span><br><span class="line"><span class="comment">//返回值：成功返回0，失败返回-1</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">shmctl</span><span class="params">(<span class="keyword">int</span> shmid, <span class="keyword">int</span> cmd, struct shmid_ds *buf)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>参数：共享内存的表示符shmid</p>
+<blockquote>
+<p>shmget的返回值</p>
+</blockquote>
+<p>参数：将要采取的操作cmd</p>
+<blockquote>
+<p>选项 说明<br><code>IPC_STAT</code> 把shmid_ds结构中的数据设置为共享内存的当前关联值</p>
+<p><code>IPC_SET</code> 在进程有足够权限的前提下，把共享内存的当前关联值设置为shmid_ds数 据结构中给出的值</p>
+<p><code>IPC_RMID</code> 删除共享内存</p>
+</blockquote>
+<p>参数：保存共享内存的模式状态和访问权限的数据结构buf</p>
+<blockquote>
+<p>共享内存的一些属性，填NULL</p>
+</blockquote>
+<h4 id="封装API"><a href="#封装API" class="headerlink" title="封装API"></a>封装API</h4><p>我们要利用它封装一些自己的API，让其对用户操作友好</p>
+<ul>
+<li><code>int commShm(int size,int flags)</code></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">commShm</span><span class="params">(<span class="keyword">int</span> <span class="built_in">size</span>, <span class="keyword">int</span> flags)</span> <span class="comment">//创建共享内存</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  	<span class="comment">//利用 ftok获取key值，用来申请共享内存</span></span><br><span class="line">    <span class="keyword">key_t</span> key = ftok(PATHNAME, PROJ_ID);</span><br><span class="line">    <span class="keyword">if</span> (key &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        perror(<span class="string">"ftok"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">int</span> shmid = shmget(key, <span class="built_in">size</span>, flags);</span><br><span class="line">    <span class="keyword">if</span> (shmid &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        perror(<span class="string">"shmget"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> shmid;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>int createShm (int size)</code></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">int createShm(int size)</span><br><span class="line">&#123;</span><br><span class="line">    return commShm(size, IPC_CREAT | IPC_EXCL);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>int getShm(int size)//获取共享内存</code></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">getShm</span><span class="params">(<span class="keyword">int</span> size)</span><span class="comment">//获取共享内存</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">		<span class="keyword">return</span> commShm(size, IPC_CREAT);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>int destoryShm(int shmid)</code></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">destoryShm</span><span class="params">(<span class="keyword">int</span> shmid)</span> <span class="comment">//销毁共享内存</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (shmctl(shmid, IPC_RMID, <span class="literal">NULL</span>) &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        perror(<span class="string">"shmctl"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-3</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="server进程"><a href="#server进程" class="headerlink" title="server进程"></a>server进程</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"comm.h"</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> shmid = createShm(<span class="number">4096</span>);                <span class="comment">//创建共享内存</span></span><br><span class="line">    <span class="keyword">char</span> *addr = (<span class="keyword">char</span> *)shmat(shmid, <span class="literal">NULL</span>, <span class="number">0</span>); <span class="comment">//将共享内存进行挂接</span></span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (i++ &lt; <span class="number">26</span>)</span><br><span class="line">    &#123;</span><br><span class="line">     <span class="comment">//每次都输出 共享内存中的数据</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"client：%s\n"</span>, addr);</span><br><span class="line">        sleep(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    shmdt(addr); <span class="comment">//删除共享内存</span></span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line">    destoryShm(shmid);<span class="comment">//卸载共享内存</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="client进程"><a href="#client进程" class="headerlink" title="client进程"></a>client进程</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"comm.h"</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> shmid = getShm(<span class="number">0</span>);                      <span class="comment">//创建共享内存</span></span><br><span class="line">    <span class="keyword">char</span> *addr = (<span class="keyword">char</span> *)shmat(shmid, <span class="literal">NULL</span>, <span class="number">0</span>); <span class="comment">//将共享内存进行挂接</span></span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (i &lt; <span class="number">26</span>)</span><br><span class="line">    &#123;</span><br><span class="line">  			addr[i] = <span class="string">'A'</span>+i;</span><br><span class="line">        i++;</span><br><span class="line">        addr[i] = <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"writing to shared memory: %s\n"</span>, addr);</span><br><span class="line">        sleep(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    shmdt(addr); <span class="comment">//删除共享内存</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译后如下：</p>
+<p><img src="/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/3.gif" style="zoom:150%;"></p>
+<p>在进程运行期间，我们通过<code>ipcs -m</code>观察挂载的共享内存，如下所示<br><img src="/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/4.png" style="zoom:150%;"></p>
+<ul>
+<li>这块共想内存的拥有者是root</li>
+<li>大小为4096byte</li>
+<li>当前连接了两个进程</li>
+</ul>
+<h3 id="信号量-semaphore"><a href="#信号量-semaphore" class="headerlink" title="信号量(semaphore)"></a><strong>信号量(semaphore)</strong></h3><p> 信号量是一个计数器，用于多进程对共享数据的访问，信号量的意图在于进程间同步。<br> 为了获得共享资源，进程需要执行下列操作：</p>
+<ol>
+<li><strong>创建一个信号量</strong>：这要求调用者指定初始值，对于二值信号量来说，它通常是1，也可是0。</li>
+<li><strong>等待一个信号量</strong>：该操作会测试这个信号量的值，如果小于0，就阻塞。也称为P操作。</li>
+<li><strong>挂出一个信号量</strong>：该操作将信号量的值加1，也称为V操作。</li>
+</ol>
+<p>为了正确地实现信号量，信号量值的测试及减1操作应当是原子操作。为此，信号量通常是在内核中实现的。Linux环境中，有三种类型：<strong>Posix（<a href="https://link.jianshu.com?t=http://baike.baidu.com/link?url=hYEo6ngm9MlqsQHT3h28baIDxEooeSPX6wr_FdGF-F8mf7wDp2xJWIDtQWGEDxthtPNiJtlsw460g1_N0txJYa" target="_blank" rel="noopener">可移植性操作系统接口</a>）有名信号量（使用Posix IPC名字标识）</strong>、<strong>Posix基于内存的信号量（存放在共享内存区中）</strong>、<strong>System V信号量（在内核中维护）</strong>。这三种信号量都可用于进程间或线程间的同步。</p>
+<blockquote>
+<p><strong>信号量与普通整型变量的区别：</strong><br> （1）信号量是非负整型变量，除了初始化之外，它只能通过两个标准原子操作：wait(semap) , signal(semap) ; 来进行访问；<br> （2）操作也被成为PV原语（P来源于荷兰语proberen”测试”，V来源于荷兰语verhogen”增加”，P表示通过的意思，V表示释放的意思），而普通整型变量则可以在任何语句块中被访问；</p>
+<p><strong>信号量与互斥量之间的区别：</strong><br> （1）互斥量用于线程的互斥，信号量用于线程的同步。这是互斥量和信号量的根本区别，也就是互斥和同步之间的区别。<br> <strong>互斥：</strong>是指某一资源同时只允许一个访问者对其进行访问，具有唯一性和排它性。但互斥无法限制访问者对资源的访问顺序，即访问是无序的。<br> <strong>同步：</strong>是指在互斥的基础上（大多数情况），通过其它机制实现访问者对资源的有序访问。<br> 在大多数情况下，同步已经实现了互斥，特别是所有写入资源的情况必定是互斥的。少数情况是指可以允许多个访问者同时访问资源<br> （2）互斥量值只能为0/1，信号量值可以为非负整数。<br> 也就是说，一个互斥量只能用于一个资源的互斥访问，它不能实现多个资源的多线程互斥问题。信号量可以实现多个同类资源的多线程互斥和同步。当信号量为单值信号量是，也可以完成一个资源的互斥访问。<br> （3）互斥量的加锁和解锁必须由同一线程分别对应使用，信号量可以由一个线程释放，另一个线程得到。</p>
+</blockquote>
+<h3 id="套接字-socket"><a href="#套接字-socket" class="headerlink" title="套接字(socket)"></a><strong>套接字(socket)</strong></h3><p> 套接字是一种通信机制，凭借这种机制，客户/服务器（即要进行通信的进程）系统的开发工作既可以在本地单机上进行，也可以跨网络进行。也就是说它可以让不在同一台计算机但通过网络连接计算机上的进程进行通信。 </p>
+<p>套接字是支持TCP/IP的网络通信的基本操作单元，可以看做是不同主机之间的进程进行双向通信的端点，简单的说就是通信的两方的一种约定，用套接字中的相关函数来完成通信过程。</p>
+<h4 id="套接字特性"><a href="#套接字特性" class="headerlink" title="套接字特性"></a>套接字特性</h4><p> 套接字的特性由3个属性确定，它们分别是：域、端口号、协议类型。</p>
+<ol>
+<li><p>套接字的域</p>
+<p>它指定套接字通信中使用的网络介质，最常见的套接字域有两种：</p>
+<p> <strong>一是AF_INET，它指的是Internet网络。</strong>当客户使用套接字进行跨网络的连接时，它就需要用到服务器计算机的IP地址和端口来指定一台联网机器上的某个特定服务，所以在使用socket作为通信的终点，服务器应用程序必须在开始通信之前绑定一个端口，服务器在指定的端口等待客户的连接。</p>
+<p><strong>另一个域AF_UNIX，表示UNIX文件系统，</strong>它就是文件输入/输出，而它的地址就是文件名。</p>
+</li>
+<li><p><strong>套接字的端口号</strong></p>
+<p>每一个基于TCP/IP网络通讯的程序(进程)都被赋予了唯一的端口和端口号，端口是一个信息缓冲区，用于保留Socket中的输入/输出信息，端口号是一个16位无符号整数，范围是0-65535，以区别主机上的每一个程序（端口号就像房屋中的房间号），低于256的端口号保留给标准应用程序，比如pop3的端口号就是110，每一个套接字都组合进了IP地址、端口，这样形成的整体就可以区别每一个套接字</p>
+</li>
+<li><p><strong>套接字协议类型</strong></p>
+<p>因特网提供三种通信机制，</p>
+<ul>
+<li><strong>流套接字，</strong>流套接字在域中通过TCP/IP连接实现，同时也是AF_UNIX中常用的套接字类型。流套接字提供的是一个有序、可靠、双向字节流的连接，因此发送的数据可以确保不会丢失、重复或乱序到达，而且它还有一定的出错后重新发送的机制。</li>
+<li><strong>数据报套接字，</strong>它不需要建立连接和维持一个连接，它们在域中通常是通过UDP/IP协议实现的。它对可以发送的数据的长度有限制，数据报作为一个单独的网络消息被传输,它可能会丢失、复制或错乱到达，UDP不是一个可靠的协议，但是它的速度比较高，因为它并一需要总是要建立和维持一个连接。</li>
+<li><strong>原始套接字，</strong>原始套接字允许对较低层次的协议直接访问，比如IP、 ICMP协议，它常用于检验新的协议实现，或者访问现有服务中配置的新设备，因为RAW SOCKET可以自如地控制Windows下的多种协议，能够对网络底层的传输机制进行控制，所以可以应用原始套接字来操纵网络层和传输层应用。比如，我们可以通过RAW SOCKET来接收发向本机的ICMP、IGMP协议包，或者接收TCP/IP栈不能够处理的IP包，也可以用来发送一些自定包头或自定协议的IP包。网络监听技术很大程度上依赖于SOCKET_RAW。</li>
+</ul>
+</li>
+</ol>
+<h4 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h4><ol>
+<li>首先服务器应用程序用系统调用socket来创建一个套接字，它是系统分配给该服务器进程的类似文件描述符的资源，它不能与其他的进程共享。</li>
+<li>然后，服务器进程会给套接字起个名字，我们使用系统调用bind来给套接字命名。然后服务器进程就开始等待客户连接到这个套接字。</li>
+<li>接下来，系统调用listen来创建一个队列并将其用于存放来自客户的进入连接。</li>
+<li>最后，服务器通过系统调用accept来接受客户的连接。它会创建一个与原有的命名套接不同的新套接字，这个套接字只用于与这个特定客户端进行通信，而命名套接字（即原先的套接字）则被保留下来继续处理来自其他客户的连接（建立客户端和服务端的用于通信的流，进行通信）。</li>
+</ol>
+<h4 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h4><p> （1）客户应用程序首先调用socket来创建一个未命名的套接字，然后将服务器的命名套接字作为一个地址来调用connect与服务器建立连接。<br> （2）一旦连接建立，我们就可以像使用底层的文件描述符那样用套接字来实现双向数据的通信（通过流进行数据传输）。</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/" title="进程通讯">https://jasonxqh.github.io/2022/08/23/%E8%BF%9B%E7%A8%8B%E9%80%9A%E8%AE%AF/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"><i class="fa fa-tag"></i> 操作系统</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/08/22/Mysql%E7%B4%A2%E5%BC%95/" rel="next" title="Mysql索引">
+                <i class="fa fa-chevron-left"></i> Mysql索引
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/08/23/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="prev" title="Java多线程">
+                Java多线程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">425</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#进程通讯"><span class="nav-number">1.</span> <span class="nav-text">进程通讯</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#进程间通信的概念"><span class="nav-number">1.1.</span> <span class="nav-text">进程间通信的概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进程间通信的7种方式"><span class="nav-number">1.2.</span> <span class="nav-text">进程间通信的7种方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#管道-匿名管道-pipe"><span class="nav-number">1.2.1.</span> <span class="nav-text">管道&#x2F;匿名管道(pipe)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#管道实践-C"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">管道实践(C++)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#有名管道-FIFO"><span class="nav-number">1.2.2.</span> <span class="nav-text">有名管道(FIFO)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#信号-Signal"><span class="nav-number">1.2.3.</span> <span class="nav-text">信号(Signal)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux系统中常用信号："><span class="nav-number">1.2.3.1.</span> <span class="nav-text">Linux系统中常用信号：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#信号来源"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">信号来源</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#信号生命周期和处理流程"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">信号生命周期和处理流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#信号实践-C"><span class="nav-number">1.2.3.4.</span> <span class="nav-text">信号实践(C++)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息队列"><span class="nav-number">1.2.4.</span> <span class="nav-text">消息队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#共享内存-share-memory"><span class="nav-number">1.2.5.</span> <span class="nav-text">共享内存(share memory)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#原理"><span class="nav-number">1.2.5.1.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#共享内存的优缺点"><span class="nav-number">1.2.5.2.</span> <span class="nav-text">共享内存的优缺点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#共享内存接口"><span class="nav-number">1.2.5.3.</span> <span class="nav-text">共享内存接口</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#共享内存的创建："><span class="nav-number">1.2.5.3.1.</span> <span class="nav-text">共享内存的创建：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#共享内存的挂载"><span class="nav-number">1.2.5.3.2.</span> <span class="nav-text">共享内存的挂载</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#共享内存的卸载"><span class="nav-number">1.2.5.3.3.</span> <span class="nav-text">共享内存的卸载</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#共享内存的控制"><span class="nav-number">1.2.5.3.4.</span> <span class="nav-text">共享内存的控制</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#封装API"><span class="nav-number">1.2.5.4.</span> <span class="nav-text">封装API</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#server进程"><span class="nav-number">1.2.5.5.</span> <span class="nav-text">server进程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#client进程"><span class="nav-number">1.2.5.6.</span> <span class="nav-text">client进程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#信号量-semaphore"><span class="nav-number">1.2.6.</span> <span class="nav-text">信号量(semaphore)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#套接字-socket"><span class="nav-number">1.2.7.</span> <span class="nav-text">套接字(socket)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#套接字特性"><span class="nav-number">1.2.7.1.</span> <span class="nav-text">套接字特性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务器端"><span class="nav-number">1.2.7.2.</span> <span class="nav-text">服务器端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#客户端"><span class="nav-number">1.2.7.3.</span> <span class="nav-text">客户端</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1245k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>

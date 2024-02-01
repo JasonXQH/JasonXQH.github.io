@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="cv," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="循环神经网络循环神经网络和卷积神经网络处理的数据类型是不一样的。卷积神经网络可是用来处理矩阵类型的数据，而生活中有很多数据是序列型的，且没有固定的长度、大小。因此CNN并不是非常适合用来处理这些数据。 因此我们提出了 RNN (Recurrent Neural Networks)，其想法就是，采用重复的结构单元，每次输入序列里的一个数据，后面的结构单元能够记忆前面的输入信息。 RNN的结构一对一现">
+<meta property="og:type" content="article">
+<meta property="og:title" content="循环神经网络">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="循环神经网络循环神经网络和卷积神经网络处理的数据类型是不一样的。卷积神经网络可是用来处理矩阵类型的数据，而生活中有很多数据是序列型的，且没有固定的长度、大小。因此CNN并不是非常适合用来处理这些数据。 因此我们提出了 RNN (Recurrent Neural Networks)，其想法就是，采用重复的结构单元，每次输入序列里的一个数据，后面的结构单元能够记忆前面的输入信息。 RNN的结构一对一现">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/1.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/2.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/2.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/31.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/30.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/24.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/25.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/26.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/27.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/28.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/29.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/23.png">
+<meta property="article:published_time" content="2021-12-16T10:52:13.000Z">
+<meta property="article:modified_time" content="2021-12-30T02:23:02.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="cv">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/1.jpeg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/12/16/循环神经网络/"/>
+
+
+
+
+
+  <title>循环神经网络 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">循环神经网络</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-12-16T18:52:13+08:00">
+                2021-12-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  4.6k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  17
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="循环神经网络"><a href="#循环神经网络" class="headerlink" title="循环神经网络"></a>循环神经网络</h1><p>循环神经网络和卷积神经网络处理的数据类型是不一样的。卷积神经网络可是用来处理矩阵类型的数据，而生活中有很多数据是序列型的，且没有固定的长度、大小。因此CNN并不是非常适合用来处理这些数据。</p>
+<p>因此我们提出了 RNN (Recurrent Neural Networks)，其想法就是，采用重复的结构单元，每次输入序列里的一个数据，后面的结构单元能够记忆前面的输入信息。</p>
+<h2 id="RNN的结构"><a href="#RNN的结构" class="headerlink" title="RNN的结构"></a>RNN的结构</h2><h4 id="一对一"><a href="#一对一" class="headerlink" title="一对一"></a>一对一</h4><p>现在我们来看看一个简单的循环神经网络，它由输入层、隐藏层和输出层组成</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/1.jpeg" style="zoom: 67%;"></p>
+<p>我们现在这样来理解，如果把上面有W的那个带箭头的圈去掉，它就变成了最普通的<strong>全连接神经网络</strong>。x是一个向量，它表示<strong>输入层</strong>的值（这里面没有画出来表示神经元节点的圆圈）；s是一个向量，它表示<strong>隐藏层</strong>的值（这里隐藏层面画了一个节点，你也可以想象这一层其实是多个节点，节点数与向量s的维度相同）；</p>
+<p>U是输入层到隐藏层的<strong>权重矩阵</strong>，o也是一个向量，它表示<strong>输出层</strong>的值；V是隐藏层到输出层的<strong>权重矩阵</strong>。</p>
+<p>那么，现在我们来看看W是什么。<strong>循环神经网络</strong>的<strong>隐藏层</strong>的值s不仅仅取决于当前这次的输入x，还取决于上一次<strong>隐藏层</strong>的值s。<strong>权重矩阵</strong> W就是<strong>隐藏层</strong>上一次的值作为这一次的输入的权重。</p>
+<p>如果我们把上面的图展开，<strong>循环神经网络</strong>也可以画成下面这个样子：</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/2.jpeg" style="zoom: 67%;"></p>
+<p>现在看上去就比较清楚了，这个网络在t时刻接收到输入 $x<em>t$ 之后，隐藏层的值是 $s_t $，输出值是$o_t$。关键一点是，$s_t $的值不仅仅取决于$x_t$，还取决于$s</em>{t-1}$。我们可以用下面的公式来表示<strong>循环神经网络</strong>的计算方法：</p>
+<script type="math/tex; mode=display">
+O_t = g(\boldsymbol V\cdot S_t)\\
+S_t = f(\boldsymbol U\cdot X_t+ \boldsymbol W\cdot S_{t-1})</script><p>如果我们把式2反复带入式1，可得到:</p>
+<script type="math/tex; mode=display">
+\begin{align}
+O_t &= g(V\cdot S_t)\\
+&=Vf(U\cdot x_t+W\cdot S_{t-1})\\
+&=Vf(U\cdot x_t+Wf(Ux_{t-1}+W\cdot S_{t-2}))\\
+&=Vf(U\cdot x_t+Wf(Ux_{t-1}+W(f(Ux_{t-3}+\cdots))))
+\end{align}</script><p>其中，最简单的$f(x)$是线性变换加激活，比如说 $f(x) = \tanh(U\cdot X<em>t+W\cdot S</em>{t-1})$ </p>
+<p>因此我们说，隐藏层包含了过去的历史信息，用来预测下一时刻的目标</p>
+<h4 id="多对多"><a href="#多对多" class="headerlink" title="多对多"></a>多对多</h4><p>在进行文本改写等情况下，可能会用到</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/5.png" style="zoom: 67%;"></p>
+<h4 id="多对一"><a href="#多对一" class="headerlink" title="多对一"></a>多对一</h4><p>比如说，在情感分类的时候，输入可能是一个句子，输出代表这个情感的类型或者情感的等级。那么这就是多对一的情况</p>
+<p>又比如说，在输入一连串文本的时候，通过神经网络生成一张图像的场景</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/3.png" style="zoom: 67%;"></p>
+<h4 id="一对多"><a href="#一对多" class="headerlink" title="一对多"></a>一对多</h4><p>在看图说话这个应用场景中，输入一张图片，可能会有多个单词的输出。</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/4.png" style="zoom: 67%;"></p>
+<h4 id="特殊多对多"><a href="#特殊多对多" class="headerlink" title="特殊多对多"></a>特殊多对多</h4><p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/6.png" style="zoom: 67%;"></p>
+<p>还有一种特殊的多对多循环神经网络，常常用来做机器翻译。比如输入的是红色框框代表的英语，经过循环神经网络处理，输出一个向量$h_T$,里面包含了这句话中所有的语义信息。然后，$h_T$ 作为下面一个循环神经网络序列的输入，解码器将这个向量输出成一个德语序列</p>
+<p>这样设计的原因是，因为不同语言之间的语法结构是不同的，因此如果采用一边输入、一边输出的方式，会造成翻译不准确、语义丢失等情况</p>
+<h4 id="多层RNN"><a href="#多层RNN" class="headerlink" title="多层RNN"></a>多层RNN</h4><p>上面说的RNN例子，都属于一层神经网络，只是在不断堆叠时间步。那么，要训练深层神经网络的话，仅靠一层RNN是不够的，因此提出了多层RNN结构</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/13.png" style="zoom: 67%;"></p>
+<p>从第二层开始，隐藏层的生成是通过本层上一时刻的权重矩阵和上层本时刻的权重矩阵共同生成的。即：</p>
+<script type="math/tex; mode=display">
+S_t^l = \tanh W^l
+\begin{pmatrix} s_{t}^{l-1} \\ s_{t-1}^l \end{pmatrix}\\
+\text{l代表层数,t代表时刻}</script><h3 id="反向传播"><a href="#反向传播" class="headerlink" title="反向传播"></a>反向传播</h3><h4 id="BPTT"><a href="#BPTT" class="headerlink" title="BPTT"></a>BPTT</h4><p>学习博客：<a href="https://blog.csdn.net/lzw66666/article/details/113132149?utm_source=app&amp;app_version=4.20.0" target="_blank" rel="noopener">https://blog.csdn.net/lzw66666/article/details/113132149?utm_source=app&amp;app_version=4.20.0</a></p>
+<p>BPTT（back-propagation through time）算法是常用的训练RNN的方法，其实本质还是BP算法，只不过RNN处理时间序列数据，所以要基于时间反向传播，故叫随时间反向传播。BPTT的中心思想和BP算法相同，沿着需要优化的参数的负梯度方向不断寻找更优的点直至收敛。综上所述，BPTT算法本质还是BP算法，BP算法本质还是梯度下降法，那么求各个参数的梯度便成了此算法的核心。</p>
+<p>首先，我们还是要看这张图：</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/2.jpeg" style="zoom: 67%;"></p>
+<p>一共有三个权重矩阵： $\boldsymbol {U,V,W}$ 需要在反向传播中更新</p>
+<script type="math/tex; mode=display">
+O_t = g(\boldsymbol V\cdot S_t)\\
+S_t = f(\boldsymbol U\cdot X_t+ \boldsymbol W\cdot S_{t-1})</script><p>反向传播的计算说到底分三部分：1. 定义损失函数 2. 求出损失函数对参数的偏导数 3. 更新参数</p>
+<h5 id="定义损失函数"><a href="#定义损失函数" class="headerlink" title="定义损失函数"></a>定义损失函数</h5><p>假设在时刻 $t$ 的损失函数为：</p>
+<script type="math/tex; mode=display">
+L_t = \frac{1}{2}(Y_t - O_t)^2</script><p>损失函数可以用均方误差、Softmax，这里用的是前者</p>
+<p>因为有多个时刻，所以总损失函数为所有时刻的损失函数之和：$L = \sum_{t=0}^T{L_t}$</p>
+<h5 id="求损失函数对参数的偏导"><a href="#求损失函数对参数的偏导" class="headerlink" title="求损失函数对参数的偏导"></a>求损失函数对参数的偏导</h5><ol>
+<li>我们来看最主要的权重(参数)矩阵：$\boldsymbol W$, 在RNN中的每一时刻都出现了，因此 $\boldsymbol W$ 在时刻t的梯度 等于<strong>时刻t的损失函数</strong>对所有时刻的 $\boldsymbol W$ 的<strong>梯度和</strong></li>
+</ol>
+<script type="math/tex; mode=display">
+\frac{\partial L_t}{\partial \boldsymbol W} = \sum_{s=0}^T \frac{\partial L_t}{\partial \boldsymbol W_s}</script><ol>
+<li><p>将 $\frac{\partial L_t}{\partial \boldsymbol W}$ 带入损失函数，可得$\boldsymbol W$ 的总梯度 $\frac{\partial L}{\partial \boldsymbol W}$ 等于$\boldsymbol W$ 在所有时刻的梯度和</p>
+<script type="math/tex; mode=display">
+\frac{\partial L}{\partial \boldsymbol W} = \sum_{t=0}^T\frac{\partial L_t}{\partial w} \\
+=\sum_{t=0}^T\sum_{s=0}^T\frac{\partial L_t}{\partial w_s}</script></li>
+<li><p>有了梯度，我们就可以用来更新参数了</p>
+</li>
+</ol>
+<script type="math/tex; mode=display">
+\boldsymbol W = \boldsymbol W-\alpha\frac{\partial L }{\partial \boldsymbol W}</script><p>以上三步就是针对参数$\boldsymbol W$ 的反向传播</p>
+<h4 id="truncated-BPTT"><a href="#truncated-BPTT" class="headerlink" title="truncated BPTT"></a>truncated BPTT</h4><p>但是BPTT有个问题，当输入序列边长的时候，BPTT非常容易出现梯度爆炸和梯度消失的问题。因此，为了缓解这个问题，有人突出了 TBPTT，也就是前向传播 $k_1$ 步，然后反向传播$k_2$步，通过这个方式使得传播序列变短。通常$k_1=k_2 &lt; n$ </p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/31.png" style="zoom: 67%;"></p>
+<h2 id="RNN的应用"><a href="#RNN的应用" class="headerlink" title="RNN的应用"></a>RNN的应用</h2><h3 id="训练语言模型"><a href="#训练语言模型" class="headerlink" title="训练语言模型"></a>训练语言模型</h3><p>RNN的一大应用就是来构建语言模型. 它捕捉了一些人类语言的语法结构和语义信息，能够进行生成文字、自动回复等功能。现在我们用最简单的例子(character-level )来看一下模型是怎么被训练的.</p>
+<p>我们用的语料库就是一个单词： hello； 词汇表为 [h,e,l,o]；</p>
+<p>我们用 独热编码来编写词汇，输入到循环神经网络中，通过权重计算、激活，得到隐藏层如下：</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/7.png"></p>
+<p>现在，隐藏层需要输出一个值，这个值就代表当前时刻输入值的下一个预测值。输出值和输入值的维度需要保持一致。在这个例子中，输出一个长度为4的向量，每个值代表词汇表中对应词出现的概率。</p>
+<p>推理过程如下图所示：</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/8.png" style="zoom:120%;"></p>
+<p>如果我们使用莎士比亚的著作当做语料库，基于character-level 训练，那么只要给神经网络输入一个字母，他就会自己写一部莎士比亚风格的著作了</p>
+<h3 id="其他例子"><a href="#其他例子" class="headerlink" title="其他例子"></a>其他例子</h3><ul>
+<li>此外，RNN还可以用来写诗，比如说：</li>
+</ul>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/9.png" style="zoom:120%;"></p>
+<ul>
+<li>用来写代码，用整个 linux 内核来训练，虽然肯定有语法错误。更多的是像 tabline 一样给出代码提示，或者是代码的克隆检测、代码分类等。</li>
+</ul>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/10.png" style="zoom:100%;"></p>
+<ul>
+<li>使用多对多神经网络，也常常被IDE用来进行代码纠错：</li>
+</ul>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/11.png" style="zoom: 67%;"></p>
+<p>前面讲的都是自然与语言处理相关的内容，其实RNN在cv里面的应用也十分广泛。比如说看图说话：</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/12.png" style="zoom: 67%;"></p>
+<p>其原理如下图所示，首先输入图像，由CNN处理后，提取特征，然后变成RNN的输入向量：</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/14.png" style="zoom: 67%;"></p>
+<p>但这个模型并不是百分百正确的，会出现很多识别错误的例子。</p>
+<p>因此，我们可以引入注意力机制，提高RNN的识别率：</p>
+<p>在没有引入注意力机制的时候，读入的是一个长度为D的特征 。那么现在，我们让CNN训练一张图片，得到一个 $L\times D$ 的矩阵(即feature map)，一共L行，每行代表图片里的L个区域，如下所示：</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/15.png" style="zoom: 67%;"></p>
+<ul>
+<li><p>作为输入$h_0$，一般是一个向量，我们可以通过平均池化的方式获得。这样D列就会变成一个长度为D的向量，作为整个图片的特征向量</p>
+</li>
+<li><p>然后，通过 $L\times D$  和 $h_0$ (长度为D)相乘，可以得到一个长度为 $L$ 的向量。</p>
+<ul>
+<li>将$L$里面的元素进行一个softmax求出加权特征向量$Z_1$——里面的每一个元素就是对这一个区域的注意力分数。</li>
+<li>将这个$Z_1$ 向量作为$h_1$ 的输入，为其指明观察的方向。</li>
+</ul>
+</li>
+<li>在$h_1$ 输出了预测值straw以后，由 $h_1$和feature map相乘，softmax后得到$Z_2$。并将$Z_2$和$h_1$得到的输出值straw 共同输入到 $h_2$ 。 $h_2$ 预测值又将和$Z_3$ 共同输入给 $h_3$ 预测，以此类推</li>
+</ul>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/17.png" style="zoom: 67%;"></p>
+<p>$a_i$ 代表  feature map 里面的第i行特征</p>
+<p>$\alpha_{ti}$ 代表t时刻的这个注意力向量的第i个注意力分数</p>
+<p>在没有引入注意力机制的时候，每次输入的特征是一样的；但是引入了注意力机制的话，相当于，每一个时间节点，都会要求RNN去观察图片中的一个重点的区域。如下图所示：</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/16.png" style="zoom: 67%;"></p>
+<p>此外，这里还提到了 soft attention 和 hard attention，前者是说，直接保留输出的注意力分数，而后者是确立一个阈值，将超过阈值的注意力分数置为1，否则设为0。</p>
+<h2 id="RNN的缺点及解决办法"><a href="#RNN的缺点及解决办法" class="headerlink" title="RNN的缺点及解决办法"></a>RNN的缺点及解决办法</h2><p>RNN 是有一个非常明显的缺点的——训练长数据的时候容易出现梯度爆炸和梯度消失的问题。为了搞明白这个问题。在前面，我们已经学习了前向传播和BPTT，现在我们再来复习一下：</p>
+<p>前向传播公式：</p>
+<script type="math/tex; mode=display">
+O_t = g(\boldsymbol V\cdot S_t)\\
+S_t = f(\boldsymbol U\cdot X_t+ \boldsymbol W\cdot S_{t-1})</script><p>这里我们为了简化，就不添加偏置项了</p>
+<p>我们用三次循环为例，示意图如下：</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/30.jpeg"></p>
+<p>现在来计算前向传播的 $s_1,s_2,s_3,o_1,o_2,o_3$</p>
+<script type="math/tex; mode=display">
+s_1 = f(\boldsymbol Ux_1+\boldsymbol W s_0)~~~~~o_1 = g(\boldsymbol Vs_1)\\
+s_2 = f(\boldsymbol Ux_2+\boldsymbol W s_1)~~~~~o_2 = g(\boldsymbol Vs_2)\\
+s_3 = f(\boldsymbol Ux_3+\boldsymbol W s_2)~~~~~o_2 = g(\boldsymbol Vs_3)\\</script><p>现在来计算 $t=3$ 时刻，损失函数$L_3$ 对 $\boldsymbol {U、V、W}$ 的偏导</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\frac{\partial L_3}{\partial \boldsymbol V} = \frac{\partial L_3}{\partial S_3}\frac{\partial S_3}{\partial \boldsymbol V}\\
+&\frac{\partial L_3}{\partial \boldsymbol U} = \frac{\partial L_3}{\partial O_3}\frac{\partial O_3}{\partial \boldsymbol U}+\frac{\partial L_3}{\partial O_3}\frac{\partial O_3}{\partial S_3}\frac{\partial S_3}{\partial S_2}\frac{\partial S_2}{\partial  \boldsymbol U}+\frac{\partial L_3}{\partial O_3}\frac{\partial O_3}{\partial S_3}\frac{\partial S_3}{\partial S_2}\frac{\partial S_2}{\partial S_1}\frac{\partial S_1}{ \boldsymbol U} \\
+&\frac{\partial L_3}{\partial \boldsymbol W} = \frac{\partial L_3}{\partial O_3}\frac{\partial O_3}{\partial \boldsymbol W}+\frac{\partial L_3}{\partial O_3}\frac{\partial O_3}{\partial S_3}\frac{\partial S_3}{\partial S_2}\frac{\partial S_2}{\partial  \boldsymbol W}+\frac{\partial L_3}{\partial O_3}\frac{\partial O_3}{\partial S_3}\frac{\partial S_3}{\partial S_2}\frac{\partial S_2}{\partial S_1}\frac{\partial S_1}{ \boldsymbol W}
+\end{align}</script><p>根据上述推导，我们可以得出在任意时刻 $t$, $L$ 对 $\boldsymbol {U,V,W}$ 的偏导公式，以$W$为例：</p>
+<script type="math/tex; mode=display">
+\frac{\partial L_t}{\partial W} = \sum_{k=0}^t \frac{\partial L_t}{\partial O_t}\frac{\partial O_t}{\partial S_t}(\prod_{j=k+1}^t\frac{\partial S_j}{\partial S_{j-1}})\frac{\partial S_j}{\partial \boldsymbol W}</script><p>我   $S<em>j = \tanh(\boldsymbol Ux_i+\boldsymbol WS</em>{j-1})$ ，那么 $\frac{\partial S<em>j}{\partial S</em>{j-1}} = \tanh’ \boldsymbol W$ ，而$\prod<em>{j=k+1}^t\frac{\partial S_j}{\partial S</em>{j-1}}=\boldsymbol W^t\cdot\prod_{j=k+1}^t \tanh’$ </p>
+<p>从上式可知，在回传梯度的时候，我们需要连续不断地乘以 $\boldsymbol W$ </p>
+<script type="math/tex; mode=display">
+W= Q\Lambda Q^{-1}\rightarrow (W)^n = Q\Lambda^n Q^{-1}</script><p>因此，当特征值大于1的时候，只要循环次数过多，就会造成梯度爆炸</p>
+<p>同理，当特征值小于1的时候，只要循环次数过多，会造成梯度消失</p>
+<h3 id="梯度裁剪"><a href="#梯度裁剪" class="headerlink" title="梯度裁剪"></a>梯度裁剪</h3><p>为了解决这个问题，我们们可以用梯度裁剪的方法。当特征值&gt;1,造成梯度爆炸、或者梯度的L2范数过大的时候，我们需要对梯度进行缩小</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">grad_norm = np.sum(grad*grad)</span><br><span class="line"><span class="keyword">if</span> grad_norm &gt; threshold:</span><br><span class="line">	grad *= (threshold / grad_norm)</span><br></pre></td></tr></table></figure>
+<h3 id="LSTM"><a href="#LSTM" class="headerlink" title="LSTM"></a>LSTM</h3><p>学习博客： <a href="https://www.jianshu.com/p/9dc9f41f0b29" target="_blank" rel="noopener">https://www.jianshu.com/p/9dc9f41f0b29</a></p>
+<p>但是梯度裁剪对于梯度消失的情况效果并不好，因此我们需要使用更高级的结构，也就是长短期记忆(Long short-Term Memory, LSTM) </p>
+<p>因为在RNN中主要是 $h_i$会出现梯度爆炸和梯度消失，在LSTM中就主要做了一项中间步骤，使得回传以后$h$不再是永远为$W^T$，从而避免了梯度爆炸、和消失的问题</p>
+<h4 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h4><p>所有 RNN 都具有一种重复神经网络模块的链式的形式。在标准的 RNN 中，这个重复的模块只有一个非常简单的结构，例如一个 <code>tanh</code> 层。 LSTM 同样是这样的结构，但是重复的模块拥有一个不同的结构。不同于 单一神经网络层，这里是有四个，以一种非常特殊的方式进行交互。</p>
+<p>LSTM 的关键就是<strong>细胞状态 $C_t$</strong>，水平线在图上方贯穿运行。</p>
+<p>细胞状态类似于传送带。直接在整个链上运行，只有一些少量的线性交互。信息在上面流传保持不变会很容易。</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/24.jpg"></p>
+<p>LSTM 有通过精心设计的称作为“门”的结构来去除或者增加信息到细胞状态的能力。门是一种让信息选择式通过的方法。他们包含一个 <code>sigmoid</code> 神经网络层和一个按位的乘法操作。</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/25.jpg"></p>
+<p>Sigmoid 层输出0到1之间的数值，描述每个部分有多少量可以通过。 0代表“不许任何量通过”，1 就指“允许任意量通过”</p>
+<p>LSTM 拥有三个门，来保护和控制细胞状态。</p>
+<h4 id="逐步理解-LSTM"><a href="#逐步理解-LSTM" class="headerlink" title="逐步理解 LSTM"></a>逐步理解 LSTM</h4><p>LSTM一开始需要计算4个向量：</p>
+<ul>
+<li>i : input gate , 控制在 $c_t$ 中写入哪些信息</li>
+<li>f : forget gate , 控制从$c_{t-1}$  中擦除哪些信息</li>
+<li>o : output gate ，控制从$c_t$输出哪些信息</li>
+<li>g：激活输入</li>
+</ul>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/21.png"></p>
+<h5 id="决定丢弃信息"><a href="#决定丢弃信息" class="headerlink" title="决定丢弃信息"></a>决定丢弃信息</h5><p>在LSTM中的第一步是决定我们会从细胞状态中丢弃什么信息。这个决定通过上面所说的 forget gate 完成。该门会读取$h<em>{t-1}$ 和$x_t$ ，并输出一个在0到1之间的数值给每个在细胞状态$C</em>{t-1}$中的数字。1表示完全保留而0代表完全舍弃。</p>
+<p>计算公式如下：</p>
+<script type="math/tex; mode=display">
+f_t = \sigma(W_f\cdot[h_{t-1},x_t]+b_f)</script><p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/26.png" style="zoom: 67%;"></p>
+<h5 id="确定更新信息"><a href="#确定更新信息" class="headerlink" title="确定更新信息"></a>确定更新信息</h5><p>下一步，是确定什么样的新信息会被存放在细胞状态中。这里包含两个部分。第一，一个<code>sigmoid</code> 层(即input gate) 决定我们将要更新什么值。然后一个 <code>tanh</code>层(gate)创建一个新的候选值向量 $\widetilde C_t$. 这个向量将会被加入到细胞状态中。</p>
+<p> 计算公式如下：</p>
+<script type="math/tex; mode=display">
+i_t = \sigma(W_i\cdot[h_{t-1},x_t]+b_i)\\
+\widetilde C_t = \tanh (W_C\cdot[h_{t-1},x_t]+b_C)\\</script><p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/27.png" style="zoom: 67%;"></p>
+<h5 id="更新细胞状态"><a href="#更新细胞状态" class="headerlink" title="更新细胞状态"></a>更新细胞状态</h5><p>现在是更新旧细胞状态的时间了，$C_{t-1}$ 更新为 $C_t$ 。</p>
+<p>我们把旧状态 与 $f_t$ 相乘，来丢弃掉我们确定需要丢弃的信息。接着加上 $i_t*\widetilde C_t$,即新的候选值。</p>
+<p>公式如下：</p>
+<script type="math/tex; mode=display">
+c_t = f_t\odot C_{t-1}+i_t\odot \widetilde C_t</script><p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/28.png" style="zoom: 67%;"></p>
+<h5 id="输出信息"><a href="#输出信息" class="headerlink" title="输出信息"></a>输出信息</h5><p>最终，我们需要确定输出什么值。这个输出将会基于我们的细胞状态。</p>
+<ul>
+<li>首先，我们运行一个 <code>sigmoid</code> 来确定细胞状态的哪个部分将输出出去。得到输出门 output gate</li>
+<li>接着，我们把细胞状态通过 <code>tanh</code>进行处理，得到一个 -1~1 之间的值，并将它和<code>sigmoid</code>的输出相乘。最终我们仅仅会输出我们确定输出的那部分。</li>
+</ul>
+<script type="math/tex; mode=display">
+o_t = \sigma(W_o[h_{t-1},x_t]+b_o)\\
+h_t = o_t * \tanh(C_t)</script><p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/29.png" style="zoom: 67%;"></p>
+<h4 id="梯度回传"><a href="#梯度回传" class="headerlink" title="梯度回传"></a>梯度回传</h4><p> <strong>LSTM 中梯度的传播有很多条路径</strong>，$c<em>{t-1}\rightarrow c_t = f_t\odot c</em>{t-1}+i_t\odot \hat c_t$ 这条路径上只有<strong>逐元素相乘和相加</strong>的操作，梯度流最稳定；</p>
+<p>但是在<strong>其他路径</strong>上，LSTM 的梯度流和普通 RNN 没有太大区别，照样会发生相同的权重矩阵反复连乘的情况，依然会爆炸或者消失。由于<strong>总的远距离梯度 = 各条路径的远距离梯度之和</strong>，即便其他远距离路径梯度消失了，只要保证有一条远距离路径（就是上面说的那条高速公路）梯度不消失，总的远距离梯度就不会消失（正常梯度 + 消失梯度= 正常梯度）。因此 LSTM 通过改善<strong>一条路径</strong>上的梯度问题拯救了<strong>总体的远距离梯度</strong> </p>
+<p>同样，因为总的远距离梯度 = 各条路径的远距离梯度之和，高速公路上梯度流比较稳定，但其他路径上梯度有可能爆炸，此时总的远距离梯度 = 正常梯度 + 爆炸梯度 = 爆炸梯度，因此 <strong>LSTM 仍然有可能发生梯度爆炸</strong>。不过，由于 LSTM 的其他路径非常崎岖，和普通 RNN 相比多经过了很多次激活函数（导数都小于 1），因此 <strong>LSTM 发生梯度爆炸的频率要低得多</strong>。实践中仍然可以通过梯度裁剪来解决。</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/22.png"></p>
+<h3 id="GRU"><a href="#GRU" class="headerlink" title="GRU"></a>GRU</h3><p>GRU是对 LSTM的进一步简化</p>
+<p><img src="/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/23.png"></p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" title="循环神经网络">https://jasonxqh.github.io/2021/12/16/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/cv/" rel="tag"><i class="fa fa-tag"></i> cv</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/12/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" rel="next" title="计算机视觉-卷积神经网络">
+                <i class="fa fa-chevron-left"></i> 计算机视觉-卷积神经网络
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/12/16/%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" rel="prev" title="生成模型">
+                生成模型 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">425</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#循环神经网络"><span class="nav-number">1.</span> <span class="nav-text">循环神经网络</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#RNN的结构"><span class="nav-number">1.1.</span> <span class="nav-text">RNN的结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#一对一"><span class="nav-number">1.1.0.1.</span> <span class="nav-text">一对一</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#多对多"><span class="nav-number">1.1.0.2.</span> <span class="nav-text">多对多</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#多对一"><span class="nav-number">1.1.0.3.</span> <span class="nav-text">多对一</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#一对多"><span class="nav-number">1.1.0.4.</span> <span class="nav-text">一对多</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#特殊多对多"><span class="nav-number">1.1.0.5.</span> <span class="nav-text">特殊多对多</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#多层RNN"><span class="nav-number">1.1.0.6.</span> <span class="nav-text">多层RNN</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#反向传播"><span class="nav-number">1.1.1.</span> <span class="nav-text">反向传播</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#BPTT"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">BPTT</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#定义损失函数"><span class="nav-number">1.1.1.1.1.</span> <span class="nav-text">定义损失函数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#求损失函数对参数的偏导"><span class="nav-number">1.1.1.1.2.</span> <span class="nav-text">求损失函数对参数的偏导</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#truncated-BPTT"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">truncated BPTT</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RNN的应用"><span class="nav-number">1.2.</span> <span class="nav-text">RNN的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#训练语言模型"><span class="nav-number">1.2.1.</span> <span class="nav-text">训练语言模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他例子"><span class="nav-number">1.2.2.</span> <span class="nav-text">其他例子</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RNN的缺点及解决办法"><span class="nav-number">1.3.</span> <span class="nav-text">RNN的缺点及解决办法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#梯度裁剪"><span class="nav-number">1.3.1.</span> <span class="nav-text">梯度裁剪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LSTM"><span class="nav-number">1.3.2.</span> <span class="nav-text">LSTM</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#核心思想"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">核心思想</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#逐步理解-LSTM"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">逐步理解 LSTM</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#决定丢弃信息"><span class="nav-number">1.3.2.2.1.</span> <span class="nav-text">决定丢弃信息</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#确定更新信息"><span class="nav-number">1.3.2.2.2.</span> <span class="nav-text">确定更新信息</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#更新细胞状态"><span class="nav-number">1.3.2.2.3.</span> <span class="nav-text">更新细胞状态</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#输出信息"><span class="nav-number">1.3.2.2.4.</span> <span class="nav-text">输出信息</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#梯度回传"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">梯度回传</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GRU"><span class="nav-number">1.3.3.</span> <span class="nav-text">GRU</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1245k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+  
+
+  
+
+</body>
+</html>

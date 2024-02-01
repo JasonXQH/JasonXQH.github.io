@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="操作系统," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Shell 在 Minix3中的实现目的Shell主体结构是一个while循环，不断地接受用户键盘输入行并给出反馈。Shell 将输入行分解成单词序列，根据命令名称分为二类分别处理 ，即shell内置命令（例如cd，history，exit）和 program 命令 (例如&#x2F;bin&#x2F;目录下的ls，grep 等) 。识别为shell内置命令后，执行对应操作。接受program命令后，利用minix自">
+<meta property="og:type" content="article">
+<meta property="og:title" content="os实验报告2-shell的实现">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Shell 在 Minix3中的实现目的Shell主体结构是一个while循环，不断地接受用户键盘输入行并给出反馈。Shell 将输入行分解成单词序列，根据命令名称分为二类分别处理 ，即shell内置命令（例如cd，history，exit）和 program 命令 (例如&#x2F;bin&#x2F;目录下的ls，grep 等) 。识别为shell内置命令后，执行对应操作。接受program命令后，利用minix自">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/22.png">
+<meta property="article:published_time" content="2021-03-02T13:09:03.000Z">
+<meta property="article:modified_time" content="2021-03-25T05:41:44.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/03/02/os实验报告2-shell的实现/"/>
+
+
+
+
+
+  <title>os实验报告2-shell的实现 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">os实验报告2-shell的实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-03-02T21:09:03+08:00">
+                2021-03-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  8.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  35
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Shell-在-Minix3中的实现"><a href="#Shell-在-Minix3中的实现" class="headerlink" title="Shell 在 Minix3中的实现"></a>Shell 在 Minix3中的实现</h1><h2 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h2><p>Shell主体结构是一个while循环，不断地接受用户键盘输入行并给出反馈。Shell 将输入行分解成单词序列，根据命令名称分为<strong>二类分别处理 </strong>，即<strong>shell内置命令</strong>（例如cd，history，exit）和 <strong>program 命令</strong> (例如/bin/目录下的ls，grep 等) 。识别为shell内置命令后，执行对应操作。接受program命令后，利用minix自带的程序创建一个或多个新进程，并等待进程结束。如果末尾<strong>包含&amp;参数</strong>，Shell可以不等待进程结束，直接返回。</p>
+<h3 id="Program命令"><a href="#Program命令" class="headerlink" title="Program命令"></a>Program命令</h3><p>运行程序：利用fork调用创建进行子进程，利用execvp调用将minix程序装载到该进程，并赋予运行参数，最后Shell利用wait/waitpid调用等待子进程结束。（参见UNIX高级编程8.3，8.7和8.10节）</p>
+<p>参考资料：</p>
+<ol>
+<li>Shell主要是为用户提供一个命令解释器，接收用户命令（如ls等)，然后调用相应的应用程序。实现的Shell支持后台进程的运行。</li>
+<li>在计算内存和CPU总体使用情况时，可参考top命令实现 <a href="https://github.com/0xffea/MINIX3/blob/master/usr.bin/top/top.c" target="_blank" rel="noopener">https://github.com/0xffea/MINIX3/blob/master/usr.bin/top/top.c</a></li>
+<li>推荐《UNIX环境高级编程》查找详细的系统调用使用方法。</li>
+</ol>
+<h4 id="1-实现带参数的程序运行功能"><a href="#1-实现带参数的程序运行功能" class="headerlink" title="1.实现带参数的程序运行功能"></a>1.实现带参数的程序运行功能</h4><p><code>program arg1 arg2 ... argN</code></p>
+<h4 id="2-重定向功能，-将文件作为程序的输入-输出"><a href="#2-重定向功能，-将文件作为程序的输入-输出" class="headerlink" title="2. 重定向功能， 将文件作为程序的输入/输出"></a>2. 重定向功能， 将文件作为程序的输入/输出</h4><ul>
+<li>“&gt;” 表示覆盖写 <code>program arg1 arg2 … argN &gt; output-file</code></li>
+<li>“&gt;&gt;” 表示追加写 <code>program arg1 arg2 … argN &gt;&gt; output-file</code></li>
+<li>“&lt;” 表示文件的输入 <code>program arg1 arg2 … argN &lt; input-file</code></li>
+</ul>
+<p>重定向：minix为每个进程赋予键盘输入和控制台输出的文件描述符默认为0和1。子进程装载程序前，利用close(0 or 1)将默认输入或者输出关闭，再调用dup(fd)将某个打开文件的文件描述fd映射到标准输入或输出。（参见UNIX高级编程3.12节）</p>
+<h4 id="3-管道符号-“-”"><a href="#3-管道符号-“-”" class="headerlink" title="3. 管道符号 “|”"></a>3. 管道符号 “|”</h4><p>在程序间传递数据  <code>programA arg1 … argN | programB arg1 … argN</code></p>
+<p>若有n个子进程组成管道流，Shell在fork前先用pipe调用创建n-1对管道描述符，关闭不需要的读写端。Shell运行fork后，每个子进程利用dup将前一个管道的读端映射到标准输入，后一个管道的写端映射到标准输出。（参见UNIX高级编程15.2节）</p>
+<p><strong>在实现管道时，需要用到pipe和dup系统调用等，重定向标准向输入输出(参见教材1.4.3节)。</strong></p>
+<h4 id="4-后台符号-amp"><a href="#4-后台符号-amp" class="headerlink" title="4. 后台符号&amp;"></a>4. 后台符号&amp;</h4><p>表示此命令将以后台运行的方式执行 <code>program arg1 arg2 … argN &amp;</code></p>
+<p>后台运行：为了屏蔽键盘和控制台，子进程的标准输入、输出映射成/dev/null。子进程调用signal(SIGCHLD,SIG_IGN)，使得minix接管此进程。因此Shell可以避免调用wait/waitpid直接运行下一条命令。</p>
+<h3 id="Shell-内置命令"><a href="#Shell-内置命令" class="headerlink" title="Shell 内置命令"></a>Shell 内置命令</h3><h4 id="1-工作路劲移动命令-cd"><a href="#1-工作路劲移动命令-cd" class="headerlink" title="1. 工作路劲移动命令 cd"></a>1. 工作路劲移动命令 cd</h4><p>提示： 因为Shell也是一个程序，启动时minix会分配一个当前工作目录，利用chdir系统调用可以移动Shell的工作目录。</p>
+<h4 id="2-程序运行统计mytop"><a href="#2-程序运行统计mytop" class="headerlink" title="2. 程序运行统计mytop"></a>2. 程序运行统计mytop</h4><p>提示：参考minix终端输入top命令的输出信息，在minix系统/proc文件夹中通过open/read系统调用输出进程信息。</p>
+<ul>
+<li>/proc/meminfo中，查看<strong>内存信息</strong>，每个参数对应含义依次是<strong>页面大小pagesize</strong>，<strong>总页数量total </strong>，<strong>空闲页数量free</strong> ，<strong>最大页数量largest</strong> ，<strong>缓存页数量cached</strong>。可计算内存大小：$(pagesize ~*~total)/1024$，同理算出其他页内存大小。</li>
+<li>/proc/kinfo中，查看<strong>进程和任务数量</strong>。</li>
+<li>/proc/pid/psinfo中，例如/proc/107/psinfo文件中，查看pid为107的进程信息。每个参数对应含义依次是：<strong>版本version</strong>，<strong>类型type</strong>，<strong>端点endpt</strong>，<strong>名字name</strong>，<strong>状态state</strong>，<strong>阻塞状态blocked</strong>，<strong>动态优先级priority，滴答ticks，高周期highcycle，低周期lowcycle，内存memory，有效用户ID effuid，静态优先级nice等</strong>。其中会用到的参数有：类型，状态，滴答。进程时间$time=\frac{ticks}{(u32_t)60}$。</li>
+</ul>
+<p>输出内容：</p>
+<ul>
+<li><strong>总体内存大小，空闲内存大小，缓存大小</strong>。</li>
+<li><strong>总体CPU使用占比</strong>。计算方法：得到进程和任务总数量total_proc，对每一个proc的ticks累加得到总体ticks，再计算空闲的ticks，最终可得到CPU使用百分比。</li>
+</ul>
+<h4 id="3-shell-退出命令-exit"><a href="#3-shell-退出命令-exit" class="headerlink" title="3. shell 退出命令 exit"></a>3. shell 退出命令 exit</h4><p>提示:  退出Shell的while循环，结束Shell的main函数。</p>
+<h4 id="4-history-n-显示最近执行的n条指令"><a href="#4-history-n-显示最近执行的n条指令" class="headerlink" title="4. history n 显示最近执行的n条指令"></a>4. history n 显示最近执行的n条指令</h4><p>提示： 保存Shell每次的输入行，打印所需字符串即可</p>
+<h3 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">cd &#x2F;your&#x2F;path</span><br><span class="line">ls -a -l</span><br><span class="line">ls -a -l &gt; result.txt</span><br><span class="line">vi result.txt</span><br><span class="line">grep a &lt; result.txt</span><br><span class="line">ls -a -l | grep a</span><br><span class="line">vi result.txt &amp;</span><br><span class="line">mytop</span><br><span class="line">history n</span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+<h2 id="内容与设计思想"><a href="#内容与设计思想" class="headerlink" title="内容与设计思想"></a>内容与设计思想</h2><p>这个实验主要是在Minix里面自己实现一个简单的shell，并实现一些基本的命令。</p>
+<p>我会将整个project分割成很多小片段来一一实现。</p>
+<h2 id="使用环境"><a href="#使用环境" class="headerlink" title="使用环境"></a>使用环境</h2><p>虚拟机： Guest OS</p>
+<p>虚拟机软件： Oracle VirtualBox</p>
+<p>物理机： Windows10</p>
+<h2 id="实验过程"><a href="#实验过程" class="headerlink" title="实验过程"></a>实验过程</h2><p>首先我们先介绍一下 main函数的实现思路，然后再详细分析main函数中调用的各种函数</p>
+<h3 id="宏定义"><a href="#宏定义" class="headerlink" title="宏定义"></a>宏定义</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _PATH_PROC <span class="meta-string">"/proc/"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PSINFO_VERSION	0</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TYPE_TASK	<span class="meta-string">'T'</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TYPE_SYSTEM	<span class="meta-string">'S'</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TYPE_USER	<span class="meta-string">'U'</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> STATE_RUN	<span class="meta-string">'R'</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TIMECYCLEKEY <span class="meta-string">'t'</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ORDERKEY <span class="meta-string">'o'</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  USED		0x1</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  IS_TASK	0x2</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  IS_SYSTEM	0x4</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  BLOCKED	0x8</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ORDER_CPU	0</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ORDER_MEMORY	1</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ORDER_HIGHEST	ORDER_MEMORY</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  TC_BUFFER  1024        <span class="comment">/* Size of termcap(3) buffer    */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  TC_STRINGS  200        <span class="comment">/* Enough room for cm,cl,so,se  */</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/* name of cpu cycle types, in the order they appear in /psinfo. */</span></span><br><span class="line"><span class="comment">//cpu 周期的种类，</span></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">char</span> *cputimenames[] = &#123; <span class="string">"user"</span>, <span class="string">"ipc"</span>, <span class="string">"kernelcall"</span> &#125;;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CPUTIMENAMES (sizeof(cputimenames)/sizeof(cputimenames[0]))</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CPUTIME(m, i) (m &amp; (1L &lt;&lt; (i)))</span></span><br></pre></td></tr></table></figure>
+<h3 id="全局变量"><a href="#全局变量" class="headerlink" title="全局变量"></a>全局变量</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> *message;  <span class="comment">//用于输出当前的路径</span></span><br><span class="line"><span class="keyword">int</span> whilecnt=<span class="number">0</span>;	<span class="comment">//用于记载已输入的命令条数，为history n做准备</span></span><br><span class="line"><span class="keyword">char</span> msg[<span class="number">40</span>][<span class="number">256</span>];<span class="comment">//用于记载已输入的命令信息，为history n做准备</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> nr_procs, nr_tasks;<span class="comment">//进程数和任务数</span></span><br><span class="line"><span class="keyword">int</span> nr_total;<span class="comment">//进程和任务总数</span></span><br><span class="line"><span class="keyword">int</span> order = ORDER_CPU;<span class="comment">//</span></span><br><span class="line"><span class="keyword">int</span> blockedverbose = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">char</span> *Tclr_all;</span><br><span class="line"><span class="keyword">int</span> slot=<span class="number">1</span>;	<span class="comment">//这个变量是进程结构体在数组中的位置</span></span><br></pre></td></tr></table></figure>
+<h3 id="main函数"><a href="#main函数" class="headerlink" title="main函数"></a>main函数</h3><p>在main函数中，主要是实现一个循环。</p>
+<p>首先我们要定义一些参数：</p>
+<p><code>wordcount</code> 即输入命令中的单词的个数</p>
+<p><code>wordmatrix</code> 即一个单词数组，每一行存储一个单词，每一列头字符为<code>\0</code></p>
+<p><code>buf</code> 即存放我们命令的缓冲数组。</p>
+<p>首先我们需要判断系统中还有没有足够的空间来存放下我们的语句。当空间不足的时候，malloc函数会返回NULL指针，然后我们就返回 <code>malloc failed</code> 并推出shell。这里，<code>perror</code> 是C语言标准库 <code>&lt;stdio.h&gt;</code> 的一个函数，它会将一个描述性错误消息输出到<code>stderr</code> .</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span></span>&#123;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">	<span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">int</span> wordcount = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">char</span> wordmatrix[<span class="number">100</span>][<span class="number">256</span>];</span><br><span class="line">    <span class="keyword">char</span> **arg = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">char</span> *buf = <span class="literal">NULL</span>; <span class="comment">//用户输入</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((buf = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(<span class="number">256</span>))== <span class="literal">NULL</span>)&#123;</span><br><span class="line">        perror(<span class="string">"malloc failed"</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来是循环的主体。 首先我们利用<code>memset</code>函数将buf 数组初始化清零。</p>
+<p>然后我们要给 <code>message</code>申请一段空间。这里，<code>message</code>是全局变量</p>
+<p>，通过 <code>getcwd</code>这个函数来获取当前所在的路径并通过printf打印出来。比如说，当前我正在 <code>proj1_shell</code> 文件夹当中启动 我们的shell，如下图所示：</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/1.png"></p>
+<p>然后我们需要将 message 释放掉，因为每次循环我们都会重新申请message数组，如果不将其释放会产生很多垃圾、占用我们的虚拟机空间。</p>
+<p>既然下来我们就要利用<code>getOrder()</code>函数从命令行中读取命令，并将其存储在我们刚刚声明的 buf数组当中。还需要将buf数组拷贝到msg二维数组中做一个备份，当收到history n的命令后，会从这个数组中查看之前输入过的命令。</p>
+<p>如果输入的是exit命令，那么就直接跳出循环。</p>
+<p>然后我们对 wordmatrix 二维数组的每一行的开头都设置为<code>\0</code> (头插法),为接下来解析命令做准备。 <code>anaOrder()</code>即 analyze order的缩写，其目的就是解析buf中的命令，并将结果存入到wordmatrix数组当中去。</p>
+<p>将命令全部解析完成之后，我们调用 execommand函数，也就是执行我们解析完的命令。这也是我们待会要着重分析的函数。因为所有的 内置命令、Program 命令都在这个函数中实现。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span></span>&#123;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line"> <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        <span class="built_in">memset</span>(buf, <span class="number">0</span>, <span class="number">256</span>);    <span class="comment">//将buf所指的空间清零</span></span><br><span class="line">        message = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(<span class="number">100</span>);</span><br><span class="line">        getcwd(message, <span class="number">100</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"os_shell:%s # "</span>, message);</span><br><span class="line">        <span class="built_in">free</span>(message);</span><br><span class="line">        getOrder(buf);</span><br><span class="line">        <span class="built_in">strcpy</span>(msg[whilecnt],buf);<span class="comment">//whilecnt一开始默认为0</span></span><br><span class="line">        whilecnt++;</span><br><span class="line">        <span class="keyword">if</span>( <span class="built_in">strcmp</span>(buf, <span class="string">"exit\n"</span>) == <span class="number">0</span> )&#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++)&#123;</span><br><span class="line">            wordmatrix[i][<span class="number">0</span>] = <span class="string">'\0'</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        wordcount = <span class="number">0</span>;</span><br><span class="line">        anaOrder(buf, &amp;wordcount, wordmatrix);</span><br><span class="line">        exeCommand(wordcount, wordmatrix);</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后，当循环结束的时候，我们对buf数组进行回收。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span></span>&#123;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">	<span class="keyword">if</span>(buf != <span class="literal">NULL</span>)&#123;</span><br><span class="line">        <span class="built_in">free</span>(buf);</span><br><span class="line">        buf = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="getOrder函数"><a href="#getOrder函数" class="headerlink" title="getOrder函数"></a>getOrder函数</h4><p><code>getOrder</code>函数是从命令行窗口读取我们输入的命令、并将命令存放在buf数组当中。</p>
+<p>首先我们要了解我们输入的命令长什么样： 有一些单词、符号，中间用空格隔开，然后以<code>\n</code>换行符号结尾。</p>
+<p>我们使用 <code>getchar()</code>函数来单字符读取命令依次存储到buf数组，buf数组最后两个符号分别是<code>\0</code>(结束符)和<code>\n</code> (换行符)。</p>
+<p>如果输入的命令过长，导致计数器已经到达256了，那么就会报错并退出函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">getOrder</span><span class="params">(<span class="keyword">char</span> *buf)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> cnt = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> c = getchar();</span><br><span class="line">    <span class="keyword">while</span>(cnt &lt; <span class="number">256</span> &amp;&amp; c != <span class="string">'\n'</span>)&#123;</span><br><span class="line">        buf[cnt++] = c;</span><br><span class="line">        c = getchar();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    buf[cnt++]=<span class="string">'\n'</span>;</span><br><span class="line">    buf[cnt]=<span class="string">'\0'</span>;</span><br><span class="line">    <span class="keyword">if</span>(cnt == <span class="number">256</span>)&#123;</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="anaOrder函数"><a href="#anaOrder函数" class="headerlink" title="anaOrder函数"></a>anaOrder函数</h4><p>这个函数会解析buf中的命令，所谓解析，就是利用空格符，将buf中的命令一个单词一个单词的拆开，然后存放到wordmatrix当中去。</p>
+<p>这个函数的整体架构是由一个双重循环组成的。大循环解析整个命令，小循环提取出命令中每一个word。</p>
+<p>首先我们令 数组p和数组q都等于buf数组。</p>
+<p>如果p数组一开始就是回车，说明我们什么命令都没输入或者命令已经解析完成，那么就直接跳出循环；如果命令前面字符都是空格，那么我们就从非空格字符的地方开始解析。</p>
+<p>当排除了空白输入以及空格符号之后，我们令<code>q=p</code> ，计数器number等于0。然后一直读取到一个单词结束，这时候 number就等于这个单词的长度。接下来我们利用 <code>strncpy</code> 函数将p中的前number+1个字节复制到wordmatrix中属于这个单词的位置当中(*wordcount从0开始)——为什么要number+1呢？因为这时候第number+1个字符要么是<code>&#39;&#39;</code>要么是<code>&#39;\n&#39;</code> 因此也要复制进去，方便之后将最后一个字符改成<code>\0</code>结束符。</p>
+<p>最后，将单词计数器wordcount加上1，然后令p等于q，相当于<strong>砍掉</strong>了一个单词。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">anaOrder</span><span class="params">(<span class="keyword">char</span>* buf, <span class="keyword">int</span>* wordcount, <span class="keyword">char</span> (*wordmatrix)[<span class="number">256</span>])</span></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *p = buf;</span><br><span class="line">    <span class="keyword">char</span> *q = buf;</span><br><span class="line">    <span class="keyword">int</span> number = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        <span class="keyword">if</span>(p[<span class="number">0</span>] == <span class="string">'\n'</span>)&#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(p[<span class="number">0</span>] == <span class="string">' '</span>)&#123;</span><br><span class="line">            p++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span>&#123;</span><br><span class="line">            q = p;</span><br><span class="line">            number = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">while</span>((q[<span class="number">0</span>] != <span class="string">' '</span>) &amp;&amp; (q[<span class="number">0</span>] != <span class="string">'\n'</span>))&#123;</span><br><span class="line">                number++;</span><br><span class="line">                q++;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="built_in">strncpy</span>(wordmatrix[*wordcount], p, number + <span class="number">1</span>);</span><br><span class="line">            wordmatrix[*wordcount][number] = <span class="string">'\0'</span>;</span><br><span class="line">            *wordcount = *wordcount + <span class="number">1</span>;</span><br><span class="line">            p = q;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="exeCommand函数"><a href="#exeCommand函数" class="headerlink" title="exeCommand函数"></a>exeCommand函数</h3><p>exeCommand函数是整个shell中最关键也是最复杂的函数。因代码过长，我们将其拆分成数个小部分一一分析。</p>
+<h4 id="准备阶段"><a href="#准备阶段" class="headerlink" title="准备阶段"></a>准备阶段</h4><p>这一部分我们定义了一些变量：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">exeCommand</span><span class="params">(<span class="keyword">int</span> wordcount, <span class="keyword">char</span> (*wordmatrix)[<span class="number">256</span>])</span></span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;		<span class="comment">// 进程号</span></span><br><span class="line">    <span class="keyword">char</span> *file;		<span class="comment">// 文件名称</span></span><br><span class="line">    <span class="keyword">int</span> correct = <span class="number">1</span>;<span class="comment">// 格式判断标志</span></span><br><span class="line">    <span class="keyword">int</span> way = <span class="number">0</span>;	<span class="comment">// 符号分类器</span></span><br><span class="line">    <span class="keyword">int</span> status;		<span class="comment">// 程序</span></span><br><span class="line">    <span class="keyword">int</span> i;				</span><br><span class="line">    <span class="keyword">int</span> fd;				</span><br><span class="line">    <span class="keyword">char</span> *<span class="keyword">word</span>[wordcount + <span class="number">1</span>];</span><br><span class="line">    <span class="keyword">char</span> *wordnext[wordcount + <span class="number">1</span>];<span class="comment">//存放管道运算符后面的命令</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//将命令取出</span></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; wordcount; i++)&#123;</span><br><span class="line">        <span class="keyword">word</span>[i] = (<span class="keyword">char</span> *)wordmatrix[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">word</span>[wordcount] = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后，我们通过一个循环将wordmatrix中的每个单词都复制到word指针数组当中去。并将最后一个指针设置为NULL</p>
+<h4 id="cd"><a href="#cd" class="headerlink" title="cd"></a>cd</h4><p>如果我们命令的第一个单词为<code>cd</code> ,那么我们就看第二个word是什么。如果第二个word是NULL，说明我们的命令就是<code>cd\n</code>那就直接返回；否则我们就利用 <code>chdir</code>这个函数改变当前的目录、转到新的目录，如果返回-1就说明该目录不存在，于是我们调用perror抛出一个错误。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">exeCommand</span><span class="params">(<span class="keyword">int</span> wordcount, <span class="keyword">char</span> (*wordmatrix)[<span class="number">256</span>])</span></span>&#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    <span class="keyword">if</span>(<span class="built_in">strcmp</span>(<span class="keyword">word</span>[<span class="number">0</span>], <span class="string">"cd"</span>) == <span class="number">0</span>)&#123;<span class="comment">//返回0代表word[0] = "cd"</span></span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">word</span>[<span class="number">1</span>] == <span class="literal">NULL</span>)&#123;</span><br><span class="line">            <span class="keyword">return</span> ;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(chdir(<span class="keyword">word</span>[<span class="number">1</span>]) ==  <span class="number">-1</span>)&#123;</span><br><span class="line">            perror(<span class="string">"cd"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="history-n"><a href="#history-n" class="headerlink" title="history n"></a>history n</h4><p>如果我们命令的第一个word 是 <code>history</code> ，那么我们就要显示最近执行的n条指令。 这n条命令在main函数的时候已经被存到<code>msg</code>数组当中去了，我们现在要做的就是个打印的操作。</p>
+<p>比如说我输入的命令是<code>history 15</code>,那么这时候 <code>word[1]</code> 就是 <code>(char*)15</code> ,然后我们就需要将字符数组转换为整数——这里我们使用atoi函数。我们在main函数中用<code>whilecnt</code>来作为 命令的计数器, <code>whilecnt</code>的值就是当前<code>msg</code> 数组中存放的命令数量+1， 所以我们输出的5条是从 <code>whilecnt-1</code>开始计算，一直到 <code>whilecnt-6</code>结束，然后将命令依次打印输出。</p>
+<p>注意，history和mytop 既可以创建一个子进程让其运行，也可以直接在父进程中运行。 但是因为我将program命令和shell内置命令放在一个 execommand函数中实现了。 如果这里不创建一个子进程，直接在父进程中运行，那么后面会出现奇奇怪怪的打印问题，因此为了安全和方便起见，我们这里也将其放到一个子进程当中去运行。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">    <span class="keyword">if</span>((pid = fork()) &lt; <span class="number">0</span>)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"fork error\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> ;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="keyword">if</span>(<span class="built_in">strcmp</span>(<span class="keyword">word</span>[<span class="number">0</span>],<span class="string">"history"</span>)==<span class="number">0</span>)&#123;</span><br><span class="line">        <span class="keyword">if</span>(pid==<span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">char</span> *cnum = <span class="keyword">word</span>[<span class="number">1</span>];</span><br><span class="line">            <span class="keyword">int</span> num = atoi(cnum);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"%d"</span>, num);</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = whilecnt - <span class="number">1</span>; i &gt; whilecnt - num - <span class="number">1</span>; i--) &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"command %d:"</span>, i);</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"%s"</span>, msg[i]);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>效果如下：</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/5.png"></p>
+<h4 id="mytop"><a href="#mytop" class="headerlink" title="mytop"></a>mytop</h4><p>这个函数需要输出的东西异常的多：</p>
+<ul>
+<li><strong>总体内存大小、空闲内存大小、缓存大小、总体CPU使用占比</strong></li>
+</ul>
+<p>我们用不同的函数来实现这些信息</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="built_in">strcmp</span>(<span class="keyword">word</span>[<span class="number">0</span>], <span class="string">"mytop"</span>) == <span class="number">0</span>)&#123;</span><br><span class="line">    <span class="keyword">if</span>(pid==<span class="number">0</span>)&#123;</span><br><span class="line">        <span class="keyword">int</span> cputimemode = <span class="number">1</span>;</span><br><span class="line">        getkinfo();</span><br><span class="line">        print_memory();</span><br><span class="line">        get_procs();</span><br><span class="line">        <span class="keyword">if</span> (prev_proc == <span class="literal">NULL</span>)</span><br><span class="line">            get_procs();</span><br><span class="line">        print_procs(prev_proc, proc, cputimemode);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="print-memory"><a href="#print-memory" class="headerlink" title="print_memory();"></a>print_memory();</h5><p>这个函数就是打印出当前主存的使用情况。</p>
+<p>首先我们打开 meminfo这个文件：</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/3.png"></p>
+<p>我们发现这里有5个数据，依次是：页面大小、总的页数、空闲页数、最大连续页、缓存页数量</p>
+<p>那么这里我们就可以以此计算总的内存、空闲内存、最大页的内存、缓存。计算公式为：$(PAGESIZE * TOTAL)/1024$</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">print_memory</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    FILE *fp;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> pagesize;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> total, <span class="built_in">free</span>, largest, cached;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((fp = fopen(<span class="string">"/proc/meminfo"</span>, <span class="string">"r"</span>)) == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">fscanf</span>(fp, <span class="string">"%u %lu %lu %lu %lu"</span>, &amp;pagesize, &amp;total, &amp;<span class="built_in">free</span>,</span><br><span class="line">               &amp;largest, &amp;cached) != <span class="number">5</span>) &#123;<span class="comment">//如果不是五个参数就说明读取失败</span></span><br><span class="line">        fclose(fp);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    fclose(fp);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"main memory: %ldK total, %ldK free, %ldK contig free, "</span></span><br><span class="line">           <span class="string">"%ldK cached\n"</span>,</span><br><span class="line">           (pagesize * total)/<span class="number">1024</span>, (pagesize * <span class="built_in">free</span>)/<span class="number">1024</span>,</span><br><span class="line">           (pagesize * largest)/<span class="number">1024</span>, (pagesize * cached)/<span class="number">1024</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>到这一步，我们可以试试看效果如何：</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/4.png"></p>
+<h5 id="getkinfo"><a href="#getkinfo" class="headerlink" title="getkinfo();"></a>getkinfo();</h5><p>这个函数就是读取/proc/kinfo得到总的进程和任务数。首先我们来看看 <code>/proc/kinfo</code> 中的记载的记录：</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/2.png"></p>
+<p>其中，256就代表进程数，5代表任务数量</p>
+<p>然后我们将这两个数字读入。并返回  进程数与任务数量 之和。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">void</span> <span class="title">getkinfo</span><span class="params">()</span></span>&#123;</span><br><span class="line">    FILE *fp;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((fp = fopen(<span class="string">"/proc/kinfo"</span>, <span class="string">"r"</span>)) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"opening "</span> _PATH_PROC <span class="string">"kinfo failed\n"</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">fscanf</span>(fp, <span class="string">"%u %u"</span>, &amp;nr_procs, &amp;nr_tasks) != <span class="number">2</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"reading from "</span> _PATH_PROC <span class="string">"kinfo failed\n"</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    fclose(fp);</span><br><span class="line"></span><br><span class="line">    nr_total<span class="comment">/*进程和任务总数*/</span> = (<span class="keyword">int</span>) (nr_procs + nr_tasks);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="get-procs"><a href="#get-procs" class="headerlink" title="get_procs();"></a>get_procs();</h5><p>这个函数的作用是将所有需要的信息放在结构数组<code>proc[]</code> 中，每个元素都是一个<strong>进程结构体</strong>。</p>
+<p>首先我们在文件一开始已经定义了一个 proc 结构： </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">proc</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> p_flags; 										<span class="comment">//proc的类型：系统/用户</span></span><br><span class="line">    <span class="keyword">endpoint_t</span> p_endpoint;					<span class="comment">//端点，可以看做是ID</span></span><br><span class="line">    <span class="keyword">char</span> p_name[PROC_NAME_LEN+<span class="number">1</span>]; 	<span class="comment">//名字</span></span><br><span class="line">    <span class="keyword">pid_t</span> p_pid;										<span class="comment">//进程号</span></span><br><span class="line">    <span class="keyword">u64_t</span> p_cpucycles[CPUTIMENAMES];<span class="comment">//cpu周期</span></span><br><span class="line">    <span class="keyword">endpoint_t</span> p_blocked; 					<span class="comment">//阻塞状态</span></span><br><span class="line">    <span class="keyword">int</span> p_priority; 								<span class="comment">//动态优先级</span></span><br><span class="line">    <span class="keyword">time_t</span> p_user_time; 						<span class="comment">//用户时间</span></span><br><span class="line">    vir_bytes p_memory; 						<span class="comment">//内存</span></span><br><span class="line">    <span class="keyword">uid_t</span> p_effuid;									<span class="comment">//有效用户ID</span></span><br><span class="line">    <span class="keyword">int</span> p_nice; 										<span class="comment">//静态优先级</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">proc</span> *<span class="title">proc</span> = <span class="title">NULL</span>,*<span class="title">prev_proc</span> = <span class="title">NULL</span>;</span><span class="comment">//申请两个 结构数组</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">get_procs</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">proc</span> *<span class="title">p</span>;</span></span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">		<span class="comment">//总之，这部分就是要将两个数组proc和prev_proc 都“装满”进程</span></span><br><span class="line">    p = prev_proc;</span><br><span class="line">    prev_proc = proc;</span><br><span class="line">    proc = p;</span><br><span class="line">		</span><br><span class="line">    <span class="keyword">if</span> (proc == <span class="literal">NULL</span>) &#123;</span><br><span class="line">      	<span class="comment">//分配内存</span></span><br><span class="line">        <span class="comment">//每个进程分配一个结构体</span></span><br><span class="line">        <span class="comment">//分配nr_total个单位proc结构体内存空间,并把指针赋予proc</span></span><br><span class="line">        proc = <span class="built_in">malloc</span>(nr_total * <span class="keyword">sizeof</span>(proc[<span class="number">0</span>]));</span><br><span class="line">				<span class="comment">//如果内存申请失败，就报错</span></span><br><span class="line">        <span class="keyword">if</span> (proc == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"Out of memory!\n"</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">		<span class="comment">//首先将所有的proc的flag置0</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nr_total; i++)</span><br><span class="line">        proc[i].p_flags = <span class="number">0</span>;</span><br><span class="line">		</span><br><span class="line">    parse_dir();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="parse-dir"><a href="#parse-dir" class="headerlink" title="parse_dir()"></a>parse_dir()</h6><p>这个函数的作用是获取到/proc/  下的<strong>所有进程pid</strong></p>
+<p>也就是获取这些文件夹的名字：</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/6.png" style="zoom: 50%;"></p>
+<p>打开<code>/proc</code>文件夹之后，我们用一个循环来遍历目录及其子目录。</p>
+<p>首先我们看一下 dirent结构</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">dirent</span>&#123;</span></span><br><span class="line">   	<span class="keyword">ino_t</span>          d_ino;       <span class="comment">/* inode number */</span></span><br><span class="line">    <span class="keyword">off_t</span>          d_off;       <span class="comment">/* offset to the next dirent */</span></span><br><span class="line">    <span class="keyword">unsigned</span> short d_reclen;    <span class="comment">/* length of this record */</span></span><br><span class="line">		<span class="keyword">unsigned</span> <span class="keyword">char</span>  d_type;<span class="comment">/* type of file; not supported by all file system types */</span></span><br><span class="line">    <span class="keyword">char</span>           d_name[<span class="number">256</span>]; <span class="comment">/* filename */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>然后通过一个for循环，依次读取<code>/proc</code>目录下的子目录项，并将目录的名字转换成十进制整数。然后执行<code>parse_file()</code>操作以获取这个目录中的信息。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">parse_dir</span><span class="params">()</span></span>&#123;</span><br><span class="line">    DIR *p_dir;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">dirent</span> *<span class="title">p_ent</span>;</span><span class="comment">//目录项</span></span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    <span class="keyword">char</span> *<span class="built_in">end</span>;<span class="comment">//end是指向第一个不可转换的字符位置的指针</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((p_dir = opendir(<span class="string">"/proc"</span>)) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        perror(<span class="string">"opendir on "</span> _PATH_PROC);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (p_ent = readdir(p_dir); p_ent != <span class="literal">NULL</span>; p_ent = readdir(p_dir)) &#123;</span><br><span class="line">        pid = strtol(p_ent-&gt;d_name, &amp;<span class="built_in">end</span>, <span class="number">10</span>);<span class="comment">//strtol函数将字符串转换为十进制长整数</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">end</span>[<span class="number">0</span>] &amp;&amp; pid != <span class="number">0</span>)</span><br><span class="line">            parse_file(pid);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    closedir(p_dir);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="parse-file"><a href="#parse-file" class="headerlink" title="parse_file()"></a>parse_file()</h6><p>这个函数的作用是获取每一个进程信息，并判断信息是否可用。传入的参数是这个进程的进程号码。将有用的信息传入到一个结构数组中去，这个结构数组就是 之前声明的 *p，里面每一个元素就是每一个进程/任务。</p>
+<p>这里我们要分清楚任务和进程的区别，才能在接下来中更清楚得区分他们。 首先，一个进程可能涉及到多个任务，一个任务也可对应多个进程。他们的一些信息都存放在 <code>psinfo</code>文件当中。但是，进程是表示资源分配的基本单位，又是调度运行的基本单位。为了避免重复运算，我们这里计算所有的进程，但是不计算任务。</p>
+<p>首先我们设置一些变量。这些变量就是我们接下来要从进程的 <code>/psinfo</code> 读取的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">parse_file</span><span class="params">(<span class="keyword">pid_t</span> pid)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> path[PATH_MAX], name[<span class="number">256</span>], type, state;<span class="comment">//路径、名字、种类、状态</span></span><br><span class="line">    <span class="keyword">int</span> version, endpt, effuid; <span class="comment">//版本、端点、有效用户ID</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> cycles_hi, cycles_lo; <span class="comment">//高周期、低周期</span></span><br><span class="line">    FILE *fp;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">proc</span> *<span class="title">p</span>;</span></span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="built_in">sprintf</span>(path, <span class="string">"/proc/%d/psinfo"</span>, pid);<span class="comment">//将path设置为 "/proc/(pid)/psinfo"的格式</span></span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后我们通过<code>fopen()</code>函数来读取(<code>&quot;r&quot;</code>)该进程的<code>/psinfo</code>文件 </p>
+<p>下面两张图片分别是任务的 <code>psinfo</code> 以及 进程的 <code>psinfo</code></p>
+<p> <img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/8.png" style="zoom: 70%;"></p>
+<p>上图是一个任务，版本是0，类型为T(TASK), 端点是-5，任务名叫做 asyncm，状态是 W(WORK),我们发现在任务下面，动态优先级、嘀嗒、周期、ID都为0，  </p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/7.png" style="zoom: 70%;"></p>
+<p>在这个编号为107的进程中：</p>
+<p>版本是 0，(第一次读取)</p>
+<p>类型为U（即USER），端点是32859 (第二次读取)</p>
+<p>名字叫devmand , 状态是 ‘S’, 阻塞状态为 1，动态优先级为7，滴答为 25，高周期1186，低周期4 (第三次读取)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">parse_file</span><span class="params">(<span class="keyword">pid_t</span> pid)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">    <span class="keyword">if</span> ((fp = fopen(path, <span class="string">"r"</span>)) == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">fscanf</span>(fp, <span class="string">"%d"</span>, &amp;version) != <span class="number">1</span>) &#123;</span><br><span class="line">        fclose(fp);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">//判断version是否为0，如果不为0就会报错</span></span><br><span class="line">    <span class="keyword">if</span> (version != PSINFO_VERSION) &#123; <span class="comment">//0</span></span><br><span class="line">        <span class="built_in">fputs</span>(<span class="string">"procfs version mismatch!\n"</span>, <span class="built_in">stderr</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">//读取文件中的第二个、第三个参数，分别是文件类型和端点</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">fscanf</span>(fp, <span class="string">" %c %d"</span>, &amp;type, &amp;endpt) != <span class="number">2</span>) &#123;</span><br><span class="line">        fclose(fp);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">//每当读取了一个合法的任务/进程，slot就会加1</span></span><br><span class="line">    slot++;</span><br><span class="line"></span><br><span class="line">		<span class="comment">//判断endpoint的值是否合理 在0到nr_total的范围内</span></span><br><span class="line">    <span class="keyword">if</span>(slot &lt; <span class="number">0</span> || slot &gt;= nr_total) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"top: unreasonable endpoint number %d\n"</span>, endpt);</span><br><span class="line">        fclose(fp);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">		<span class="comment">//slot为该进程结构体在数组中的位置</span></span><br><span class="line">    p = &amp;proc[slot];<span class="comment">//把slot地址赋值给p</span></span><br><span class="line"></span><br><span class="line">  	<span class="comment">//判断这个进程的类型到底是 TASK类型还是SYSTEM类型</span></span><br><span class="line">    <span class="keyword">if</span> (type == TYPE_TASK)<span class="comment">//如果是TASK类型，数值为 'T'</span></span><br><span class="line">        p-&gt;p_flags |= IS_TASK;<span class="comment">//0b0010</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (type == TYPE_SYSTEM)<span class="comment">//如果是SYSTEM类型，数值为'S'</span></span><br><span class="line">        p-&gt;p_flags |= IS_SYSTEM;<span class="comment">//0b0100</span></span><br><span class="line">  	<span class="comment">//除了这两者之外，就是 User 类型的进程了</span></span><br><span class="line">		<span class="comment">//将endpt和pid存入结构体</span></span><br><span class="line">    p-&gt;p_endpoint = endpt;</span><br><span class="line">    p-&gt;p_pid = pid;</span><br><span class="line">		<span class="comment">//读取名字 状态 阻塞状态 动态优先级 进程时间 高周期 低周期</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">fscanf</span>(fp, <span class="string">" %255s %c %d %d %lu %*u %lu %lu"</span>,</span><br><span class="line">               name, &amp;state, &amp;p-&gt;p_blocked, &amp;p-&gt;p_priority,</span><br><span class="line">               &amp;p-&gt;p_user_time, &amp;cycles_hi, &amp;cycles_lo) != <span class="number">7</span>) &#123;</span><br><span class="line"></span><br><span class="line">        fclose(fp);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">		<span class="comment">//将读取到的name复制给p-&gt;name ,最多复制 sizeof(p-&gt;p_name)-1 位</span></span><br><span class="line">    <span class="built_in">strncpy</span>(p-&gt;p_name, name, <span class="keyword">sizeof</span>(p-&gt;p_name)<span class="number">-1</span>);</span><br><span class="line">  	<span class="comment">//然后将名字的最后一个字符改成0</span></span><br><span class="line">    p-&gt;p_name[<span class="keyword">sizeof</span>(p-&gt;p_name)<span class="number">-1</span>] = <span class="number">0</span>;</span><br><span class="line">		<span class="comment">//如果不是正在运行的进程，那就打一个阻塞的标志</span></span><br><span class="line">    <span class="keyword">if</span> (state != STATE_RUN)<span class="comment">//如果数值为'R',就说明这个程序在运行</span></span><br><span class="line">        p-&gt;p_flags |= BLOCKED;</span><br><span class="line">		<span class="comment">//通过和 0x1 按位或，表明已经处理完毕。</span></span><br><span class="line">    p-&gt;p_flags |= USED;</span><br><span class="line"></span><br><span class="line">    fclose(fp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这里，我们简单查看一下 各个 task 的名字以及他们的内存，我们发现他们的端点都是负的，原因我还没搞清楚。</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/9.png"></p>
+<p>我们再打印一部分的进程的信息：</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/10.png"></p>
+<h5 id="print-procs"><a href="#print-procs" class="headerlink" title="print_procs()"></a>print_procs()</h5><p>首先我们在一开始定义一个结构体tp，用来存放进程结构体数组和它的嘀嗒</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tp</span>&#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">proc</span> *<span class="title">p</span>;</span></span><br><span class="line">	<span class="keyword">u64_t</span> ticks;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个函数输出CPU使用时间</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print_procs</span><span class="params">(struct proc *proc1, struct proc *proc2, <span class="keyword">int</span> cputimemode)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> p, nprocs;</span><br><span class="line">    <span class="keyword">u64_t</span> systemticks = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">u64_t</span> userticks = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">u64_t</span> total_ticks = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> blockedseen = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">tp</span> *<span class="title">tick_procs</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="comment">//tp结构体的数组tick_procs,对所有的进程和任务(即上面读出来的nr_total)计算ticks</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (tick_procs == <span class="literal">NULL</span>) &#123;<span class="comment">//如果这个数组是空的话，就要给其分配内存</span></span><br><span class="line">        tick_procs = <span class="built_in">malloc</span>(nr_total * <span class="keyword">sizeof</span>(tick_procs[<span class="number">0</span>]));</span><br><span class="line">				<span class="comment">//申请内存下不来，就报错</span></span><br><span class="line">        <span class="keyword">if</span> (tick_procs == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"Out of memory!\n"</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">		<span class="comment">//总数是nr_total,对所有的进程/任务进行遍历</span></span><br><span class="line">    <span class="keyword">for</span>(p = nprocs = <span class="number">0</span>; p &lt; nr_total; p++) &#123;</span><br><span class="line">        <span class="keyword">u64_t</span> uticks;</span><br><span class="line">      <span class="comment">//如果当前进程标志不是used(代表没在parse_file中”备案“) 就continue 看下一个进程。</span></span><br><span class="line">        <span class="keyword">if</span>(!(proc2[p].p_flags &amp; USED))</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">      <span class="comment">//每次proc2数组都向前加一个proc单位</span></span><br><span class="line">        tick_procs[nprocs].p = proc2 + p;</span><br><span class="line">      <span class="comment">//更新实时的嘀嗒 嘀嗒=</span></span><br><span class="line">        tick_procs[nprocs].ticks = cputicks(&amp;proc1[p], &amp;proc2[p], cputimemode);</span><br><span class="line">  		total_ticks = total_ticks + cputicks(&amp;proc1[p], &amp;proc2[p], cputimemode);</span><br><span class="line"> 			<span class="comment">//判断是否为 systemtick 和 usertick</span></span><br><span class="line">        <span class="keyword">if</span>(!(proc2[p].p_flags &amp; IS_TASK)) &#123;<span class="comment">//首先排除改对象是一个任务</span></span><br><span class="line">            <span class="keyword">if</span>(proc2[p].p_flags &amp; IS_SYSTEM)</span><br><span class="line">              <span class="comment">//如果是系统进程，那么就加到 systemticks 上去</span></span><br><span class="line">                systemticks = systemticks + tick_procs[nprocs].ticks;</span><br><span class="line">          		<span class="comment">//否则就是用户进程，那么就加到 userticks 上去</span></span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                userticks = userticks + tick_procs[nprocs].ticks;</span><br><span class="line">        &#125;</span><br><span class="line">				<span class="comment">//计数器自增1</span></span><br><span class="line">        nprocs++;</span><br><span class="line">    &#125;</span><br><span class="line">		<span class="comment">//如果所有的嘀嗒等于0，那么就直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (total_ticks == <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">		<span class="comment">//打印user system和总占用情况</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"CPU states: %6.2f%% user, "</span>, <span class="number">100.0</span> * userticks / total_ticks);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%6.2f%% system"</span>, <span class="number">100.0</span> * systemticks / total_ticks);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%6.2f%% in total\n"</span>, <span class="number">100.0</span> * (systemticks+userticks) / total_ticks);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="cputicks"><a href="#cputicks" class="headerlink" title="cputicks"></a>cputicks</h6><p>这个函数计算每个进程的运行周期</p>
+<p>滴答并不是简单的结构体中的滴答，因为在写文件的时候需要更新。需要通过当前进程来和该进程一起计算</p>
+<p>endp</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">u64_t</span> <span class="title">cputicks</span><span class="params">(struct proc *p1, struct proc *p2, <span class="keyword">int</span> timemode)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">u64_t</span> t = <span class="number">0</span>;</span><br><span class="line">  	<span class="comment">//计算每个进程proc的滴答，通过proc和当前进程prev_proc做比较</span></span><br><span class="line">     <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; CPUTIMENAMES; i++) &#123;</span><br><span class="line">       	<span class="comment">//如果endpoint相等，则在循环中分别计算</span></span><br><span class="line">        <span class="keyword">if</span>(p1-&gt;p_endpoint == p2-&gt;p_endpoint)</span><br><span class="line">            t = t + p2-&gt;p_cpucycles[i] - p1-&gt;p_cpucycles[i];</span><br><span class="line"> 				<span class="keyword">else</span></span><br><span class="line">            t = t + p2-&gt;p_cpucycles[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="后台、重定向、管道"><a href="#后台、重定向、管道" class="headerlink" title="后台、重定向、管道"></a>后台、重定向、管道</h4><h5 id="查看是否有-gt-gt-gt-lt-amp-符号"><a href="#查看是否有-gt-gt-gt-lt-amp-符号" class="headerlink" title="查看是否有 | ,&gt;, &gt;&gt;, &lt; , &amp; 符号"></a>查看是否有 | ,&gt;, &gt;&gt;, &lt; , &amp; 符号</h5><p>首先我们要给不同的符号打上标签：</p>
+<ul>
+<li>&amp; 后台符号， way = 5</li>
+<li>> 输出重定向 覆盖写 ，way = 1</li>
+<li>&lt; 输入重定向，way=2</li>
+<li>|  管道符号， way = 3</li>
+<li>>> 追加写，way=4</li>
+</ul>
+<h5 id="预处理1-分类"><a href="#预处理1-分类" class="headerlink" title="预处理1-分类"></a>预处理1-分类</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">exeCommand</span><span class="params">(<span class="keyword">int</span> wordcount, <span class="keyword">char</span> (*wordmatrix)[<span class="number">256</span>])</span></span>&#123;</span><br><span class="line">  	<span class="comment">//...</span></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; wordcount; i++)&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">strncmp</span>(<span class="keyword">word</span>[i], <span class="string">"&amp;"</span>, <span class="number">1</span>) == <span class="number">0</span>)&#123;</span><br><span class="line">            way=<span class="number">5</span>;</span><br><span class="line">            <span class="keyword">word</span>[wordcount - <span class="number">1</span>] = <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; <span class="keyword">word</span>[i] != <span class="literal">NULL</span>; i++)&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">strcmp</span>(<span class="keyword">word</span>[i], <span class="string">"&gt;"</span>) == <span class="number">0</span>)&#123;</span><br><span class="line">            way = <span class="number">1</span>;</span><br><span class="line">          <span class="comment">// 如果重定向符号后面没有单词了，说明重定向了个空气，那么我们将correct置0，表明格式错误</span></span><br><span class="line">            <span class="keyword">if</span>(<span class="keyword">word</span>[i + <span class="number">1</span>] == <span class="literal">NULL</span>)&#123;</span><br><span class="line">                correct=<span class="number">0</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">         <span class="keyword">if</span>(<span class="built_in">strcmp</span>(<span class="keyword">word</span>[i], <span class="string">"&gt;&gt;"</span>) == <span class="number">0</span>)&#123;</span><br><span class="line">            way = <span class="number">4</span>;</span><br><span class="line">          <span class="comment">// 如果重定向符号后面没有单词了，说明重定向了个空气，那么我们将correct置0，表明格式错误</span></span><br><span class="line">            <span class="keyword">if</span>(<span class="keyword">word</span>[i + <span class="number">1</span>] == <span class="literal">NULL</span>)&#123;</span><br><span class="line">                correct=<span class="number">0</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">strcmp</span>(<span class="keyword">word</span>[i], <span class="string">"&lt;"</span>) == <span class="number">0</span>)&#123;</span><br><span class="line">            way = <span class="number">2</span>;</span><br><span class="line">          	<span class="comment">// 如果第一个字符就是输入重定向，说明也重定向了个空气，置correct = 0</span></span><br><span class="line">            <span class="keyword">if</span>(i == <span class="number">0</span>)&#123;</span><br><span class="line">                correct=<span class="number">0</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">strcmp</span>(<span class="keyword">word</span>[i], <span class="string">"|"</span>) == <span class="number">0</span>)&#123;</span><br><span class="line">            way = <span class="number">3</span>;</span><br><span class="line">          <span class="comment">// 对于管道符号，前后必须都非空，否则就管道了个空气，置correct = 0 </span></span><br><span class="line">            <span class="keyword">if</span>(<span class="keyword">word</span>[i+<span class="number">1</span>] == <span class="literal">NULL</span>)&#123;</span><br><span class="line">                correct=<span class="number">0</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span>(i == <span class="number">0</span>)&#123;</span><br><span class="line">                correct=<span class="number">0</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//correct=0,说明命令格式不对</span></span><br><span class="line">    <span class="keyword">if</span>(correct==<span class="number">0</span>)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"wrong format\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> ;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>格式错误时，例子如下：</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/11.png"></p>
+<h5 id="预处理2-进一步"><a href="#预处理2-进一步" class="headerlink" title="预处理2-进一步"></a>预处理2-进一步</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">exeCommand</span><span class="params">(<span class="keyword">int</span> wordcount, <span class="keyword">char</span> (*wordmatrix)[<span class="number">256</span>])</span></span>&#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">	<span class="keyword">if</span>(way == <span class="number">1</span>)&#123;</span><br><span class="line">        <span class="comment">//输出重定向，这里我们将file设置成 &gt;符号 后面一个单词。也就是我们的目的地(destination)</span></span><br><span class="line">        <span class="keyword">for</span>(i = <span class="number">0</span>; <span class="keyword">word</span>[i] != <span class="literal">NULL</span>; i++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">strcmp</span>(<span class="keyword">word</span>[i], <span class="string">"&gt;"</span>) == <span class="number">0</span>)&#123;</span><br><span class="line">                file = <span class="keyword">word</span>[i+<span class="number">1</span>];</span><br><span class="line">                <span class="keyword">word</span>[i] = <span class="literal">NULL</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(way == <span class="number">2</span>)&#123;</span><br><span class="line">        <span class="comment">//输入重定向，同上，设置来源地(source)</span></span><br><span class="line">        <span class="keyword">for</span>(i = <span class="number">0</span>; <span class="keyword">word</span>[i] != <span class="literal">NULL</span>; i++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">strcmp</span>(<span class="keyword">word</span>[i], <span class="string">"&lt;"</span>) == <span class="number">0</span>)&#123;</span><br><span class="line">                file = <span class="keyword">word</span>[i + <span class="number">1</span>];</span><br><span class="line">                <span class="keyword">word</span>[i] = <span class="literal">NULL</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(way == <span class="number">3</span>)&#123;</span><br><span class="line">        <span class="comment">//把管道符后面的部分存入wordnext中，管道后面的部分是一个可执行的shell命令</span></span><br><span class="line">        <span class="keyword">for</span>(i = <span class="number">0</span>; <span class="keyword">word</span>[i] != <span class="literal">NULL</span>; i++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">strcmp</span>(<span class="keyword">word</span>[i], <span class="string">"|"</span>) == <span class="number">0</span>)&#123;</span><br><span class="line">                <span class="keyword">word</span>[i] = <span class="literal">NULL</span>;</span><br><span class="line">                <span class="keyword">int</span> j;</span><br><span class="line">              <span class="comment">// 将管道符号后面的命令存放到 wordnext 数组中去</span></span><br><span class="line">                <span class="keyword">for</span>(j = i + <span class="number">1</span>; <span class="keyword">word</span>[j] != <span class="literal">NULL</span>; j++)&#123;</span><br><span class="line">                    wordnext[j-i<span class="number">-1</span>] = <span class="keyword">word</span>[j];</span><br><span class="line">                &#125;</span><br><span class="line">                wordnext[j-i<span class="number">-1</span>] = <span class="literal">NULL</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  	<span class="keyword">if</span>(way == <span class="number">4</span>)&#123;</span><br><span class="line">        <span class="comment">//输出重定向的追加写，操作方式和覆盖写一样</span></span><br><span class="line">        <span class="keyword">for</span>(i = <span class="number">0</span>; <span class="keyword">word</span>[i] != <span class="literal">NULL</span>; i++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">strcmp</span>(<span class="keyword">word</span>[i], <span class="string">"&gt;&gt;"</span>) == <span class="number">0</span>)&#123;</span><br><span class="line">                file = <span class="keyword">word</span>[i+<span class="number">1</span>];</span><br><span class="line">                <span class="keyword">word</span>[i] = <span class="literal">NULL</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="switch-case"><a href="#switch-case" class="headerlink" title="switch case"></a>switch case</h5><p>这里我们直接使用了 <code>execvp()</code>来执行一些  <code>ls -a -l</code> 之类的命令</p>
+<h6 id="execvp"><a href="#execvp" class="headerlink" title="execvp()"></a>execvp()</h6><p>定义函数：<code>int execvp(const char *file, char * const argv []);</code></p>
+<p>函数说明：execvp()会从PATH 环境变量所指的目录中查找符合参数file 的文件名, 找到后便执行该文件, 然后将第二个参数argv 传给该欲执行的文件。</p>
+<h6 id="open"><a href="#open" class="headerlink" title="open()"></a>open()</h6><p>此外我们还要学习一下 open函数的使用方法: open的第一个参数是要打开的文件路径名称；第二个参数是 flag，就是以何种方式打开文件；最后一个参数是 mode，也就是说文件被新建的话，我们要为其指定权限(8进制)</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/12.png"></p>
+<h6 id="dup2"><a href="#dup2" class="headerlink" title="dup2()"></a>dup2()</h6><p>dup2也是一个很有用的函数，定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">dup2</span><span class="params">(<span class="keyword">int</span> oldfd, <span class="keyword">int</span> newfd)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>这个函数的功能就是讲原本要打印在屏幕上的一些信息，写入到指定的文件当中去。 文件描述符的 0 1 2 分别对应着标准输入、标准输出、标准错误。</p>
+<p>所以当我 <code>dup2(fd, 1)</code> 实际上是在说我将本来要输出在terminal中的信息重定向输入到fd所指向的文件当中去，在重定向输出中非常有用； 同理 <code>dup2(fd,0)</code> 就代表着本来从terminal中输入的信息重定向到 fd文件当中读入，这对重定向输入非常有用。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br></pre></td><td class="code"><pre><span class="line"> </span><br><span class="line">    <span class="keyword">switch</span>(way)&#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">            <span class="comment">//当 way=0 的时候，说明输入的命令中不含&gt; &lt; | &amp;,说明是一些 ls 之类的命令</span></span><br><span class="line">            <span class="keyword">if</span>(pid == <span class="number">0</span>)&#123;</span><br><span class="line">                <span class="keyword">if</span>(!(checkCommand(<span class="keyword">word</span>[<span class="number">0</span>])))&#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"%s : command not found\n"</span>, <span class="keyword">word</span>[<span class="number">0</span>]);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                execvp(<span class="keyword">word</span>[<span class="number">0</span>], <span class="keyword">word</span>);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">            <span class="comment">//输入的命令中含有输出重定向符</span></span><br><span class="line">            <span class="keyword">if</span>(pid == <span class="number">0</span>)&#123;</span><br><span class="line">                <span class="keyword">if</span>( !(checkCommand(<span class="keyword">word</span>[<span class="number">0</span>])) )&#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"%s : command not found\n"</span>, <span class="keyword">word</span>[<span class="number">0</span>]);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">                &#125;</span><br><span class="line">              <span class="comment">// 0644 代表文件权限时 rw-r--r--, 也就是用户可读可写</span></span><br><span class="line">              <span class="comment">/*这里的操作就是：以读写的方式打开文件;</span></span><br><span class="line"><span class="comment">              如果文件已经存在就删除原有的数据;如果文件不存在就创建一个新的文件*/</span></span><br><span class="line">                fd = <span class="built_in">open</span>(file, O_RDWR|O_CREAT|O_TRUNC, <span class="number">0644</span>);</span><br><span class="line">              <span class="comment">//打开后，我们利用dup2将输出的东西重定向到fd文件当中去</span></span><br><span class="line">                dup2(fd, <span class="number">1</span>);</span><br><span class="line">                execvp(<span class="keyword">word</span>[<span class="number">0</span>], <span class="keyword">word</span>);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">            <span class="comment">//输入的命令中含有输入重定向&lt;</span></span><br><span class="line">            <span class="keyword">if</span>(pid == <span class="number">0</span>)&#123;</span><br><span class="line">                <span class="keyword">if</span>( !(checkCommand (<span class="keyword">word</span>[<span class="number">0</span>])) )&#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"%s : command not found\n"</span>, <span class="keyword">word</span>[<span class="number">0</span>]);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">                &#125;</span><br><span class="line">              <span class="comment">//用只读的方式打开文件</span></span><br><span class="line">                fd = <span class="built_in">open</span>(file, O_RDONLY);</span><br><span class="line">              <span class="comment">//重定向输入</span></span><br><span class="line">                dup2(fd, <span class="number">0</span>);</span><br><span class="line">                execvp(<span class="keyword">word</span>[<span class="number">0</span>], <span class="keyword">word</span>);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">            <span class="comment">//输入的命令中含有管道符|</span></span><br><span class="line">            <span class="keyword">if</span>(pid == <span class="number">0</span>)&#123;</span><br><span class="line">                <span class="keyword">int</span> pid2;</span><br><span class="line">                <span class="keyword">int</span> status2;</span><br><span class="line">                <span class="keyword">int</span> fd[<span class="number">2</span>];<span class="comment">//创建一个文件索引数组，分别对应管道前后的两个文件</span></span><br><span class="line">								<span class="comment">//创建一个管道</span></span><br><span class="line">                <span class="keyword">if</span>(pipe(fd)&lt;<span class="number">0</span>)&#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"pipe error\n"</span>);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">                &#125;</span><br><span class="line">								<span class="comment">//需要创建另外一个子进程</span></span><br><span class="line">                <span class="keyword">if</span>( (pid2 = fork()) &lt; <span class="number">0</span> )&#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"fork2 error\n"</span>);</span><br><span class="line">                    <span class="keyword">return</span> ;</span><br><span class="line">                &#125;</span><br><span class="line">              <span class="comment">/*</span></span><br><span class="line"><span class="comment">              在另一个子进程中，我们将重定位输入改为管道的后面那个文件。</span></span><br><span class="line"><span class="comment">              然后我们执行管道前面那条指令，并将结果输入到后面那个文件当中去</span></span><br><span class="line"><span class="comment">              */</span></span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span>(pid2 == <span class="number">0</span>)&#123;</span><br><span class="line">                    <span class="keyword">if</span>( !(checkCommand(<span class="keyword">word</span>[<span class="number">0</span>])) )&#123;</span><br><span class="line">                        <span class="built_in">printf</span>(<span class="string">"%s : command not found\n"</span>, <span class="keyword">word</span>[<span class="number">0</span>]);</span><br><span class="line">                        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                    dup2(fd[<span class="number">1</span>], <span class="number">1</span>);</span><br><span class="line">                    execvp(<span class="keyword">word</span>[<span class="number">0</span>], <span class="keyword">word</span>);</span><br><span class="line">                  	<span class="comment">//不用管道之后要关闭管道文件</span></span><br><span class="line">              			<span class="built_in">close</span>(fd[<span class="number">1</span>]);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">                &#125;</span><br><span class="line">              <span class="comment">// 父进程需要等待子进程结束</span></span><br><span class="line">                <span class="keyword">if</span>(waitpid(pid2, &amp;status2, <span class="number">0</span>) == <span class="number">-1</span>)&#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"wait for child process error\n"</span>);</span><br><span class="line">                &#125;</span><br><span class="line">              <span class="comment">//查找管道后面的指令是否可执行</span></span><br><span class="line">                <span class="keyword">if</span>( !(checkCommand(wordnext[<span class="number">0</span>])) )&#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"%s : command not found\n"</span>, wordnext[<span class="number">0</span>]);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">                &#125;</span><br><span class="line">              <span class="comment">//若可执行， 则将管道后面的标准输入改成前面执行的结果。</span></span><br><span class="line">                dup2(fd[<span class="number">0</span>], <span class="number">0</span>);</span><br><span class="line">              <span class="comment">//然后执行管道后面的指令，并在前端输出结果。</span></span><br><span class="line">                execvp (wordnext[<span class="number">0</span>], wordnext);</span><br><span class="line">              <span class="comment">//不用管道之后要关闭管道文件，否则无法回到父进程中。</span></span><br><span class="line">              	<span class="built_in">close</span>(fd[<span class="number">0</span>]);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">         <span class="keyword">case</span> <span class="number">4</span>:</span><br><span class="line">             <span class="keyword">if</span>(pid == <span class="number">0</span>)&#123;</span><br><span class="line">                <span class="keyword">if</span>( !(checkCommand(<span class="keyword">word</span>[<span class="number">0</span>])) )&#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"%s : command not found\n"</span>, <span class="keyword">word</span>[<span class="number">0</span>]);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">                &#125;</span><br><span class="line">               <span class="comment">//如果是追加写符号，我们只需要将 O_TRUNC改为O_APPEND 即可，其他保持不变</span></span><br><span class="line">                fd = <span class="built_in">open</span>(file, O_RDWR|O_CREAT|O_APPEND, <span class="number">0644</span>);</span><br><span class="line">                dup2(fd, <span class="number">1</span>);</span><br><span class="line">                execvp(<span class="keyword">word</span>[<span class="number">0</span>], <span class="keyword">word</span>);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">5</span>:</span><br><span class="line">            signal(SIGCHLD,SIG_IGN);<span class="comment">//若命令中有&amp;，表示后台执行，父进程直接返回，不等待子进程结束</span></span><br><span class="line">            <span class="keyword">if</span>(pid==<span class="number">0</span>)&#123;</span><br><span class="line">	              <span class="built_in">printf</span>(<span class="string">"[process id: %d]\n"</span>,pid);</span><br><span class="line">              <span class="comment">// dev/null 相当于一个垃圾桶，我们将输入和输出都移动到这个"垃圾桶"当中去</span></span><br><span class="line">                <span class="keyword">int</span> trash = <span class="built_in">open</span>(<span class="string">"/dev/null"</span>,O_RDONLY);</span><br><span class="line">                dup2(trash,<span class="number">0</span>);</span><br><span class="line">                dup2(trash,<span class="number">1</span>);</span><br><span class="line">                <span class="keyword">if</span>( !(checkCommand(<span class="keyword">word</span>[<span class="number">0</span>])) )&#123;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"%s : command not found\n"</span>, <span class="keyword">word</span>[<span class="number">0</span>]);</span><br><span class="line">                    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">                &#125;</span><br><span class="line">              <span class="comment">//然后交给后台去执行该命令</span></span><br><span class="line">                execvp(<span class="keyword">word</span>[<span class="number">0</span>],<span class="keyword">word</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//父进程等待子进程结束</span></span><br><span class="line">    <span class="keyword">if</span>(waitpid(pid, &amp;status, <span class="number">0</span>) == <span class="number">-1</span>)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"wait for child process error\n"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="checkCommand函数"><a href="#checkCommand函数" class="headerlink" title="checkCommand函数"></a><code>checkCommand</code>函数</h5><p>这个函数的目的就是在 <code>./ ;/bin;/usr/bin</code> 这三个文件夹下查找可执行的命令文件。比如说在bin文件夹下有很多shell本来就有的命令：</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/13.png"></p>
+<p>这么多的可执行的命令文件，如 ls，cat,我们的目的就是判断我们输入的命令是否是其中之一，是的话返回1，否的话返回0</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">checkCommand</span><span class="params">(<span class="keyword">char</span> *command)</span></span>&#123;</span><br><span class="line">    DIR *dp;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">dirent</span> *<span class="title">dirp</span>;</span></span><br><span class="line">    <span class="keyword">char</span> *path[] = &#123;<span class="string">"./"</span>, <span class="string">"/bin"</span>, <span class="string">"/usr/bin"</span>, <span class="literal">NULL</span>&#125;;</span><br><span class="line">		<span class="comment">//如果我输入的命令是 ./可执行文件, 那么我们就要跳过 './' 这两个字符，然后查找可执行文件</span></span><br><span class="line">    <span class="keyword">if</span>( <span class="built_in">strncmp</span>(command, <span class="string">"./"</span>, <span class="number">2</span>) == <span class="number">0</span> )</span><br><span class="line">        command = command + <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span>(path[i] != <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>( (dp= opendir(path[i])) ==<span class="literal">NULL</span> )</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"can not open /bin \n"</span>);</span><br><span class="line">        <span class="keyword">while</span>( (dirp = readdir(dp)) != <span class="literal">NULL</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="comment">// 找到了就返回 1，然后交给  execvp() 函数去执行。</span></span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">strcmp</span>(dirp-&gt;d_name, command) == <span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                closedir(dp);</span><br><span class="line">                <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        closedir(dp);</span><br><span class="line">        i++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="代码重构"><a href="#代码重构" class="headerlink" title="代码重构"></a>代码重构</h3><p>将所有的函数、声明都放在一个文件中不易维护代码，找起来也比较麻烦。因此我们将 main.c 文件拆分成几个头文件：</p>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/14.png"></p>
+<p>我们将一些头文件引用、宏和函数定义放到 <code>main.h</code>头文件中，把mytop中要调用的函数放到<code>mytop.h</code> 头文件中，将检查命令函数 放到<code>checkcommand.h</code> 头文件。</p>
+<p>最后main.c文件只留下一个while循环，比较简洁直观。</p>
+<h3 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h3><ul>
+<li><code>cd /your/path</code></li>
+</ul>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/15.png"></p>
+<ul>
+<li><code>ls -a -l &gt; result.txt</code>  + <code>vi result.txt</code></li>
+</ul>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/16.png"></p>
+<ul>
+<li><code>grep a &lt; result.txt</code></li>
+</ul>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/17.png"></p>
+<ul>
+<li><code>ls -a -l | grep a</code></li>
+</ul>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/18.png"></p>
+<ul>
+<li><code>vi result.txt &amp;</code></li>
+</ul>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/19.png"></p>
+<p>这边，对 vi 指令进行后台操作，会报错。这是因为 vim 的标准输入和输出必须在一个终端当中。将其丢到后台去执行是不对的。</p>
+<ul>
+<li><code>mytop</code></li>
+</ul>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/20.png"></p>
+<ul>
+<li><code>history n</code></li>
+</ul>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/21.png"></p>
+<ul>
+<li><code>exit</code></li>
+</ul>
+<p><img src="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/22.png"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这个project 的工程量很大。而且实现起来是比较困难的。因此，如何将整个project拆分成一个一个小任务就显得尤其重要。我先实现了 cd、mytop、history n 这类shell内置命令。然后再实现了 | ,\&amp; ,> ，>> 等 Program命令。</p>
+<p>此外，如何调试文件也显得十分重要。为此我尝试了很多工作流，最后选择了 mac中的Terminus、Transmit软件 远程连接 windows上开的Minix虚拟机，并通过clion修改、编写代码。这样虽然比在windows上直接连接繁琐一点。但是在mac下各种安装不了虚拟机的情况下，这已经不失为一种高效的解决方法了。</p>
+<h3 id="不足"><a href="#不足" class="headerlink" title="不足"></a>不足</h3><p>没有实现 mytop 的实时更新</p>
+<p>没有实现 多重管道</p>
+<p>在未来需要继续完善。</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/" title="os实验报告2-shell的实现">https://jasonxqh.github.io/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A2-shell%E7%9A%84%E5%AE%9E%E7%8E%B0/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"><i class="fa fa-tag"></i> 操作系统</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/03/02/os%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A1-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" rel="next" title="os实验报告1-环境搭建">
+                <i class="fa fa-chevron-left"></i> os实验报告1-环境搭建
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/03/03/%E6%A6%82%E7%8E%87%E8%AE%BA-%E6%A0%B7%E6%9C%AC%E7%A9%BA%E9%97%B4%E5%92%8C%E6%A6%82%E7%8E%87/" rel="prev" title="概率论-样本空间和概率">
+                概率论-样本空间和概率 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">425</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Shell-在-Minix3中的实现"><span class="nav-number">1.</span> <span class="nav-text">Shell 在 Minix3中的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#目的"><span class="nav-number">1.1.</span> <span class="nav-text">目的</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Program命令"><span class="nav-number">1.1.1.</span> <span class="nav-text">Program命令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-实现带参数的程序运行功能"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">1.实现带参数的程序运行功能</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-重定向功能，-将文件作为程序的输入-输出"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">2. 重定向功能， 将文件作为程序的输入&#x2F;输出</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-管道符号-“-”"><span class="nav-number">1.1.1.3.</span> <span class="nav-text">3. 管道符号 “|”</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-后台符号-amp"><span class="nav-number">1.1.1.4.</span> <span class="nav-text">4. 后台符号&amp;</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shell-内置命令"><span class="nav-number">1.1.2.</span> <span class="nav-text">Shell 内置命令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-工作路劲移动命令-cd"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">1. 工作路劲移动命令 cd</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-程序运行统计mytop"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">2. 程序运行统计mytop</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-shell-退出命令-exit"><span class="nav-number">1.1.2.3.</span> <span class="nav-text">3. shell 退出命令 exit</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-history-n-显示最近执行的n条指令"><span class="nav-number">1.1.2.4.</span> <span class="nav-text">4. history n 显示最近执行的n条指令</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试用例"><span class="nav-number">1.1.3.</span> <span class="nav-text">测试用例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内容与设计思想"><span class="nav-number">1.2.</span> <span class="nav-text">内容与设计思想</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用环境"><span class="nav-number">1.3.</span> <span class="nav-text">使用环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验过程"><span class="nav-number">1.4.</span> <span class="nav-text">实验过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#宏定义"><span class="nav-number">1.4.1.</span> <span class="nav-text">宏定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#全局变量"><span class="nav-number">1.4.2.</span> <span class="nav-text">全局变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#main函数"><span class="nav-number">1.4.3.</span> <span class="nav-text">main函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#getOrder函数"><span class="nav-number">1.4.3.1.</span> <span class="nav-text">getOrder函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#anaOrder函数"><span class="nav-number">1.4.3.2.</span> <span class="nav-text">anaOrder函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exeCommand函数"><span class="nav-number">1.4.4.</span> <span class="nav-text">exeCommand函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#准备阶段"><span class="nav-number">1.4.4.1.</span> <span class="nav-text">准备阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#cd"><span class="nav-number">1.4.4.2.</span> <span class="nav-text">cd</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#history-n"><span class="nav-number">1.4.4.3.</span> <span class="nav-text">history n</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mytop"><span class="nav-number">1.4.4.4.</span> <span class="nav-text">mytop</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#print-memory"><span class="nav-number">1.4.4.4.1.</span> <span class="nav-text">print_memory();</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#getkinfo"><span class="nav-number">1.4.4.4.2.</span> <span class="nav-text">getkinfo();</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#get-procs"><span class="nav-number">1.4.4.4.3.</span> <span class="nav-text">get_procs();</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#parse-dir"><span class="nav-number">1.4.4.4.3.1.</span> <span class="nav-text">parse_dir()</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#parse-file"><span class="nav-number">1.4.4.4.3.2.</span> <span class="nav-text">parse_file()</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#print-procs"><span class="nav-number">1.4.4.4.4.</span> <span class="nav-text">print_procs()</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#cputicks"><span class="nav-number">1.4.4.4.4.1.</span> <span class="nav-text">cputicks</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#后台、重定向、管道"><span class="nav-number">1.4.4.5.</span> <span class="nav-text">后台、重定向、管道</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#查看是否有-gt-gt-gt-lt-amp-符号"><span class="nav-number">1.4.4.5.1.</span> <span class="nav-text">查看是否有 | ,&gt;, &gt;&gt;, &lt; , &amp; 符号</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#预处理1-分类"><span class="nav-number">1.4.4.5.2.</span> <span class="nav-text">预处理1-分类</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#预处理2-进一步"><span class="nav-number">1.4.4.5.3.</span> <span class="nav-text">预处理2-进一步</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#switch-case"><span class="nav-number">1.4.4.5.4.</span> <span class="nav-text">switch case</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#execvp"><span class="nav-number">1.4.4.5.4.1.</span> <span class="nav-text">execvp()</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#open"><span class="nav-number">1.4.4.5.4.2.</span> <span class="nav-text">open()</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#dup2"><span class="nav-number">1.4.4.5.4.3.</span> <span class="nav-text">dup2()</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#checkCommand函数"><span class="nav-number">1.4.4.5.5.</span> <span class="nav-text">checkCommand函数</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码重构"><span class="nav-number">1.4.5.</span> <span class="nav-text">代码重构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试结果"><span class="nav-number">1.4.6.</span> <span class="nav-text">测试结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">1.5.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#不足"><span class="nav-number">1.5.1.</span> <span class="nav-text">不足</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1245k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>
