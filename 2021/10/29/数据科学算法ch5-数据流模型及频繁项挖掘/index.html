@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="数据科学算法," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="数据流模型及频繁项挖掘在这一讲我们要学习什么是数据流，什么是数据流算法，怎么去评价一个数据流算法的好坏。 数据流和数据流模型首先我们要认识数据流，其具有一下几个特征  数据总量不受限制，因此我们很难准确估算数据量大小 数据到达速率块，比如大型强子对撞机可以每秒产生40EB的数据 数据到达次序不受约束，我们无法预测数据的到达次序。 除非可以保存，每个数据只能”看“一次。因为很少有系统能把海量的数据都">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据科学算法ch5-数据流模型及频繁项挖掘">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="数据流模型及频繁项挖掘在这一讲我们要学习什么是数据流，什么是数据流算法，怎么去评价一个数据流算法的好坏。 数据流和数据流模型首先我们要认识数据流，其具有一下几个特征  数据总量不受限制，因此我们很难准确估算数据量大小 数据到达速率块，比如大型强子对撞机可以每秒产生40EB的数据 数据到达次序不受约束，我们无法预测数据的到达次序。 除非可以保存，每个数据只能”看“一次。因为很少有系统能把海量的数据都">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/13.png">
+<meta property="article:published_time" content="2021-10-29T13:51:03.000Z">
+<meta property="article:modified_time" content="2024-01-10T01:55:43.950Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据科学算法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/10/29/数据科学算法ch5-数据流模型及频繁项挖掘/"/>
+
+
+
+
+
+  <title>数据科学算法ch5-数据流模型及频繁项挖掘 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据科学算法ch5-数据流模型及频繁项挖掘</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-10-29T21:51:03+08:00">
+                2021-10-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.4k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  4
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="数据流模型及频繁项挖掘"><a href="#数据流模型及频繁项挖掘" class="headerlink" title="数据流模型及频繁项挖掘"></a>数据流模型及频繁项挖掘</h1><p>在这一讲我们要学习什么是数据流，什么是数据流算法，怎么去评价一个数据流算法的好坏。</p>
+<h2 id="数据流和数据流模型"><a href="#数据流和数据流模型" class="headerlink" title="数据流和数据流模型"></a>数据流和数据流模型</h2><p>首先我们要认识数据流，其具有一下几个特征</p>
+<ul>
+<li>数据总量不受限制，因此我们很难准确估算数据量大小</li>
+<li>数据到达速率块，比如大型强子对撞机可以每秒产生40EB的数据</li>
+<li>数据到达次序不受约束，我们无法预测数据的到达次序。</li>
+<li>除非可以保存，每个数据只能”看“一次。因为很少有系统能把海量的数据都放在内存中，而且数据到达的速度很快，分析的时间很短，否则就会出现数据拥塞</li>
+</ul>
+<p>我们可以将<strong>数据流</strong>看做是一个无限的元组序列 $\sigma= <a_1,\cdots,a_m,\cdots>$; 在某个固定点一个数据流可以被视作一个长度为d的固定数组 $A[0,\cdots,d-1]$</a_1,\cdots,a_m,\cdots></p>
+<p>因此我们对处理数据流的算法也提出了如下要求：</p>
+<ul>
+<li>实时性：实时、连续地输出查询结果</li>
+<li>低空间复杂度：数据流规模理论上是无限的，为了保证算法高效稳定运行，需降低算法的空间开销</li>
+<li>结果准确性：数据规模大，速率快，因此对于一些复杂问题，不太可能通过数据的一次遍历就获得准确答案。在实际应用中，往往不要求精准的查询结果</li>
+<li>适应性：在很多应用中，涉及多个数据流的处理，需设计具备适应性的算法</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>传统算法</th>
+<th>数据流算法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据类型</td>
+<td>有限&amp;静态</td>
+<td>无限&amp;动态&amp;高速</td>
+</tr>
+<tr>
+<td>存储</td>
+<td>硬盘</td>
+<td>内存&amp;空间限制</td>
+</tr>
+<tr>
+<td>效率</td>
+<td>非实时</td>
+<td>实时&amp; Ad-hoc</td>
+</tr>
+<tr>
+<td>返回值类型</td>
+<td>精确/近似</td>
+<td>近似</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>因为数据流的大小是不确定的，因此我们希望算法的空间消耗和时间消耗是<strong>次线性</strong>的($O(\log n)$​)，或者与<strong>流的大小无关</strong>。</p>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/1.png" style="zoom:67%;"></p>
+<h3 id="数据流子模型"><a href="#数据流子模型" class="headerlink" title="数据流子模型"></a>数据流子模型</h3><h4 id="按照数据流中数据元素对数组A的不同影响方式划分"><a href="#按照数据流中数据元素对数组A的不同影响方式划分" class="headerlink" title="按照数据流中数据元素对数组A的不同影响方式划分"></a>按照数据流中数据元素对数组A的不同影响方式划分</h4><p>数据流模型可以划分为三个子模型：时间序列模型，收音机模型，十字转盘模型</p>
+<ol>
+<li>时间序列模型。每个数据项 $a_i = A[i]$ 按照i增加的顺序出现，相当于时间序列</li>
+<li>收音机模型。每个数据项$a<em>i=(j,I_i),I\geq 0$ 表示对$A[i]$的增量，即$A_i[j] = A</em>{i-1}[j]+I_{i_0}$ 如同多个收音机一样，多个$a_i$ 表示一段时间上$A[j]$的增量。这是一种更为普遍的数据流模型</li>
+<li>十字转盘模型。每个数据项$a<em>i= (j,U_i)$ 表示对$A[j]$ 的更新，即 $A_i[j]=A</em>{i-1}[j]+U_i$ ，其中$U_i$可正可负。该模型适合描述数据流动态的出入状态，单位时间内流入和流出的数量不必相同</li>
+</ol>
+<h4 id="按照数据流上个元素的重要程度划分"><a href="#按照数据流上个元素的重要程度划分" class="headerlink" title="按照数据流上个元素的重要程度划分"></a>按照数据流上个元素的重要程度划分</h4><p>数据流可以分成另外三种子模型：界标模型、滑动窗口模型、衰减窗口模型</p>
+<ol>
+<li>界标模型。如下图，界标模型有起始点和终止点两个时间点。其中起始点是固定的，终止点随时间推移而不断递增。在界标的任意终点和起点之间，数据的重要性均等。这是最容易理解的模型</li>
+</ol>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/2.png" style="zoom:67%;"></p>
+<ol>
+<li>滑动窗口模型。令W为窗口大小，在这个模型中，数据流算法仅仅考虑最近的W个元素，即查询范围是$[\max (0,d-W),\cdots,d-1]$ .处在查询范围之外的元素其重要性为0；处在查询范围之内的元素重要性均等。滑动窗口模型也有起始点和终止点，但是会随着时间的推移而同步递增。</li>
+</ol>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/3.png" style="zoom:67%;"></p>
+<ol>
+<li>在这个模型中，数据流算法的范围是$[0,\cdots,d-1]$ 。处在查询范围中的各个元素的重要程度是不同的。新到达的元素，其重要程度比较高；到达时间较长的元素，其重要程度较低</li>
+</ol>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/4.png" style="zoom:67%;"></p>
+<h3 id="近似算法与随机算法"><a href="#近似算法与随机算法" class="headerlink" title="近似算法与随机算法"></a>近似算法与随机算法</h3><p>由于存储空间和时间的限制，我们在数据流上做到精确计算非常困难。</p>
+<p><strong>近似算法</strong>：寻找<strong>误差在一定范围内</strong>的近似解。之前我们学的Morris算法、布隆过滤器以及局部敏感哈希算法，都是近似算法</p>
+<ul>
+<li>比如说，寻找一个误差在10%以内的解</li>
+<li>比如说：近似解落在真实值的$(1\pm \epsilon)$ 范围内，其中$\epsilon=0.1$</li>
+</ul>
+<p><strong>随机算法</strong>：比近似算法更加宽松，是允许小概率失败的(即不在误差范围内)</p>
+<ul>
+<li>例如，估计值有 1/100 的概率不在误差范围内，即成功地概率为$1-\delta$ ，其中$\delta = 0.01$</li>
+</ul>
+<p>我们可以这样来理解： <strong>随机算法就等于</strong> $(\epsilon,\delta)$<strong>-近似算法</strong> ,接下来会详细介绍各种类型的近似算法</p>
+<h4 id="epsilon-​-近似算法-相对误差"><a href="#epsilon-​-近似算法-相对误差" class="headerlink" title="$\epsilon$​-近似算法(相对误差)"></a>$\epsilon$​-近似算法(相对误差)</h4><p>其实很好理解，我们假设数据流$\sigma$​和其精确输出$\xi(\sigma)$​，其近似算法的输出记为$\mathcal{A}(\sigma)$​ 。那么如果是相对误差版本的话：</p>
+<script type="math/tex; mode=display">
+|\mathcal A(\sigma)-\phi(\sigma)|<\epsilon\phi(\sigma)</script><h4 id="epsilon-近似算法-绝对误差"><a href="#epsilon-近似算法-绝对误差" class="headerlink" title="$\epsilon$-近似算法(绝对误差)"></a>$\epsilon$-近似算法(绝对误差)</h4><p>绝对误差更好理解，就是要把误差控制在$\epsilon$里面 ，即</p>
+<script type="math/tex; mode=display">
+|\mathcal A(\sigma)-\phi(\sigma)|<\epsilon</script><h4 id="epsilon-delta-近似算法-相对误差"><a href="#epsilon-delta-近似算法-相对误差" class="headerlink" title="$(\epsilon,\delta)$-近似算法(相对误差)"></a>$(\epsilon,\delta)$-近似算法(相对误差)</h4><p>$(\epsilon,\delta)$ 近似算法往往比$\epsilon$近似算法更加宽松一点，它只要大部分情况下算法给出的<strong>估计值</strong>满足$\epsilon$近似即可。即：</p>
+<script type="math/tex; mode=display">
+Pr[|\mathcal A-\xi (\sigma)|<\epsilon\xi(\sigma)]>1-\var</script><p>用语言来解释就是说一个$(\epsilon,\delta)$ 近似算法的数据结果可能会出现 $|\mathcal A-\xi (\sigma)|&gt;\epsilon\xi(\sigma)$的情况，但这种情况发生的概率不会超过$\delta$</p>
+<h4 id="epsilon-delta-​-近似算法-绝对误差"><a href="#epsilon-delta-​-近似算法-绝对误差" class="headerlink" title="$(\epsilon,\delta)$​-近似算法(绝对误差)"></a>$(\epsilon,\delta)$​-近似算法(绝对误差)</h4><p>当然，我们也可以给出绝对误差版本的定义</p>
+<script type="math/tex; mode=display">
+Pr[|\mathcal A-\xi (\sigma)|<\epsilon]>1-\var</script><p>这是一个数据流分析挖掘框架：</p>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/5.png" style="zoom:67%;"></p>
+<h2 id="频繁项挖掘"><a href="#频繁项挖掘" class="headerlink" title="频繁项挖掘"></a>频繁项挖掘</h2><p>我们本章的重点就在于找到数据流的频繁项，接下来要介绍的一些算法都是围绕这频繁项展开的。那么首先我们就来介绍频繁项估计</p>
+<h3 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h3><p>在数据流$\sigma = <a_1,a_2\cdots,a_m>,a_i\in[n]$中，定义一个频数向量：</a_1,a_2\cdots,a_m></p>
+<script type="math/tex; mode=display">
+f=(f_1,f_2,\cdots,f_n)</script><p>其中，n为该数据流中不同元素的个数，$f<em>i$ 为元素$a_i$ 的频数，且满足$\sum</em>{i=1}^nf_i = m$</p>
+<p>然后，我们可以找出满足需求的元素，比如频繁项。</p>
+<ul>
+<li>对于大多数问题，如果$\exists a_j : f_j &gt; m/2$, 则输出$a_j$, 否则输出空集$\empty$</li>
+<li>频繁项：给定一个参数k,输出频繁元素集合${a_j:f_j\geq m/k}$; 或者给定一个参数$\psi$，输出频繁元素集合 ${a_j:f_j&gt;\psi m}$</li>
+</ul>
+<p>比如说：对给定的数据流$\sigma = <a,b,a,c,c,a,b,d>$ ，4个不同元素的频数分别为$f_a = 3,f_b=2,f_c=2,f_d=1$</a,b,a,c,c,a,b,d></p>
+<ul>
+<li>$\sigma$中不存在大多数问题，因为没有大于4的元素</li>
+<li>当k等于4的时候，m/k=2,因此频繁项为a,b,c</li>
+<li>当$\psi=0.3$ 时候，$m\cdot \psi = 2.4$,因此频繁项为a</li>
+</ul>
+<h2 id="确定性近似频数算法-Misra-Gries"><a href="#确定性近似频数算法-Misra-Gries" class="headerlink" title="确定性近似频数算法 Misra Gries"></a>确定性近似频数算法 Misra Gries</h2><p>Misra Gries算法是一个<strong>确定性求解频繁元素的近似算法</strong>。其思想和俄罗斯方块非常类似，伪代码如下：</p>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/6.png" style="zoom:67%;"></p>
+<p>算法的输入流$\sigma = <a_1,a_2\cdots,a_m>,a_i\in [n]$​ <strong>使用 k 个计数器</strong>；输出为频繁元素集合<strong>F</strong>. </a_1,a_2\cdots,a_m></p>
+<p>该算法的核心思想如下：</p>
+<ol>
+<li>对到达的元素$a_m$,如果已经为其创建了计数器，便将相应的计数器加1；</li>
+<li>如果没有相应的计数器，且计数器的个数少于k(意味着内存中还有足够的空间创建新的计数器)，那么则为该元素分配一个新的计数器，并置为1；</li>
+<li>如果当前计数器的个数为k (意味着内存中已经没有足够的空间来创建新的计数器)，则把所有计数器减1，然后删除值为0的计数器</li>
+</ol>
+<p>给出一个例题：</p>
+<p>给定输入流$<b,a,c,a,d,e,a,f,a,d>$ ，计数器个数$k=3$​ ，试逐步写出 Misra Gries 算法执行的结果</b,a,c,a,d,e,a,f,a,d></p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>输入</th>
+<th>操作</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>b</td>
+<td>插入</td>
+<td>$F={(b,1)}$</td>
+</tr>
+<tr>
+<td>a</td>
+<td>插入</td>
+<td>$F={(b,1),(a,1)}$</td>
+</tr>
+<tr>
+<td>c</td>
+<td>插入、删除</td>
+<td>$F={(a,1),(b,1),(c,1)}\Rightarrow F={}$</td>
+</tr>
+<tr>
+<td>a</td>
+<td>插入</td>
+<td>$F={(a,1)}$</td>
+</tr>
+<tr>
+<td>d</td>
+<td>插入</td>
+<td>$F={(a,1),(d,1)}$</td>
+</tr>
+<tr>
+<td>e</td>
+<td>插入、删除</td>
+<td>$F={(a,1),(d,1),(e,1)}\Rightarrow F={}$​</td>
+</tr>
+<tr>
+<td>a</td>
+<td>插入</td>
+<td>$F={(a,1)}$</td>
+</tr>
+<tr>
+<td>f</td>
+<td>插入</td>
+<td>$F={(a,1),(f,1)}$</td>
+</tr>
+<tr>
+<td>a</td>
+<td>更新</td>
+<td>$F={(a,2),(f,1)}$</td>
+</tr>
+<tr>
+<td>d</td>
+<td>插入、删除</td>
+<td>$F={(a,2),(f,1),(d,1)}\Rightarrow {(a,1)}$</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="算法分析"><a href="#算法分析" class="headerlink" title="算法分析"></a>算法分析</h3><p>在 Misra Gries 算法中，算法最后的输出结果可能是不频繁的。试想，如果最后一个元素是数据流中一个新出现的元素，而且最后一个元素到达后，k位置中还有空位，那么这个新元素会出现在最后的结果中。也就是说，Misra Gries算法可能会出现误报。虽然可能出现误报，但是频繁元素一定在最后的输出结果中。</p>
+<p>不能否认，Misra Gries算法是一个构思非常巧妙的算法，只需要k个计数器就能找到一个数据流中所有的频繁项元素。</p>
+<h2 id="随机近似频数算法-Counting-Sketch"><a href="#随机近似频数算法-Counting-Sketch" class="headerlink" title="随机近似频数算法 Counting Sketch"></a>随机近似频数算法 Counting Sketch</h2><p>对于给定的数据流，Misra Gries 算法输出的结果中，<strong>每个元素的频数是无从知晓的</strong>，而随机近似频数算法Count Sketch 则可以估计频繁元素的频数。</p>
+<h3 id="简单抽样算法"><a href="#简单抽样算法" class="headerlink" title="简单抽样算法"></a>简单抽样算法</h3><p>首先我们来介绍一下简单抽样算法。这是一种非常简单的计算元素频数的算法。该算法的核心思想是：对于到达的元素$a_i$, 以概率 $p=M/m$ 对该元素的频数+1.其中，<strong>M表示抽样后的数据流大小，m表示原数据流大小</strong>。伪代码如下：</p>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/7.png" style="zoom:67%;"></p>
+<p>比如说现在给定一个数据流$<2,2,1,2,2,4,5,4,4,2>$ ,$p=\frac{1}{3}$ ，如下图所示，估计元素2的频数为：$f’(2)=\frac{c_2}{p}=6$</2,2,1,2,2,4,5,4,4,2></p>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/8.png" style="zoom:67%;"></p>
+<h4 id="算法分析-1"><a href="#算法分析-1" class="headerlink" title="算法分析"></a>算法分析</h4><p>简单抽样算法称为 $(\epsilon,\delta)-$近似算法的空间需求是： $M = O(\frac{m\log {1}/{\delta}}{\epsilon^2})$ ，其中，m为原数据流的大小，$\epsilon$是误差因子，$\delta$是控制误差在一定范围的尾概率上界。</p>
+<p>从空间需求看出，<strong>简单抽样算法所需空间与数据流大小有关</strong>，当数据流规模较大时，该算法所需的空间必将大幅增加。因此我们需要提出更高效的基于概要数据结构的频数估计算法</p>
+<h3 id="Basic-Count-Sketch算法"><a href="#Basic-Count-Sketch算法" class="headerlink" title="Basic Count Sketch算法"></a>Basic Count Sketch算法</h3><p>从简单抽样算法的空间需求来看，找到一个更为紧凑的数据结构来维护数据流中高频元素的近似计数时非常必须的。</p>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/9.png" style="zoom:67%;"></p>
+<p>Basic Count Sketch 算法维护一个<strong>计数数组C </strong> 和两个哈希函数$h(\cdot),g(\cdot)$。 哈希函数$h(\cdot)$将n个元素均匀的映射到k个位置(算法第二行)；哈希函数$g(\cdot)$将n个元素映射为$-1$或者$+1$(算法第三行)。</p>
+<p>对于一个新到达的元素，将其位置上的计数加1或者减1，对于查询元素a，估计出的频数为 $\hat f_a = g(a)C[h(a)]$</p>
+<p>两个哈希函数的操作如图所示。对于元素i，$h(i)$将其映射到第7个位置上，$g(i)$控制该位置计数减1；对于元素了$j$ ,$h(j)$将其映射到第2个位置上，$g(j)$控制该位置计数加 1。</p>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/10.png" style="zoom:67%;"></p>
+<p>比如说现在有一个数据流 $<a,b,c,a,b,a>$​ ，如果a、b、c各有一个计数器(一共三个)，那么可以清晰地计算出每个元素的频数。 当数据流中元素很多，要精确统计的话就需要很多计数器，这是维护不起的</a,b,c,a,b,a></p>
+<p>但是<strong>只有两个计数器</strong>(只有两个位置来存放频数)，因此设计一个哈希函数，使得$h(a)=h(b)\neq h(c)$, 我们用这个算法来计算各个元素的频数：</p>
+<p>首先，我们还要知道一共有8种($2^3$)可能的哈希函数$g(\cdot)$来使得${a,b,c}\rightarrow {-1,+1}$​,如下图： </p>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/11.png"></p>
+<p>比如说对于第一种哈希函数， $g(a),g(b),g(c)$都是$+1$，因为$h(a)$和$h(b)$在同一个位置上，所以凡是遇到$a$和$b$，就在这个位置上+1，最后得到的频数为5；$h(c)$是另外一个位置，且只出现了一次，因此最后得到的频数为1</p>
+<p>那么我们穷举8种 $g(\cdot)$，最终得到了上表，接下来我们要对$a,b,c$三个数的频数进行分别计算。</p>
+<p>根据 算法$\hat f_a = g(a)C[h(a)]$，我们对8个哈希函数的结果求均值，如下：</p>
+<script type="math/tex; mode=display">
+ f_a = \lvert{\frac{(5+5+1+1)-(-5-5-1-1)}{8}}\rvert = 3\\
+f_b = \lvert{\frac{(5+5-1-1)-(-5-5+1+1)}{8}}\rvert=2\\
+f_c = \lvert{\frac{(1+1+1+1)-(-1-1-1-1)}{8}}\rvert=1</script><p>可以看到，在经过多次实验(取多次不同哈希函数)之后，频数的估计和实际频数相同，这并不是一个巧合</p>
+<p>对于每一个 $j\in [n]$ ，根据h函数哈希的结果，定义一个指示变量$Y_j$ 如下：</p>
+<script type="math/tex; mode=display">
+Y_j = \cases{1,h(j)=h(a)\\~\\0,\text{otherwise}}</script><p>这里的$Y_j$是一个随机变量，表示元素j与元素a是否哈希到了同一个位置。最终，对元素a的频数估计是计数器$h(a)$位置的值。因此所有哈希到h(a)位置上的元素都对元素a的频数估计起到了作用，因此：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\hat f_a &= g (a)C[h(a)]\\~\\
+&=g(a)\sum_j^n f_jg(j)Y_j\\~\\
+&=f_a+g(a)\sum_{j\in[n]/ \{a\}}f_j\cdot g(j)\cdot Y_j
+\end{align}</script><h4 id="如果只有1个计数器"><a href="#如果只有1个计数器" class="headerlink" title="如果只有1个计数器"></a>如果只有1个计数器</h4><p>同样是上面的数据流 : abcaba, 如果只有一个计数器会怎么样？</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">g(a)</th>
+<th style="text-align:center">g(b)</th>
+<th style="text-align:center">g(c)</th>
+<th style="text-align:center">C[h(a)]=C[h(b)]=C[h(c)]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">+</td>
+<td style="text-align:center">+</td>
+<td style="text-align:center">+</td>
+<td style="text-align:center">3+2+1= 6</td>
+</tr>
+<tr>
+<td style="text-align:center">+</td>
+<td style="text-align:center">+</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">3+2-1=4</td>
+</tr>
+<tr>
+<td style="text-align:center">+</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">3-2-1= 0</td>
+</tr>
+<tr>
+<td style="text-align:center">+</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">+</td>
+<td style="text-align:center">3-2+1=2</td>
+</tr>
+<tr>
+<td style="text-align:center">-</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">+</td>
+<td style="text-align:center">-3-2+1=-4</td>
+</tr>
+<tr>
+<td style="text-align:center">-</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">-3-2-1=-6</td>
+</tr>
+<tr>
+<td style="text-align:center">-</td>
+<td style="text-align:center">+</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">-3+2-1=-2</td>
+</tr>
+<tr>
+<td style="text-align:center">-</td>
+<td style="text-align:center">+</td>
+<td style="text-align:center">+</td>
+<td style="text-align:center">-3+2+1 = 0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<script type="math/tex; mode=display">
+f_a = \lvert{\frac{(6+4+0+2)-(-4-6-2-0)}{8}}\rvert=3\\
+f_b = \lvert{\frac{(6+4-2-0)-(0+2-4-6)}{8}}\rvert=2\\
+f_c = \lvert{\frac{(6+2-4+0)-(4+0-6-2)}{8}}\rvert=1</script><h3 id="Count-Sketch算法"><a href="#Count-Sketch算法" class="headerlink" title="Count Sketch算法"></a>Count Sketch算法</h3><p>Count Sketch 算法基于$t$次频数估计的中位数和真实值很接近的想法，在Basic Count Sketch 算法的基础上，将哈希函数$h(\cdot)$个数增加到$t$个，将每个元素映射到 $t$ 个位置上，同时也有t个函数决定每个位置上的计数加1或者减1。(这里，$t = \log(1/\delta)$​)</p>
+<p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/12.png"></p>
+<p>Count Sketch 算法最终是一个空间消耗为$O(\frac{\log ({1}/{\delta})}{\epsilon^2})$​ 的 $(\epsilon,\delta)$​​近似估计</p>
+<p>哈希函数个数是 $t = O(\log(1/\delta))$</p>
+<h3 id="Count-min-Sketch算法"><a href="#Count-min-Sketch算法" class="headerlink" title="Count-min Sketch算法"></a>Count-min Sketch算法</h3><p><img src="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/13.png"></p>
+<p>在CM-sketch算法中，其数据结构是一个宽度为w，深度为d(代表哈希函数的个数)的计数器数组：</p>
+<script type="math/tex; mode=display">
+C[1,1],C[1,2]\cdots,C[d,w]</script><p>初始化时，每个元素均为0. 另有d个哈希函数使得：</p>
+<script type="math/tex; mode=display">
+h_i :\{1,2\cdots,n\}\rightarrow \{1,2\cdots,w\},1\leq i\leq d</script><p>一旦w和d确定下来，CM-sketch所需要的空间便确定了，我们发现哈希表相对于Count Sketch的($\frac{3}{\epsilon^2}$)更加小了 ，因此空间性能提升了$1/\epsilon$ 倍左右。 </p>
+<h4 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h4><p>给定数据流$<4,1,3,5,1,3,2,6,7,0,9>$, 若哈希函数形如 $h(x)=(ax+b) ~\text{mod~} 8$ ，其中a和b是任意给定的常数。假定给定如下哈希函数：</4,1,3,5,1,3,2,6,7,0,9></p>
+<script type="math/tex; mode=display">
+h(x) = (3x+2)\mod 8\\
+h(x) = (7x+5)\mod 8\\
+h(x) = (5x+3)\mod 8</script><p>试解答以下问题：</p>
+<ol>
+<li>利用 Count-Min Sketch 算法估计频繁项</li>
+</ol>
+<p>这种情况下，$d=3,w=8$</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>哈希值表</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$h_1(x)$</td>
+<td>2</td>
+<td>5</td>
+<td>0</td>
+<td>3</td>
+<td>6</td>
+<td>1</td>
+<td>4</td>
+<td>7</td>
+<td>5</td>
+</tr>
+<tr>
+<td>$h_2(x)$</td>
+<td>5</td>
+<td>4</td>
+<td>3</td>
+<td>2</td>
+<td>1</td>
+<td>0</td>
+<td>7</td>
+<td>6</td>
+<td>4</td>
+</tr>
+<tr>
+<td>$h_3(x)$</td>
+<td>3</td>
+<td>0</td>
+<td>5</td>
+<td>2</td>
+<td>7</td>
+<td>4</td>
+<td>1</td>
+<td>6</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>对于三个哈希函数, 将上述哈希到整个表中的不同位置并计数</p>
+<p>比如说，第一个到达的数据是4，那么查询上面的哈希值表，在4这个位置，$h_1(x) = 6,h_2(x)=1,h_3(x)=7$ ，那么我们就在下面这个dw表格中，在$h_1(x) = 6,h_2(x)=1,h_3(x)=7$ 的位置上分别加上1。</p>
+<p>这样，把整个数据流过一遍，就得到了下面这张表格</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>dw表格</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$h_1(x)$</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>$h_2(x)$</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>$h_3(x)$</td>
+<td>3</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>然后，对于每一个元素，我们都要取到哈希到的格子中的最小值</p>
+<ul>
+<li>比如说对于元素0，哈希到$h_1(x)=2,h_2(x)=5,h_3(x)=3$ 这三个格子，格子中的值分别是1、1、1，最小值为1,因此对元素0的频数估计为1.</li>
+<li>比如说对于元素1，哈希到$h_1(x)=5,h_2(x)=4,h_3(x)=0$  这三个格子，格子中的值分别是3、3、3,最小值为3，因此元素1的频数估计为3</li>
+</ul>
+<p>以此类推，得到：</p>
+<script type="math/tex; mode=display">
+\hat f_0 = 1,\hat f_1 = 3,\hat f_2 = 1,\hat f_3=2,\hat f_4=1,\hat f_5 = 1,\hat f_6 = 1,\hat f_7=1,\hat f_9 = 3</script><p>这里不存在大多数项。因为没有频数大于4的元素</p>
+<p>当$k=3$时，大于$8/3=2.6$的元素就可以被认为是频繁项，因此 1和9是频繁项</p>
+<p>当$k=4$时，大于$8/4=2$的元素就可以被认为是频繁项，因此 1、3、9是频繁项。</p>
+<p>但是我们知道在这个数据流中9只出现了1次，因此这个算法也存在误判的概率，这就是一次collision。Count-min Sketch的确会有这种问题，因为这个模型是从Bloom Filter衍生过来的。所以说Count-min Sketch是一个概率模型，返回的结果是一个上限值（upper-bound）。</p>
+<ol>
+<li>给定任意元素i，题⽬中的CM Sketch可以达到何种精度</li>
+</ol>
+<p>因为 哈希函数 $k = \lceil \log(1/\delta) \rceil = 3$ 因此 $ \frac{1}{8}&lt;\delta&lt;\frac{1}{4}$, 也就是说，算法错误的概率在 $12.5\%—25\%$ 之间；</p>
+<p>数组宽度 $d = \lceil  2/\epsilon\rceil =8$  ,$\frac{1}{4}&lt;\epsilon &lt;\frac{2}{7}$，也就是说，算法估计精度误差在 $25\%—28.6\% $ 之间</p>
+<ol>
+<li>如果想找到$(\epsilon,\delta)$ 估计，需要如何修改算法？(从哈希函数的个数入手)</li>
+</ol>
+<p>可以增加数组宽度，达到更高的算法精度</p>
+<p>也可以增加哈希函数的个数，达到更高的准确度</p>
+<h4 id="算法解释"><a href="#算法解释" class="headerlink" title="算法解释"></a>算法解释</h4><p> 在算法开始时，构造一个d行w列的空数组，可以认为每一行是独立的，算法在运行时同时记录了d个这样的数组。在每出现一个流数据的时候，对每一个数组进行一次更新，注意元素的第二个下标用的是数据的哈希值。</p>
+<p> 算法在运行的过程中可能产生冲突，也就是两个不同的流数据的哈希值可能相同，这个时候就会导致结果偏大，但是因为有相当于t次的重复计算，通过取最小值的方法来进行一些弥补，但是这样的方法也不能完全避免冲突。</p>
+<h4 id="算法分析-2"><a href="#算法分析-2" class="headerlink" title="算法分析"></a>算法分析</h4><p>设计一个最优的 Count-min Sketch模型的过程是：</p>
+<ol>
+<li>估算数据流n 的大小</li>
+<li>选择一个合理的 $\epsilon$ 值</li>
+<li>选择一个合理的概率值 $1-\delta$</li>
+<li>哈希函数的个数  $k = \lceil(\ln\frac{1}{\delta})\rceil$, 数组的宽度 $w = \lceil\frac{2}{\epsilon}\rceil$</li>
+</ol>
+<p>可以看出，要想错误范围越小，就需要更大的w，也就是表格的宽度</p>
+<p>想要更高的概率，就需要更大的k，也就是更多的哈希函数</p>
+<p>假设我们现在需要为 $10^6$ 的数据计数，规定精度 $\epsilon = 0.002$ ，由此可知 $d = 1000$ ; 规定准确率为$99\%$ ， 可知$\delta = 0.01$, 因此需要的哈希函数个数为  $k = \lceil(\ln100)\rceil=  5$</p>
+<p>假设每个计数单元占内存大小为 4 byte,那么，该模型将占用内存</p>
+<script type="math/tex; mode=display">
+1000\times 5\times 4\text{bytes} = 20\text{KB}</script><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>几种方法的总结</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>空间需求</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>简单抽样算法</td>
+<td>$M = O(\frac{m\log(1/\delta)}{\epsilon^2})$</td>
+<td>m:数据流大小<br>$\delta$: 误差<br>$\epsilon$: 估计精度</td>
+</tr>
+<tr>
+<td>Basic Count Sketch算法</td>
+<td>$M = O(\frac{1}{\delta\epsilon^2})$</td>
+<td>和数据流大小无关，确定精度和误差即可<br>计数器个数 $k = \frac{3}{\epsilon^2}$</td>
+</tr>
+<tr>
+<td>Count Sketch算法</td>
+<td>$M = O(\frac{log(1/\delta)}{\epsilon^2})$</td>
+<td>相比于Basic Count Sketch,更低<br>计数器个数  $k=\frac{3}{\epsilon^2}$<br>哈希函数个数 $t = \lceil \ln(1/\delta)\rceil$</td>
+</tr>
+<tr>
+<td>CM Sketch算法</td>
+<td>$M = O(\frac{log(1/\delta)}{\epsilon})$</td>
+<td>复杂度最低,计数器减少<br>数组的宽度 $w = \lceil\frac{2}{\epsilon}\rceil$<br>哈希函数的个数  $k = \lceil(\ln\frac{1}{\delta})\rceil$</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/" title="数据科学算法ch5-数据流模型及频繁项挖掘">https://jasonxqh.github.io/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95/" rel="tag"><i class="fa fa-tag"></i> 数据科学算法</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/10/25/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%8A%E5%85%B6%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" rel="next" title="关系数据库及其基本实现原理">
+                <i class="fa fa-chevron-left"></i> 关系数据库及其基本实现原理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/" rel="prev" title="数据科学算法ch7-随机游走">
+                数据科学算法ch7-随机游走 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">426</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据流模型及频繁项挖掘"><span class="nav-number">1.</span> <span class="nav-text">数据流模型及频繁项挖掘</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据流和数据流模型"><span class="nav-number">1.1.</span> <span class="nav-text">数据流和数据流模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据流子模型"><span class="nav-number">1.1.1.</span> <span class="nav-text">数据流子模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#按照数据流中数据元素对数组A的不同影响方式划分"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">按照数据流中数据元素对数组A的不同影响方式划分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#按照数据流上个元素的重要程度划分"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">按照数据流上个元素的重要程度划分</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#近似算法与随机算法"><span class="nav-number">1.1.2.</span> <span class="nav-text">近似算法与随机算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#epsilon-​-近似算法-相对误差"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">$\epsilon$​-近似算法(相对误差)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#epsilon-近似算法-绝对误差"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">$\epsilon$-近似算法(绝对误差)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#epsilon-delta-近似算法-相对误差"><span class="nav-number">1.1.2.3.</span> <span class="nav-text">$(\epsilon,\delta)$-近似算法(相对误差)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#epsilon-delta-​-近似算法-绝对误差"><span class="nav-number">1.1.2.4.</span> <span class="nav-text">$(\epsilon,\delta)$​-近似算法(绝对误差)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#频繁项挖掘"><span class="nav-number">1.2.</span> <span class="nav-text">频繁项挖掘</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#定义"><span class="nav-number">1.2.1.</span> <span class="nav-text">定义</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#确定性近似频数算法-Misra-Gries"><span class="nav-number">1.3.</span> <span class="nav-text">确定性近似频数算法 Misra Gries</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#算法分析"><span class="nav-number">1.3.1.</span> <span class="nav-text">算法分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#随机近似频数算法-Counting-Sketch"><span class="nav-number">1.4.</span> <span class="nav-text">随机近似频数算法 Counting Sketch</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#简单抽样算法"><span class="nav-number">1.4.1.</span> <span class="nav-text">简单抽样算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#算法分析-1"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">算法分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Basic-Count-Sketch算法"><span class="nav-number">1.4.2.</span> <span class="nav-text">Basic Count Sketch算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#如果只有1个计数器"><span class="nav-number">1.4.2.1.</span> <span class="nav-text">如果只有1个计数器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Count-Sketch算法"><span class="nav-number">1.4.3.</span> <span class="nav-text">Count Sketch算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Count-min-Sketch算法"><span class="nav-number">1.4.4.</span> <span class="nav-text">Count-min Sketch算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例题"><span class="nav-number">1.4.4.1.</span> <span class="nav-text">例题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#算法解释"><span class="nav-number">1.4.4.2.</span> <span class="nav-text">算法解释</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#算法分析-2"><span class="nav-number">1.4.4.3.</span> <span class="nav-text">算法分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.4.5.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1248.9k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+  
+
+  
+
+</body>
+</html>

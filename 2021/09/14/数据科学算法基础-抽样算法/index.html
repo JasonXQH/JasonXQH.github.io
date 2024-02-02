@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="数据科学算法," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="抽样算法在聊抽样算法之前，我们首先谈一下样本。 样本是总体的一个子集，对其进行观察以获得关于总体的信息。研究样本的目的在于得到有关总体的有效结论(概率论中学过，详见参数估计博客)  常见的抽样技术有：  简单随机抽样 系统抽样 分层抽样 聚类抽样 多阶段抽样  所有的这些方法都属于概率抽样 常见抽样简单随机抽样这是最简单的抽样算法。 在抽样过程中，若是有放回的抽样统计，那么选择每个对象的概率是相同">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据科学算法基础-抽样算法">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/09/14/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E6%8A%BD%E6%A0%B7%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="抽样算法在聊抽样算法之前，我们首先谈一下样本。 样本是总体的一个子集，对其进行观察以获得关于总体的信息。研究样本的目的在于得到有关总体的有效结论(概率论中学过，详见参数估计博客)  常见的抽样技术有：  简单随机抽样 系统抽样 分层抽样 聚类抽样 多阶段抽样  所有的这些方法都属于概率抽样 常见抽样简单随机抽样这是最简单的抽样算法。 在抽样过程中，若是有放回的抽样统计，那么选择每个对象的概率是相同">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/09/14/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E6%8A%BD%E6%A0%B7%E7%AE%97%E6%B3%95/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/09/14/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E6%8A%BD%E6%A0%B7%E7%AE%97%E6%B3%95/2.png">
+<meta property="article:published_time" content="2021-09-14T14:02:27.000Z">
+<meta property="article:modified_time" content="2022-01-07T04:08:24.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据科学算法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/09/14/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E6%8A%BD%E6%A0%B7%E7%AE%97%E6%B3%95/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/09/14/数据科学算法基础-抽样算法/"/>
+
+
+
+
+
+  <title>数据科学算法基础-抽样算法 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/09/14/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E6%8A%BD%E6%A0%B7%E7%AE%97%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据科学算法基础-抽样算法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-09-14T22:02:27+08:00">
+                2021-09-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.7k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="抽样算法"><a href="#抽样算法" class="headerlink" title="抽样算法"></a>抽样算法</h1><p>在聊抽样算法之前，我们首先谈一下样本。</p>
+<p>样本是总体的一个子集，对其进行观察以获得关于总体的信息。研究样本的目的在于得到有关总体的有效结论(概率论中学过，详见<a href="https://jasonxqh.github.io/2021/06/10/%E6%A6%82%E7%8E%87%E8%AE%BA%E7%AC%AC%E5%85%AD%E7%AB%A0/">参数估计博客</a>) </p>
+<p>常见的抽样技术有：</p>
+<ul>
+<li>简单随机抽样</li>
+<li>系统抽样</li>
+<li>分层抽样</li>
+<li>聚类抽样</li>
+<li>多阶段抽样</li>
+</ul>
+<p>所有的这些方法都属于概率抽样</p>
+<h2 id="常见抽样"><a href="#常见抽样" class="headerlink" title="常见抽样"></a>常见抽样</h2><h3 id="简单随机抽样"><a href="#简单随机抽样" class="headerlink" title="简单随机抽样"></a>简单随机抽样</h3><p>这是最简单的抽样算法。</p>
+<p>在抽样过程中，若是有放回的抽样统计，那么选择每个对象的概率是相同的。</p>
+<p>如果是无放回的抽样统计，在总体容量很大的时候，无放回抽样可以近似看做是等概率抽样。</p>
+<p>方法： 令N 为总样本数，$X_i$ 为一随机变量。</p>
+<script type="math/tex; mode=display">
+X_i = \begin{cases} 1, ~~\text{第i个对象被选择}\\~\\0,~\text{否则}\end{cases}</script><p>其中$P(X_i=1)=p$​ ，为抽样率</p>
+<h3 id="系统抽样"><a href="#系统抽样" class="headerlink" title="系统抽样"></a>系统抽样</h3><p><img src="/2021/09/14/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E6%8A%BD%E6%A0%B7%E7%AE%97%E6%B3%95/1.png" style="zoom:67%;"></p>
+<p>假设我们要从容量为N的总体中抽取容量为n的样本，有两种系统抽样的策略：</p>
+<h4 id="直线等距抽样"><a href="#直线等距抽样" class="headerlink" title="直线等距抽样"></a>直线等距抽样</h4><p>如果N能被n整除</p>
+<ul>
+<li>那么就可以确定样本大小n并计算<strong>跳跃间隔</strong> $k = \frac{N}{n}$</li>
+<li>在1到k之间(包含1和K)随机选择一个起始点r。</li>
+<li>然后，反复地在选定第$(r+k\cdot i)$ 个样本点，其中，$i = 1,2\cdots,n-1$</li>
+</ul>
+<p>相当于总体被分为n组，然后每组有k个样本，每个样本点被选择的概率为$\frac{1}{k}$ </p>
+<p>在这种情况下，线性系统抽样方法是等概率的。</p>
+<p>但N如果不能被n整除</p>
+<ul>
+<li>最后一组样本点个数不及k个</li>
+<li>此时系统抽样就不是等概率的了。</li>
+</ul>
+<h4 id="循环系统抽样"><a href="#循环系统抽样" class="headerlink" title="循环系统抽样"></a>循环系统抽样</h4><ol>
+<li><p>首先确定间隔 k, 使得 $k = \lfloor\frac{N}{n}\rfloor$</p>
+</li>
+<li><p>从1到N之间随机开始，选择第$(r+k\cdot i)/\mod N$，知道选择了n个样本为止。</p>
+</li>
+<li>因此，可能选择N个不同的样本集，而不是k个</li>
+<li>在此时，这种抽样方法也是一种<strong>等概率抽样</strong>。</li>
+</ol>
+<p>系统抽样有以下优缺点：</p>
+<ol>
+<li>优点<ul>
+<li>操作简单，容易取样</li>
+<li>它使样本更均匀地分布在总体中</li>
+<li>比简单随机抽样更有效，尤其是当列表中的样本点顺序与关注变量的特征无关时</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>一个不好的样本点排列可能会产生一个不具有代表性的样本集。比如我要统计公园一年来的客流量，那么如果起始点抽到了礼拜六，间隔又是一个礼拜，那么显然我采样得到的客流量要比平均客流量要多很多。</li>
+<li>非严格等概率抽样，抽样误差计算复杂</li>
+</ul>
+</li>
+</ol>
+<h3 id="分层抽样"><a href="#分层抽样" class="headerlink" title="分层抽样"></a>分层抽样</h3><p>分层抽样是根据某种属性(比如性别、职称、院系、地域等)将总体分为多个不同的组。</p>
+<p>然后，由满足分层变量值设定条件的样本点组成</p>
+<p>这样做的好处是</p>
+<ul>
+<li>减少估计的标准误差</li>
+<li>提供总体不同组别的单独估计(“域”估计)</li>
+<li>对不同组别，可以使用不同的抽样方法并行地提高抽样效率</li>
+</ul>
+<h3 id="样本量分配方法"><a href="#样本量分配方法" class="headerlink" title="样本量分配方法"></a>样本量分配方法</h3><h2 id="水库抽样"><a href="#水库抽样" class="headerlink" title="水库抽样"></a>水库抽样</h2><p>水库抽样是一种针对流数据的高效等效率抽样方法</p>
+<p>我们想象流数据应用场景：谷歌搜索引擎的关键词查询，电信骨干网络中转发的数据包。</p>
+<p>那么如果想从流数据中抽取容量为1000的样本，怎么办？这是比较困难的，因为在流数据应用场景中，总体容量是无法事先知晓的。另外，可能需要随时返回样本。</p>
+<p>现在，我们来介绍水库抽样：</p>
+<p>首先，创建一个长度为1000的数组，作为水库。如果流数据不超过1000个元素，每个元素都存入该数组中。</p>
+<p>那么，处理第i(i&gt;=1001)个元素，该如何做？</p>
+<h4 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h4><p>设 $S = {59,100,2,30,63,\cdots}$ 且$k=3$</p>
+<p>前k个项直接添加到水库中，即样本集合为 ${59,100,2}$</p>
+<p>当第4个元素30到达时，程序会随机生成一个1到4之间的随机整数，假定生成随机数$x=4$, 因为 $x&gt;k$ ，则钙元素直接被忽略。</p>
+<p>当第5个元素63到达时，程序会随机生成一个1到5之间的随机整数，假定生成随机数$x=2$，因为$x&lt;k$ ，元素63直接替换水库中的第2个元素100. 因此，最终的样本集合为${59,63,2}$</p>
+<h4 id="分布式水库抽样方法"><a href="#分布式水库抽样方法" class="headerlink" title="分布式水库抽样方法"></a>分布式水库抽样方法</h4><p>假如说，利用多台机器，能否加快水库抽样的速度呢？水库抽样是否可以扩展成分布式算法呢？</p>
+<p>我们可以在每台机器上维护同样大小的水库，分别执行水库抽样算法。然后，对每个水库的样本进行重抽样，逻辑如下：</p>
+<p><img src="/2021/09/14/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E6%8A%BD%E6%A0%B7%E7%AE%97%E6%B3%95/2.png" style="zoom:67%;"></p>
+<p>分布式水库抽样算法也非常高效，时间复杂度为$O(1)$</p>
+<p>分布式水库抽样中，每个元素被重样的概率是相同的，且任意两个元素被抽样是相互独立的。</p>
+<h2 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h2><h3 id="1"><a href="#1" class="headerlink" title="1"></a>1</h3><p>设总体有14个个体，按照1~14进行编号。欲以系统抽样法抽取容量为 $n=4$ 的样本，且第一个抽中的样本编号为1，则其余3个样本编号为多少？</p>
+<p><strong>这是系统抽样问题</strong></p>
+<p>首先，我们要计算间隔 $k = \lfloor \frac{14}{4} \rfloor = 3$  ，也就是要跳跃3个样本取下一个样本，因此取 $1,5,9,13$</p>
+<h3 id="2"><a href="#2" class="headerlink" title="2."></a>2.</h3><p>某校高一年级500名学生中，血型为O的有200人，血型为A的有125人，血型为B的有125人，血型为AB型的有50人．为了研究血型与色弱的关系，要从中抽取一个容量为40的样本，应如何抽样？写出血型为AB型的抽样过程．</p>
+<p><strong>这是分层抽样算法</strong></p>
+<p>首先，在500名学生中取40名样本，概率为 $\frac{2}{25}$ </p>
+<p>所以，应用分层抽样法抽取</p>
+<ul>
+<li>血型为O型的： $\frac{2}{25}\times 200 = 16$ </li>
+<li>血型为A型的: $\frac{2}{25}\times 125 = 10$</li>
+<li>血型为B型的: $\frac{2}{25}\times 125 = 10$</li>
+<li>血型为AB型的: $\frac{2}{25}\times 50 = 4$ </li>
+</ul>
+<p>AB型的4人可以这么抽取：</p>
+<p>第一步：将50人随机编号，1~50</p>
+<p>第二步：把以上50人的编号分别写在号签上</p>
+<p>第三步：从袋子里抽取四个号签，找出对应的4人。</p>
+<p>其余血型的人也可以用这种方法来抽取。</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/09/14/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E6%8A%BD%E6%A0%B7%E7%AE%97%E6%B3%95/" title="数据科学算法基础-抽样算法">https://jasonxqh.github.io/2021/09/14/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E6%8A%BD%E6%A0%B7%E7%AE%97%E6%B3%95/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95/" rel="tag"><i class="fa fa-tag"></i> 数据科学算法</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/09/13/%E8%BD%AF%E4%BB%B6%E4%BC%98%E5%8C%96-%E5%AE%BE%E5%88%A9%E6%B3%95%E5%88%99/" rel="next" title="软件优化-宾利法则">
+                <i class="fa fa-chevron-left"></i> 软件优化-宾利法则
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/09/15/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80-%E5%B0%BE%E6%A6%82%E7%8E%87/" rel="prev" title="数据科学算法基础-尾概率">
+                数据科学算法基础-尾概率 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">426</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#抽样算法"><span class="nav-number">1.</span> <span class="nav-text">抽样算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#常见抽样"><span class="nav-number">1.1.</span> <span class="nav-text">常见抽样</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#简单随机抽样"><span class="nav-number">1.1.1.</span> <span class="nav-text">简单随机抽样</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#系统抽样"><span class="nav-number">1.1.2.</span> <span class="nav-text">系统抽样</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#直线等距抽样"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">直线等距抽样</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#循环系统抽样"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">循环系统抽样</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分层抽样"><span class="nav-number">1.1.3.</span> <span class="nav-text">分层抽样</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#样本量分配方法"><span class="nav-number">1.1.4.</span> <span class="nav-text">样本量分配方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#水库抽样"><span class="nav-number">1.2.</span> <span class="nav-text">水库抽样</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例子"><span class="nav-number">1.2.0.1.</span> <span class="nav-text">例子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分布式水库抽样方法"><span class="nav-number">1.2.0.2.</span> <span class="nav-text">分布式水库抽样方法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例题"><span class="nav-number">1.3.</span> <span class="nav-text">例题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1"><span class="nav-number">1.3.1.</span> <span class="nav-text">1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2"><span class="nav-number">1.3.2.</span> <span class="nav-text">2.</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1248.9k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>

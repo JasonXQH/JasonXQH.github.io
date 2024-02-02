@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="bigdata," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Flink学习设计思想 大数据运算主要有2个领域：1：流式计算 2：批量计算。在数据操作层面可以看做如下的两类 有限数据集：数据大小有限（固定大小，比如固定的文件），用于批处理。比如说MapReduce，Spark 无限数据集：数据持续增长（属于无限大小，比如kafka中的日志数据，总是有新数据进入，并且不知道什么时候结束或者是永远不结束），用于流式处理。  我们要学习的Flink就是一个面向流处">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flink学习">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Flink学习设计思想 大数据运算主要有2个领域：1：流式计算 2：批量计算。在数据操作层面可以看做如下的两类 有限数据集：数据大小有限（固定大小，比如固定的文件），用于批处理。比如说MapReduce，Spark 无限数据集：数据持续增长（属于无限大小，比如kafka中的日志数据，总是有新数据进入，并且不知道什么时候结束或者是永远不结束），用于流式处理。  我们要学习的Flink就是一个面向流处">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/1.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/19.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/18.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/23.png">
+<meta property="article:published_time" content="2022-05-10T11:44:56.000Z">
+<meta property="article:modified_time" content="2022-06-19T03:02:40.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="bigdata">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2022/05/10/Flink学习/"/>
+
+
+
+
+
+  <title>Flink学习 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Flink学习</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2022-05-10T19:44:56+08:00">
+                2022-05-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  5.2k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  18
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Flink学习"><a href="#Flink学习" class="headerlink" title="Flink学习"></a>Flink学习</h1><h2 id="设计思想"><a href="#设计思想" class="headerlink" title="设计思想"></a>设计思想</h2><p> 大数据运算主要有2个领域：1：流式计算 2：批量计算。在数据操作层面可以看做如下的两类</p>
+<p>有限数据集：数据大小有限（固定大小，比如固定的文件），用于批处理。比如说MapReduce，Spark</p>
+<p>无限数据集：数据持续增长（属于无限大小，比如kafka中的日志数据，总是有新数据进入，并且不知道什么时候结束或者是永远不结束），用于流式处理。 </p>
+<p>我们要学习的Flink就是一个面向流处理和批处理的分布式计算框架，既支持流处理，也支持批处理.</p>
+<p>现在我们来看看三种计算框架的区别：</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/1.png"></p>
+<p>下图是Flink的技术栈，我们看到最上面一层是工具库，中间层是输入数据的类型(有流数据和固定数据)，第三层是Stream Dataflow Engine,是Flink的核心部分。最下面一层是Flink的底层依赖</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/1.jpeg"></p>
+<h3 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h3><p>与Storm类似，Flink将输入数据看作是一 个不间断的、无界的连续记录序列  </p>
+<p>有所不同的是，Flink将这一系列的记录抽象成DataStream 类似于RDD，DataStream是不可变的</p>
+<p>这里的不可变，指的是unmutable, 即我们对DataSteam进行修改的话，会返回一个新的Stream，原来的Stream不会发生变化</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/2.png"></p>
+<p>现在对之前学过的几个计算框架中的数据模型做一个总结：</p>
+<ul>
+<li>MapReduce: Key-value Pair</li>
+<li>Spark: RDD, 实际上就是键值对的集合</li>
+<li>Storm: Tuple</li>
+<li>Flink: DataStream 实际上是Tuple的集合</li>
+</ul>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/3.png"></p>
+<h3 id="计算模型"><a href="#计算模型" class="headerlink" title="计算模型"></a>计算模型</h3><p>Flink和Spark有点像，也是一系列的变换操作构成一张有向无环图， 即描述计算过程的DAG</p>
+<p>Flink算子也分为3类：</p>
+<ul>
+<li>数据源（DataSource） </li>
+<li>转换（Transformation） </li>
+<li>数据池（DataSink）</li>
+</ul>
+<h4 id="DataSource"><a href="#DataSource" class="headerlink" title="DataSource"></a>DataSource</h4><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>操作算子</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fromElements(elements)</td>
+<td>从相同类型的记录创建DataStream</td>
+</tr>
+<tr>
+<td>fromCollection(collection)</td>
+<td>从内存集合创建DataStream</td>
+</tr>
+<tr>
+<td>readTextFile(path)</td>
+<td>逐行读取文件内容来创建DataStream</td>
+</tr>
+<tr>
+<td>socketTextSteam(hostname,port)</td>
+<td>接收来自套接字的内容来创建DataStream</td>
+</tr>
+<tr>
+<td>addSource(customer-source-func)</td>
+<td>使用户自定义source func来创建DataStream</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="Transformation"><a href="#Transformation" class="headerlink" title="Transformation"></a>Transformation</h4><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>操作算子</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>map</strong></td>
+<td>将DataSet中的每一个元素转换为另外一个元素，返回一个新的DataStream</td>
+</tr>
+<tr>
+<td><strong>flatMap</strong></td>
+<td>与map类似，但是对DataStream中的每个记录都可以映射成0个或者多个新的记录</td>
+</tr>
+<tr>
+<td><strong>union</strong>(otherDataStream)</td>
+<td>若干个数据类型相同的DataStream，取其并集得到一个新的DataStream</td>
+</tr>
+<tr>
+<td><strong>connect</strong>(otherDataStream)</td>
+<td>两个数据类型可能不同的DataStream，取并集得到一个新的DataStream</td>
+</tr>
+<tr>
+<td><strong>keyBy</strong>(key)</td>
+<td>以给定的key划分DataStream来创建KeyedStream(类似于Spark中的PairRDD)</td>
+</tr>
+<tr>
+<td><strong>window</strong>(WubdiwAssigner)</td>
+<td>对KeyedStream中按键按分组的记录根据WindowAssigner将其划分为多个窗口，返回一个WindowedStream</td>
+</tr>
+<tr>
+<td><strong>reduce</strong>(func)</td>
+<td>通过func简化DataStream中的记录，返回一个新的DataStream</td>
+</tr>
+<tr>
+<td><strong>aggregate</strong>(func)</td>
+<td>对DataStream中每个窗口中记录使用func聚合为结果记录，返回一个新DataStream</td>
+</tr>
+<tr>
+<td><strong>join</strong>(otherDataStream)</td>
+<td>[K,V1]和[K,V2] 分别属于两个DataStream.返回一个[K,(V1,V2)]组成的JoinedStream</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="DataSink"><a href="#DataSink" class="headerlink" title="DataSink"></a>DataSink</h4><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>操作算子</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>print()</td>
+<td>将DataStream写入标准输出</td>
+</tr>
+<tr>
+<td>writeAsText(path)</td>
+<td>将DataStream以文本格式写入指定的文件中</td>
+</tr>
+<tr>
+<td>writeToSocket(hostname,port, schema)</td>
+<td>将DataStream作为字节数组写入套接字，输出格式由schema指定</td>
+</tr>
+<tr>
+<td>addSink(customer-sink-func)</td>
+<td>使用用户自定义sinkfunc作为数据池操作</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="逻辑计算模型"><a href="#逻辑计算模型" class="headerlink" title="逻辑计算模型"></a>逻辑计算模型</h3><p>通常来说，Flink系统的一个应用对应一个DAG，而Spark中的一个应用包含一个或者多个DAG</p>
+<p>比如说下面这个Wordcount例子：我们假定socketTextStream和print的并行度为1，其余并行度为2</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/5.png"></p>
+<p>在Spark中，有两种逻辑计算模型：OperatorDAG和RDD Lineage。但是Flink只有DAG没有Datasteam Lineage</p>
+<h3 id="迭代模型"><a href="#迭代模型" class="headerlink" title="迭代模型"></a>迭代模型</h3><p>由于Flink和Spark相比，除了数据模型从固定的变成流动的之外，最重要的就是增加了迭代算子。因此我们要着重来介绍这个新的算子，其他部分和spark是差不多的</p>
+<p>Flink中的迭代过程内部必定存在环路，和Spark不一样，Spark中的迭代需要我们自己设计算法，但在Flink中我们将迭代部分整体视为一个算子，计算的过程仍然是DAG, 如下：</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/7.png"></p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/6.png"></p>
+<p>我们发现，Flink中系统提供了迭代算子，内置了一些优化，不需要我们手写for 和 while循环，因此性能更高。但是同样的，这种方法把整个系统变得更复杂了，丧失了一些编程的灵活性</p>
+<p>还有一个问题，Spark、Flink这种计算框架中是否存在 If 算子或者 类似于Switch的算子？其实我们是需要这种算子的，因为if和switch这类的控制类的算子在逻辑中还是比较有用的。但是使用条件语句会让我们的DAG变得复杂，因为本来的DAG是静态的，数据朝着一个方向流动，一旦加了条件和控制之后，DAG会不断发生变化，这是不利于分布式系统的</p>
+<p>所以我们把大数据处理系统也称为 Dataflow system, 而之前我们写的Java、C++都是Controlflow,这两者和计算机体系结构有关：</p>
+<p>我们可以通过下面这个示意图来知悉两者关系：Controlflow 是指令和数据同时存储的，而Dataflow编程模型是算子级别的，把controlflow中的指令替换成算子</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/8.png"></p>
+<h2 id="体系架构"><a href="#体系架构" class="headerlink" title="体系架构"></a>体系架构</h2><h3 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h3><p>Flink的架构和Spark非常类似，也是分为一个主节点和若干从节点。</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/9.png"></p>
+<h4 id="Standalone-模式架构图"><a href="#Standalone-模式架构图" class="headerlink" title="Standalone 模式架构图"></a>Standalone 模式架构图</h4><p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/10.png"></p>
+<p>我们来逐步看一下每个部件的作用</p>
+<ul>
+<li>Client: 讲用户编写的DataStream 程序翻译为逻辑执行图病进行优化，并将优化后的逻辑执行图提交到JobManager。<ul>
+<li>在Standalone模式下，Client的进程名为 CliFrontend</li>
+</ul>
+</li>
+<li>JobManager: 根据逻辑执行图产生<strong>物理执行图</strong>，负责协调系统的作业执行，包括任务调度，协调检查点和故障恢复等。<ul>
+<li>在Standalone模式下，JobManager还负责Flink系统的资源管理</li>
+<li>JobManager的进程名为 StandaloneSessionClusterEntryPoint</li>
+</ul>
+</li>
+<li>TaskManager: 用来执行JobManager分配的任务，并且负责读取数据、缓存数据以及其他TaskManager进行数据传输<ul>
+<li>在Standalone模式下，TaskManager还负责所在节点的<strong>资源管理</strong>，将内存等资源抽象成若干个TaskSlot用于任务的执行</li>
+<li>TaskManager 的进程名为 TaskManagerRunner</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/11.png"></p>
+<h4 id="Yarn模式架构"><a href="#Yarn模式架构" class="headerlink" title="Yarn模式架构"></a>Yarn模式架构</h4><p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/12.png"></p>
+<p>横向比较一下，从Yarn的角度来说就是让资源管理和作业管理分离</p>
+<ul>
+<li>Standalone模式中的JobManager、TaskManager对应变成了Resource Manager和NodeManager</li>
+</ul>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/13.png"></p>
+<h3 id="应用程序执行流程"><a href="#应用程序执行流程" class="headerlink" title="应用程序执行流程"></a>应用程序执行流程</h3><h4 id="Standalone模式"><a href="#Standalone模式" class="headerlink" title="Standalone模式"></a>Standalone模式</h4><p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/14.png"></p>
+<ol>
+<li>客户端将用户编写的程序进行解析，并将 解析  后的作业描述交给StandaloneSessionClusterEntrypoint </li>
+<li>StandaloneSessionClusterEntrypoint根据 作业的描述进行任务分解，确定各个TaskManagerRunner所负责执行的任务 </li>
+<li>TaskManagerRunner执行所负责的任务</li>
+</ol>
+<h5 id="提交方式"><a href="#提交方式" class="headerlink" title="提交方式"></a>提交方式</h5><p>在Standalone模式下，当用户使用客户端 提交Flink应用程序时，可以选择Attached 方式或者Detached方式</p>
+<ul>
+<li>Attached提交方式：客户端与JobManager保持连接，可以获取关于应用程序执行的信息</li>
+<li>Detached提交方式：客户端与JobManager断开连接，无法获得关于应用程序执行的信息</li>
+</ul>
+<p>这两种提交方式和Spark中的两种提交方式有点像。Attached和Client 比较类似，Detached和Cluster比较类似。</p>
+<p>但是他们又有一些区别：</p>
+<p>在spark 中，以cluster模式提交，其客户端还是存在的运行，只不过Driver从本地客户端跑到了远端集群当中；但是在Flink中用Detached方式提交，则是没有客户端了，没有办法获取应用程序的打印信息</p>
+<h3 id="Yarn-模式"><a href="#Yarn-模式" class="headerlink" title="Yarn 模式"></a>Yarn 模式</h3><p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/15.png">我们看到Yarn的执行模式比Standalone要复杂得多，而且必须要用到HDFS</p>
+<ol>
+<li><p>客户端启动<code>CliFrontend</code>进程，<code>CliFrontend</code>将用户编写的程序进行解 析，并将运行Flink系统的jar包以及配置文件上传至HDFS</p>
+</li>
+<li><p><code>CliFrontend</code>向<code>ResourceManager</code>申请启动 <code>YarnJobClusterEntrypoint (ApplicationMaster)</code>，<code>ResourceManager</code>确定启动<code>YarnJobClusterEntrypoint</code>的节点 </p>
+</li>
+<li>需启动<code>YarnJobClusterEntrypoint</code>进程的节点上的<code>NodeManager</code>将 HDFS中的jar包与配置文件下载到该节点 </li>
+<li><code>NodeManager</code>启动<code>YarnJobClusterEntrypoint</code>进程 </li>
+<li><code>CliFrontend</code>进程将解析后的作业描述交给<code>YarnJobClusterEntrypoint</code></li>
+<li><code>YarnJobClusterEntrypoint</code>向<code>ResourceManager</code>注册，这样客户端可 以通过 <code>ResourceManager</code>查看Flink应用程序的资源使用情况。 <code>YarnJobClusterEntrypoint</code>根据作业的描述进行任务分解，并向 <code>ResourceManager</code>申请启动这些任务的资源</li>
+<li><code>ResourceManager</code>以Container形式向提出申请的 <code>YarnJobClusterEntrypoint</code>分配资源。得到资源后，它在多个任务间 进行资源分配 </li>
+<li><code>YarnJobClusterEntrypoint</code>确定资源分配方案后，便与对应的 <code>NodeManager</code>通信</li>
+<li>如果该<code>NodeManager</code>所在节点尚未下载，则将HDFS中的jar包与配 置文件下载到本地，并在相应的Container中启动相应的 <code>YarnTaskExecutorRunner</code>进程用于执行任务 </li>
+<li>各个任务向<code>YarnJobClusterEntrypoint</code>汇报自己的状态和进度，以便让 <code>YarnJobClusterEntrypoint</code>随时掌握各个任务的运行状态 </li>
+<li>随着部分任务执行结束，<code>YarnJobClusterEntrypoint</code>逐步释放所占用 的资源，最终向<code>ResourceManager</code>注销并关闭自己</li>
+</ol>
+<h5 id="提交方式-1"><a href="#提交方式-1" class="headerlink" title="提交方式"></a>提交方式</h5><ul>
+<li>Attached提交方式：<code>CliFrontend</code>将与 <code>YarnJobClusterEntrypoint</code>保持连接，可以获取 关于应用程序执行的信息 </li>
+<li>Detached提交方式：<code>CliFrontend</code>将与 <code>YarnJobClusterEntrypoint</code>断开连接，无法获得 关于应用程序执行的信息</li>
+</ul>
+<p>我们之前说过，Yarn是应用作为粒度来管理的，Spark中的Application和MapReduce中的Job对应一个Yarn中的应用。在Flink当中，既可以以一个任务作为Yarn的一个应用，又可以拿整一个Application作为Yarn的一个应用</p>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><p>现在我们来介绍Flink框架的内部工作原理，这其实和Sql的执行过程类似</p>
+<ul>
+<li>首先生成逻辑执行计划，然后进行逻辑优化</li>
+<li>接着生成物理执行计划，并执行</li>
+</ul>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/16.png"></p>
+<h3 id="逻辑执行图的生成与优化"><a href="#逻辑执行图的生成与优化" class="headerlink" title="逻辑执行图的生成与优化"></a>逻辑执行图的生成与优化</h3><p>首先什么是逻辑执行图？ 给定用户编写的DataStream程序，Flink的 Client将其解析产生逻辑执行图，即DAG.</p>
+<p>那么逻辑执行图怎么优化？ 有一种Chaining优化的方法：将”窄依赖“算子合并起来形成一个大的算子。如下图所示，我们将flatMap、map合并成一个 flatMap-map算子, 然后将keyBy、window、sum合并成一个keyed-window-sumAgg算子。</p>
+<p>不能合并的情况：</p>
+<ul>
+<li>因为 map到keyBy之间是宽依赖，有交叉的，因此不能合并。</li>
+<li>并行度不同，不能合并</li>
+</ul>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/17.png"></p>
+<p>事实上，Flink的Chaining优化方法，很类似于Spark中的Pipeline，二者效果相同，只是名字有所不同</p>
+<h3 id="物理执行图的生成与任务分配"><a href="#物理执行图的生成与任务分配" class="headerlink" title="物理执行图的生成与任务分配"></a>物理执行图的生成与任务分配</h3><p>JobManager收到Client提交的逻辑执行图 之后，<strong>根据算子的并行度</strong>，将逻辑执行图 转换为物理执行图 </p>
+<p>物理执行图中的一个结点对应一个任务， 将分配给TaskManager来执行</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/19.png"></p>
+<h5 id="任务分配"><a href="#任务分配" class="headerlink" title="任务分配"></a>任务分配</h5><p>JobManager将各算子的任务分配给 TaskManager </p>
+<p>根据任务槽(TaskSlot)的容量，尽可能将存在数据传输关系的算子实例放在同一个任务槽， 保持数据传输的本地性。 和上图对照，发现上面4个算子放在一个TaskManager中，说明这一个流水线中的数据都是在内存中传递的。而对于下面一行，从<code>socketTextStream</code>到<code>flatMap-map</code>以及从<code>keyedwindow-sumAgg</code>到<code>print</code>的数据传输是在节点之间进行的</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/19.jpg"></p>
+<p>从逻辑执行图到物理执行图的整个过程如下图所示:</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/18.jpg"></p>
+<h3 id="非迭代任务间的数据传输"><a href="#非迭代任务间的数据传输" class="headerlink" title="非迭代任务间的数据传输"></a>非迭代任务间的数据传输</h3><p>Flink在不同Task之间的数据传输方式是：流水线机制。也就是说：上游的Task将数据存放在 buffer 中，一旦Buffer满了或者超时，就像下游Task发送</p>
+<p>Flink并不是生成一个item传递一次，也不是像MapReduce、Spark一样，把所有item全部处理完成后下游任务才能继续运行(因此MR和Spark无法处理流数据)。</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/20.png"></p>
+<p>注意，Spark中的pipline和Flink中的pipeline是不同的概念</p>
+<ul>
+<li>在Flink中，pipline表示在不同Task之间的数据传输方式，区别于MR和Spark中的Shuffle</li>
+<li>在Spark中，pipline指内部<strong>同一个Task实现多个不同算子之间</strong>的数据传输方式，粒度更细<ul>
+<li>Spark Pipline和Flink Chaining类似</li>
+</ul>
+</li>
+</ul>
+<h4 id="Task间数据传输方式"><a href="#Task间数据传输方式" class="headerlink" title="Task间数据传输方式"></a>Task间数据传输方式</h4><ul>
+<li><p><strong>阻塞式数据传输：</strong> 一个Task（运行某个或某些算子）将所有需要处理的数据计算完，甚至要将结果写入磁盘， 才会发送给位于下游Task或被其读取  。 比如说MapReduce、Spark</p>
+</li>
+<li><p><strong>非阻塞式数据传输：</strong> 云计算天然需要非阻塞式数据传输这种特性。一个Task处理一条或一部分数据，通常将计算结果放在缓存里，就会发送给位于下游Task或被其读取。比如说Storm、Flink</p>
+</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>系统</th>
+<th>数据传输方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MapReduce</td>
+<td>阻塞式数据传输</td>
+</tr>
+<tr>
+<td>Spark</td>
+<td>阻塞式数据传输</td>
+</tr>
+<tr>
+<td>Storm</td>
+<td>非阻塞式数据传输</td>
+</tr>
+<tr>
+<td>Flink</td>
+<td>非阻塞式数据传播</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="迭代任务内部的数据传输"><a href="#迭代任务内部的数据传输" class="headerlink" title="迭代任务内部的数据传输"></a>迭代任务内部的数据传输</h3><h4 id="迭代的实现"><a href="#迭代的实现" class="headerlink" title="迭代的实现"></a>迭代的实现</h4><p>迭代算子是Flink 特有的，它是嵌套在DAG中的一个整体。迭代算子<strong>内部存在数据反馈的环路</strong>。</p>
+<p>那么数据反馈如何实现？</p>
+<ul>
+<li>在同一个TaskManager当中会成对出现迭代前端(Iteration Source)和迭代末端(Iteration Sink) 两类特殊的任务。迭代末端任务的输出可以再次作为迭代前端任务的输入。</li>
+</ul>
+<h4 id="流式迭代"><a href="#流式迭代" class="headerlink" title="流式迭代"></a>流式迭代</h4><p>在流式迭代计算中，通常每一轮迭代计算的部分结果作为输出向后传递，而另一部分结果作为下一轮迭代计算的输入，并且迭代过程会一直进行下去。</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/21.png"></p>
+<p>流式迭代计算中，迭代前端下一轮的计算并不依赖与迭代末端前一轮迭代得到的所有记录。同时，迭代前端收到迭代末端的反馈后，可以立即进行新一轮迭代计算。</p>
+<p>因此，这种方式仍然是采用流水线方式进行数据传输。</p>
+<h4 id="批式迭代"><a href="#批式迭代" class="headerlink" title="批式迭代"></a>批式迭代</h4><p>在批式迭代计算中，每一轮迭代计算的<strong>全部结果</strong>通常都是下一轮迭代计算的输入， 直到迭代过程在满足<strong>收敛条件</strong>时停止迭代。比如梯度下降，k均值.</p>
+<p>迭代前端中发出特殊的控制事件（control event），即特殊的记录(如达到某一条件)，表示迭代计算的结束</p>
+<p>在批式迭代计算中，迭代前端必须收到迭代 末端反馈的所有记录后才可以开始新一轮迭代计算。因此这时一种阻塞的过程，<strong>无法采用流水线机制</strong>进行数据传输</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/22.png"></p>
+<h2 id="容错机制"><a href="#容错机制" class="headerlink" title="容错机制"></a>容错机制</h2><p>在容错机制中，我们主要需要解决当TaskManager故障了，怎么办？</p>
+<ul>
+<li>运行了非迭代算子的容错</li>
+<li>运行了迭代算子的容错</li>
+</ul>
+<h3 id="状态管理"><a href="#状态管理" class="headerlink" title="状态管理"></a>状态管理</h3><p>首先，我们要了解什么是状态？</p>
+<p>在输出数据是无界的场景中，数据会源源不断地流入Flink系统。</p>
+<p>例如，在某一窗口中统计单词的个数: </p>
+<ul>
+<li>窗口需要将原始的单词记录保存起来，直到窗口触发时，一并进行统计</li>
+<li>或者将单词以及当前观察到的个数保存起来，并逐步累加</li>
+<li>窗口这个算子所需维护的内容，就是状态</li>
+</ul>
+<p>注意，我们要区分算子的状态与进程/节点的状态，前者类似于完成作业的一个进度</p>
+<h4 id="为什么需要系统管理状态"><a href="#为什么需要系统管理状态" class="headerlink" title="为什么需要系统管理状态"></a>为什么需要系统管理状态</h4><p>假设我们使用用户程序来管理状态，那么</p>
+<ul>
+<li>用户需要编写一个HashMap来记录计数保存状态，那么一旦该算子所在的task发生了故障，内存中的HashMap就丢失了。</li>
+<li><p>因此为了支持容错，需要编写程序将HashMap写入磁盘等可靠的存储设备，故障恢复后再读取。这样一来，不同数据结构都需要编写相应的保存、读取代码</p>
+<p>因此，状态管理对用户应该是透明的，交给系统来做。</p>
+</li>
+</ul>
+<h4 id="状态定义"><a href="#状态定义" class="headerlink" title="状态定义"></a>状态定义</h4><p>状态是系统定义的特殊的数据结构，用于记录需要保存的算子计算结果</p>
+<ul>
+<li><code>ValueState&lt;T&gt;</code>: 状态保存的是每个Key的一个值，可以通过<code>update(T)</code>来更新，<code>T.value()</code>获取</li>
+<li><code>ListState&lt;T&gt;</code>: 状态保存的是每个key的一个列表，通过<code>add(T)</code>添加数据，<code>Iterable.get()</code>获取</li>
+<li><code>ReaducingState&lt;T&gt;</code>: 状态保存的是关于每个key经过聚合之后的值列表，通过<code>add(T)</code>添加数据，通过指定的聚合方法来获取</li>
+</ul>
+<h4 id="有状态算子-无状态算子"><a href="#有状态算子-无状态算子" class="headerlink" title="有状态算子/无状态算子"></a>有状态算子/无状态算子</h4><ul>
+<li>有状态算子：具备记忆能力的算子<ul>
+<li>可以保留已经处理记录的结果，并对后续记录的处理造成影响</li>
+<li>例如：Window，Sum</li>
+</ul>
+</li>
+<li>无状态算子：不具备记忆能力的算子<ul>
+<li>只考虑到当前处理的记录，不会受到已处理记录的影响，也不会影响到后续待处理的记录</li>
+<li>例如: Map</li>
+</ul>
+</li>
+</ul>
+<h4 id="状态管理与容错"><a href="#状态管理与容错" class="headerlink" title="状态管理与容错"></a>状态管理与容错</h4><ul>
+<li>算子级别的容错<ul>
+<li>运行时保存其状态，在发生故障时重置状态，并继续处理尚未保存到状态中的记录</li>
+</ul>
+</li>
+<li>DAG级别的容错<ul>
+<li>既然一个算子可以保存其状态，那么我们是不是可以对DAG中所有的算子都进行这个操作？</li>
+<li>这就是DAG级别的容错，我们可以在<strong>同一时刻</strong>将所有算子的状态保存起来形成检查点，一旦出现故障，则所有算子都根据检查点来重置状态，并处理尚未保存到检查点中的记录。</li>
+<li>难点是：DAG可能在分布式系统下运行，要做到<strong>同一时刻</strong>，必须要求所有节点的物理时钟<strong>绝对同步</strong>。但这是不可能的。那么怎么办？我们可以分两种情况来讨论</li>
+</ul>
+</li>
+</ul>
+<h3 id="非迭代计算过程的容错"><a href="#非迭代计算过程的容错" class="headerlink" title="非迭代计算过程的容错"></a>非迭代计算过程的容错</h3><h4 id="系统中的记录"><a href="#系统中的记录" class="headerlink" title="系统中的记录"></a>系统中的记录</h4><p>上面我们说的DAG容错，虽然无法实现，但其Idea就是将Flink中的不同种类的记录区分开来：</p>
+<p>在某一时刻，流计算系统所处理的记录，可以分为三种类型</p>
+<ul>
+<li>已经处理完毕的记录，即所有算子都已经处理了这些记录</li>
+<li>正在处理的记录，即部分算子处理了这些记录</li>
+<li>尚未处理的记录，即没有算子处理过这些记录</li>
+</ul>
+<p>因此，虽然绝对同步的时钟是不存在的，但是同一时刻保存所有算子状态到检查点的目的是<strong>区分第一种记录和后两种记录</strong></p>
+<h4 id="屏障"><a href="#屏障" class="headerlink" title="屏障"></a>屏障</h4><p>JobManager在输入记录中插入屏障，这些屏障与记录一起向下游的计算任务流动。我们可以将其理解为标记，将数据流进行一个分割。一个任务，需要收到来自上有任务中所有标识为n的屏障之后，才能将其状态保存起来，这被称为<strong>屏障对齐</strong>。每个检查点的保留结果相互独立，都保留了一份计算结果。</p>
+<p>某一人任务将标识为n的屏障对齐之后，可以继续接收属于 检查点 n+1 的数据</p>
+<p><img src="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/23.png">如上图：</p>
+<ol>
+<li>最右侧两个黄色的记录，就是已经处理完毕的记录</li>
+<li>中间虚框框起来的记录则是正在处理的记录</li>
+<li>最右侧是尚未处理的记录</li>
+</ol>
+<h4 id="异步屏障快照"><a href="#异步屏障快照" class="headerlink" title="异步屏障快照"></a>异步屏障快照</h4><p>异步屏障快照算法是由Chandy-Lamport算法(分布式系统中用于保存系统状态)扩展而来的 :</p>
+<ul>
+<li>所保存的快照就是检查点</li>
+<li>通过在输入数据中注入屏障，并异步地保存快照，达到和在同一时刻保存所有算子状态到检查点相同的目的</li>
+</ul>
+<h4 id="Flink状态存储"><a href="#Flink状态存储" class="headerlink" title="Flink状态存储"></a>Flink状态存储</h4><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>状态存储方式</th>
+<th>正常运行时</th>
+<th>写检查点时</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MemoryStateBackend</td>
+<td>本地内存</td>
+<td>JobManager内存</td>
+</tr>
+<tr>
+<td>FsStateBackend</td>
+<td>本地内存</td>
+<td>HDFS</td>
+</tr>
+<tr>
+<td>RocksDBStateBackend</td>
+<td>本地RocksDB</td>
+<td>HDFS</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="故障恢复"><a href="#故障恢复" class="headerlink" title="故障恢复"></a>故障恢复</h4><p>当发生故障时，Flink选择最近完整的检查点n，将系统中每个算子的状态重置为检查点中保存的状态。</p>
+<p>从数据源重新读取属于屏障n之后的记录</p>
+<ul>
+<li>这要求数据源具备一定的记忆功能</li>
+<li>例如，Flink从Kafka中重新读取屏障n对应偏移量之后的记录</li>
+</ul>
+<p>Flink的容错机制能够满足<strong>准确一次</strong>的容错语义</p>
+<h3 id="迭代计算过程的容错"><a href="#迭代计算过程的容错" class="headerlink" title="迭代计算过程的容错"></a>迭代计算过程的容错</h3><h2 id="编程实例"><a href="#编程实例" class="headerlink" title="编程实例"></a>编程实例</h2>
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/" title="Flink学习">https://jasonxqh.github.io/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/bigdata/" rel="tag"><i class="fa fa-tag"></i> bigdata</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/" rel="next" title="Yarn学习">
+                <i class="fa fa-chevron-left"></i> Yarn学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/05/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BA%8B%E5%8A%A1/" rel="prev" title="高级数据库-事务">
+                高级数据库-事务 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">426</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Flink学习"><span class="nav-number">1.</span> <span class="nav-text">Flink学习</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#设计思想"><span class="nav-number">1.1.</span> <span class="nav-text">设计思想</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据模型"><span class="nav-number">1.1.1.</span> <span class="nav-text">数据模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计算模型"><span class="nav-number">1.1.2.</span> <span class="nav-text">计算模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#DataSource"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">DataSource</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Transformation"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">Transformation</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DataSink"><span class="nav-number">1.1.2.3.</span> <span class="nav-text">DataSink</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#逻辑计算模型"><span class="nav-number">1.1.3.</span> <span class="nav-text">逻辑计算模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迭代模型"><span class="nav-number">1.1.4.</span> <span class="nav-text">迭代模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#体系架构"><span class="nav-number">1.2.</span> <span class="nav-text">体系架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#架构图"><span class="nav-number">1.2.1.</span> <span class="nav-text">架构图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Standalone-模式架构图"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">Standalone 模式架构图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Yarn模式架构"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">Yarn模式架构</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#应用程序执行流程"><span class="nav-number">1.2.2.</span> <span class="nav-text">应用程序执行流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Standalone模式"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">Standalone模式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#提交方式"><span class="nav-number">1.2.2.1.1.</span> <span class="nav-text">提交方式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Yarn-模式"><span class="nav-number">1.2.3.</span> <span class="nav-text">Yarn 模式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#提交方式-1"><span class="nav-number">1.2.3.0.1.</span> <span class="nav-text">提交方式</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工作原理"><span class="nav-number">1.3.</span> <span class="nav-text">工作原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#逻辑执行图的生成与优化"><span class="nav-number">1.3.1.</span> <span class="nav-text">逻辑执行图的生成与优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#物理执行图的生成与任务分配"><span class="nav-number">1.3.2.</span> <span class="nav-text">物理执行图的生成与任务分配</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#任务分配"><span class="nav-number">1.3.2.0.1.</span> <span class="nav-text">任务分配</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#非迭代任务间的数据传输"><span class="nav-number">1.3.3.</span> <span class="nav-text">非迭代任务间的数据传输</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Task间数据传输方式"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">Task间数据传输方式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迭代任务内部的数据传输"><span class="nav-number">1.3.4.</span> <span class="nav-text">迭代任务内部的数据传输</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#迭代的实现"><span class="nav-number">1.3.4.1.</span> <span class="nav-text">迭代的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#流式迭代"><span class="nav-number">1.3.4.2.</span> <span class="nav-text">流式迭代</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#批式迭代"><span class="nav-number">1.3.4.3.</span> <span class="nav-text">批式迭代</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容错机制"><span class="nav-number">1.4.</span> <span class="nav-text">容错机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#状态管理"><span class="nav-number">1.4.1.</span> <span class="nav-text">状态管理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#为什么需要系统管理状态"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">为什么需要系统管理状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#状态定义"><span class="nav-number">1.4.1.2.</span> <span class="nav-text">状态定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#有状态算子-无状态算子"><span class="nav-number">1.4.1.3.</span> <span class="nav-text">有状态算子&#x2F;无状态算子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#状态管理与容错"><span class="nav-number">1.4.1.4.</span> <span class="nav-text">状态管理与容错</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#非迭代计算过程的容错"><span class="nav-number">1.4.2.</span> <span class="nav-text">非迭代计算过程的容错</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#系统中的记录"><span class="nav-number">1.4.2.1.</span> <span class="nav-text">系统中的记录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#屏障"><span class="nav-number">1.4.2.2.</span> <span class="nav-text">屏障</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#异步屏障快照"><span class="nav-number">1.4.2.3.</span> <span class="nav-text">异步屏障快照</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Flink状态存储"><span class="nav-number">1.4.2.4.</span> <span class="nav-text">Flink状态存储</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#故障恢复"><span class="nav-number">1.4.2.5.</span> <span class="nav-text">故障恢复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迭代计算过程的容错"><span class="nav-number">1.4.3.</span> <span class="nav-text">迭代计算过程的容错</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编程实例"><span class="nav-number">1.5.</span> <span class="nav-text">编程实例</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1248.9k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>
