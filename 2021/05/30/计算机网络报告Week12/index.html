@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="计算机网络," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Week12 TCP协议和IP协议分析1.实验目的 了解TCP协议的工作原理 学习TCP建立连接三次握手的过程 学习TCP断开连接四次挥手的过程 快速简单了解IP协议，特别是IP数据报 研究IP数据分片方法  2. 实验任务 使用 Wireshark 快速了解TCP协议 使用 Wireshark 快速了解 IP 协议  3. 实验过程3.1 Wireshark 抓取TCP包 TCP 协议   TC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络报告Week12">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Week12 TCP协议和IP协议分析1.实验目的 了解TCP协议的工作原理 学习TCP建立连接三次握手的过程 学习TCP断开连接四次挥手的过程 快速简单了解IP协议，特别是IP数据报 研究IP数据分片方法  2. 实验任务 使用 Wireshark 快速了解TCP协议 使用 Wireshark 快速了解 IP 协议  3. 实验过程3.1 Wireshark 抓取TCP包 TCP 协议   TC">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/2.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/3.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/5.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/6.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/7.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/8.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/21.png">
+<meta property="article:published_time" content="2021-05-30T13:01:30.000Z">
+<meta property="article:modified_time" content="2022-08-23T14:25:30.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/05/30/计算机网络报告Week12/"/>
+
+
+
+
+
+  <title>计算机网络报告Week12 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">计算机网络报告Week12</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-05-30T21:01:30+08:00">
+                2021-05-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.4k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  9
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Week12-TCP协议和IP协议分析"><a href="#Week12-TCP协议和IP协议分析" class="headerlink" title="Week12 TCP协议和IP协议分析"></a>Week12 TCP协议和IP协议分析</h1><h2 id="1-实验目的"><a href="#1-实验目的" class="headerlink" title="1.实验目的"></a>1.实验目的</h2><ul>
+<li>了解TCP协议的工作原理</li>
+<li>学习TCP建立连接三次握手的过程</li>
+<li>学习TCP断开连接四次挥手的过程</li>
+<li>快速简单了解IP协议，特别是IP数据报</li>
+<li>研究IP数据分片方法</li>
+</ul>
+<h2 id="2-实验任务"><a href="#2-实验任务" class="headerlink" title="2. 实验任务"></a>2. 实验任务</h2><ul>
+<li>使用 Wireshark 快速了解TCP协议</li>
+<li>使用 Wireshark 快速了解 IP 协议</li>
+</ul>
+<h2 id="3-实验过程"><a href="#3-实验过程" class="headerlink" title="3. 实验过程"></a>3. 实验过程</h2><h3 id="3-1-Wireshark-抓取TCP包"><a href="#3-1-Wireshark-抓取TCP包" class="headerlink" title="3.1 Wireshark 抓取TCP包"></a>3.1 Wireshark 抓取TCP包</h3><ul>
+<li>TCP 协议 </li>
+</ul>
+<p>TCP 被称为是面向连接的(connection oriented), 这是因为在一个应用进程可以开始向另一个应用进程发送数据之前，这两个进程必须互相先”握手”, 即它们必须相互发送某些预备报文段，以建立确保数据传输的参数。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/1.jpg" style="zoom: 50%;"></p>
+<ul>
+<li>Wireshark 相关知识详见 Exp6: DNS 报文分析和基于UDP的Socket编程</li>
+</ul>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/2.jpg" style="zoom: 50%;"></p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/3.jpg" style="zoom: 50%;"></p>
+<h4 id="Task1"><a href="#Task1" class="headerlink" title="Task1:"></a>Task1:</h4><p>利用Wireshark 抓取一个TCP抓取数据包， 查看其具体数据结构和实际的数据 (要求根据报文结构正确标识每个部分)， 请将实验结果附在实验报告中</p>
+<p>这里，注释的部分为该字段的名称以及实际数据</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">Transmission Control Protocol, Src Port: <span class="number">50177</span>, Dst Port: <span class="number">443</span>, Seq: <span class="number">1</span>, Ack: <span class="number">2</span>, Len: <span class="number">0</span></span><br><span class="line">    Source Port: <span class="number">50177</span>   					<span class="comment"># 源端口号   C4	01</span></span><br><span class="line">    Destination Port: <span class="number">443</span>					<span class="comment"># 目的端口号 01 bb</span></span><br><span class="line">    [Stream index: <span class="number">16</span>]					</span><br><span class="line">    [TCP Segment Len: <span class="number">0</span>]</span><br><span class="line">    Sequence Number: <span class="number">1</span>    (relative sequence number)		<span class="comment"># 序号 	12 2f f1 74</span></span><br><span class="line">    Sequence Number (raw): <span class="number">305131892</span>										</span><br><span class="line">    [Next Sequence Number: <span class="number">1</span>    (relative sequence number)] </span><br><span class="line">    Acknowledgment Number: <span class="number">2</span>    (relative ack number) 	<span class="comment"># 确认号 60 c2 55 c9</span></span><br><span class="line">    Acknowledgment number (raw): <span class="number">1623348681</span></span><br><span class="line">    <span class="number">0101</span> .... = Header Length: <span class="number">20</span> bytes (<span class="number">5</span>)		<span class="comment"># 首部长度 (长8个bit) 50</span></span><br><span class="line">    Flags: <span class="number">0x010</span> (ACK)</span><br><span class="line">        <span class="number">000.</span> .... .... = Reserved: Not set <span class="comment"># 保留未用 50 10</span></span><br><span class="line">        ..<span class="number">.0</span> .... .... = Nonce: Not set</span><br><span class="line">        .... <span class="number">0.</span>.. .... = Congestion Window Reduced (CWR): Not set</span><br><span class="line">        .... <span class="number">.0</span>.. .... = ECN-Echo: Not set</span><br><span class="line">        .... .<span class="number">.0</span>. .... = Urgent: Not set</span><br><span class="line">        .... ..<span class="number">.1</span> .... = Acknowledgment: Set <span class="comment"># Flag中的ACK已经被标记</span></span><br><span class="line">        .... .... <span class="number">0.</span>.. = Push: Not set			</span><br><span class="line">        .... .... <span class="number">.0</span>.. = Reset: Not set</span><br><span class="line">        .... .... .<span class="number">.0</span>. = Syn: Not set</span><br><span class="line">        .... .... ..<span class="number">.0</span> = Fin: Not set </span><br><span class="line">        <span class="comment"># 其余Flag均未被标记</span></span><br><span class="line">        [TCP Flags: ·······A····]</span><br><span class="line">    Window: <span class="number">4096</span> 									<span class="comment"># 接收窗口大小 10 00</span></span><br><span class="line">    [Calculated window size: <span class="number">4096</span>]</span><br><span class="line">    [Window size scaling factor: <span class="number">-1</span> (unknown)]</span><br><span class="line">    Checksum: <span class="number">0x5abf</span> [unverified]	<span class="comment"># 因特网检验和 5a bf</span></span><br><span class="line">    [Checksum Status: Unverified]</span><br><span class="line">    Urgent Pointer: <span class="number">0</span>							<span class="comment"># 紧急数据指针 00 00 (未设置)</span></span><br><span class="line">    [SEQ/ACK analysis]</span><br><span class="line">    [Timestamps]</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/1.png" style="zoom: 50%;"></p>
+<h3 id="3-2-TCP-三次握手"><a href="#3-2-TCP-三次握手" class="headerlink" title="3.2 TCP 三次握手"></a>3.2 TCP 三次握手</h3><p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/4.jpg"></p>
+<h4 id="Task2："><a href="#Task2：" class="headerlink" title="Task2："></a>Task2：</h4><p>根据TCP三次握手的交互图以及TCP报文段结构图逐步分析三次握手过程，请将实验结果附在实验报告中</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/9.png"></p>
+<p>这就是本地电脑和百度三次握手的过程。 每次握手的过程这里重复了两次，但内容是一样的</p>
+<h5 id="第一次握手"><a href="#第一次握手" class="headerlink" title="第一次握手"></a>第一次握手</h5><p>首先，是从本地客户端发向百度服务器的一个数据报。在这个数据报中，Seq=0，说明一开始是从序号为0的包好事发送的。我们看到这里SYN 这一位已经被设为1了，因为还没收到来自百度的确认信息，因此这里ACK为设为0</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/10.png"></p>
+<h5 id="第二次握手"><a href="#第二次握手" class="headerlink" title="第二次握手"></a>第二次握手</h5><p>这是百度服务器给本地电脑发送的报文，其中 Seq=0, ACK = 1 ,因为TCP是全双工通信的，因此从百度发送来的第一个报文段也是从 seq=0 开始的。但是这个报文段中包含了对我发给百度的包的确认信息，因此这里ACK被设置了，且值为1，这说明 1 以前的包我全部都收到了，请本地发送1以后的包</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/11.png"></p>
+<h5 id="第三次握手"><a href="#第三次握手" class="headerlink" title="第三次握手"></a>第三次握手</h5><p>第三次握手是本地发送给百度服务器的，此时， Seq=1, 说明这是本地发送的第二个包了(第一个包Seq=0) ； ACK = 1 说明已经收到了来自服务端的 1以前的所有包。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/12.png"></p>
+<p>至此，本地和服务端的三次握手已经结束，可以相互传递信息了</p>
+<h3 id="3-3-TCP-四次挥手"><a href="#3-3-TCP-四次挥手" class="headerlink" title="3.3 TCP 四次挥手"></a>3.3 TCP 四次挥手</h3><p>当通信双方完成数据传输，需要进行TCP连接的释放，由于TCP连接是全双工的，因此每个方向都必须单独进行关闭。这个原则是当一方完成它的数据发送任务后就能发送一个FIN来终止这个方向的连接。收到一个FIN只意味着这一方向上没有数据流动，一个TCP连接在收到一个FIN后仍然能发送数据。首先进行关闭的一方将执行主动关闭，而另一方执行被动关闭。因为正常关闭过程需要发送4个TCP帧，因此这个过程也叫四次挥手。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/5.jpg"></p>
+<h4 id="Task3"><a href="#Task3" class="headerlink" title="Task3:"></a>Task3:</h4><p>根据TCP四次挥手的交互图以及TCP报文段结构图逐步分析四次挥手过程，请将实验结果附在实验报告中。</p>
+<p>这是四次挥手的过程：</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/13.png"></p>
+<h5 id="第一次挥手"><a href="#第一次挥手" class="headerlink" title="第一次挥手"></a>第一次挥手</h5><p>第一次挥手是百度向本地发送的一个包， Seq=80634 Ack =6224. 同时，设定了Fin位，表示服务器单方面想和本地断开联系。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/14.png"></p>
+<h5 id="第二次挥手"><a href="#第二次挥手" class="headerlink" title="第二次挥手"></a>第二次挥手</h5><p>第二次挥手是本地收到了百度想要结束的Fin之后，返回了一个带有ACK的包。同时告诉服务器，ACK=80635,说明80635以前的数据段都已经收到了。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/15.png"></p>
+<h5 id="第三次挥手"><a href="#第三次挥手" class="headerlink" title="第三次挥手"></a>第三次挥手</h5><p>前两次挥手是主动关闭方断开连接，但是只是单方面关闭连接。现在要被动关闭方来断开连接，才能实现真正的断连。</p>
+<p>我们看到这个是 本地向百度发送的包，设置了Fin和ACK，注意到这个包的ACK和第二次挥手发送的ACk的值是一模一样的，因为在这两次挥手之间没有收到新的来自百度的包</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/16.png"></p>
+<h5 id="第四次挥手"><a href="#第四次挥手" class="headerlink" title="第四次挥手"></a>第四次挥手</h5><p>第四次挥手，是百度收到了本地发送的带有FIN 标志的包后，返回的确认报文。</p>
+<p>这个报文比较特殊，因为返回的报文只设置了RST位，没有设置 Seq，Ack。 RST位被设置以后，接收端收到之后不必发送ACK包。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/17.png"></p>
+<h3 id="3-4-IP分片"><a href="#3-4-IP分片" class="headerlink" title="3.4 IP分片"></a>3.4 IP分片</h3><ul>
+<li>IP报文格式</li>
+</ul>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/6.jpg"></p>
+<ul>
+<li>根据上课学习知道IP报文要交给数据链路层封装后才能发送，理想状况下，每个IP报文正好能放在同一个物理帧中发送。如果一个数据包超过1500字节(以太网的帧中最多可容纳1500字节的数据). 就需要将该包进行分片发送，这个上限被称为物理网络的最大传输单元(MTU. Maxium Transfer Unit)</li>
+<li>TCP/IP 协议在发送IP数据报文时，一般选择一个合适的初始长度。当这个报文要从一个MTU大的子网发送一个MTU 小的网络时，IP协议就把这个报文的数据部分分割成能被目的子网锁容纳的较小的数据分片，组成较小的报文发送。每个较小的报文被称为一个分片。 每个分片都有一个IP 报文头，分片后的数据包的IP报头和原式IP报头分片偏移、MF标志位和校验字段不同外，其他都一样。</li>
+<li>下面通过使用ICMP 包，来产生IP分片数据包。使用ICMP包进行测试时，如果不指定包的大小，可能无法查看被分片的数据报。由于IP首部占用20个字节，ICMP首部占8个字节，所以捕获ICMP包大小最大为1472字节。但是在一般情况下，ping 命令默认的大小都不会唱过1472。 这样，发送的ICMP包就可以顺利通过，不需要经过分片再传输，如果想捕获到IP分片的包，需要指定发送的ICMP包必须大于1472 字节。</li>
+<li>可通过下方命令指定发送包的大小，如： <code>ping -s 3005 www.ecnu.edu.cn</code></li>
+</ul>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/7.jpg"></p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/8.jpg"></p>
+<h4 id="Task4"><a href="#Task4" class="headerlink" title="Task4"></a>Task4</h4><p>任取一个有IP协议的ICMP数据报并根据该报文分析IP协议的报文格式(正确标注每一个部分)， 请将实验结果附在实验报告中</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/18.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Internet Protocol Version <span class="number">4</span>, Src: <span class="number">192.168</span><span class="number">.31</span><span class="number">.15</span>, Dst: <span class="number">180.101</span><span class="number">.49</span><span class="number">.11</span> <span class="comment"># 源地址和目标地址</span></span><br><span class="line">    <span class="number">0100</span> .... = Version: <span class="number">4</span>	<span class="comment"># 版本号，一般是4   </span></span><br><span class="line">    .... <span class="number">0101</span> = Header Length: <span class="number">20</span> bytes (<span class="number">5</span>) <span class="comment"># 头部长度，为20 bytes</span></span><br><span class="line">    Differentiated Services Field: <span class="number">0x00</span> (DSCP: CS0, ECN: Not-ECT)</span><br><span class="line">    Total Length: <span class="number">84</span> <span class="comment">#总长度 16进制值为 00 54</span></span><br><span class="line">    Identification: <span class="number">0xe6a0</span> (<span class="number">59040</span>) <span class="comment"># 标志 </span></span><br><span class="line">    Flags: <span class="number">0x00</span>					<span class="comment"># 标识</span></span><br><span class="line">    Fragment Offset: <span class="number">0</span> <span class="comment"># 片偏移 和flag合起来是 0000</span></span><br><span class="line">    Time to Live: <span class="number">64</span>	 <span class="comment"># 生存时间 40</span></span><br><span class="line">    Protocol: ICMP (<span class="number">1</span>) <span class="comment"># 协议 01</span></span><br><span class="line">    Header Checksum: <span class="number">0xcee0</span> [validation disabled] <span class="comment"># 首部检验和 ce e0</span></span><br><span class="line">    [Header checksum status: Unverified]</span><br><span class="line">    Source Address: <span class="number">192.168</span><span class="number">.31</span><span class="number">.15</span>		<span class="comment"># 源地址 ce a8 1f 0f </span></span><br><span class="line">    Destination Address: <span class="number">180.101</span><span class="number">.49</span><span class="number">.11</span> <span class="comment"># 目标地址 b4 65 31 0b</span></span><br></pre></td></tr></table></figure>
+<h4 id="Task5"><a href="#Task5" class="headerlink" title="Task5"></a>Task5</h4><p>对截获的报文进行分析，将属于同一个ICMP报文的分片找出来，并分析其字节长度特点(如，每个分片的大小，片偏移等)，请将实验结果附在报告中</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/19.png"></p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/20.png"></p>
+<p>我想 www.ecnu.edu.cn ping 了一段长1500的报文，发现被分割成了两段。其中一段长 1514，一段长62</p>
+<p>点开第一段报文和第二段报文：</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/21.png"></p>
+<p>我们发现他们的 Identification 都是一样的，为 0x0bcd. 由此我们可以断定这两个分片属于同一个ICMP报文。</p>
+<p>第一段报文是只有IP层，没有ICMP层的。总长度为1500，即一个MTU。但是因为IP层头长度为20，所以data的总长度只有1480。 因为这是第一个报文，因此并没有数据偏移量，因此这时 <strong>Fragment Offset : 0</strong> ，同时在Flags中也有注明，说有其他分片。</p>
+<p>第二段报文报文的总长度为48，头长度为20，data是28，那么为什么不是20而是28呢？因为ICMP的头部占了8个字节。因为这是最后一段报文，因此Flag为0，前面只有一个满的报文，因此 <strong>Fragment Offset</strong>为1480. </p>
+<p>因为说不管ping的字节有多长，一定都是填满一个报文之后再分出来，所以其Offset 一定都是1480的整数倍。</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/" title="计算机网络报告Week12">https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"><i class="fa fa-tag"></i> 计算机网络</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/" rel="next" title="计算机网络报告-rdt3.0">
+                <i class="fa fa-chevron-left"></i> 计算机网络报告-rdt3.0
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/" rel="prev" title="计算机网络-网络层">
+                计算机网络-网络层 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">427</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Week12-TCP协议和IP协议分析"><span class="nav-number">1.</span> <span class="nav-text">Week12 TCP协议和IP协议分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-实验目的"><span class="nav-number">1.1.</span> <span class="nav-text">1.实验目的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-实验任务"><span class="nav-number">1.2.</span> <span class="nav-text">2. 实验任务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-实验过程"><span class="nav-number">1.3.</span> <span class="nav-text">3. 实验过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-Wireshark-抓取TCP包"><span class="nav-number">1.3.1.</span> <span class="nav-text">3.1 Wireshark 抓取TCP包</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Task1"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">Task1:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-TCP-三次握手"><span class="nav-number">1.3.2.</span> <span class="nav-text">3.2 TCP 三次握手</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Task2："><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Task2：</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#第一次握手"><span class="nav-number">1.3.2.1.1.</span> <span class="nav-text">第一次握手</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#第二次握手"><span class="nav-number">1.3.2.1.2.</span> <span class="nav-text">第二次握手</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#第三次握手"><span class="nav-number">1.3.2.1.3.</span> <span class="nav-text">第三次握手</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-TCP-四次挥手"><span class="nav-number">1.3.3.</span> <span class="nav-text">3.3 TCP 四次挥手</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Task3"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">Task3:</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#第一次挥手"><span class="nav-number">1.3.3.1.1.</span> <span class="nav-text">第一次挥手</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#第二次挥手"><span class="nav-number">1.3.3.1.2.</span> <span class="nav-text">第二次挥手</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#第三次挥手"><span class="nav-number">1.3.3.1.3.</span> <span class="nav-text">第三次挥手</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#第四次挥手"><span class="nav-number">1.3.3.1.4.</span> <span class="nav-text">第四次挥手</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-IP分片"><span class="nav-number">1.3.4.</span> <span class="nav-text">3.4 IP分片</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Task4"><span class="nav-number">1.3.4.1.</span> <span class="nav-text">Task4</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Task5"><span class="nav-number">1.3.4.2.</span> <span class="nav-text">Task5</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1265.2k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>

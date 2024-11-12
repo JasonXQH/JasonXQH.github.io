@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="计算机网络," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="计算机网络-网络层学习自：https:&#x2F;&#x2F;github.com&#x2F;crisxuan&#x2F;bestJavaer&#x2F;blob&#x2F;master&#x2F;computer-network&#x2F;computer-internet.md https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;126754314  之前我们说了应用层和运输层。运输层是提供进程的端到端通信。那么下面我们将学习网络层是怎样实现主机到主机的通信服务的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络-网络层">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="计算机网络-网络层学习自：https:&#x2F;&#x2F;github.com&#x2F;crisxuan&#x2F;bestJavaer&#x2F;blob&#x2F;master&#x2F;computer-network&#x2F;computer-internet.md https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;126754314  之前我们说了应用层和运输层。运输层是提供进程的端到端通信。那么下面我们将学习网络层是怎样实现主机到主机的通信服务的。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/25.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/24.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/28.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/29.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/30.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/26.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/27.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/31.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/32.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/33.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/34.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/35.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/36.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/37.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/38.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/39.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/40.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/41.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/42.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/43.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/44.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/45.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/46.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/47.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/48.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/49.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/50.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/51.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/52.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/53.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/54.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/56.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/56.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/58.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/59.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/60.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/60.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/61.png">
+<meta property="article:published_time" content="2021-06-02T07:52:12.000Z">
+<meta property="article:modified_time" content="2022-06-21T13:27:46.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/06/02/计算机网络-网络层/"/>
+
+
+
+
+
+  <title>计算机网络-网络层 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">计算机网络-网络层</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-06-02T15:52:12+08:00">
+                2021-06-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  17.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  62
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="计算机网络-网络层"><a href="#计算机网络-网络层" class="headerlink" title="计算机网络-网络层"></a>计算机网络-网络层</h1><p>学习自：<a href="https://github.com/crisxuan/bestJavaer/blob/master/computer-network/computer-internet.md" target="_blank" rel="noopener">https://github.com/crisxuan/bestJavaer/blob/master/computer-network/computer-internet.md</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/126754314" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/126754314</a></p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/1.png"></p>
+<p>之前我们说了应用层和运输层。运输层是提供进程的端到端通信。那么下面我们将学习网络层是怎样实现主机到主机的通信服务的。<strong>几乎每个端系统都有网络层这一部分</strong>，所以，网络层必然是很复杂的。</p>
+<h3 id="网络服务模型"><a href="#网络服务模型" class="headerlink" title="网络服务模型"></a>网络服务模型</h3><p>因特网的网络层提供了单一的服务，即<strong>尽力而为</strong>。 这让传送的分组不能保证以它们发送的顺序被接收，也不能保证它们最终交付；既不能保证端到端时延，也不能保证最小有效带宽。尽管什么都不保证，但是这种服务模型却能满足大多数网络服务。</p>
+<h2 id="网络层概述"><a href="#网络层概述" class="headerlink" title="网络层概述"></a>网络层概述</h2><p>网络层是OSI的第三层，它位于传输层和链路层之间，网络层的主要目的是实现两个端系统之间透明的数据传输。</p>
+<blockquote>
+<p>TCP/IP 把表示层和会话层都归入了应用层。</p>
+</blockquote>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/2.png"></p>
+<p>网络层可以分成两种平面，在第四章主要讲的是数据平面，负责<strong>转发网络流量</strong>，如路由器交换机中的转发表；在第五章主要讲的是控制平面, 作用是控制网络的行为，比如<strong>网络路径的选择(路由)</strong>。</p>
+<p>网络层的作用从表面看上去非常简单，即将<code>分组</code><strong>从一台主机移动到另外一台主机</strong>。为了实现这个功能，网络层需要两种功能</p>
+<ul>
+<li><code>转发</code>：因为在互联网中有很多<code>路由器</code>的存在，而路由器是构成互联网的根本，路由器最重要的一个功能就是<code>分组转发</code>，当一个分组到达某路由器的一条输入链路时，该路由器会将分组移动到适当的输出链路。转发是在数据平面中实现的唯一功能。</li>
+<li><code>路由选择</code>： 当分组由发送方流向接收方时，网络层必须选择这些分组的路径。计算这些路径选择的算法被称为 <code>路由选择算法(routing algorithm)</code>。</li>
+</ul>
+<p>也就是说，转发是指<strong>将分组从一个输入链路转移到适当输出链路接口的路由器本地动作</strong>，而路由选择是指<strong>确定分组从源到目的地锁定为的路径的选择</strong>。我们后面会经常提到。</p>
+<blockquote>
+<p> 那么，路由器怎么知道有哪些路径可以选择呢？</p>
+</blockquote>
+<p>每台路由器都有一个关键的概念就是 <code>转发表(forwarding table)</code>。路由器通过检查数据包标头中字段的值，来定位转发表中的项来实现转发。标头中的值即对应着转发表中的值，这个值指出了分组将被转发的路由器输出链路。如下图所示: </p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/3.png"></p>
+<p>上图中有一个 1001 分组到达路由器后，首先会在转发表中进行索引，然后由路由选择算法决定分组要走的路径。每台路由器都有两种功能：<strong>转发和路由选择</strong>。下面我们就来聊一聊路由器的工作原理。</p>
+<h2 id="数据层面"><a href="#数据层面" class="headerlink" title="数据层面"></a>数据层面</h2><h3 id="路由器工作原理"><a href="#路由器工作原理" class="headerlink" title="路由器工作原理"></a>路由器工作原理</h3><p>下面是一个路由器体系的体系结构图，路由器主要是由4个组件组成：</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/4.png"></p>
+<ul>
+<li>输入端口：<code>输入端口(input port)</code>有很多功能。<code>线路终端功能</code>和<code>数据链路处理</code>功能，这两个功能实现了路由器的单个输入链路相关联的物理层和数据链路层。<code>输入端口查找/转发功能</code>对路由器的交换功能来说至关重要，由路由器的交换结构来决定输出端口，具体来讲应该是<strong>查询转发表</strong>来确定的。</li>
+<li>(高速)交换结构：<code>交换结构(Switching fabric)</code>就是将路由器的输入端口连接到它的输出端口。这种交换结构相当于是<strong>路由器内部的网络</strong>。</li>
+<li>输出端口：<code>输出端口(Output ports)</code> 通过交换结构转发分组，并通过物理层和数据链路层的功能传输分组，因此，输出端口作为输入端口执行反向数据链接和物理层功能。</li>
+<li>路由选择处理器：<code>路由选择处理器(Routing processor)</code> 在路由器内执行路由协议，维护路由表并执行网络管理功能。这属于控制平面的内容</li>
+</ul>
+<h4 id="输入端口"><a href="#输入端口" class="headerlink" title="输入端口"></a>输入端口</h4><p>上面介绍了输入端口有很多功能，包括线路终端、数据处理、查找转发，其实这些功能在输入端口的内部有相应的模块，输入端口的内部实现如下图所示</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/5.png"> </p>
+<p>每个输入端口中都有一个路由处理器维护的<strong>路由表的副本</strong>，根据路由处理器进行更新。这个路由表的副本能 够使每个输入端口进行切换，而无需经过路由处理器统一处理。这是一种<code>分散式</code>的切换，这种方式避免了路 由选择器统一处理造成转发瓶颈。</p>
+<p>在输入端口处理能力有限的路由器中，输入端口不会进行交换功能，而是由路由处理器统一处理，然后根据 路由表查找并将数据包转发到相应的输出端口。</p>
+<blockquote>
+<p>一般这种路由器不是单独的路由器，而是工作站或者服务器充当的路由，这种路由器内部中，路由处理器其实就是 <code>CPU</code>，而输入端口其实只是<code>网卡</code>。</p>
+</blockquote>
+<p>输入端口会根据转发表定位输出端口，然后再会进行分组转发，那么现在就有一个问题，是不是每一个分组都有自己的一条链路呢？如果分组数量非常大，到达亿级的话，也会有亿个输出端口路径吗？</p>
+<p>我们的潜意识中显然不是的，来看下面一个例子。</p>
+<p>下面是三个输入端口对应了转发表中的三个输出链路的示例</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/6.png"></p>
+<p>可以看到，对于这个例子来说，路由器转发表中不需要那么多条链路，只需要四条就够，即对应输出链路 0 1 2 3 。也就是说，能够使用 4 个转发表就可以实现亿级链路。</p>
+<blockquote>
+<p>如何实现呢？</p>
+</blockquote>
+<p>使用这种风格的转发表，路由器分组的地址 <code>前缀(prefix)</code> 会与该表中的表项进行匹配。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/7.png"></p>
+<p>如果存在一个匹配项，那么就会转发到对应的链路上，可能不好理解，我举个例子来说吧。</p>
+<p>比如这时有一个分组是 <code>11000011 10010101 00010000 0001100</code>到达，因为这个分组与 <code>11000011 10010101 00010000</code>相匹配，所以路由器会转发到 0 链路接口上。如果一个前缀不匹配上面三个输出链路中的一种，那么路由器将向链路接口 3 进行转发。</p>
+<p>路由匹配遵循 <code>最长前缀匹配原则(longest prefix matching rule)</code>，最长匹配原则故名思义就是如果有两个匹配项一个长一个短的话，<strong>就匹配最长的</strong>。</p>
+<p>一旦通过查找功能确定了分组的输出端口后，那么该分组就会<strong>进入交换结构</strong>。在进入交换结构时，如果交换结构正在被使用，<strong>就会阻塞新到的分组</strong>，等到交换结构调度新的分组。</p>
+<h4 id="交换结构"><a href="#交换结构" class="headerlink" title="交换结构"></a>交换结构</h4><p>交换结构是路由器的核心功能，通过交换功能把分组从输入端口转发至输出端口，这就是交换结构的主要功能。交换结构有多种形式，主要分为 <strong>通过内存交换、通过总线交换、通过互联网络进行交换</strong>，下面我们分开来探讨一下。</p>
+<ul>
+<li>经过内存交换：最开始的传统计算机就是使用<code>内存交换</code>的，在输入端口和输出端口之间是通过 CPU 进行的。输入端口和输出端口的功能就好像传统操作系统中的 I/O 设备一样。当一个分组到达输入端口时，这个端口会首先以<code>中断</code> 的方式向路由选择器发出信号，将分组从输入端口拷贝到内存中。然后，路由选择处理器从分组首部中提取目标地址，在转发表中找出适当的输出端口进行转发，同时将分组复制到输出端口的缓存中。这种方式比较低效，早期的路由器都是以这种方式实现的。</li>
+</ul>
+<blockquote>
+<p>这里需要注意一点，如果内存带宽以每秒读取或者写入 B 个数据包，那么总的交换机吞吐量(数据包从输入端口到输出端口的总速率) 必须小于 B/2。</p>
+</blockquote>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/8.png"></p>
+<ul>
+<li>经过总线交换：在这种处理方式中，总线经由输入端口<strong>直接</strong>将分组传送到输出端口，中间<strong>不需要路由选择器的干预</strong>。总线的工作流程如下：输入端口给分组分配一个<code>标签</code>，然后分组经由总线发送给<strong>所有的输出端口</strong>，每个输出端口都会判断标签中的端口和自己的是否匹配，如果匹配的话，那么这个输出端口就会把标签拆掉，这个标签只用于交换机内部跨越总线。如果同时有 <code>多个</code> 分组到达路由器的话，那么只有一个分组能够被处理，其他分组需要再进入交换结构前等待。也就是说这对总线的带宽要求很高。</li>
+</ul>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/9.png"></p>
+<ul>
+<li>经过互联网络交换：这是一种纵横式的交换网络。它能克服单一、共享式总线带宽限制。它使输入端口和输出端口两两之间都有一条网路。如下图所示</li>
+</ul>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/10.png"></p>
+<h4 id="输出端口处理"><a href="#输出端口处理" class="headerlink" title="输出端口处理"></a>输出端口处理</h4><p>如下图所示，输出端口处理取出已经存放在输出端口内存中的分组并将其发送到输出链路上。包括选择和去除排队的分组进行传输，执行所需的链路层和物理层的功能。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/11.png"></p>
+<p>在输入端口中有等待进入交换的排队队列，而在输出端口中<strong>有等待转发的排队队列</strong>，排队的位置和程度取决于<strong>流量负载、交换结构</strong>的相对频率和线路速率。</p>
+<p>随着队列的不断增加，会导致路由器的缓存空间被耗尽，进而使没有内存可以存储溢出的队列，致使分组出现<code>丢包(packet loss)</code>，这就是我们说的在网络中丢包或者被路由器丢弃。于是，接下来我们来讲一下排队。</p>
+<h3 id="路由器出现排队"><a href="#路由器出现排队" class="headerlink" title="路由器出现排队"></a>路由器出现排队</h3><p>下面我们通过输入端口的排队队列和输出端口的排队队列来介绍一下可能出现的排队情况。</p>
+<h4 id="输入队列-HOL阻塞"><a href="#输入队列-HOL阻塞" class="headerlink" title="输入队列(HOL阻塞)"></a>输入队列(HOL阻塞)</h4><p>如果<strong>交换结构的处理速度没有输入队列到达的速度快</strong>，在这种情况下，输入端口将会出现排队情况，到达交换结构前的分组会加入输入端口队列中，以等待通过交换结构传送到输出端口。</p>
+<p>为了描述清楚输入队列，我们假设以下情况：</p>
+<ul>
+<li>使用网络互联(crossbar)的交换方式；</li>
+<li>假定所有链路的速度相同；</li>
+<li>在链路中一个分组由输入端口交换到输出端口所花的时间相同，从任意一个输入端口传送到给定的输出端口；</li>
+<li>分组按照 FCFS 的方式，只要输出端口不同，就可以进行并行传送。但是如果位于任意两个输入端口中的分组是发往同一个目的地的，那么其中的一个分组将被阻塞，而且必须在输入队列中等待，因为交换结构一次只能传输一个到指定端口。</li>
+</ul>
+<p>如下图所示</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/12.png"></p>
+<p>在 A 队列中，输入队列中的两个分组会发送至同一个目的地 X，假设在交换结构正要发送 A 中的分组，在这个时候，C 队列中也有一个分组发送至 X，在这种情况下，C 中发送至 X 的分组将会等待，不仅如此，C 队列中发送至 Y 输出端口的分组也会等待，即使 Y 中没有出现竞争的情况。这种现象叫做 <code>线路前部阻塞(Head-Of-The-Line, HOL)</code> 。</p>
+<p>也就是说，在一个输入队列中排队的分组<strong>必须</strong>等待通过交换结构发送，即使输出端口是空的，因为它被位于线路前部的另一个分组所阻塞了。</p>
+<h4 id="输出队列"><a href="#输出队列" class="headerlink" title="输出队列"></a>输出队列</h4><p>我们下面讨论输出队列中出现等待的情况。假设<strong>交换速率要比输入/输出的传输速率快很多</strong>，而且有 N 个输入分组的目的地是转发至相同的输出端口。在这种情况下，在向输出链路发送分组的过程中，将会有 N 个新分组到达传输端口。因为输出端口在一个单位时间内只能传输一个分组，那么这 N 个分组将会等待。然而在等待 N 个分组被处理的过程中，同时又有 N 个分组到达，所以 ，分组队列能够在输出端口形成。这种情况下最终会因为分组数量变的足够大，从而<code>耗尽</code> 输出端口的可用内存。</p>
+<p>如果没有足够的内存来缓存分组的话，就必须考虑其他的方式，主要有两种：一种是丢失分组，采用 <code>弃尾(drop-tail)</code> 的方法；一种是删除一个或多个已经排队的分组，从而来为新的分组腾出空间。</p>
+<blockquote>
+<p>网络层的策略对 TCP 拥塞控制影响很大的就是路由器的分组丢弃策略。在最简单的情况下，路由器的队列通常都是按照 FCFS 的规则处理到来的分组。由于队列长度总是有限的，因此当队列已经满了的时候，以后再到达的所有分组（如果能够继续排队，这些分组都将排在队列的尾部）将都被丢弃。这就叫做尾部丢弃策略。</p>
+</blockquote>
+<p>通常情况下，在缓冲填满之前将其丢弃是更好的策略。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/13.png"></p>
+<p>如上图所示，A B C 每个输入端口都到达了一个分组，而且这个分组都是发往 X 的，同一时间只能处理一个分组，然后这时，又有两个分组分别由 A B 发往 X，所以此时有 4 个分组在 X 中进行等待。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/14.png"></p>
+<p>等上一个分组被转发完成后，输出端口就会选择在剩下的分组中根据 <code>分组调度(packet scheduleer)</code> 选择一个分组来进行传输，我们下面就会聊到分组调度</p>
+<p>那么我们一般怎么来计算一个合理的缓冲区呢？ 我们的目标是不能丢包，但可以忍受排队。设 N 为TCP流的数目， C为链路的数量，RTT为往返时间</p>
+<script type="math/tex; mode=display">
+Buffer = \frac{RTT\cdot C}{\sqrt N}</script><h3 id="分组调度"><a href="#分组调度" class="headerlink" title="分组调度"></a>分组调度</h3><p>现在我们来讨论一下分组调度次序的问题，即排队的分组如何经输出链路传输的问题。我们生活中有无数排队的例子，但是我们生活中一般的排队算法都是 <code>先来先服务(FCFS)</code>，也是<code>先进先出(FIFO)</code>。</p>
+<h4 id="先进先出"><a href="#先进先出" class="headerlink" title="先进先出"></a>先进先出</h4><p>先进先出就映射为数据结构中的<code>队列</code>，只不过它现在是链路调度规则的排队模型。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/15.png"></p>
+<p>FIFO 调度规则按照分组到达输出链路队列的相同次序来选择分组，先到达队列的分组将先会被转发。在这种抽象模型中，如果队列已满，那么弃尾的分组将是队列末尾的后面一个。</p>
+<h4 id="优先级排队"><a href="#优先级排队" class="headerlink" title="优先级排队"></a>优先级排队</h4><p>优先级排队是先进先出排队的改良版本，到达输出链路的分组被分类放入输出队列中的优先权类，如下图所示</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/16.png"></p>
+<p>通常情况下，每个优先级不同的分组有自己的优先级类，每个优先级类有自己的队列，分组传输会首先从优先级高的队列中进行，在同一类优先级的分组之间的选择通常是以 FIFO 的方式完成。</p>
+<h4 id="循环加权公平排队"><a href="#循环加权公平排队" class="headerlink" title="循环加权公平排队"></a>循环加权公平排队</h4><p>在<code>循环加权公平规则(round robin queuing discipline)</code> 下，分组像使用优先级那样被分类。然而，在类之间却<strong>不存在严格的服务优先权</strong>。循环调度器在这些类之间循环轮流提供服务。如下图所示</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/17.png"></p>
+<p>在循环加权公平排队中，类 1 的分组被传输，接着是类 2 的分组，最后是类 3 的分组，这算是一个循环，然后接下来又重新开始，又从 1 -&gt; 2 -&gt; 3 这个顺序进行轮询。每个队列也是一个先入先出的队列。</p>
+<p>这是一种所谓的<code>保持工作排队(work-conserving queuing)</code> 的规则，就是说如果轮询的过程中发现有空队列，输出端口不会等待分组，而是继续轮询下面的队列。</p>
+<h3 id="IP-协议"><a href="#IP-协议" class="headerlink" title="IP 协议"></a>IP 协议</h3><p>路由器对分组进行转发后，就会把数据包传到网络上，数据包最终是要传递到客户端或者服务器上的，那么数据包怎么知道要发往哪里呢？起到关键作用的就是 IP 协议。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/18.png"></p>
+<p>IP 主要分为三个部分，分别是 <strong>IP 寻址、路由和分包组包</strong>。下面我们主要围绕这三点进行阐述。</p>
+<h4 id="IP地址"><a href="#IP地址" class="headerlink" title="IP地址"></a>IP地址</h4><p>既然一个数据包要在网络上传输，那么肯定需要知道这个数据包到底发往哪里，也就是说需要一个目标地址信息，<strong>IP 地址就是连接网络中的所有主机进行通信的目标地址</strong>，因此，在网络上的每个主机都需要有自己的 IP 地址。</p>
+<p>在 IP 数据报发送的链路中，有可能链路非常长，比如说由中国发往美国的一个数据报，由于网络抖动等一些意外因素可能会导致数据报丢失，这时我们在这条链路中会放入一些 <code>中转站</code>，一方面能够确保数据报是否丢失，另一方面能够控制数据报的转发，这个中转站就是我们前面聊过的路由器，这个转发过程就是 <code>路由控制</code>。</p>
+<p><code>路由控制(Routing)</code> 是指将分组数据发送到最终目标地址的功能，即使网络复杂多变，也能够通过路由控制到达目标地址。因此，一个数据报能否到达目标主机，关键就在于路由器的控制。</p>
+<p>这里有一个名词，就是 <code>跳</code>，因为在一条链路中可能会布满很多路由器，路由器和路由器之间的数据报传送就是跳，比如你和隔壁老王通信，中间就可能会经过路由器 A-&gt; 路由器 B -&gt; 路由器 C 。</p>
+<blockquote>
+<p>那么一跳的范围有多大呢？</p>
+</blockquote>
+<p><strong>一跳是指从源 MAC 地址到目标 MAC 地址之间传输帧的区间</strong>，这里引出一个新的名词，MAC 地址是啥？</p>
+<p>MAC 地址指的就是计算机的<code>物理地址(Physical Address)</code>，它是用来确认网络设备位置的地址。在 OSI 网络模型中，网络层负责 IP 地址的定位，而数据链路层负责 MAC 地址的定位。MAC 地址用于在网络中<strong>唯一标示一个网卡</strong>，一台设备若有一或多个网卡，则每个网卡都需要并会有一个唯一的 MAC 地址，也就是说 MAC 地址和网卡是紧密联系在一起的。</p>
+<p>路由器的每一跳都需要询问当前中转的路由器，下一跳应该跳到哪里，从而跳转到目标地址。而不是数据报刚开始发送后，网络中所有的通路都会显示出来。这种多次跳转也叫做<code>多跳路由</code>。在一定数量的<code>跳</code> 之后，数据报就会失去作用，被丢掉。</p>
+<h5 id="IP地址的定义"><a href="#IP地址的定义" class="headerlink" title="IP地址的定义"></a>IP地址的定义</h5><p>现如今有两个版本的 IP 地址，IPv4 和 IPv6，我们首先探讨一下现如今还在广泛使用的 IPv4 地址，后面再考虑 IPv6 。</p>
+<p>IPv4 由 32 位正整数来表示，在计算机内部会转化为二进制来处理，但是二进制不符合人类阅读的习惯，所以我们根据<code>易读性</code>的原则把 32 位的 IP 地址以 8 位为一组，分成四组，每组之间以 <code>.</code> 进行分割，再将每组转换为十进制数。如下图所示</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/20.png" style="zoom:50%;"></p>
+<p>那么上面这个 32 位的 IP 地址就会被转换为十进制的 156.197.1.1。</p>
+<p>除此之外，从图中我们还可以得到如下信息</p>
+<p>每个这样 8 位位一组的数字，自然是非负数，其取值范围是 [0,255]。</p>
+<p>IP 地址的总个数有 $2^{32}$次幂个，这个数值算下来是 <code>4294967296</code> ，大概能允许 43 亿台设备连接到网络。实际上真的如此吗？</p>
+<p>实际上 IP 不会以主机的个数来配置的，而是根据设备上的 <code>网卡(NIC)</code> 进行配置，每一块网卡都会设置一个或者多个 IP 地址，而且通常一台路由器会有至少两块网卡，所以可以设置两个以上的 IP 地址，所以主机的数量远远达不到 43 亿。 </p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/21.png" style="zoom:50%;"></p>
+<h5 id="保留IP地址"><a href="#保留IP地址" class="headerlink" title="保留IP地址"></a>保留IP地址</h5><p>在IPv4 的几类地址中，有几个保留的地址空间不能在互联网上使用。这些地址用于特殊目的，不能在局域网外部路由。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/25.png" style="zoom:50%;"></p>
+<h5 id="IP-地址构造和分类"><a href="#IP-地址构造和分类" class="headerlink" title="IP 地址构造和分类"></a>IP 地址构造和分类</h5><p>IP 地址由 <code>网络标识</code> 和 <code>主机标识</code> 两部分组成，网络标识代表着网络地址，主机标识代表着主机地址。网络标识在数据链路的每个段配置不同的值。网络标识必须保证相互连接的每个段的地址都不重复。而相同段内相连的主机必须有相同的网络地址。IP 地址的 <code>主机标识</code> 则不允许在同一网段内重复出现。</p>
+<h5 id="子网"><a href="#子网" class="headerlink" title="子网"></a>子网</h5><p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/22.png" style="zoom:50%;"></p>
+<p>为了确定网络区域，分开主机和路由器的每个接口，从而产生了若干个分离的网络岛，接口端连接了这些独立网络的端点。这些独立的网络岛叫做<strong>子网</strong></p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/24.png" style="zoom:50%;"></p>
+<p>上图一共有6个子网，因为根据定义，分开主机和路由器的每个接口所产生的网络岛都算一个子网。</p>
+<h5 id="子网掩码"><a href="#子网掩码" class="headerlink" title="子网掩码"></a>子网掩码</h5><p><code>子网掩码(subnet mask)</code> 又叫做网络掩码，它是一种用来指明一个 IP 地址的哪些位标识的是主机所在的网络。子网掩码用于屏蔽 IP 地址的一部分<strong>以区别网络标识和主机标识</strong>。 比如说：</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/23.png" style="zoom:50%;"></p>
+<p>上图中子网掩码有24位，也就是高位的24位相同的计算机IP地址属于一个子网。剩下的8位用来作为主机标识。也就是说，我们只要知道子网掩码，就可以计算出这个子网中最多有多少计算机(需要减去 0.0.0.0 和1.1.1.1) </p>
+<p>从上面的介绍也可以看出，在一个子网中，如果主机多的话，是很容易导致地址冲突的，为此我们接下来要介绍动态地址分配协议: DHCP</p>
+<h4 id="DHCP"><a href="#DHCP" class="headerlink" title="DHCP"></a>DHCP</h4><p>DHCP 的全称是： Dynamic Host Configuration Protocol .</p>
+<p>首先在这个子网中有一个跑着DHCP的 Server. 它能帮助主机自动配置地址。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/28.png"></p>
+<p>DHCP server和client 之间的对话过程如上图所示。</p>
+<ul>
+<li>一开始client是没有地址的，因此默认为 0.0.0.0，向全域进行广播(广播地址是 255.255.255.255)。</li>
+<li>DHCP server听到后会给予回应，向需要IP的主机提供IP地址(以下图为例): 223.1.2.4, 网络掩码: 223.1.2.0/24, 默认路由器: 223.1.2.5 以及本地DNS服务器的IP地址.</li>
+<li>client收到后还是进行广播(因为此时仍然没有给其分配地址)</li>
+<li>最后DHCP server会响应DHCP ACK报文，此时client正式拥有了地址</li>
+</ul>
+<p>这边IP地址是有<strong>租约</strong>的，为3600秒，在这之后如果主机还在线，则可以<strong>续约</strong>。</p>
+<p><strong>DHCP不光会告诉你在子网的IP地址，还会告诉你DNS，网关和子网掩码。</strong></p>
+<p>DHCP是应用层协议，其底层是通过UDP实现的。</p>
+<h4 id="路由聚集"><a href="#路由聚集" class="headerlink" title="路由聚集"></a>路由聚集</h4><p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/29.png"></p>
+<p>ISP会下发IP地址，同时通告那些IP地址是我管辖的。</p>
+<p>ISP又会向ICANN申请地址。</p>
+<p>那么路由聚集有什么好处呢？ 答：可以方便管理。因为我总不能每买一台电脑就像电信局打电话申请一个IP地址，肯定是在一个子网里面分配地址。这样一来，意味着一个子网只通过接入IP地址的<strong>部分前缀</strong>和外部因特网相连, 外界并不关心子网内还存在着多个组织, 这种使用单个网络前缀通告多个网络的能力通常称为路由聚集。而且这个做法相当大地减少了在这些路由器中转发表的长度. </p>
+<p>那么子网中不同的电脑怎么和外界进行交流呢？ 比如下图，子网中有三台电脑，IP地址各不相同，但是出去的时候，都是一个地址 <code>138.76.29.7</code> . 在子网中，通过不同的端口来判断不同的主机</p>
+<ul>
+<li>10.0.0.1 这个主机要通过3345端口发送一条信息</li>
+<li>信息交给NAT router之后，就变成 138.76.29.7 ，5001端口发出</li>
+<li>反馈信息在138.76.29.7 的5001端口收到之后，经过NAT router之后就传到变成10.0.0.1的3345串口</li>
+</ul>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/30.png"></p>
+<h4 id="IPV4"><a href="#IPV4" class="headerlink" title="IPV4"></a>IPV4</h4><p>IPv4 的全称是 <code>Internet Protocol version 4</code>，是 Internet 协议的第四版。IPv4 是一种无连接的协议，这个协议会尽最大努力交付数据包，也就是说它不能保证任何数据包能到达目的地，也不能保证所有的数据包都会按照正确的顺序到达目标主机，这些都是由上层比如传输控制协议控制的。也就是说，单从 IP 看来，这是一个不可靠的协议。</p>
+<blockquote>
+<p>前面我们讲过网络层分组被称为 <code>数据报</code>，所以我们接下来的叙述也会围绕着数据报展开。</p>
+</blockquote>
+<p>IPv4 的数据报格式如下</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/19.png"></p>
+<p>上图我们也看出来了，TCP和数据报报文段首部都是20字节，加在一起，40字节是必要的。</p>
+<p>在IP数据报中有很多信息：</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/1.jpg" style="zoom:50%;"></p>
+<ul>
+<li><code>版本字段(Version)</code>占用 4 bit，通信双方使用的版本必须一致，对于 IPv4 版本来说，字段值是 4。</li>
+<li><code>首部长度(Internet Header Length)</code> 占用 4 bit，首部长度说明首部有多少 32 位(4 字节)。由于 IPv4 首部可能包含不确定的选项，因此这个字段被用来确定数据的偏移量。大多数 IP 不包含这个选项，所以一般首部长度设置为 5， 数据报为 20 字节 。</li>
+<li><code>服务类型(Differential Services Codepoint，DSCP)</code> 占用 6 bit，以便使用不同的 IP 数据报，比如一些低时延、高吞吐量和可靠性的数据报。服务类型如下表所示</li>
+</ul>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/26.png" style="zoom:50%;"></p>
+<ul>
+<li><p><code>拥塞通告(Explicit Congestion Notification，ECN)</code> 占用 2 bit，它允许在不丢弃报文的同时通知对方网络拥塞的发生。ECN 是一种可选的功能，仅当两端都支持并希望使用，且底层网络支持时才被使用。 最开始 DSCP 和 ECN 统称为 TOS，也就是区分服务，但是后来被细化为了 DSCP 和 ECN。</p>
+</li>
+<li><p><code>数据报长度(Total Length)</code> 占用 16 bit，这 16 位是包括在数据在内的总长度，理论上数据报的总长度为 2 的 16 次幂 - 1，最大长度是 65535 字节，但是实际上数据报很少有超过 1500 字节的。IP 规定所有主机都必须支持最小 576 字节的报文，但大多数现代主机支持更大的报文。当下层的数据链路协议的<code>最大传输单元（MTU）</code>字段的值小于 IP 报文长度时，报文就必须被分片。</p>
+</li>
+<li><p><code>标识符(Identification)</code> 占用 16 bit，这个字段用来标识所有的分片，因为分片不一定会按序到达，所以到达目标主机的所有分片会进行重组，每产生一个数据报，计数器加1，并赋值给此字段。</p>
+</li>
+<li><p><code>标志(Flags)</code> 占用 3 bit，标志用于控制和识别分片，这 3 位分别是</p>
+<ul>
+<li>0 位：保留，必须为0；</li>
+<li>1 位：<code>禁止分片（Don’t Fragment，DF）</code>，当 DF = 0 时才允许分片；</li>
+<li>2 位：<code>更多分片（More Fragment，MF）</code>，MF = 1 代表后面还有分片，MF = 0 代表已经是最后一个分片。</li>
+</ul>
+<p>如果 DF 标志被设置为 1 ，但是路由要求必须进行分片，那么这条数据报回丢弃</p>
+</li>
+<li><p><code>分片偏移(Fragment Offset)</code> 占用 13 位，它指明了每个分片相对于原始报文开头的偏移量，以 8 字节作单位。</p>
+</li>
+<li><p><code>存活时间(Time To Live，TTL)</code> 占用 8 位，存活时间避免报文在互联网中<code>迷失</code>，比如陷入路由环路。存活时间以秒为单位，但小于一秒的时间均向上取整到一秒。在现实中，这实际上成了一个跳数计数器：报文经过的每个路由器都将此字段减 1，当此字段等于 0 时，报文不再向下一跳传送并被丢弃，这个字段最大值是 255。</p>
+</li>
+<li><p><code>协议(Protocol)</code> 占用 8 位，这个字段定义了报文数据区使用的协议。协议内容可以在 <a href="https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml" target="_blank" rel="noopener">https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml</a> 官网上获取。比如值为6表明交给TCP, 值为17表明交给UDP.</p>
+</li>
+<li><p><code>首部校验和(Header Checksum)</code> 占用 16 位，首部校验和会对字段进行纠错检查，在每一跳中，路由器都要重新计算出的首部检验和并与此字段进行比对，如果不一致，此报文将会被丢弃。</p>
+</li>
+<li><p><code>源地址(Source address)</code> 占用 32 位，它是 IPv4 地址的构成条件，源地址指的是数据报的发送方</p>
+</li>
+<li><p><code>目的地址(Destination address)</code>占用 32 位，它是 IPv4 地址的构成条件，目标地址指的是数据报的接收方</p>
+</li>
+<li><p><code>选项(Options)</code> 是附加字段，选项字段占用 1 - 40 个字节不等，一般会跟在目的地址之后。如果首部长度 &gt; 5，就应该考虑选项字段。</p>
+</li>
+<li><p><code>数据</code> 不是首部的一部分，因此并不被包含在首部检验和中。</p>
+</li>
+</ul>
+<h5 id="IPv4-分片"><a href="#IPv4-分片" class="headerlink" title="IPv4 分片"></a>IPv4 分片</h5><p>一个链路层帧能承载的最大数据量叫做<code>最大传输单元(Maximum Transmission Unit, MTU)</code>，每个 IP 数据报封装在链路层帧中从一台路由器传到下一台路由器。因为每个链路层所支持的最大 MTU 不一样，当数据报的大小超过 MTU 后，会在链路层进行分片，每个数据报会在链路层单独封装，每个较小的片都被称为 <code>片(fragement)</code>。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/27.png" style="zoom:50%;"></p>
+<p>每个片在到达目的地后会进行重组，准确的来说是在运输层之前会进行重组，TCP 和 UDP 都会希望发送完整的、未分片的报文，出于性能的原因，分片重组不会在路由器中进行，而是会在目标主机中进行重组。</p>
+<p>当目标主机收到从发送端发送过来的数据报后，它需要确定这些数据报中的分片是否是由源数据报分片传递过来的，如果是的话，还需要确定何时收到了分片中的<code>最后一片</code>，并且这些片会如何拼接一起成为数据报。</p>
+<p>针对这些潜在的问题，IPv4 设计者将 <strong>标识、标志和片偏移</strong>放在 IP 数据报首部中。当生成一个数据报时，发送主机会为该数据报设置源和目的地址的同时贴上<code>标识号</code>。发送主机通常将它发送的每个数据报的标识 + 1。当某路由器需要对一个数据报分片时，形成的每个数据报具有初始数据报的<strong>源地址、目标地址和标识号</strong>。当目的地从同一发送主机收到一系列数据报时，它能够检查数据报的标识号以确定哪些数据是由源数据报发送过来的。由于 IP 是一种不可靠的服务，分片可能会在网路中丢失，鉴于这种情况，通常会把分片的最后一个比特设置为 0 ，其他分片设置为 1，同时使用偏移字段指定分片应该在数据报的哪个位置。</p>
+<h5 id="IPv4-寻址"><a href="#IPv4-寻址" class="headerlink" title="IPv4 寻址"></a>IPv4 寻址</h5><p>IPv4 支持三种不同类型的寻址模式，分别是</p>
+<ul>
+<li>单播寻址模式：在这种模式下，数据只发送到一个目的地的主机。</li>
+</ul>
+<h4 id="IPv6"><a href="#IPv6" class="headerlink" title="IPv6"></a>IPv6</h4><p>随着端系统接入的越来越多，IPv4 已经无法满足分配了，所以，IPv6 应运而生，IPv6 就是为了解决 IPv4 的地址耗尽问题而被标准化的网际协议。IPv4 的地址长度为 4 个 8 字节，即 32 比特， 而 IPv6 的地址长度是原来的四倍，也就是 128 比特，一般写成 8 个 16 位字节。</p>
+<p>从 IPv4 切换到 IPv6 及其耗时，需要将网络中所有的主机和路由器的 IP 地址进行设置，在互联网不断普及的今天，替换所有的 IP 是一个工作量及其庞大的任务。我们后面会说。</p>
+<p>我们先来看一下 IPv6 的地址是怎样的</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/31.png" style="zoom:50%;"></p>
+<ul>
+<li><code>版本</code>与 IPv4 一样，版本号由 4 bit 构成，IPv6 版本号的值为 6。</li>
+<li><code>流量类型(Traffic Class)</code> 占用 8 bit，它就相当于 IPv4 中的服务类型(Type Of Service)。</li>
+<li><code>流标签(Flow Label)</code> 占用 20 bit，这 20 比特用于标识一条数据报的流，能够对一条流中的某些数据报给出优先权，或者它能够用来对来自某些应用的数据报给出更高的优先权，只有流标签、源地址和目标地址一致时，才会被认为是一个流。</li>
+<li><code>有效载荷长度(Payload Length)</code> 占用 16 bit，这 16 比特值作为一个无符号整数，它给出了在 IPv6 数据报中跟在鼎昌 40 字节数据报首部后面的字节数量。</li>
+<li><code>下一个首部(Next Header)</code> 占用 8 bit，它用于标识数据报中的内容需要交付给哪个协议，是 TCP 协议还是 UDP 协议。</li>
+<li><code>跳限制(Hop Limit)</code> 占用 8 bit，这个字段与 IPv4 的 TTL 意思相同。数据每经过一次路由就会减 1，减到 0 则会丢弃数据。</li>
+<li><code>源地址(Source Address)</code> 占用 128 bit (8 个 16 位 )，表示发送端的 IP 地址。</li>
+<li><code>目标地址(Destination Address)</code> 占用 128 bit (8 个 16 位 )，表示接收端 IP 地址。</li>
+</ul>
+<p>可以看到，相较于 IPv4 ，IPv6 取消了下面几个字段</p>
+<ul>
+<li><strong>标识符、标志和比特偏移</strong>：IPv6 不允许在中间路由器上进行分片和重新组装。这种操作只能在端系统上进行，IPv6 将这个功能放在端系统中，加快了网络中的转发速度。</li>
+<li><strong>首部校验和</strong>：因为在运输层和数据链路执行了报文段完整性校验工作，IP 设计者大概觉得在网络层中有首部校验和比较多余，所以去掉了。<strong>IP 更多专注的是快速处理分组数据</strong>。</li>
+<li><strong>选项字段</strong>：选项字段不再是标准 IP 首部的一部分了，但是它并没有消失，而是可能出现在 IPv6 的扩展首部，也就是下一个首部中。</li>
+</ul>
+<h4 id="IPv6-扩展首部"><a href="#IPv6-扩展首部" class="headerlink" title="IPv6 扩展首部"></a>IPv6 扩展首部</h4><p>IPv4 首部长度固定，无法将选项字段加入其中，取而代之的是 IPv6 使用了<code>扩展首部</code></p>
+<p>扩展首部通常介于 IPv6 首部与 TCP/UDP 首部之间，在 IPv4 中可选长度固定为 40 字节，在 IPv6 中没有这样的限制。IPv6 的扩展首部可以是任意长度。扩展首部中还可以包含扩展首部协议和下一个扩展字段。</p>
+<p>IPv6 首部中没有标识和标志字段，<strong>对 IP 进行分片时，需要使用到扩展首部</strong>。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/32.png" style="zoom:50%;"></p>
+<p>具体的扩展首部表如下所示</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/33.png" style="zoom:50%;"></p>
+<p>下面我们来看一下 IPv6 都有哪些特点</p>
+<h4 id="IPv6-特点"><a href="#IPv6-特点" class="headerlink" title="IPv6 特点"></a>IPv6 特点</h4><p>IPv6 的特点在 IPv4 中得以实现，但是即便实现了 IPv4 的操作系统，也未必实现了 IPv4 的所有功能。而 IPv6 却将这些功能大众化了，也就表明这些功能在 IPv6 已经进行了实现，这些功能主要有</p>
+<ul>
+<li><strong>地址空间变得更大</strong>：这是 IPv6 最主要的一个特点，即支持更大的地址空间。</li>
+<li><strong>精简报文结构</strong>: IPv6 要比 IPv4 精简很多，IPv4 的报文长度不固定，而且有一个不断变化的选项字段；IPv6 报文段固定，并且将选项字段，分片的字段移到了 IPv6 扩展头中，这就极大的精简了 IPv6 的报文结构。</li>
+<li><strong>实现了自动配置</strong>：IPv6 支持其主机设备的<strong>状态和无状态</strong>自动配置模式。这样，没有 <code>DHCP 服务器</code>不会停止跨段通信。</li>
+<li><strong>层次化的网络结构</strong>： IPv6 不再像 IPv4 一样按照 A、B、C等分类来划分地址，而是通过 IANA -&gt; RIR -&gt; ISP 这样的顺序来分配的。IANA 是国际互联网号码分配机构，RIR 是区域互联网注册管理机构，ISP 是一些运营商（例如电信、移动、联通）。</li>
+<li><strong>IPSec</strong>：IPv6 的扩展报头中有一个认证报头、封装安全净载报头，这两个报头是 IPsec 定义的。通过这两个报头网络层自己就可以实现端到端的安全，而无需像 IPv4 协议一样需要其他协议的帮助。</li>
+<li><strong>支持任播</strong>：IPv6 引入了一种新的寻址方式，称为任播寻址。</li>
+</ul>
+<h4 id="IPv6-地址"><a href="#IPv6-地址" class="headerlink" title="IPv6 地址"></a>IPv6 地址</h4><p>我们知道，IPv6 地址长度为 128 位，他所能表示的范围是 2 ^ 128 次幂，这个数字非常庞大，几乎涵盖了你能想到的所有主机和路由器，那么 IPv6 该如何表示呢？</p>
+<p>一般我们将 128 比特的 IP 地址以每 16 比特为一组，并用 <code>:</code> 号进行分隔，如果出现连续的 0 时还可以将 0 省略，并用 <code>::</code> 两个冒号隔开，记住，一个 IP 地址只允许出现一次两个连续的冒号。</p>
+<p>下面是一些 IPv6 地址的示例</p>
+<ul>
+<li>二进制数表示</li>
+</ul>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/34.png" style="zoom:50%;"></p>
+<ul>
+<li>用十六进制数表示</li>
+</ul>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/35.png" style="zoom:50%;"></p>
+<ul>
+<li>出现两个冒号的情况</li>
+</ul>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/36.png" style="zoom:50%;"></p>
+<p>如上图所示，A120 和 4CD 中间的 0 被 :: 所取代了。</p>
+<h3 id="如何从-IPv4-迁移到-IPv6"><a href="#如何从-IPv4-迁移到-IPv6" class="headerlink" title="如何从 IPv4 迁移到 IPv6"></a>如何从 IPv4 迁移到 IPv6</h3><p>我们上面聊了聊 IPv4 和 IPv6 的报文格式、报文含义是什么、以及 IPv4 和 IPv6 的特征分别是什么，看完上面的内容，你已经知道了 IPv4 现在马上就变的不够用了，而且随着 IPv6 的不断发展和引用，虽然新型的 IPv6 可以做到<code>向后兼容</code>，即 IPv6 可以收发 IPv4 的数据报，但是<strong>已经部署的具有 IPv4 能力的系统却不能够处理 IPv6 数据报</strong>。所以 IPv4 噬需迁移到 IPv6，迁移并不意味着将 IPv4 替换为 IPv6。这仅意味着同时启用 IPv6 和 IPv4。</p>
+<blockquote>
+<p>那么现在就有一个问题了，IPv4 如何迁移到 IPv6 呢？这就是我们接下来讨论的重点。</p>
+</blockquote>
+<h4 id="标志"><a href="#标志" class="headerlink" title="标志"></a>标志</h4><p>最简单的方式就是设置一个标志日，指定某个时间点和日期，此时全球的因特网机器都会在这时关机从 IPv4 迁移到 IPv6 。上一次重大的技术迁移是在 35 年前，但是很显然，不用我过多解释，这种情况肯定是 <code>不行的</code>。影响不可估量不说，如何保证全球人类都能知道如何设置自己的 IPv6 地址？一个设计数十亿台机器的标志日现在是想都不敢想的。</p>
+<h4 id="隧道技术"><a href="#隧道技术" class="headerlink" title="隧道技术"></a>隧道技术</h4><p>现在已经在实践中使用的从 IPv4 迁移到 IPv6 的方法是 <code>隧道技术(tunneling)</code>。</p>
+<blockquote>
+<p>什么是隧道技术呢？</p>
+</blockquote>
+<p>隧道技术是一种使用互联网络的基础设施在网络之间的传输数据的方式，使用隧道传递的数据可以是不同协议的数据帧或包。使用隧道技术所遵从的协议叫做<code>隧道协议(tunneling protocol)</code>。隧道协议会将这些协议的数据帧或包封装在新的包头中发送。新的包头提供了路由信息，从而使封装的负载数据能够通过互联网络进行传递。</p>
+<p>使用隧道技术一般都会建一个<code>隧道</code>，建隧道的依据如下：</p>
+<p>比如两个 IPv6 节点(下方 B、E)要使用 IPv6 数据报进行交互，但是它们是经由两个 IPv4 的路由器进行互联的。那么我们就需要将 IPv6 节点和 IPv4 路由器组成一个隧道，如下图所示</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/37.png" style="zoom:50%;"></p>
+<p>借助于隧道，在隧道发送端的 IPv6 节点可将整个 IPv6 数据报<strong>放到一个 IPv4 数据报的<code>数据(有效载荷)</code> 字段中</strong>，于是，IPv4 数据报的地址被设置为指向隧道接收端的 IPv6 的节点，比如上面的 E 节点。然后再发送给隧道中的第一个节点 C，如下所示</p>
+<p> <img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/38.png" style="zoom:50%;"></p>
+<p>隧道中间的 IPv4 提供路由，路由器不知道这个 IPv4 内部包含一个指向 IPv6 的地址。隧道接收端的 IPv6 节点收到 IPv4 数据报，会确定这个 IPv4 数据报含有一个 IPv6 数据报，通过观察数据报长度和数据得知。然后取出 IPv6 数据报，再为 IPv6 提供路由，就好像两个节点直接相连传输数据报一样。</p>
+<h3 id="通用转发与SDN-软件定义网络"><a href="#通用转发与SDN-软件定义网络" class="headerlink" title="通用转发与SDN(软件定义网络)"></a>通用转发与SDN(软件定义网络)</h3><p>现在我们来讲通用转发和SDN, 其核心技术OpenFlow通过将网络设备的控制面与数据面分离开来，从而实现了网络流量的灵活控制，使网络作为管道变得更加智能，为核心网络及应用的创新提供了良好的平台。</p>
+<p>在前面说的转发中，首先要查找目的IP地址(匹配)，然后将分组发送到特定输出端口(动作)。现在说的通用转发则是在一张表中就实现<code>匹配加动作</code>模式。而基于目的的转发可能意味着路由转发表非常庞大，且功能单一，不具有普遍性</p>
+<p>下图就是SDN的模式</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/39.png" style="zoom:50%;"></p>
+<p>利用分层的思想，SDN将数据与控制相分离。在控制层，包括具有逻辑中心化和可编程的控制器，可掌握全局网络信息。在数据层，包括交换机，仅提供简单的数据转发功能，可以快速处理匹配的数据包，适应流量日益增长的需求。两层之间采用开放的统一接口（如OpenFlow等）进行交互。控制器通过标准接口向交换机下发统一标准规则，交换机仅需按照这些规则执行相应的动作即可</p>
+<p>使用了这张本地流表，当路由器收到一些垃圾网站的地址时，就可以直接丢弃了，相当于防火墙的功能。</p>
+<h4 id="通用转发规则"><a href="#通用转发规则" class="headerlink" title="通用转发规则"></a>通用转发规则</h4><ul>
+<li><p>Pattern: match values in packet header fields</p>
+</li>
+<li><p>Actions: for matched packet: drop, forward, modify, matched packet or send matched packet to controller </p>
+</li>
+<li><p>Priority: disambiguate overlapping patterns</p>
+</li>
+<li><p>Counters: #bytes and #packets</p>
+</li>
+</ul>
+<p>下面是一张流表，* 是通配符。比如收到来自<code>1.2.*.*</code> 的数据报就直接丢掉</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/40.png" style="zoom:50%;"></p>
+<p>Openflow 可以通过MAC地址进行匹配,也可以通过IP地址进行匹配。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/41.png" style="zoom:50%;"></p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/42.png" style="zoom:50%;"></p>
+<ul>
+<li>第一个例子，从 <code>51.6.0.8</code>来的包就转发到port6</li>
+<li>第二个例子，只要通过端口号22来的包就直接扔掉</li>
+<li>第三个例子，所有来自主机 <code>128.119.1.1</code> 发来的包就直接丢掉</li>
+<li>第四个例子，屏蔽了某个特殊的MAC地址</li>
+</ul>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/43.png" style="zoom:50%;"></p>
+<h5 id="例1"><a href="#例1" class="headerlink" title="例1"></a>例1</h5><p>P19. Consider the SDN OpenFlow network shown in Figure 4.30 . Suppose that the desiredforwarding behavior for datagrams arriving at s2 is as follows:</p>
+<ul>
+<li>any datagrams arriving on input port 1 from hosts h5 or h6 that are destined to hosts h1 or h2 should be forwarded over output port 2;</li>
+<li>any datagrams arriving on input port 2 from hosts h1 or h2 that are destined to hosts h5 or h6 should be forwarded over output port 1;</li>
+<li>any arriving datagrams on input ports 1 or 2 and destined to hosts h3 or h4 should be delivered to the host specified;</li>
+<li>hosts h3 and h4 should be able to send datagrams to each other</li>
+</ul>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/44.png" style="zoom:50%;"></p>
+<p>Specify the flow table entries in s2 that implement this forwarding behavior</p>
+<p>对于S2来说，接口1收到来自h5或者h6的包之后，需要通过接口2来转发给h1或者h2</p>
+<p>同样的，接口2收到来自h1或者h2的包之后，需要通过接口1来转发给h5或者h6</p>
+<p>因此可以这样写：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>匹配</th>
+<th>动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ingress Port = 1,src= <code>10.3.*.*</code> ,Dst = <code>10.1.*.*</code></td>
+<td>Forward(2)</td>
+</tr>
+<tr>
+<td>Ingress Port = 2,src= <code>10.1*.*</code> ,Dst = <code>10.3.*.*</code></td>
+<td>Forward(1)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>对于第三条要求，从接口1、2收到的数据报，要通过接口3、4定向发送到h3和h4</p>
+<p>因此可以这样写：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>匹配</th>
+<th>动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ingress Port = 1,Dst = <code>10.2.0.3</code></td>
+<td>Forward(3)</td>
+</tr>
+<tr>
+<td>Ingress Port = 1,Dst = <code>10.2.0.4</code></td>
+<td>Forward(4)</td>
+</tr>
+<tr>
+<td>Ingress Port = 2,Dst = <code>10.2.0.3</code></td>
+<td>Forward(3)</td>
+</tr>
+<tr>
+<td>Ingress Port = 2,Dst = <code>10.2.0.4</code></td>
+<td>Forward(4)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>对于第四条要求，h3和h4可以通过接口互相传信息</p>
+<p>因此可以这样写：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>匹配</th>
+<th>动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ingress Port = 4,src= <code>10.2.0.4</code> ,Dst = <code>10.2.0.3</code></td>
+<td>Forward(3)</td>
+</tr>
+<tr>
+<td>Ingress Port = 3 ,src= <code>10.2.0.3</code> ,Dst = <code>10.2.0.4</code></td>
+<td>Forward(4)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/45.png" style="zoom:50%;"></p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>匹配</th>
+<th>动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ingress Port=<code>3</code>    Dst=<code>10.1.*.*</code></td>
+<td>Forward(2)</td>
+</tr>
+<tr>
+<td>Ingress Port=<code>3</code>    Dst=<code>10.3.*.*</code></td>
+<td>Forward(2)</td>
+</tr>
+<tr>
+<td>Ingress Port=<code>4</code>    Dst=<code>10.1.*.*</code></td>
+<td>Forward(1)</td>
+</tr>
+<tr>
+<td>Ingress Port=<code>4</code>    Dst=<code>10.3.*.*</code></td>
+<td>Forward(1)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>也就是说，来自h3主机的会从s2的接口2转发到s1，并由s1转发到h1、h2,或者再转发到s3, 这样就是顺时针转发</p>
+<p>同样的，来自h4主机的包会在s2的接口1直接转发给s3，然后再有s3转发给s1，这就是逆时针方向</p>
+<h2 id="控制层面"><a href="#控制层面" class="headerlink" title="控制层面"></a>控制层面</h2><p>传统上，控制平面功能与数据平面的转发功能在一起实现，在路由器中作为统一的整体。 但是在SDN中，在数据平面和控制平面做出了明确的分割，在一台分离的”控制器”服务中实现了控制平面功能，该<strong>控制器服务</strong>与<strong>它所控制的路由器转发组件</strong>完全分开并远离</p>
+<p>在这个部分，我们将学习转发表和流表是如何计算、维护和安装的。下面给出了两种控制平面和数据平面的方案。</p>
+<p><strong>每路由器控制：在控制平面中各个路由选择算法相互作用</strong></p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/46.png" style="zoom:50%;"></p>
+<p><strong>逻辑集中式控制：一个完全分开的(Normally remote)控制器与本地控制代理交互</strong> 这对路由器的计算能力的要求可以没那么高。而且能够统一化接口，对品牌的差异性要求不大。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/47.png" style="zoom:50%;"></p>
+<h3 id="路由选择算法"><a href="#路由选择算法" class="headerlink" title="路由选择算法"></a>路由选择算法</h3><p>路由选择算法的目的是从发送方到接收方的过程中确定一条通过路由器网络的<strong>好的路径</strong>。 因为无论是<strong>每路由器控制方法</strong>还是<strong>逻辑集中式控制方法</strong>，发送过程中必定总是要经过一条定义良好的一连串路由器路径。</p>
+<p>在数据结构中，我们学过在图中找一条最短路径的算法，如Djkstra 算法和 Bellman-Ford算法。 它们分别对应着<strong>链路状态路由选择算法(link state)</strong>和<strong>距离向量路由选择方法(distance vector)</strong></p>
+<h4 id="链路状态路由选择算法"><a href="#链路状态路由选择算法" class="headerlink" title="链路状态路由选择算法"></a>链路状态路由选择算法</h4><p>LS 算法中，所有的链路开销都是已知的。实践中，这是通过让每个节点向网络中所有其他节点广播链路状态分组来完成的。每个链路状态分组包含他所连接的链路的标识和开销。</p>
+<p>LS算法的实现就是Djkstra算法，详见我的博客： <a href="https://jasonxqh.github.io/2020/06/21/图与贪心算法/#最短路径：Dijkstra算法"> 最短路径：Dijkstra算法</a></p>
+<p>当LS算法终止时，对于每个节点，我们都能得到从源节点沿着它的最低开销路径的前一节点。以此方式我们可以构建从源节点到所有目的节点的完整路径。</p>
+<p>虽然在局域网中，主机的个数有限，因此可以简单的计算，但是整个英特网的节点很多，计算起来会比较麻烦。其算法复杂度平均为 $O(n^2)$， 优化过后可得到 $O(n\log n)$</p>
+<h5 id="振荡问题"><a href="#振荡问题" class="headerlink" title="振荡问题"></a>振荡问题</h5><p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/48.png" style="zoom:50%;"></p>
+<p>上图是一个简单的网络拓扑，图中的链路开销等于链路上承载的负载，例如反映要经历的时延。在该例中，链路开销是非对称的，即当在链路$(u,v)$两个方向所承载的负载相同时，$c(u,v)$和$c(v,u)$ 才相等。在上例中，节点z产生发往w的一个单元的流量，节点x也产生发往w的一个单元的流量，并且节点y也产生发往w的一个数量为e的流量。</p>
+<p>那么当LS算法再次运行时，节点y (5-5a)确定顺时针到w的路径开销为1，逆时针(一直使用的) 到w的路径开销为1+e。因此y到w的最低开销路径现在变为顺时针的。类似的，x确定其到w的新的最低开销路径也是顺时针的，产生如(5-5b) 中所示的开销。当LS算法下次运行时，节点x、y和z都检测到一条到w的逆时针方向开销为0的路径。它们都将其流量引导到逆时针方向的路由上。</p>
+<p>在下次运行LS算法时，x,y,z 又将其流量引导到顺时针方向的路由上。</p>
+<p>很显然，这是一种不好的振荡。如何才能防止这样的振荡？一种解决方案可能强制链路开销不依赖于所承载的流量，但那是一种不可接受的解决方案——因为路由选择的目标之一就是要避开高度拥塞的链路。</p>
+<p>另一种解决方案就是确保并非所有的路由器都同时运行LS算法，在每个节点上算法的时机也将是不同的。</p>
+<h4 id="距离向量路由选择方法"><a href="#距离向量路由选择方法" class="headerlink" title="距离向量路由选择方法"></a>距离向量路由选择方法</h4><p>DV算法是一种迭代的，异步的和分布式的算法，而LS算法是一种使用全局信息的算法。其本质是 Bellman-Ford算法。</p>
+<p>Bellman-Ford 算法是一种动态规划的算法。那么首先我们来了解一下Bellman-Ford 方程式：</p>
+<p>令 $d_x(y)$ 为 x节点到y节点的最小代价，那么</p>
+<script type="math/tex; mode=display">
+d_x(y) = \min\{c(x,v)+d_v(y)\}</script><p>其中，$c(x,v)$ 代表 x到邻居v的距离，$d_v(y)$ 代表邻居 v到y节点的最小代价。我们看到下一张图</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/49.png" style="zoom:67%;"></p>
+<p>我们从u出发，计算到z的距离。</p>
+<p>显然$d_v(z) = 5,d_x(z) = 3,d_w(z) = 3$ ,那么 </p>
+<script type="math/tex; mode=display">
+d_u(z) = \min\{\\c(u,v)+d_v(z),\\c(u,x)+d_x(z),\\c(u,w)+d_w(z)\}
+ =\min\{2+5,1+3,5+3\} = 4</script><p>与 LS算法相比，DV算法只知道它邻居的信息，而不掌握全局的拓扑信息。</p>
+<p>DV算法的迭代是这样的一个循环：</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/50.png" style="zoom:67%;"></p>
+<p>每个节点都在等待它邻居发来的变化信息，收到以后就重新计算距离，计算完成后把更新后的信息传给它的所有邻居并等待进入下次循环。直到距离不再变化，收敛的时候就停止算法</p>
+<p>现在来看一个具体的例子：</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/51.png" style="zoom:67%;"></p>
+<h5 id="DV算法存在的问题"><a href="#DV算法存在的问题" class="headerlink" title="DV算法存在的问题"></a>DV算法存在的问题</h5><p>DV算法也存在一些问题。其一就是<strong>好消息传播得快，坏消息传播得慢</strong>，我们分别讨论。</p>
+<p><strong>好消息情况</strong></p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/52.png" style="zoom:67%;"></p>
+<p>当x与y之间的距离向量从4变为1时，这是个好消息。</p>
+<p>$t_0$ 时刻，y收到了这个变动，更新了它的DV表格，并告诉了它的邻居</p>
+<p>$t_1$ 时刻，z收到了y发来的信息，并更新了它的DV表格，这时候，z到x的距离就从5变成2了。然后z也将这个好消息发给它的邻居</p>
+<p>$t_2$时刻，y收到了来自z的更新，z告诉y：“我到x的距离只有2啦，可以借助我来更新！”，结果y并不需要更新它的表格了，因为y到x 的距离本来就比2小。至此，算法到这里就结束了，因为DV表都收敛了。</p>
+<p><strong>坏消息情况</strong></p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/53.png" style="zoom:67%;"></p>
+<p>当x与y之间的距离向量从4变为60时，这是个十足的坏消息。这时候，会发生如下的事：</p>
+<ol>
+<li>在链路开销变化之前，$D_y(x) = 4,D_y(z) = 1,D_z(y)=1,D_z(x)=5$. 在 $t_0$ 时刻，y检测到链路开销变化。y计算它到x的新开销。$D_y(x) = \min{c(y,x)+D_x(x),c(y,z)+D_z(x)}=\min{60+0,1+5}=6$ (因为此时 $D_z(x)$ 尚未更新。这就是我们所谓的<strong>路由环路</strong>，即为到达x，y通过z路由，z又通过y路由。路由选择环路就像一个黑洞，即目的地为x的分组在 $t_1$ 时刻到达y或者z之后，将在这两个节点之间不停地来回反复，直到转发表再次收敛为止</li>
+<li>因为节点y已经算出到x的新的最低开销，其在$t_1$时刻将该新距离向量通知z</li>
+<li>在$t_1$之后的某个时间，z收到了来自y的新距离向量，他指示了y到x的最低开销是6。z知道它能以开销1到达y，因此计算出到x的新最低开销 $D_z(x) = \min{50+0,1+6}=7$ 。因为z到x的最低开销已经增加了，于是他在 $t_2$时刻通知y其新开销</li>
+<li>以类似的方式，在收到z的新距离向量后，$D_y(x) = \min(60+0,1+7) =8$, 并向z发送其距离向量。接下来z确定$D_z(x) = 9$ 并向y发送其距离向量……</li>
+<li>最终，直到z最终算出它经由y的路径开销大于50为止，算法才能停止，而此时已经过了44次迭代。这就是<strong>坏消息传播得慢</strong>的原理</li>
+</ol>
+<h5 id="增加毒性逆转"><a href="#增加毒性逆转" class="headerlink" title="增加毒性逆转"></a>增加毒性逆转</h5><p>那么怎么破解这个问题呢？就是要破这个环路。</p>
+<p>如果 $z$ 通过 $y$ 路由选择到目的地x，则z将通告y：“嗨，兄弟，我到x的距离是无穷大！“，也就是告诉y $D_z(x) = \infty$ . 那么，只要z经由y到x，那么z就会持续地向y讲述这个<strong>善意的小谎言</strong>。因为y相信z没有到x的路径，因此只要z继续经y到x，y将永远不会试图经由z路由选择到x</p>
+<p>这时候$D_z(x) = \infty$, 因此$D_y(x) = \min{60+0,\infty} = 60$, 而 $D_z(x) =\min {60+1,50+0} = 50$, 最后 $D_y(x) = \min{50+1,60+0}=51$</p>
+<p>然而，毒性逆转并没有解决一般的无穷级数问题。当涉及到3个或者更多节点(不只是直接相连的两个邻居节点)的环路，将无法使用毒性逆转技术检测到</p>
+<h4 id="LS和DV的对比"><a href="#LS和DV的对比" class="headerlink" title="LS和DV的对比"></a>LS和DV的对比</h4><div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>LS</th>
+<th>DV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>报文复杂度</td>
+<td>每次更新O(nE) 条信息</td>
+<td>只在邻居间交换，时间不等</td>
+</tr>
+<tr>
+<td>收敛速度</td>
+<td>要求 $O(nE)$个报文的$O(n^2)$算法</td>
+<td>收敛较慢，有时会遇到选择环路</td>
+</tr>
+<tr>
+<td>鲁棒性</td>
+<td>较为鲁棒，路由计算较为分离</td>
+<td>鲁棒性较差，会将错误扩散至整个网络</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="AS内：OSPF"><a href="#AS内：OSPF" class="headerlink" title="AS内：OSPF"></a>AS内：OSPF</h3><p>事实上，因特网是网络的网络，它并不是扁平的。我们把一个局域网叫做 AS(autonomous systems)。然后定义局域网内部的路由选择为 （intro-AS routing), 局域网和局域网之间的路由选择为 (inter-AS routing)</p>
+<p>在同一个局域网内，采用相同的路由选择算法。我们通常使用 OSPF 路由</p>
+<p>OSPF即开放最短路优先，它是一种链路状态协议，并使用Dijkstra来计算转发表。</p>
+<p>OSPF的优点：</p>
+<ul>
+<li>安全 ，它可以在密码学上通过一些方法来保证数据不能被恶意篡改，另外能确定是某个人发出的信息，不能冒名顶替</li>
+<li>允许有多条相同开销的路径 。这就是说，当存在多条相等开销的路径时，无需仅选择单一的路径来承载所有的流量</li>
+<li>对单播与多播路由选择的综合支持较好 </li>
+<li>支持在单个AS中的层次结构</li>
+</ul>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/54.png" style="zoom:67%;"></p>
+<p>OSFP 协议 试运行在 应用层上的。</p>
+<h3 id="AS之间的路由选择：BGP"><a href="#AS之间的路由选择：BGP" class="headerlink" title="AS之间的路由选择：BGP"></a>AS之间的路由选择：BGP</h3><p>在ISP之间进行路由选择，就需要一个BGP协议</p>
+<p>BGP 的全程是 Broder Gateway Protocol 边界网关协议。其无疑是所有因特网协议中最重要的。正式这个协议将因特网中数以千计的ISP黏合起来。对于自治系统AS之间的路由选择，要使用OSPF协议那样代价作为度量来寻找最佳路由是不现实的。比较合理的做法是在自治系统之间交换<strong>“可达性”</strong>信息。例如，告知相邻路由器：达到目的网路N可经过自治系统$AS_x$。在BGP的世界中，在路由器的转发表将具有形式为$(x,I)$的表项，其中x是一个前缀，如(<code>138.16.68/22</code>)，I 则是该路由器的接口之一的接口号</p>
+<p>作为一种AS间的路由选择协议，BGP为每台路由器提供了这样的服务：</p>
+<ul>
+<li>从邻居AS获得前缀的可达性信息，BGP允许每个子网向因特网的其它部分通告：”嗨！我在这！”。 如果没有BGP，每个子网将孤独地存在</li>
+<li>确定到该前缀的“最好的”路由。最好的路由将基于策略以及可达性信息来确定</li>
+</ul>
+<h4 id="通告BGP路由信息"><a href="#通告BGP路由信息" class="headerlink" title="通告BGP路由信息"></a>通告BGP路由信息</h4><p>对于每个AS，每台路由器要么是一台<code>网关路由器(gateway router)</code>，要么是一台<code>内部路由器(internal router)</code>.网关路由器是一台位于AS边缘的路由器，它直接连接到AS中的一台或者多台路由器。内部路由器仅连接在它自己AS中的主机和路由器。</p>
+<p>如图所示， BGP 按照运行方式分为 EBGP（External/Exterior BGP）和 IBGP（Internal/Interior BGP）。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/56.jpg" style="zoom:67%;"></p>
+<p><strong>EBGP：</strong>运行于不同 AS 之间的 BGP 称为 EBGP。为了防止 AS 间产生环路，当 BGP 设备接收 EBGP 对等体发送的路由时，会将带有本地 AS 号的路由丢弃。</p>
+<p><strong>IBGP：</strong>运行于同一 AS 内部的 BGP 称为 IBGP。为了防止 AS 内产生环路， BGP 设备不将从IBGP 对等体学到的路由通告给其他 IBGP 对等体，并与所有 IBGP 对等体建立全连接。为了解决 IBGP 对等体的连接数量太多的问题， BGP 设计了路由反射器和 BGP 联盟。</p>
+<p>考虑下面这张图，AS内部的短虚线是IBGP，AS之间有长虚线是EBGP。 现在 AS3 要想 AS2发送一个BGP报文，告知 x 存在并位于AS3中。</p>
+<p>在这个过程中: </p>
+<p>网关路由器3a先向网关路由器2c发送了一个eBGP报文“AS3 x”。</p>
+<p>网关路由器2c然后向AS2中的所有其他路由器(包括网关路由器2a)发送iBGP报文”AS3 x”</p>
+<p>网关路由器2a接下来向网关路由器1c发送一个eBGP报文“AS2 AS3 x”</p>
+<p>最后，网关路由器1c使用iBGP向AS1中的所有路由器发送报文”AS2 AS3 x”。 </p>
+<p>在这个过程完成之后，在AS1和AS2中的每个路由器都知道了x的存在并且也都知道了通往x的AS路径</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/56.png" style="zoom:67%;"></p>
+<p>再来看一个例子，当路由器1c到路由器3a附加了一条物理链路之后，在这种情况下，从AS1到x有两条路径：经过路由器1c的路径<code>AS2 AS3 x</code>以及经过路由器1d的新路径 <code>AS3 x</code> </p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/58.png" style="zoom:67%;"></p>
+<h4 id="确定最好的路由"><a href="#确定最好的路由" class="headerlink" title="确定最好的路由"></a>确定最好的路由</h4><p>就像上面的图一样，从一个给定的路由器到一个目的子网可能有多条路径。事实上，因特网中的路由器常常接收到很多不同的可能路径的可达性信息。</p>
+<p>那么，一台路由器怎么在这些路径中进行选择呢？</p>
+<p>我们首先来了解一些BGP属性：AS-PATH 和 NEXT-HOP</p>
+<blockquote>
+<p>AS-PATH 属性包含了已经通告过的 AS的列表，如我们在前面的例子中所见。当一个前缀通过某AS时，该AS将其$ASN$ 加入 AS-PATH 中的现有列表。此外，AS-PATH 还可以用来检测和防止通告环路，因为如果一台路由器在列表中看到了包含他自己的AS，它将拒绝该通告  </p>
+<p>NEXT-HOP 是 AS-PATH <strong>起始的路由器接口的IP地址</strong>。我们还是那上面这张图为例：<br>对于AS1通过AS2到x的路由“AS2 AS3 x” ，其属性 NEXT-HOP 是路由器2a最左端的接口的IP地址;<br>对于AS1绕过AS2到x的路由”AS3 x” ，其NEXT-HOP 是路由器3a的下侧接口</p>
+</blockquote>
+<h5 id="热土豆路由选择"><a href="#热土豆路由选择" class="headerlink" title="热土豆路由选择"></a>热土豆路由选择</h5><p>对于 AS 间的路由选择，路由器要如何学习到哪些网络可供转发？BGP 路由选择的原理是<strong>热土豆路由选择</strong>，即从所有路由中选择到开始该路由的 NEXT-HOP 路由器具有的最小开销作为学习的信息。通过热土豆路由选择添加 AS 外前缀的步骤如图所示，当 路由表学习可达性信息时，<strong>BGP 协议和 AS 内路由选择协议(OSPF 协议)需要协同工作</strong>。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/59.png" style="zoom:80%;"></p>
+<p>热土豆路由选择的思想是：将分组发给最近的网关路由器，用尽可能最低开销将分组送出其所在 AS。之所以称之为热土豆，就是当分组被类比为“热土豆”时，由于烫手，所以我们要尽可能快地把“热土豆”扔给下一个人。因此热土豆路由选择是一种自私的算法，它只考虑到减小自己 AS 内传输分组的开销，但是忽略了 AS 外端到端的其他开销。</p>
+<p>比如说下面这个例子：</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/60.png" style="zoom:67%;"></p>
+<p>现在 路由器1b想发送给x信息，有两条路由可以走：<code>AS2 AS3 x</code>和<code>AS3 x</code>. 假设开销定义为需要穿越的链路数，那么如果选择<code>AS2 AS3 x</code> ，NEXT-HOP 为 2a最左侧接口，最低开销为 2， 如果选择 <code>AS3 x</code> ，NEXT-HOP 则为3d的最左端接口，开销为3。 这时候，虽然我们从上帝视角看选择路由 <code>AS3 x</code> 更快，但是这颗<strong>热土豆</strong>太烫手了，1b想要尽快的把这个烫手的山芋扔给下一个人，那么它还是会选择<code>AS2 AS3 x</code>这条路径。</p>
+<p>因而，热土豆路由选择是自私的算法，即他试图在减小他自己AS中的开销，而忽略在其AS之外的端对端开销的其他部分。</p>
+<h5 id="路由器选择算法"><a href="#路由器选择算法" class="headerlink" title="路由器选择算法"></a>路由器选择算法</h5><p>在实践中，BGP使用了一种比热土豆路由选择更复杂但却结合了其特点的算法。我们知道BGP的路由选择算法的<strong>输入</strong>是<strong>到某前缀的所有路由的集合</strong>。如果到相同的前缀有两条或者多条路由，则顺序调用下列消除规则直到余下一条路由。</p>
+<ol>
+<li>路由被指派一个<strong>本地偏好(local preference)</strong> 值作为其属性之一。一条路由的本地偏好可能<strong>由该路由器设置</strong>或者可能<strong>由在相同AS中的另一台路由器学习到</strong> 。本地偏好属性的值是一种策略决定，它完全取决于AS的网络管理员。<strong>具有最高本地偏好值的路由将被选择</strong></li>
+<li>从余下的路由中(现在都具有相同的最高本地偏好值)，将选择具有最短的AS-PATH路由。如果该规则是路由选择的唯一规则，那么BGP将使用DV算法决定路径，其中距离的测度使用AS跳的跳数而不是使用路由器跳的跳数</li>
+<li>从余下的路由中(现在都具有最高本地偏好值和相同的AS-PATH长度)，使用热土豆选择，即选择具有最靠近 NEXT-HOP路由器的路由</li>
+<li>如果仍留下多条路由，该路由器使用BGP标识符来选择路由。</li>
+</ol>
+<p>这样，回到上面这个例子。</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/60.png" style="zoom:67%;"></p>
+<p>首先使用规定1(这里假设都具有最高的本地偏好值)</p>
+<p>然后使用规定2，选择出最短的AS-PATH。因此将直接使用 <code>AS3 x</code> 路由。我们看到, BGP此时不再使用一种自私的算法了。</p>
+<h3 id="SDN-控制平面"><a href="#SDN-控制平面" class="headerlink" title="SDN 控制平面"></a>SDN 控制平面</h3><p>下图提供了一个通用的SDN控制器详尽的示意图。控制器的功能大体可以分为3个层次，我们以一种非典型的自底向上的方式考虑这些层次：</p>
+<p><img src="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/61.png" style="zoom:67%;"></p>
+<ul>
+<li><strong>通信层</strong>： SDN 控制器和受控网络设备之间的通信。如果SDN控制器需要控制远程的机器运行，需要一个协议来传送控制器与这些设备的信息。如上图所示，这个协议构成了控制器体系结构的最底层。 控制器和受控设备之间的通信跨越了一个接口，他现在被称为控制器的<code>南向接口</code> </li>
+<li><strong>网络范围状态管理层</strong>：由SDN控制平面做出的最终控制决定，将要求控制其具有 <code>有关网络的主机</code>、<code>链路</code>、<code>交换机</code>等设备的最新状态信息。</li>
+<li><strong>对于网络控制应用程序层的接口</strong>：控制器通过其<code>北向API</code> 与网络控制应用程序交互。该API允许网络控制应用程序在状态管理层之间 读写网络状态和流表。 当状态改变事件发生时，应用程序能够注册进行通告。</li>
+</ul>
+<h2 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h2><h5 id="1"><a href="#1" class="headerlink" title="1"></a>1</h5><p>前面讲过路由器和链路层交换机都被称为分组交换机. 路由器与链路层交换机间的根本区别是什么?</p>
+<p>答:<br>路由器和链路层交换机的根本区别是它们服务于不同的网络层协议. 链路层交换机基于链路层帧中的字段值做出转发决定, <strong>服务于第二层链路层</strong>; 路由器基于网络层数据报中的首部字段值做出转发决定, <strong>服务于第三层网络层</strong>.</p>
+<h5 id="2"><a href="#2" class="headerlink" title="2"></a>2</h5><p>讨论为什么在高速路由器的每个输入端口都存储转发表的影子副本.</p>
+<p>答： </p>
+<p>首先一个路由器是有很多个输入端口的, 转发行为的第一步是在转发表中查找输出接口. 如果每个输入端口都并发地调用路由选择器查找输出接口必然会产生时延. 所以要在高速路由器的每个输入端口都存储转发表的影子副本, 使转发决策能在每个输入端口本地做出,<strong>避免了集中式处理的瓶颈</strong>.</p>
+<h5 id="3"><a href="#3" class="headerlink" title="3"></a>3</h5><p>路由器有IP地址吗? 如果有, 多少个?</p>
+<ul>
+<li>路由器有IP地址, 这里的有IP地址并不是说有一个IP地址标志一台路由器. 而是说路由器的一个输入或输出端口对应着一个IP地址.</li>
+<li>所以一个路由器拥有的IP地址数是不确定的, 假如一个路由器有一个输入端和两个输出端, 那么对应地就有三个IP地址, 分别对应三个端口.</li>
+</ul>
+<h5 id="4"><a href="#4" class="headerlink" title="4"></a>4</h5><p>什么时候一个大数据报分割成多个较小的数据报? 较小的数据报在什么地方装配成一个较大的数据报?</p>
+<ul>
+<li>网络层的数据报需要往下经过链路层封装成链路层帧才能放上链路开始传输. 然而一个链路层帧的载荷大小根据链路层协议的不同而不同, 数据报的大小不能超过一个链路层帧的最大传送单元(Maximum Transmission Unit, MTU). 所以当链路层<strong>遇到大于自身MTU的数据报时</strong>需要把数据报分割成多个较小的数据报. <strong>这项工作将放到端系统中进行, 因为如果在路由器中进行的话会大大降低路由器的性能</strong>.</li>
+<li>较小的数据报在<strong>目的端系统的网络层</strong>进行装配.</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/" title="计算机网络-网络层">https://jasonxqh.github.io/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"><i class="fa fa-tag"></i> 计算机网络</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/" rel="next" title="计算机网络报告Week12">
+                <i class="fa fa-chevron-left"></i> 计算机网络报告Week12
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/" rel="prev" title="计算机网络报告week13">
+                计算机网络报告week13 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">427</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#计算机网络-网络层"><span class="nav-number">1.</span> <span class="nav-text">计算机网络-网络层</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#网络服务模型"><span class="nav-number">1.0.1.</span> <span class="nav-text">网络服务模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网络层概述"><span class="nav-number">1.1.</span> <span class="nav-text">网络层概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据层面"><span class="nav-number">1.2.</span> <span class="nav-text">数据层面</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#路由器工作原理"><span class="nav-number">1.2.1.</span> <span class="nav-text">路由器工作原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#输入端口"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">输入端口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#交换结构"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">交换结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#输出端口处理"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">输出端口处理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#路由器出现排队"><span class="nav-number">1.2.2.</span> <span class="nav-text">路由器出现排队</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#输入队列-HOL阻塞"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">输入队列(HOL阻塞)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#输出队列"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">输出队列</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分组调度"><span class="nav-number">1.2.3.</span> <span class="nav-text">分组调度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#先进先出"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">先进先出</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#优先级排队"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">优先级排队</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#循环加权公平排队"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">循环加权公平排队</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IP-协议"><span class="nav-number">1.2.4.</span> <span class="nav-text">IP 协议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IP地址"><span class="nav-number">1.2.4.1.</span> <span class="nav-text">IP地址</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#IP地址的定义"><span class="nav-number">1.2.4.1.1.</span> <span class="nav-text">IP地址的定义</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#保留IP地址"><span class="nav-number">1.2.4.1.2.</span> <span class="nav-text">保留IP地址</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IP-地址构造和分类"><span class="nav-number">1.2.4.1.3.</span> <span class="nav-text">IP 地址构造和分类</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#子网"><span class="nav-number">1.2.4.1.4.</span> <span class="nav-text">子网</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#子网掩码"><span class="nav-number">1.2.4.1.5.</span> <span class="nav-text">子网掩码</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DHCP"><span class="nav-number">1.2.4.2.</span> <span class="nav-text">DHCP</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#路由聚集"><span class="nav-number">1.2.4.3.</span> <span class="nav-text">路由聚集</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IPV4"><span class="nav-number">1.2.4.4.</span> <span class="nav-text">IPV4</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#IPv4-分片"><span class="nav-number">1.2.4.4.1.</span> <span class="nav-text">IPv4 分片</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IPv4-寻址"><span class="nav-number">1.2.4.4.2.</span> <span class="nav-text">IPv4 寻址</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IPv6"><span class="nav-number">1.2.4.5.</span> <span class="nav-text">IPv6</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IPv6-扩展首部"><span class="nav-number">1.2.4.6.</span> <span class="nav-text">IPv6 扩展首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IPv6-特点"><span class="nav-number">1.2.4.7.</span> <span class="nav-text">IPv6 特点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IPv6-地址"><span class="nav-number">1.2.4.8.</span> <span class="nav-text">IPv6 地址</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何从-IPv4-迁移到-IPv6"><span class="nav-number">1.2.5.</span> <span class="nav-text">如何从 IPv4 迁移到 IPv6</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#标志"><span class="nav-number">1.2.5.1.</span> <span class="nav-text">标志</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#隧道技术"><span class="nav-number">1.2.5.2.</span> <span class="nav-text">隧道技术</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通用转发与SDN-软件定义网络"><span class="nav-number">1.2.6.</span> <span class="nav-text">通用转发与SDN(软件定义网络)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#通用转发规则"><span class="nav-number">1.2.6.1.</span> <span class="nav-text">通用转发规则</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#例1"><span class="nav-number">1.2.6.1.1.</span> <span class="nav-text">例1</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#控制层面"><span class="nav-number">1.3.</span> <span class="nav-text">控制层面</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#路由选择算法"><span class="nav-number">1.3.1.</span> <span class="nav-text">路由选择算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#链路状态路由选择算法"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">链路状态路由选择算法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#振荡问题"><span class="nav-number">1.3.1.1.1.</span> <span class="nav-text">振荡问题</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#距离向量路由选择方法"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">距离向量路由选择方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#DV算法存在的问题"><span class="nav-number">1.3.1.2.1.</span> <span class="nav-text">DV算法存在的问题</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#增加毒性逆转"><span class="nav-number">1.3.1.2.2.</span> <span class="nav-text">增加毒性逆转</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LS和DV的对比"><span class="nav-number">1.3.1.3.</span> <span class="nav-text">LS和DV的对比</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AS内：OSPF"><span class="nav-number">1.3.2.</span> <span class="nav-text">AS内：OSPF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AS之间的路由选择：BGP"><span class="nav-number">1.3.3.</span> <span class="nav-text">AS之间的路由选择：BGP</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#通告BGP路由信息"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">通告BGP路由信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#确定最好的路由"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">确定最好的路由</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#热土豆路由选择"><span class="nav-number">1.3.3.2.1.</span> <span class="nav-text">热土豆路由选择</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#路由器选择算法"><span class="nav-number">1.3.3.2.2.</span> <span class="nav-text">路由器选择算法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SDN-控制平面"><span class="nav-number">1.3.4.</span> <span class="nav-text">SDN 控制平面</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例题"><span class="nav-number">1.4.</span> <span class="nav-text">例题</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1"><span class="nav-number">1.4.0.0.1.</span> <span class="nav-text">1</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2"><span class="nav-number">1.4.0.0.2.</span> <span class="nav-text">2</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3"><span class="nav-number">1.4.0.0.3.</span> <span class="nav-text">3</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4"><span class="nav-number">1.4.0.0.4.</span> <span class="nav-text">4</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1265.2k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+  
+
+  
+
+</body>
+</html>

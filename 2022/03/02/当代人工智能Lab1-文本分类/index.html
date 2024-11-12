@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="AI," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="当代人工智能Lab1-文本分类环境 python3.8 Tensorflow-text 2.8.* Tf-models-offiial 2.7.0  模型选择与构建模型选择这里我选择的是BERT模型，它是最近几年比较流行的用来做自然语言处理的模型。BERT主要采用了双向编码器架构，因此相较于RNN，LSTM模型来说，有着更强的并发能力、能在多个不同层次提取关系特征，进而更全面地反映出句子的语义。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="当代人工智能Lab1-文本分类">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="当代人工智能Lab1-文本分类环境 python3.8 Tensorflow-text 2.8.* Tf-models-offiial 2.7.0  模型选择与构建模型选择这里我选择的是BERT模型，它是最近几年比较流行的用来做自然语言处理的模型。BERT主要采用了双向编码器架构，因此相较于RNN，LSTM模型来说，有着更强的并发能力、能在多个不同层次提取关系特征，进而更全面地反映出句子的语义。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/heatmap.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/3.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/model1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/model2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/model3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/model4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/final.png">
+<meta property="article:published_time" content="2022-03-02T05:48:16.000Z">
+<meta property="article:modified_time" content="2022-03-08T14:34:06.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="AI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/2.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2022/03/02/当代人工智能Lab1-文本分类/"/>
+
+
+
+
+
+  <title>当代人工智能Lab1-文本分类 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">当代人工智能Lab1-文本分类</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2022-03-02T13:48:16+08:00">
+                2022-03-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.6k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  9
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="当代人工智能Lab1-文本分类"><a href="#当代人工智能Lab1-文本分类" class="headerlink" title="当代人工智能Lab1-文本分类"></a>当代人工智能Lab1-文本分类</h1><h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><ul>
+<li>python3.8</li>
+<li>Tensorflow-text 2.8.*</li>
+<li>Tf-models-offiial 2.7.0</li>
+</ul>
+<h2 id="模型选择与构建"><a href="#模型选择与构建" class="headerlink" title="模型选择与构建"></a>模型选择与构建</h2><h3 id="模型选择"><a href="#模型选择" class="headerlink" title="模型选择"></a>模型选择</h3><p>这里我选择的是BERT模型，它是最近几年比较流行的用来做自然语言处理的模型。BERT主要采用了双向编码器架构，因此相较于RNN，LSTM模型来说，有着更强的并发能力、能在多个不同层次提取关系特征，进而更全面地反映出句子的语义。</p>
+<p>此外，BERT对TensorFlow的支持也很全面(都是谷歌开发的)，甚至可以直接通过API来下载预训练模型。因此只要选择合适的模型与环境，就能迅速地实现数据训练，事实上我们所做的就是对预训练模型中的权重进行微调。</p>
+<h3 id="数据预处理"><a href="#数据预处理" class="headerlink" title="数据预处理"></a>数据预处理</h3><p>首先我们拿到的训练数据是 json格式的文档。为了能让Pandas、TensorFlow导入方便,我们需要将其转换为csv文件。因为python比较缺乏成熟的自动化转换库，因此我们采用了比较偷懒的方法——把json导入mongodb，再以csv的格式导出。</p>
+<p>此外，测试集由于给的是txt格式的文档，这里我用了python程序将其转换为一个csv文件。</p>
+<p>这两个文件分别为<code>lab1_test.csv,lab1_train.csv</code> ，在根目录下可以找到。</p>
+<p><img src="/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/2.png"></p>
+<p>接下来，我们需要对label进行独热编码，因为我们不能用连续的数字来表示标签，否则会导致语义上的一些差别。可以用<code>tf.keras.utils.to_categorical()</code>这个函数来操作</p>
+<p>最后，我们使用<code>train_test_split</code> 对数据集和标签进行 分割，变成训练集和测试集(实际上是验证集)。</p>
+<h3 id="模型的构建"><a href="#模型的构建" class="headerlink" title="模型的构建"></a>模型的构建</h3><ul>
+<li><p>首先，我们需要用到Bert的文本预处理层: <a href="https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3" target="_blank" rel="noopener">下载地址</a>。这个预处理层从维基百科和BooksCorpus中提取英文单词并可以将每一行输入文字转换为一个<code>shape=(1,128)</code>的向量。这个向量将被作为下一层Transformer Encoder的输入。</p>
+</li>
+<li><p>然后，我们需要用到Bert的预训练模型：<a href="https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-4_H-512_A-8/1" target="_blank" rel="noopener">下载地址</a> 。由于我们要处理的数据集的数据量并不是很大(8000条数据)，因此我们选择的是一个小型的Bert模型——具有4个隐藏层，每个隐藏层大小为512；8个注意力头。</p>
+<p>这一层有两个输出：<code>pooled_output</code>和<code>sequence_output</code>,前者是句子的向量表示，大小为[batch size,512]; 后者代表句子中每个词语的向量表示，大小为[batch size,seq_length,512]. 在这里，我们选择前者作为下一层的输入。</p>
+</li>
+<li><p>接下来的Drop out主要是用来正则化的，来让模型简化，减小冗余，我们不希望很多神经元去学习同一个特征，我们希望神经网络中的神经元有自己的“特长”，各自负责各自的特征。这样就可以减少过拟合发生的概率。我们将随机丢失神经元的概率设置为20%</p>
+</li>
+<li><p>最后，我们添加一个全连接层。由于这个任务要求单标签多分类，一共有10类文本，因此我们要将输出向量设为(1,10)。同时设置激活函数为softmax</p>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">build_classifier_model</span><span class="params">()</span>:</span></span><br><span class="line">    text_input = tf.keras.layers.Input(shape=(), dtype=tf.string, name=<span class="string">'text'</span>)</span><br><span class="line">    <span class="comment"># 文本预处理</span></span><br><span class="line">    preprocessing_layer = hub.KerasLayer(tfhub_handle_preprocess, name=<span class="string">'preprocessing'</span>)</span><br><span class="line">    <span class="comment"># Bert模型编码器</span></span><br><span class="line">    encoder_inputs = preprocessing_layer(text_input)</span><br><span class="line">    encoder = hub.KerasLayer(tfhub_handle_encoder, trainable=<span class="literal">True</span>, name=<span class="string">'BERT_encoder'</span>)</span><br><span class="line">    outputs = encoder(encoder_inputs)</span><br><span class="line">    net = outputs[<span class="string">'pooled_output'</span>]</span><br><span class="line">    <span class="comment">#Dropout层</span></span><br><span class="line">    net = tf.keras.layers.Dropout(<span class="number">0.2</span>)(net)</span><br><span class="line">    <span class="comment">#全连接层</span></span><br><span class="line">    net = tf.keras.layers.Dense(<span class="number">10</span>, activation=<span class="string">'softmax'</span>, name=<span class="string">'output'</span>)(net)</span><br><span class="line">    <span class="keyword">return</span> tf.keras.Model(text_input, net)</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/1.png" style="zoom:67%;"></p>
+<p>在这里我们就可以利用预处理层和编码器层来查看不同类别的文本之间的相似程度：我选择了来自0、1、2三类各两条数据绘制成热力图。我们发现，相同类之间的颜色确实会更深一些——(1,1)-(2,2)这一个正方形；(3,3)-(4,4)这一个正方形，都比周围的色块要深。因此可以定性得说明经过bert模型编码之后，可以有效地反映出文本之间的相似程度。</p>
+<p><img src="/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/heatmap.png" alt="heatmap" style="zoom:67%;"></p>
+<h3 id="模型的训练"><a href="#模型的训练" class="headerlink" title="模型的训练"></a>模型的训练</h3><h4 id="Optimizer选择与策略"><a href="#Optimizer选择与策略" class="headerlink" title="Optimizer选择与策略"></a>Optimizer选择与策略</h4><p>现在表现较好、较为流行的梯度下降策略就是adam算法了，在这里我没有使用<code>Tensorflow.train.AdamOptimizer</code>   。而使用的是<code>official.nlp</code>中的<code>optimization</code>模块。相比前者，这个模块创建的优化器可以提供更多的功能，而且对Bert模型有良好的支持。</p>
+<p>在这个模块中，我们除了需要设置最基本的初始学习率之外，还要输入总的训练步长<code>num_train_steps</code>，以及预热步数<code>num_warmup_steps</code>。学习率预热是指在训练初期选择一个较小的学习率，然后在训练一定步数之后使用预先设置好的学习率。因为刚开始的时候模型是随机初始化权重，如果使用较大的学习率，会让模型不稳定，所以可以在一定训练步数内，使用较小的学习率，模型可以慢慢稳定，然后使用之前设定的学习率。 </p>
+<p>把学习率预热和adam算法结合起来，学习率走势如下所示：</p>
+<p><img src="/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/3.jpeg" style="zoom:67%;"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">epochs = <span class="number">10</span></span><br><span class="line">steps_per_epoch = <span class="number">120</span></span><br><span class="line">num_train_steps = steps_per_epoch * epochs</span><br><span class="line">num_warmup_steps = int(<span class="number">0.1</span>*num_train_steps)</span><br><span class="line">init_lr = <span class="number">3e-5</span></span><br><span class="line">optimizer = optimization.create_optimizer(init_lr=init_lr,</span><br><span class="line">                                          num_train_steps=num_train_steps,</span><br><span class="line">                                          num_warmup_steps=num_warmup_steps,</span><br><span class="line">                                          optimizer_type=<span class="string">'adamw'</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="引入早停机制"><a href="#引入早停机制" class="headerlink" title="引入早停机制"></a>引入早停机制</h4><p>为了避免模型过拟合，这里我设置了早停。对val_loss进行观测，如果连续三轮没有降低0.01、或者连续三轮没有降低到0.25以下的话，训练就会自动停止，并将val_loss最低(表现最好)的那轮的结果保存下来。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 设置早停</span></span><br><span class="line">earlystop_callback = tf.keras.callbacks.EarlyStopping(monitor = <span class="string">'val_loss'</span>,</span><br><span class="line">                                                      min_delta=<span class="number">0.01</span>, </span><br><span class="line">                                                      baseline=<span class="number">0.25</span>,</span><br><span class="line">                                                      patience=<span class="number">3</span>,</span><br><span class="line">                                                      restore_best_weights=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="评价函数的设置"><a href="#评价函数的设置" class="headerlink" title="评价函数的设置"></a>评价函数的设置</h4><p>此外，在训练过程中我们还需要记录一些实时观测的值。也就是设置metrics。首先，我们要看的一个指标就是预测的准确率，即<code>tf.keras.metrics.CategoricalAccuracy</code></p>
+<p>此外，我们还要保留召回率(recall)、精确率(precision)、以及 f1值</p>
+<p>召回率计算公式：$R = \frac{TP}{TP+FN}$,  TP+FN: 也就是全体完全满足文本标注的文本的条数 ; TP：被预测正确的文本个数</p>
+<p>精确率计算公式：$P = \frac{TP}{TP+FP}$ ,TP+FP: 也就是全体被预测为正确的文本个数，TP: 被预测正确的文本个数</p>
+<p>F1 值是precision和recall调和平均值：$F_1 = \frac{2TP}{2TP+FP+FN}$</p>
+<h4 id="模型的编译"><a href="#模型的编译" class="headerlink" title="模型的编译"></a>模型的编译</h4><p>这里我们要用<code>model.compile()</code>方法, 其作用就是在训练之前告知模型训练时用的优化器、损失函数、准确率评测标准(metrics)。在这里，我们使用多分类的交叉熵作为损失函数。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">METRICS = [</span><br><span class="line">      tf.keras.metrics.CategoricalAccuracy(name=<span class="string">"accuracy"</span>),</span><br><span class="line">      balanced_recall,</span><br><span class="line">      balanced_precision,</span><br><span class="line">      balanced_f1_score</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">classifier_model.compile(optimizer=optimizer,</span><br><span class="line">                         loss=<span class="string">"categorical_crossentropy"</span>,</span><br><span class="line">                         metrics=METRICS)</span><br></pre></td></tr></table></figure>
+<h4 id="模型的训练-1"><a href="#模型的训练-1" class="headerlink" title="模型的训练"></a>模型的训练</h4><p>在训练阶段，我们需要用到<code>model.fit</code> ，除了传入训练集、测试集之外，还需要设置训练集和测试集batch的大小、训练的代数、每一代训练的步数、以及是否开启多核处理。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">history = classifier_model.fit(x_train,  </span><br><span class="line">                               y_train, </span><br><span class="line">                               validation_data = (x_test, y_test),</span><br><span class="line">                               steps_per_epoch=steps_per_epoch,</span><br><span class="line">                               batch_size=<span class="number">10</span>,</span><br><span class="line">                               validation_batch_size = <span class="number">10</span>,</span><br><span class="line">                               callbacks = [earlystop_callback],</span><br><span class="line">                               use_multiprocessing=<span class="literal">True</span>, <span class="comment"># 使用多核，能让CPU占用率达到90%以上</span></span><br><span class="line">                               epochs=epochs)</span><br></pre></td></tr></table></figure>
+<h2 id="预测"><a href="#预测" class="headerlink" title="预测"></a>预测</h2><p>模型训练完之后，我们可以对测试集进行预测，</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 预测函数</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">predict_class</span><span class="params">(model,reviews)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> [np.argmax(pred) <span class="keyword">for</span> pred <span class="keyword">in</span> model.predict(reviews)]</span><br><span class="line"><span class="comment"># 对text进行预测</span></span><br><span class="line">y_pred = predict_class(classifier_model,test_data[<span class="string">"text"</span>])</span><br></pre></td></tr></table></figure>
+<p>最后，为了模型能继续使用，我们可以把模型保存下来：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">classifier_model.save(<span class="string">"./models/text_classifier_v1"</span>)</span><br></pre></td></tr></table></figure>
+<p>如果我们想继续预测别的测试集，可以这样来导入模型，并做训练：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">new_model = tf.keras.models.load_model(<span class="string">"./models/text_classifier_v1"</span>,</span><br><span class="line">                                       custom_objects=&#123;<span class="string">'balanced_recall'</span>:balanced_recall,</span><br><span class="line">                                                      <span class="string">'balanced_precision'</span>:balanced_precision,</span><br><span class="line">                                                      <span class="string">'balanced_f1_score'</span>:balanced_f1_score,</span><br><span class="line">                                                       <span class="string">'KerasLayer'</span>:hub.KerasLayer,</span><br><span class="line">                                                       <span class="string">'AdamWeightDecay'</span>: optimizer</span><br><span class="line">                                                      &#125;)</span><br><span class="line">[np.argmax(pred) <span class="keyword">for</span> pred <span class="keyword">in</span> new_model.predict(reviews)]</span><br></pre></td></tr></table></figure>
+<h2 id="问题与困境"><a href="#问题与困境" class="headerlink" title="问题与困境"></a>问题与困境</h2><ol>
+<li>环境的安装</li>
+</ol>
+<p>首先是TensorFlow那数不清的版本，因为现在TensorFlow1.x已经没啥人用了，但是我原来的python3.7里面装的是TensorFlow1.x的版本。重装以后又发现TensorFlow2.8所依赖的库python3.7并不支持。因此干脆直接新建了一个python3.8的环境专门用来跑项目。</p>
+<p>其实性价比更高的方法是创建虚拟环境，管理卸载起来也并不麻烦。但由于我选择在jupyter下跑，因此在anaconda中新建环境更加方便。</p>
+<ol>
+<li>预处理</li>
+</ol>
+<p>在一开始我选择的是用<code>tf.data.experimental.make_csv_dataset</code>将csv文件直接转换为OrderedDict，但是我却怎么也不能将其放到模型中进行训练，会报奇奇怪怪的错误。</p>
+<p>在调试了两天无果之后，作罢，采用最原始的方式——导入为dataframe之后进行切割，并放到fit函数当中。虽然代码更长了些，但少了很多调试的煎熬。</p>
+<h2 id="超参数选择"><a href="#超参数选择" class="headerlink" title="超参数选择"></a>超参数选择</h2><p>由于我一开始就采用了官方文档中的初始学习率3e-5,发现效果就非常好，训练几代以后再验证集上的正确率都能达到90%以上，此外，囿于电脑算力的限制，训练一个模型的时间普遍长达2小时，因此我只是对初始学习率和batch大小进行了微调。</p>
+<p>由于调试对模型最终的预测准确率影响不大，我把选择合适超参的重心放在正确率增长速度、正确率达到平稳值所需的时间上。我发现，当调大batch的值以后，每一轮所需要的步数变少了，虽然每步所需的时间有所增长，但总体而言，在内存能负担的情况下，调高batch的值可以有效地加快模型的训练时间。</p>
+<p>epoch=10 batch=32 lr = 1e-5 每轮训练时间15-16分钟</p>
+<p><img src="/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/model1.png" style="zoom:150%;"></p>
+<p>Epoch=6 batch=32 lr = 3e-5 每轮训练时间 10-12分钟</p>
+<p><img src="/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/model2.png" style="zoom:150%;"></p>
+<p>Epoch=6 batch = 50   lr = 3e-5  每轮训练9-10分钟</p>
+<p><img src="/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/model3.png" style="zoom:150%;"></p>
+<p>epoch=8 batch = 100 lr = 3e-5每轮训练时间 8-9 分钟</p>
+<p><img src="/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/model4.png" style="zoom:150%;"></p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>根据图片和一些保存的数据，最后我们选择的是将batch设置为100，初始学习率设置为 3e-5, 训练10轮。模型在训练8轮后由于早停机制停止训练，结果如下图所示。</p>
+<p><img src="/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/final.png" style="zoom:150%;"></p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/" title="当代人工智能Lab1-文本分类">https://jasonxqh.github.io/2022/03/02/%E5%BD%93%E4%BB%A3%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BDLab1-%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/AI/" rel="tag"><i class="fa fa-tag"></i> AI</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/02/24/%E4%BA%86%E8%A7%A3%E5%8C%BA%E5%9D%97%E9%93%BE/" rel="next" title="了解区块链">
+                <i class="fa fa-chevron-left"></i> 了解区块链
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/03/02/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93-%E5%AD%98%E5%82%A8/" rel="prev" title="高级数据库-存储">
+                高级数据库-存储 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">427</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#当代人工智能Lab1-文本分类"><span class="nav-number">1.</span> <span class="nav-text">当代人工智能Lab1-文本分类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#环境"><span class="nav-number">1.1.</span> <span class="nav-text">环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模型选择与构建"><span class="nav-number">1.2.</span> <span class="nav-text">模型选择与构建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#模型选择"><span class="nav-number">1.2.1.</span> <span class="nav-text">模型选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据预处理"><span class="nav-number">1.2.2.</span> <span class="nav-text">数据预处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模型的构建"><span class="nav-number">1.2.3.</span> <span class="nav-text">模型的构建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模型的训练"><span class="nav-number">1.2.4.</span> <span class="nav-text">模型的训练</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Optimizer选择与策略"><span class="nav-number">1.2.4.1.</span> <span class="nav-text">Optimizer选择与策略</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#引入早停机制"><span class="nav-number">1.2.4.2.</span> <span class="nav-text">引入早停机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#评价函数的设置"><span class="nav-number">1.2.4.3.</span> <span class="nav-text">评价函数的设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#模型的编译"><span class="nav-number">1.2.4.4.</span> <span class="nav-text">模型的编译</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#模型的训练-1"><span class="nav-number">1.2.4.5.</span> <span class="nav-text">模型的训练</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#预测"><span class="nav-number">1.3.</span> <span class="nav-text">预测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题与困境"><span class="nav-number">1.4.</span> <span class="nav-text">问题与困境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#超参数选择"><span class="nav-number">1.5.</span> <span class="nav-text">超参数选择</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#结果"><span class="nav-number">1.5.1.</span> <span class="nav-text">结果</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1265.2k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="统计方法," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="统计方法ch5-聚类1首先我们要来了解一下聚类思想。以类识物是人类认识世界的一种重要方式，但是人类自身是没有办法处理眼睛所捕获的大量信息的，因此我们通常会对个体的特征进行归纳，并将相似的个体归并为一类，一次来达到信息的整体性认识。比如说我们看到头上有”王”字的动物会将其归类与老虎，其实捕捉的是老虎脸上的特征。 那么聚类分析有什么作用呢？  识别从属特定总体的个体  比如说，研究消费者行为从而将市场">
+<meta property="og:type" content="article">
+<meta property="og:title" content="统计方法ch5-聚类1">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="统计方法ch5-聚类1首先我们要来了解一下聚类思想。以类识物是人类认识世界的一种重要方式，但是人类自身是没有办法处理眼睛所捕获的大量信息的，因此我们通常会对个体的特征进行归纳，并将相似的个体归并为一类，一次来达到信息的整体性认识。比如说我们看到头上有”王”字的动物会将其归类与老虎，其实捕捉的是老虎脸上的特征。 那么聚类分析有什么作用呢？  识别从属特定总体的个体  比如说，研究消费者行为从而将市场">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/3.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/5.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/20.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/21.png">
+<meta property="article:published_time" content="2021-11-02T01:47:18.000Z">
+<meta property="article:modified_time" content="2022-01-03T14:25:42.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="统计方法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/11/02/统计方法ch5-聚类1/"/>
+
+
+
+
+
+  <title>统计方法ch5-聚类1 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">统计方法ch5-聚类1</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-11-02T09:47:18+08:00">
+                2021-11-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  5.3k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  20
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="统计方法ch5-聚类1"><a href="#统计方法ch5-聚类1" class="headerlink" title="统计方法ch5-聚类1"></a>统计方法ch5-聚类1</h1><p>首先我们要来了解一下聚类思想。<strong>以类识物</strong>是人类认识世界的一种重要方式，但是人类自身是没有办法处理眼睛所捕获的大量信息的，因此我们通常会对个体的特征进行归纳，并将相似的个体归并为一类，一次来达到信息的整体性认识。比如说我们看到头上有”王”字的动物会将其归类与老虎，其实捕捉的是老虎脸上的特征。</p>
+<p>那么聚类分析有什么作用呢？</p>
+<ul>
+<li>识别从属特定总体的个体</li>
+</ul>
+<p>比如说，研究消费者行为从而将市场进行细分，对消费者精准投放广告或者商品推荐</p>
+<ul>
+<li>识别异常个体</li>
+</ul>
+<p>比如说，检测用户的上网行为从而判断其行为是否正常，对政府企业等重要数据库进行保护以防止黑客攻击</p>
+<p>在这一章中，我们主要来解决一下几个问题：</p>
+<ol>
+<li>如何定义个体之间的相似性</li>
+<li>如何确定类别的数目</li>
+<li>如何选取个体的特征</li>
+<li>如何评价聚类方法的结果</li>
+</ol>
+<h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><h4 id="基本定义"><a href="#基本定义" class="headerlink" title="基本定义"></a>基本定义</h4><p>我们知道在一些场合下，获取足够多数量的负样本其实是比较困难的。而聚类研究的就是那些无标签的数据集。因此，聚类分析是<strong>无监督学习</strong>中最为常用且重要的方法之一。数据集可以写成矩阵形式如下：</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/1.png" alt="1"></p>
+<p>我们可以将每一行看做是一个样本，第 i 个样本$\boldsymbol{x<em>i} = (x</em>{i1},x<em>{i2},\cdots,x</em>{ip})’$ 可以看做是p维空间中的一个点。那么，按行进行聚类的话，我们可以将相似的个体聚成一类，由此在数据集$\boldsymbol X $​中进行<strong>集群发现</strong>。</p>
+<p>我们可以将每一列看做是一个特征，第j个特征$x^*<em>{j} = (x</em>{1j},x<em>{2j}\cdots,x</em>{nj})’$ 可以看做是n维空间中的一点​，如果按列进行聚类，可以将相似的变量聚成一类，从而对数据集$X$ 进行降维</p>
+<p>在这一章我们主要来了解<strong>集群发现</strong>，也就是按行聚类</p>
+<h1 id="距离的意义"><a href="#距离的意义" class="headerlink" title="距离的意义"></a>距离的意义</h1><h2 id="点间距离"><a href="#点间距离" class="headerlink" title="点间距离"></a>点间距离</h2><h3 id="连续变量的点间距离"><a href="#连续变量的点间距离" class="headerlink" title="连续变量的点间距离"></a>连续变量的点间距离</h3><h4 id="欧氏距离"><a href="#欧氏距离" class="headerlink" title="欧氏距离"></a>欧氏距离</h4><p>说起距离，最容易想到的就是欧氏距离了，即对两个样本$\boldsymbol{x<em>k}=(x</em>{k1},\cdots,x<em>{kp})’$ 和 $\boldsymbol{x_l}=(x</em>{l1},\cdots,x_{lp})’$​ 的欧氏距离为：</p>
+<script type="math/tex; mode=display">
+||x_k-x_l||_2 = \sqrt{\sum_{j=1}^p(x_{kj}-x_{lj})^2}</script><p>我们如果要计算p维空间的两个点之间的距离，相当于求矩阵中第k行和第l行的距离，那么我们要对每个对应的点求平方和在进行开方。</p>
+<p>在二维空间中，如下图所示</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/2.png" alt="1"></p>
+<p><strong>欧式距离度量的是欧几里得空间中的直线距离</strong></p>
+<h4 id="平方欧氏距离"><a href="#平方欧氏距离" class="headerlink" title="平方欧氏距离"></a>平方欧氏距离</h4><script type="math/tex; mode=display">
+||x_k-x_l||_2^2  = \sum_{j=1}^p(x_{kj}-x_{lj})^2</script><h4 id="闵式距离"><a href="#闵式距离" class="headerlink" title="闵式距离"></a>闵式距离</h4><p>闵式距离是包含欧氏距离的</p>
+<script type="math/tex; mode=display">
+(\sum_{j=1}^p(x_{kj}-x_{lj})^q)^{\frac{1}{q}}</script><p>当q=2的时候，闵式距离和欧氏距离是等价的</p>
+<p>还有一写特殊的闵式距离——绝对距离和最大距离</p>
+<h4 id="曼哈顿距离-绝对距离"><a href="#曼哈顿距离-绝对距离" class="headerlink" title="曼哈顿距离(绝对距离)"></a>曼哈顿距离(绝对距离)</h4><p>当q取1的时候，闵式距离变成了曼哈顿距离又称为绝对距离</p>
+<script type="math/tex; mode=display">
+||\boldsymbol{x_k}-\boldsymbol{x_l}||_1 = \sum_{i=1}^p|x_{kj}-x_{lj}|</script><h4 id="切比雪夫距离-最大距离"><a href="#切比雪夫距离-最大距离" class="headerlink" title="切比雪夫距离(最大距离)"></a>切比雪夫距离(最大距离)</h4><p>当q取无穷大的时候，闵式距离变成了最大距离</p>
+<script type="math/tex; mode=display">
+||\boldsymbol{x_k}-\boldsymbol{x_l}||_\infty = \max_{j}|x_{kj}-x_{lj}|</script><p>用来度量所有维度中差异最大的那个维度</p>
+<h4 id="兰氏距离"><a href="#兰氏距离" class="headerlink" title="兰氏距离"></a>兰氏距离</h4><script type="math/tex; mode=display">
+\sum_{j=1}^p \frac{|x_{kj}-x_{lj}|}{|x_{kj}|+|x_{lj}|}</script><p>兰氏距离可以看做是加权的曼哈顿距离，它对接近于零的值的变化非常敏感，且对量纲不敏感。而曼哈顿距离对量纲是很敏感的。</p>
+<p>因此若$|x_{kj}|$ 非常接近于0的话，兰氏距离会非常大</p>
+<h4 id="马氏距离"><a href="#马氏距离" class="headerlink" title="马氏距离"></a>马氏距离</h4><p>马氏距离又称为是广义欧氏距离</p>
+<script type="math/tex; mode=display">
+\sqrt{(\boldsymbol{x_k}-\boldsymbol{x_l})'\Sigma^{-1}(\boldsymbol{x_k}-\boldsymbol{x_l})}</script><p>其中Σ是多维随机变量的协方差矩阵，当$\Sigma = \boldsymbol I_p$ ，即$\Sigma$​​为单位阵的时候，说明各个维度独立同分布，因此马氏距离等于欧氏距离</p>
+<p><strong>马氏距离实际意义</strong></p>
+<p>那么马氏距离就能干什么？它比欧氏距离好在哪里？举几个栗子</p>
+<p><strong>欧式距离近就一定相似？</strong></p>
+<p>先举个比较常用的例子，身高和体重，这两个变量拥有不同的单位标准，也就是有不同的scale。比如身高用毫米计算，而体重用千克计算，显然差10mm的身高与差10kg的体重是完全不同的。但在普通的欧氏距离中，这将会算作相同的差距。</p>
+<p><strong>归一化后欧氏距离近就一定相似？</strong></p>
+<p>当然我们可以先做归一化来消除这种维度间scale不同的问题，但是样本分布也会影响分类</p>
+<p>举个一维的栗子，现在有两个类别，统一单位，第一个类别均值为0，方差为0.1，第二个类别均值为5，方差为5。那么一个值为2的点属于第一类的概率大还是第二类的概率大？距离上说应该是第一类，但是直觉上显然是第二类，因为第一类不太可能到达2这个位置。</p>
+<p>所以，在一个方差较小的维度下很小的差别就有可能成为离群点。就像下图一样，A与B相对于原点的距离是相同的。但是由于样本总体沿着横轴分布，所以B点更有可能是这个样本中的点，而A则更有可能是离群点。</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/3.jpg" alt="1"></p>
+<p><strong>算上维度的方差就够了？</strong></p>
+<p>还有一个问题——如果维度间不独立同分布，样本点一定与欧氏距离近的样本点同类的概率更大吗？</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/4.jpg" alt="1"></p>
+<p>可以看到样本基本服从f(x) = x的线性分布，A与B相对于原点的距离依旧相等，显然A更像是一个离群点</p>
+<p>即使数据已经经过了标准化，也不会改变AB与原点间距离大小的相互关系。所以要本质上解决这个问题，就要针对主成分分析中的<code>主成分</code>来进行标准化。</p>
+<p><strong>马氏距离的几何意义</strong></p>
+<p>上面搞懂了，马氏距离就好理解了，只需要将变量<code>按照主成分进行旋转</code>，让维度间相互<strong>独立</strong>，然后进行<code>标准化</code>，让维度<strong>同分布</strong>就OK了</p>
+<p>由主成分分析可知，由于主成分就是特征向量方向，每个方向的方差就是对应的特征值，所以只需要按照特征向量的方向旋转，然后缩放特征向量倍就可以了，可以得到以下的结果：</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/5.jpg"></p>
+<p>离群点就被成功分离，这时候的欧式距离就是马氏距离。</p>
+<p>现在我们可以来推导一下马氏距离：</p>
+<p>首先要对数据点进行旋转，旋转至主成分使得维度间线性无关，假设新的坐标为：</p>
+<script type="math/tex; mode=display">
+F = (F_1,F_2\cdots,F_m) = U^TX\\
+\mu_F = (\mu_1,\mu_2,\cdots,\mu_m)\\
+(F- \mu_F)= U^T (X-\mu_X)</script><script type="math/tex; mode=display">
+(F-\mu_F)(F-\mu_F)^T = \begin{bmatrix}\lambda_1\\&\lambda_2\\&&\cdots\\&&&\lambda_m\end{bmatrix}\\
+=U^T(X-\mu_X)(X-\mu_X)^TU\\
+=U^T\Sigma_XU</script><p>马氏距离是旋转变换缩放后的欧氏距离没所以马氏距离的计算公式可以写为：</p>
+<script type="math/tex; mode=display">
+D^2_M = (\frac{f_1-\mu_{F_1}}{\sqrt{\lambda_1}})^2+\cdots+(\frac{f_2-\mu_{F_2}}{\sqrt{\lambda_2}})^2\\=(f_1-\mu_{F_1},f_2-\mu_{F_2},\cdots,f_M-\mu_{F_M})\begin{bmatrix}\frac{1}{\lambda_1}\\&\frac{1}{\lambda_2}\\&&\cdots\\&&&\frac{1}{\lambda_m}\end{bmatrix}\begin{pmatrix}f_1-\mu_{F_1}\\f_2-\mu_{F_2}\\\cdots\\f_m-\mu_{F_m} \end{pmatrix}\\
+=(f-\mu_F)^T(U^T\Sigma_X U^{-1})(f-\mu_F)\\
+=(x-\mu_X)^TUU^T\Sigma_X^{-1}UU^T(x-\mu_X)\\
+=(x-\mu_X)^T\Sigma_X^{-1}(x-\mu_X)</script><h4 id="皮尔逊线性相关系数"><a href="#皮尔逊线性相关系数" class="headerlink" title="皮尔逊线性相关系数"></a>皮尔逊线性相关系数</h4><p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/15.png"></p>
+<h4 id="余弦相似度"><a href="#余弦相似度" class="headerlink" title="余弦相似度"></a>余弦相似度</h4><p>余弦相似度的定义为：</p>
+<script type="math/tex; mode=display">
+\cos\theta = \frac{\sum_{j=1}^p x_{kj}x_{lj}}{\sqrt{\sum_{j=1}^px_{kj}^2\sum_{j=1}^px^2_{lj}}}</script><p>余弦距离是由两个向量之间夹脚的余弦公式得到的</p>
+<script type="math/tex; mode=display">
+\cos\theta = \frac{\boldsymbol{a'b}}{\boldsymbol{|a||b|}}</script><p>当余弦为1时，说明两个向量完全相似，此时距离为0</p>
+<p><strong>余弦相关距离=1-$\cos\theta$</strong></p>
+<h4 id="肯德尔秩相关系数"><a href="#肯德尔秩相关系数" class="headerlink" title="肯德尔秩相关系数"></a>肯德尔秩相关系数</h4><p>现在我们来介绍秩相关系数，我们用秩来代替原来的数值，是因为我们要规避一些极端数值带来的影响</p>
+<p>肯德尔相关系数，又称肯德尔秩相关系数，它是一种秩相关系数，不过，它的目标对象是<strong>有序的类别变量</strong>，比如名次、年龄段、肥胖等级(重度肥胖，中度肥胖、轻度肥胖、不肥胖)等。它可以度量两个有序变量之间单调关系强弱。肯德尔相关系数使用了“成对“这一概念来决定相关系数的强弱。</p>
+<p>成对可以分为协同对(Concordant)和不协同对(Discordant)。协同对是指两个变量取值的相对关系一致，可以理解为$X_2-X_1$与$Y_2-Y_1$有相同的符号；分歧对则是指它们的相对关系不一致，$X_2-X_1$与$Y_2-Y_1$有着相反的符号。</p>
+<p>肯德尔秩的相关系数是基于观测值中两个特征同时增加或者同时减少的个数从而计算相关系数</p>
+<ul>
+<li>协同对:$(x<em>{kj}-x</em>{kj’})(x<em>{lj}-x</em>{lj’})&gt;0$</li>
+<li>不协同对：$(x<em>{kj}-x</em>{kj’})(x<em>{lj}-x</em>{lj’})&lt;0$</li>
+</ul>
+<p>那么，肯德尔相关系数的定义如下：</p>
+<script type="math/tex; mode=display">
+\text{Kendall}~\tau = \frac{n_c-n_d}{p(p-1)/2}</script><p>其中，$n_c$​表示协同对的个数，而$n_d$​表示不协同对的个数，$p(p-1)/2$ 代表总对数。</p>
+<p>如果两个属性排名是相同的，系数为1 ，两个属性正相关。</p>
+<p>如果两个属性排名完全相反，系数为-1 ，两个属性负相关。</p>
+<p>我们来举一个例子：</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/6.png"></p>
+<p><strong>肯德尔相关距离=1-Kendall $\tau $</strong></p>
+<h4 id="斯皮尔曼秩相关系数"><a href="#斯皮尔曼秩相关系数" class="headerlink" title="斯皮尔曼秩相关系数"></a>斯皮尔曼秩相关系数</h4><p>斯皮尔曼秩相关系数类似于皮尔逊相关系数，只不过将原始数据$x<em>{kj}$​ 用其秩$r</em>{kj}$​ 来代替</p>
+<p>将$\boldsymbol x<em>{k}$ 的各个分量$x</em>{k1}\cdots, x<em>{k2},\cdots,x</em>{kp}$ 按从小到大排序，计算每一个分量所对应的秩，记为$r<em>{k1},r</em>{k2},\cdots,r_{kp}$</p>
+<script type="math/tex; mode=display">
+\text{Spearman} ~~\rho = \frac{\sum_{j=1}^p(r_{kj}-\overline r_{kj})(r_{lj}-\overline r_{lj})}{\sqrt{\sum_{j=1}^p(r_{kj}-\overline r_{kj})^2\sum_{j=1}^p(r_{lj}-\overline r_{lj}})^2}</script><p>通过化简我们可以得到更精简的式子：</p>
+<script type="math/tex; mode=display">
+\rho = 1-\frac{6\sum d_i^2}{n(n^2-1)}</script><p>我们用具体的例子来解释计算过程：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>原始位置</th>
+<th>原始X</th>
+<th>排序后</th>
+<th>秩次X’</th>
+<th>原始Y</th>
+<th>排序后</th>
+<th>秩次Y’</th>
+<th>秩次差$d_i$的平方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>11</td>
+<td>490</td>
+<td>5</td>
+<td>2</td>
+<td>75</td>
+<td>6</td>
+<td>1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>490</td>
+<td>43</td>
+<td>1</td>
+<td>75</td>
+<td>44</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>3</td>
+<td>14</td>
+<td>30</td>
+<td>4</td>
+<td>3</td>
+<td>42</td>
+<td>5</td>
+<td>1</td>
+</tr>
+<tr>
+<td>4</td>
+<td>43</td>
+<td>14</td>
+<td>2</td>
+<td>44</td>
+<td>7</td>
+<td>2</td>
+<td>0</td>
+</tr>
+<tr>
+<td>5</td>
+<td>30</td>
+<td>11</td>
+<td>3</td>
+<td>7</td>
+<td>3</td>
+<td>4</td>
+<td>1</td>
+</tr>
+<tr>
+<td>6</td>
+<td>3</td>
+<td>3</td>
+<td>6</td>
+<td>42</td>
+<td>2</td>
+<td>3</td>
+<td>9</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>代入公式，得到：$\rho = 1-\frac{6(1+1+1+9)}{6(36-1 )} = 0.657$</p>
+<p><strong>斯皮尔曼相关距离 = 1-Spearman $\rho$​​</strong></p>
+<h3 id="混合变量的点间距离"><a href="#混合变量的点间距离" class="headerlink" title="混合变量的点间距离"></a>混合变量的点间距离</h3><p>刚才定义的点间距离都是在连续场合定义的，那么如果我们的数据既有连续场合又有离散场合该怎么办？我们需要用统一的量纲去度量才能保证距离是靠谱的。</p>
+<p>我们可以令$s<em>j =  s_j(x</em>{kj}-x_{lj})$ 为第k个观测值和第l个观测值在第j个特征或变量之间的相似性。通过$s_j$​ 来定义点与点之间的距离$d_j$, 即 $s_j = 1-d_j$​​​ </p>
+<h4 id="定性变量"><a href="#定性变量" class="headerlink" title="定性变量"></a>定性变量</h4><p>比如说，我们考虑性别是否为男性、产品的颜色是否为黑色等，这些特征$x<em>{kj}$和$x</em>{lj}$ 均为<strong>定性变量</strong>。两者相等即为1，否则即为0；那么我们可以定义相似性为：</p>
+<script type="math/tex; mode=display">
+s_j = s_j(x_{kj},x_{lj}) = \begin{cases}1&x_{kj}=x_{lj}\\0&x_{kj}\neq x_{lj} \end{cases}</script><h4 id="定量变量"><a href="#定量变量" class="headerlink" title="定量变量"></a>定量变量</h4><p>比如考虑年龄、产品的价格等，这些特征$x<em>{kj}$ 和$x</em>{lj}$ 均为<strong>定量变量</strong>，那么我们可以定义相似性为：</p>
+<script type="math/tex; mode=display">
+s_j = s_j(x_{kj},x_{lj}) = 1-\frac{|x_{kj}-x_{lj}|}{R_j}</script><p>其中，$R<em>j$ 表示第j个特征的极差，即$R_j = \max_ix</em>{ij}-\min<em>ix</em>{ij}$​  ，也就是进行一个归一化后的绝对距离</p>
+<h4 id="定序变量"><a href="#定序变量" class="headerlink" title="定序变量"></a>定序变量</h4><p>比如考虑文化程度、空气质量指数级别等，这些特征$x<em>{kj}$和$x</em>{lj}$​ 均为定序变量。那么我们要对$x<em>{1j},x</em>{2j},\cdots,x<em>{nj}$ 从小到大进行排序，并分别计算其秩，记为$r</em>{1j},r<em>{2j},\cdots,r</em>{nj}$​ 。</p>
+<p>通常我们定义相似性为：</p>
+<script type="math/tex; mode=display">
+s_j = s_j(x_{kj},x_{lj}) = 1-\frac{|r_{kj}-r_{lj}|}{\max_k r_{kj}-\min_k r_{kj}}</script><h4 id="相似度"><a href="#相似度" class="headerlink" title="相似度"></a>相似度</h4><p>上面说的都是观测点之间的相似性，现在我们来定义两个观测$\boldsymbol{x}_k,\boldsymbol{x}_l$ 之间的相似度：</p>
+<script type="math/tex; mode=display">
+s_j(\boldsymbol x_{k}-\boldsymbol x_{l}) = \frac{\sum_{j=1}^ps_j(x_{kj},x_{lj})\delta(x_{kj},x_{lj})w_j}{\sum_{j=1}^p\delta(x_{kj},x_{lj})w_j}</script><p>其中$\delta(x<em>{kj},x</em>{lj})$ 表示观测值中是否存在确是观测，即</p>
+<script type="math/tex; mode=display">
+\delta(x_{kj},x_{lj}) = \begin{cases}0,&\text{如果}x_{kj}\text{或}x_{lj}\text{存在缺失观测}\\1,&\text{其他} \end{cases}</script><p>$w_j$ 表示权重，一般取值为1，但是如果事先知道第j个特征尤其重要，可以增加相应的权重。</p>
+<h3 id="类间距离"><a href="#类间距离" class="headerlink" title="类间距离"></a>类间距离</h3><p>由一个点组成的类是最基本的类，如果每一类都由一个点组成，那么点间距离就是类间距离。</p>
+<p>那么，如果某一类上包含不止一个点，就要定义类间距离，也称关联准则。</p>
+<h4 id="sinple-linkage"><a href="#sinple-linkage" class="headerlink" title="sinple linkage"></a>sinple linkage</h4><p>将两个类中距离最短的两个点之间的距离定为类间距离，称 <strong>sinple linkage</strong>, 如下图所示：</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/8.png"></p>
+<h4 id="complete-linkage"><a href="#complete-linkage" class="headerlink" title="complete linkage"></a>complete linkage</h4><p>将两个类中剧里最长的两个点之间的距离定义为类间距离，称为<strong>complete linkage</strong></p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/9.png"></p>
+<h4 id="centroid-linkage"><a href="#centroid-linkage" class="headerlink" title="centroid linkage"></a>centroid linkage</h4><p>将两个类中所有的点的重心距离定义为类间距离，称为 centroid linkage</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/10.png"></p>
+<h4 id="关联准则"><a href="#关联准则" class="headerlink" title="关联准则"></a>关联准则</h4><p>为了同一副好，我们将点也看做是类，因此把点(类)k与l之间的距离用$d(k,l)$ 表示。如果点(或者类)k与l聚合成一个类，记为$k\cup l$ ，对于任何其他的一个点(或者类)i，那么类($k \cup l$)与点或类i之间的距离记为$d(k\cup l,i)$ </p>
+<p>Lance-Williams 公式为：</p>
+<script type="math/tex; mode=display">
+d(k\cup l,i) = \alpha_k d(k,i)+\alpha_ld(l,i)+\beta d(k,l)+\gamma ~|d(k,i)-d(l,i)|</script><p>其中，$\alpha_k,\alpha_l,\beta,\gamma$​</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/7.png"></p>
+<p>如果我们使用single-linkage,三个参数分别是0.5，0.5，0.5，我们来推一下：</p>
+<script type="math/tex; mode=display">
+d(k\cup l,i) = \frac{1}{2} d(k,i)+\frac{1}{2}d(l,i)-\frac{1}{2}|d(k,i)-d(l,i)|\\
+=\frac{1}{2}|d(k,i)+d(l,i)|-\frac{1}{2}|d(k,i)-d(l,i)|</script><p>如果$d(k,i)&gt;d(l,i)$,原式等于 $d(l,i)$;</p>
+<p>如果$d(k,i)&lt;d(l,i)$，原式等于 $d(k,i)$</p>
+<p>符合 single-linkage的定义</p>
+<h1 id="层次聚类"><a href="#层次聚类" class="headerlink" title="层次聚类"></a>层次聚类</h1><p>在博客：<a href="https://jasonxqh.github.io/2020/10/25/Hierarchical-Clustering/">https://jasonxqh.github.io/2020/10/25/Hierarchical-Clustering/</a> 中介绍过层次聚类，现在我们从数学方面来看一下</p>
+<p>层次聚类一般有两种不同的形式，自下而上和自上而下</p>
+<p><strong>自下而上</strong>：每个样本各自分到一个类中，之后将类间距离最近的两类关联，并建立一个新的类，反复此过程直到所有的样本聚合至一个类中；<br><strong>自上而下</strong>：将所有样本归到一个类中，之后将在类中相距最远的样本记为两个新的类，基于这两个类，将未进行聚类的点逐一比较其与两个新的类的距离，这样所有样本划分成了两类，在每一个类中重复此过程直到每个样本点各自分到一个类中；</p>
+<p>一般来说都会选择自下而上方法，自上而下会比较麻烦。</p>
+<p>我们给一个例题：假设有4个点，距离矩阵为：</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/11.png"></p>
+<p>找到欧式距离最近的两个类，是A和B，距离为1，把他们聚成一类。然后我们要计算$d(A\cup B,C),d(A\cup B,D)$</p>
+<p>我们不妨采用simple linkage，那么$A\cup B$​到C 的距离是A到C的距离与B到C距离的最小值, 即3；那么$A\cup B$​​​到D 的距离是A到D的距离与B到D距离的最小值,即2</p>
+<p>因此，重新得到的距离矩阵为：</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/12.png"></p>
+<p>接着我们找出距离最近的两个类，A,B和D，把他们聚成一类</p>
+<p>$A,B\cup D$ 到C的距离是A,B到C的距离与D到C的距离的最小值，即3，因此我们再次更新距离矩阵如下：</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/13.png"></p>
+<p>最后可以将A,B,C,D 聚成一类</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/14.png"></p>
+<h1 id="K-Means-聚类"><a href="#K-Means-聚类" class="headerlink" title="K-Means 聚类"></a>K-Means 聚类</h1><p>K-Means我在博客<a href="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/">https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/</a> 有所介绍。 现在我们从数学角度再来学习一下。</p>
+<p>K-Means 是最简单的无监督学习方法之一，且计算速度快，因此也被称为<strong>快速聚类</strong></p>
+<p>相较于层次聚类，K均值聚类实现确定聚类数目，这里假定聚类的数目为K(K&lt;n)</p>
+<p>那么对于给定n个样本集 $X= (\boldsymbol x_1,\cdots,\boldsymbol x_n)’$ ，K-Means 的目标就是将n个样本划分到K个不同的类中，这K个类$C_1,C_2,\cdots,C_k$ 形成了样本集X的划分，即：</p>
+<script type="math/tex; mode=display">
+C_k\cap C_l = \empty,\bigcup_{k=1}^K C_k = X</script><p>输出的划分 $\mathcal C = {C_1,C_2,\cdots,C_k}$ 可以对应一个聚类结果</p>
+<h3 id="目标与思想"><a href="#目标与思想" class="headerlink" title="目标与思想"></a>目标与思想</h3><p>我们的目标是，希望能找到一个最优化分$\mathcal C^*$​​ ，使得类内距离足够小而类间距离足够大。这和聚类的思想是一致的，即相似的放在同一簇中，不相似的放在不同簇当中。一般来说，我们使用平方欧氏距离来表示点与点之间的距离 ，即：</p>
+<script type="math/tex; mode=display">
+d_{kl} = d(k,l)=||\boldsymbol x_k-\boldsymbol x_l||_2^2= \sum_{j=1}^p(x_{kj}-x_{lj})^2</script><p>由此，我们可以定义一个合理的损失函数, 如下：</p>
+<script type="math/tex; mode=display">
+W(\mathcal C) = \sum_{k=1}^{n_k}\sum_{i\in C_k}||\boldsymbol x_i-\boldsymbol m_k||^2</script><ul>
+<li>$\boldsymbol m_k$ 表示第k类的均值或中心</li>
+<li>这里$n_k$​是第k类中样本的个数</li>
+</ul>
+<p>而K均值聚类实际上就是解决一个最优化问题：</p>
+<script type="math/tex; mode=display">
+\mathcal C^* = \arg\min_C W(\mathcal C)</script><p>这是一个NP-Hard问题，可以用迭代法求解。</p>
+<h3 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h3><p>通常采用迭代法来求解区 均值聚类的问题，每次迭代包括两个步骤：</p>
+<ul>
+<li>确定K个类的中心$\boldsymbol m_k$，将样本逐一分配到其最近的中心所对应的类中，得到一个聚类结果；</li>
+<li>更新每个类的样本均值，作为类的更新后的中心；重复此过程，直到收敛为止。</li>
+</ul>
+<p>注意事项：</p>
+<ul>
+<li>收敛条件，通常可以设置为：聚类结果不变；</li>
+<li>复杂度是$O(pnK)$，其中p表示特征个数，n 表示样本个数，K是聚类数目；</li>
+<li>如果各个类的数据集非凸，基于非凸性质，我们可以构造出一个数据集，存在一个点在两个类之间横跳，导致K均值聚类算法难以收敛；未解决这个问题，我们可以放宽收敛的条件</li>
+</ul>
+<h1 id="高斯混合模型-GM"><a href="#高斯混合模型-GM" class="headerlink" title="高斯混合模型(GM)"></a>高斯混合模型(GM)</h1><p>参考： <a href="https://blog.csdn.net/lin_limin/article/details/81048411" target="_blank" rel="noopener">https://blog.csdn.net/lin_limin/article/details/81048411</a></p>
+<h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>高斯混合模型在聚类的分类里面属于<strong>基于模型的聚类方法</strong>。这和Kmeans和Hierarchical 聚类的底层思想是不同的。</p>
+<p>高斯混合模型的核心在于：分布的假定。 假定第i个样本$\boldsymbol x<em>i$​ 来自于<strong>第k类</strong>正态分布$N_p(\boldsymbol\mu</em> k,\Sigma_k)$​</p>
+<ul>
+<li>$\boldsymbol\mu_k$  表示均值向量</li>
+<li>$\Sigma_k$ 表示协方差矩阵</li>
+</ul>
+<p>那么，$\boldsymbol x_i$ 的密度函数为：</p>
+<script type="math/tex; mode=display">
+f(x_i) = (2\pi)^{-p/2}\abs{\Sigma_k}^{-1/2}\exp\bigg\{-\frac{1}{2}(x_i-\boldsymbol \mu_k)'\Sigma_k^{-1}(x_i-\boldsymbol \mu_k) \bigg\}</script><ul>
+<li>K表示聚类数目，可以看做是一个超参数，需要我们事先确定。</li>
+<li>n表示样本量</li>
+</ul>
+<h3 id="由来"><a href="#由来" class="headerlink" title="由来"></a>由来</h3><p>那么，如果我们能够确定第 i 个样本是来自于第k 个高斯分布总体时，我们可以构造变量：</p>
+<script type="math/tex; mode=display">
+\delta_{ik} = \begin{cases}1,\text{当第i个样本}x_i\text{属于第k个总体}\\0,\text{当第i个样本}x_i\text{不属于第k个总体}\\ \end{cases}</script><p>这就说明，某一个样本是可能属于某一类的，而且仅属于某一类。</p>
+<p>因此，$\delta<em>i = (\delta</em>{i1},\delta<em>{i2},\cdots,\delta</em>{iK})’$ 满足 </p>
+<ul>
+<li><p>独立同分布的<strong>随机向量</strong></p>
+</li>
+<li><p>这个K维向量某一维是1，其余都是0。这就相当于我掷了一个K面的骰子。某一维朝上的记为1，其余都记为0。因此，这个随机变量是服从多维分布 的。因为我只掷了一次骰子，因此第一个变量是1，由于不同”面”出现的概率是不一定的，我们令其为$\pi_1,\cdots,\pi_K$。最终我们给出随机变量是服从多维分布  $M(1,\pi_1,\pi_2,\cdots,\pi_K)$的。</p>
+</li>
+<li><p>$\pi<em>k=P(\delta</em>{ik}=1)$且满足：</p>
+<script type="math/tex; mode=display">
+0<\pi_k<1,\sum_{i=1}^K \pi_k = 1</script></li>
+</ul>
+<p>根据上面的推论，我们给出 $\delta<em>{i}=(\delta</em>{i1},\delta<em>{i2},\cdots,\delta</em>{iK})’$ 的概率密度函数：</p>
+<script type="math/tex; mode=display">
+f(\delta_i) = \prod_{k=1}^K (\pi_k)^{\delta_{ik}},i=1,2\cdots,n</script><p>那么，当我们对一个$x_i$ ，给定了$\delta_i$ 的密度函数之后(样本真的落在第k类上的时候)，可以给出$x_i$的密度函数。</p>
+<script type="math/tex; mode=display">
+f(x_i|\delta_i) = \prod_{k=1}^K\Bigg( (2\pi)^{-p/2}|\Sigma_k|^{-1/2}\exp\bigg\{-\frac{1}{2}(x_i-\boldsymbol \mu_k)'\sum_k^{-1}(x_i-\boldsymbol \mu_k) \bigg\} \Bigg)^{\delta_{ik}}</script><blockquote>
+<p>因为$\delta_i$中只有一项是等于1的，其余都等于0。其实就相当于样本属于第k类的密度函数乘以 K-1 个 1。因此这个式子拆开来就是等于上面我给出的$x_i$的密度函数，只不过这个式子更加 General一点</p>
+</blockquote>
+<p>那么，对于样本 ${x_i,\delta_i},i=1,2\cdots,n$，我们可以给出其联合密度函数</p>
+<script type="math/tex; mode=display">
+\begin{align}
+& \prod_{i=1}^n f(x_i,\delta_i)\\
+=&\prod_{i=1}^n f(\delta_i)\cdot f(x_i|\delta_i)\\
+=&\prod_{i=1}^n\bigg(\pi_k(2\pi)^{-p/2}|\Sigma_k|^{-1/2}\exp\bigg\{-\frac{1}{2}(x_i-\boldsymbol \mu_k)'\Sigma_k^{-1}(x_i-\boldsymbol \mu_k) \bigg\}\bigg)^{\delta_{ik}}
+\end{align}</script><p>对于上面这个密度函数，其实就是未知参数 $\theta = (\pi_1,\cdots,\pi_K,\boldsymbol\mu_1,\cdots,\boldsymbol\mu_K,\Sigma_1,\cdots,\Sigma_K)$ 的似然函数。理论上，基于这个似然函数，我们可以来估计参数$\theta$</p>
+<p>但是，在实际中，我们仅能观测到样本${x_i}$ ，$i=1,2\cdots,n$,  是没有办法去观测$\delta_i$ 的。因此，我们没有办法直接估计未知参数$\theta$。因此我们可以对联合密度函数求关于 $x_i$ 的边际分布。</p>
+<script type="math/tex; mode=display">
+f(x_i) = \sum_{k=1}^K \pi_k(2\pi)^{-p/2}|\Sigma_k|^{-1/2}\exp\bigg\{-\frac{1}{2}(x_i-\boldsymbol \mu_k)'\Sigma_k^{-1}(x_i-\boldsymbol \mu_k) \bigg\}</script><p>这个密度函数是由K 个正态分布的密度函数加权组合而成的，常被称为是高斯混合模型。其中,$p(x|\delta<em>i)$ 就是第k个高斯模型的概率密度函数，可以看成选定第k 个模型后，该模型产生x的概率；$p(\delta_i)=\pi_k$ 是第k个高斯模型的权重，称其为第k个模型的先验概率，满足 $\sum</em>{k=1}^K \pi_k$ = 1</p>
+<p>所以，混合高斯模型并不是什么新奇的东西，<strong>它的本质就是融合几个单高斯模型，来使得模型更加复杂，从而产生更复杂的样本。理论上，如果某个混合高斯模型融合的高斯模型个数足够多，它们之间的权重设定得足够合理，这个混合模型可以拟合任意分布的样本。</strong></p>
+<h3 id="EM算法"><a href="#EM算法" class="headerlink" title="EM算法"></a>EM算法</h3><p>由于只观测到$x<em>i$ 去估计参数$\theta$ 是很难估的，因此我们需要用EM算法。将$\delta</em>{ik}$作为潜变量。</p>
+<p>对于未知参数$\theta$的对数似然函数为：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+ \ln L(\mu,\Sigma,\pi) &= \sum_{i=1}^n\ln\sum_{k=1}^K\pi_k N(x_i|\mu_k,\Sigma_k)\\
+&\propto -\frac{1}{2}\sum_{i=1}^n\sum_{k=1}^K\delta_{ik}\big((x_i-\boldsymbol \mu_k)'\Sigma_k^{-1}(x_i-\boldsymbol \mu_k)+\ln|\Sigma_k|\big)+\sum_{i=1}^n\sum_{k=1}^K\delta_{ik}\ln(\pi_k)\\
+&=Q_0(\mu,\Sigma,\pi)
+\end{align}</script><h4 id="E-步"><a href="#E-步" class="headerlink" title="E 步"></a>E 步</h4><p>在E步，我们需要将潜变量 $\delta<em>{ik}$的期望$\pi</em>{ik}^*$ 带入$Q_0(\boldsymbol \theta )$, 即</p>
+<script type="math/tex; mode=display">
+Q(\theta) = -\frac{1}{2}\sum_{i=1}^n\sum_{k=1}^K\pi^*_{ik}\big((x_i-\boldsymbol \mu_k)'\Sigma_k^{-1}(x_i-\boldsymbol \mu_k)+\ln|\Sigma_k|\big)+\sum_{i=1}^n\sum_{k=1}^K\pi^*_{ik}\ln(\pi_k)\\
+=Q_1(\theta)+Q_2(\theta)</script><blockquote>
+<p>前面这部分只和 $\mu,\Sigma$ 有关，后面只和 $\pi_k$ 有关</p>
+</blockquote>
+<p>$\delta<em>{ik}$ 的期望$\pi</em>{ik}^*$ 为：</p>
+<script type="math/tex; mode=display">
+\pi^*_{ik} = E(\delta_{ik}|x_i) = P(\delta_{ik}=1|x_i)=\frac{\pi_k\phi(x_i;\boldsymbol \mu_k,\sum_k)}{\sum_{k=1}^K\pi_k\phi(x_i;\boldsymbol\mu_k,\sum_k)}</script><p>其中：</p>
+<script type="math/tex; mode=display">
+\phi(\boldsymbol x_i,\boldsymbol \mu_k,\Sigma_k) = (2\pi)^{-p/2}\abs{\Sigma_k}^{-1/2}\exp\bigg\{-\frac{1}{2}(x_i-\boldsymbol \mu_k)'\Sigma_k^{-1}(x_i-\boldsymbol \mu_k) \bigg\}</script><p>① Q函数描述的其实就是在给定$\boldsymbol \theta$ 参数下，先对样本 X 做一个<strong>最有可能的划分</strong>（每个样本来源于各个类的可能性，即对$\delta_i$ 做估计 $E$ ，再描述能够产生这组样本的可能性（Q函数）)</p>
+<p>② 有了对于 $\delta_i$ 的估计之后，Q函数只和样本有关（传统意义上的似然函数亦如此，完全数据的似然函数还与 $\gamma$有关），而不再含有隐变量，从而使得最大化Q函数成为可能；</p>
+<p>③ 最大化Q函数的过程实则就是使得能够产生这组样本的可能性最大，与最大化似然函数的思路如出一辙。</p>
+<h4 id="M步"><a href="#M步" class="headerlink" title="M步"></a>M步</h4><p>求$Q(\theta)$ 的最大值，而确定未知参数的估计</p>
+<p>我们发现：</p>
+<ul>
+<li>$Q<em>1(\theta)$ 仅与未知参数 ${\boldsymbol \mu_k,\Sigma_k}^{K}</em>{k=1}$ 有关</li>
+<li>$Q<em>2(\theta)$ 仅与未知参数 ${\pi_k}^K</em>{k=1}$ 有关</li>
+</ul>
+<p>于是，我们可以分别确定最大值点。</p>
+<h5 id="Q1"><a href="#Q1" class="headerlink" title="Q1"></a>Q1</h5><script type="math/tex; mode=display">
+Q_1(\boldsymbol\theta) =-\frac{1}{2}\sum_{i=1}^n\sum_{k=1}^K\pi^*_{ik}\big((x_i-\boldsymbol \mu_k)'\Sigma_k^{-1}(x_i-\boldsymbol \mu_k)+\ln|\Sigma_k|\big)</script><p>在这里，由于$\Sigma_k$ 是一个矩阵，我们来复习一下对正定对称矩阵的求导</p>
+<ul>
+<li><p>假定 $X$ 是一个正定对称矩阵</p>
+<ul>
+<li><p>非线性的形式：</p>
+<script type="math/tex; mode=display">
+\frac{\partial \ln \det (X)}{\partial X} = X^{-1}</script></li>
+<li><p>关于逆矩阵的求导：</p>
+<script type="math/tex; mode=display">
+\frac{\partial \tr(AX^{-1}B)}{\partial X} = -(X^{-1}BAX^{-1})'</script></li>
+</ul>
+</li>
+</ul>
+<p>现在，对于$Q_1(\theta)$ ,我们要分别对$\boldsymbol \mu_k$ 和 $\Sigma_k$ 求导，并使得导函数为0</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\frac{\partial Q_1(\boldsymbol \theta)}{\partial\boldsymbol\mu_k}  = -\frac{1}{2}\sum_{i=1}^n\pi_{ik}^*\Sigma_{k}^{-1}(\boldsymbol x_i-\boldsymbol \mu_k)=0 \\~\\ &\frac{\partial Q_1(\boldsymbol \theta)}{\partial \Sigma_k} = \sum_{i=1}^n\pi_{ik}^*(\Sigma_k^{-1}(\boldsymbol x_i-\boldsymbol \mu_k)(\boldsymbol x_i-\boldsymbol \mu_k)'\Sigma_{k}^{-1}+\Sigma_k^{-1})=0 
+\end{align}</script><p>由此解得：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\boldsymbol \mu_k^{i+1} = \frac{\sum_{i=1}^n\pi_{ik}^*\boldsymbol x_i} {\sum_{i=1}^n\pi_{ik}^*}\\~\\
+&\Sigma^{i+1}_k = \frac{\sum_{i=1}^n\pi_{ik}^*(\boldsymbol x_i-\boldsymbol \mu_k)(\boldsymbol x_i-\boldsymbol \mu_k)'}{\sum_{i=1}^n \pi_{ik}^*}
+\end{align}</script><p>$\mu_k^{i+1},\sum_k^{i+1}$ 分别表示第$(i+1)$次迭代下第k个类的均值、协方差矩阵</p>
+<h5 id="Q2"><a href="#Q2" class="headerlink" title="Q2"></a>Q2</h5><script type="math/tex; mode=display">
+Q_2(\boldsymbol \theta) = \sum_{i=1}^n\sum_{k=1}^K\pi^*_{ik}\ln(\pi_k)\\</script><p>对于$Q_1(\theta)$ ,我们要分别对$\pi_k$  求导，并使得导函数为0</p>
+<p>注意了，在求$Q_2(\boldsymbol \theta)$ 的最大值时，注意这里是对$\pi_k$ 有限制条件的，即：</p>
+<script type="math/tex; mode=display">
+\sum_{i=1}^K \pi_k = 1, 0<\pi_k<1,k=1,2\cdots ,K</script><p>因此，我们需要采用拉格朗日乘子法，令</p>
+<script type="math/tex; mode=display">
+Q_2^*(\boldsymbol \theta) = \sum_{i=1}^n\sum_{k=1}^K\pi_{ik}^*\ln(\pi_k)-\lambda(\sum_{k=1}^K\pi_k-1)</script><p>对 $Q_2^*(\boldsymbol \theta) $ 关于 $\pi_k$ 求导，并使得导函数为0，即：</p>
+<script type="math/tex; mode=display">
+\frac{\partial Q_2^*(\boldsymbol \theta)}{\partial \pi_{k}} = \sum_{i=1}^n\frac{\pi_{ik}^*}{\pi_k}-\lambda = 0</script><p>由此解得：</p>
+<script type="math/tex; mode=display">
+\pi_{k} = \frac{1}{n}\sum_{i=1}^n\pi_{ik}^*</script><h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>EM算法的核心思想是：通过迭代的过程来找到一组最优的参数 $ (\mu^<em>,\Sigma^</em>,\pi^*)$，使得这组参数表示的模型最有可能产生现有的采样数据。每次迭代的过程就是参数矫正的过程。</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/18.png"></p>
+<p>现假设初始化一组参数 $\mu^0,\Sigma^0,\pi^0$。在这组参数下，2类二维高斯分布如图11绿色椭圆所示。现在开始用EM算法</p>
+<ul>
+<li><p>E-step 开始对样本数据进行划分（对$\delta_i$ 进行估计）。蓝色的样本大多都被划分给第1类模型，橘黄色的样本大多都被划分给第2类模型。但是第1类模型还有优化空间：第1类模型还不能使得蓝色样本出现的联合概率达到最大。第2类模型也是如此。</p>
+</li>
+<li><p>M-step便优化了2类模型的参数，得到新的参数，$\mu^1,\Sigma^1,\pi^1$ .使得优化后2类高斯分布如图11红色椭圆所示。</p>
+<ul>
+<li>第1类模型主要优化的是模型均值$\mu$（即椭圆的中心）</li>
+<li>第2类模型主要优化的是模型协方差矩阵$\Sigma$（即椭圆的长轴、短轴和长短轴的方向）</li>
+</ul>
+</li>
+<li>然后重复进行E-step和M-step，直到参数$(\mu,\Sigma,\pi)$收敛
+　　</li>
+</ul>
+<p>最后谈谈混合高斯模型的参数$\pi$。</p>
+<ul>
+<li><p>混合高斯模型的参数$\mu,\Sigma$ 比较好理解，用于描述各个高斯分布的形状，对于它们的调整也比较直观：<strong>使得本高斯分布能够更好地接纳被划分到这类分布的样本</strong>。</p>
+</li>
+<li><p>而为什么要有参数$\pi$ ? 它描述的是各个高斯分布所占的比重，如果不加“歧视”的话（样本来源于各个高斯分布的可能性一致），则有 $\pi_k=1/K$  。而如果对于某一类高斯分布（即为i）有侧重的话，则相应的 $\pi_i$ 较大，体现在图中就是<strong>被分配给各个类的样本数占样本总数的比例</strong>。如果一轮优化后，某一类高斯分布又接纳了更多样本，则其 $\pi$ 变大，反之变小（所以图11从绿色椭圆调整为红色椭圆实际上两个类所对应的权重也被优化了）。</p>
+<ul>
+<li>而从本质上来看参数 $\pi$，则是为了混合高斯模型能有更好的曲面拟合能力。当参数 $\pi$ 退化为 某一类高斯分布的权重远远大于其他类高斯分布的时候，混合高斯模型就退化成了单高斯模型！ </li>
+</ul>
+</li>
+</ul>
+<p>最后，给出混合高斯分布参数估计的逻辑流程。</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/17.png"></p>
+<h1 id="DBScan"><a href="#DBScan" class="headerlink" title="DBScan"></a>DBScan</h1><p>参考博客<a href="https://www.cnblogs.com/pinard/p/6208966.html" target="_blank" rel="noopener">https://www.cnblogs.com/pinard/p/6208966.html</a></p>
+<p>DBSCAN(Density-Based Spatial Clustering of Applications with Noise，具有噪声的基于密度的聚类方法)是一种很典型的密度聚类算法，和K-Means，BIRCH这些一般只适用于凸样本集的聚类相比，DBSCAN既可以适用于凸样本集，也可以适用于非凸样本集。下面我们就对DBSCAN算法的原理做一个总结。</p>
+<p>DBSCAN是一种基于密度的聚类算法，这类密度聚类算法一般假定类别可以通过<strong>样本分布的紧密程度</strong>决定。同一类别的样本，他们之间的紧密相连的，也就是说，在该类别任意样本周围不远处一定有同类别的样本存在。</p>
+<p>通过将紧密相连的样本划为一类，这样就得到了一个聚类类别。通过将所有各组紧密相连的样本划为各个不同的类别，则我们就得到了最终的所有聚类类别结果。</p>
+<h3 id="概述-1"><a href="#概述-1" class="headerlink" title="概述"></a>概述</h3><p>我们给定数据集 $X = (\boldsymbol {x_1,x_2,\cdots,x_n})’$</p>
+<p>对于每一个样本 $\boldsymbol x<em>i = (x</em>{i1},x<em>{i2},\cdots,x</em>{ip})’$ 可以看做 $R^p$ 空间中的一个点。</p>
+<p>我们假定第k 个点$\boldsymbol x_k$ 和第l个点 $\boldsymbol x_l$ 之间的距离为 $d(k,l)$</p>
+<h3 id="基本概念-1"><a href="#基本概念-1" class="headerlink" title="基本概念"></a>基本概念</h3><p>DBSCAN是基于一组邻域来描述样本集的紧密程度的，参数(ϵ, MinPts)用来描述邻域的样本分布紧密程度。其中，ϵ 描述了某一样本的<strong>邻域距离阈 </strong>，MinPts 描述了某一样本的距离为ϵ的邻域中<strong>样本个数的阈值</strong> 。由此，我们给出DBSCAN的一些基本概念如下：</p>
+<ol>
+<li>$\epsilon$-邻域：对于$x<em>j\in X$ 其 ϵ-邻域包含样本集D中与$x_j$ 的距离不大于 𝜖 的子样本集， 即 $N</em>\epsilon(x<em>j) = {x_i\in D|d(i,j) \leq\epsilon}$ 。称其为点 $x_j$ 的 $\epsilon$-邻域, 并将这个子样本集的个数记为 $|N</em>\epsilon(x_j)|$ </li>
+</ol>
+<p>2) 核心对象：对于任一样本 $x<em>j\in D$，如果其 $\epsilon$-邻域对应的 $N</em>ϵ(x_j)$ 至少包含MinPts个样本，即如果$|N\in(x_j)|≥MinPts$，则 $x_j$是核心对象。　 </p>
+<ol>
+<li><p>密度直达：如果 $x_i$ 位于 $x_j$ 的ϵ-邻域中，且$x_j$<strong>是核心对象</strong>，则称$x_i$ 由 $x_j$ 密度直达。注意<strong>反之不一定成立</strong>，即此时不能说$x_j$由$x_i$ 密度直达, 除非 $x_i$ 也是核心对象。</p>
+</li>
+<li><p>密度可达：对于 $x<em>i$ 和 $x_j$ , 如果存在样本样本序列 $p_1,p_2,\cdots,p_T$ ,满足$p_1 = x_i,p_T=x_j$ , 且$p</em>{t+1}$由$p<em>t$密度直达，则称$x_j$由 $x_i$密度可达。也就是说，<strong>密度可达满足传递性</strong>。此时序列中的传递样本$p_1,p_2,\cdots,p</em>{T−1}$ 均为核心对象，因为只有核心对象才能使其他样本密度直达。注意<strong>密度可达也不满足对称性</strong>，这个可以由密度直达的不对称性得出。</p>
+</li>
+<li><p>密度相连：对于 $x_i$ 和 $x_j$,如果存在核心对象样本$x_k$，使$x_i$和$x_j$均由$x_k$ 密度可达，则称$x_i$和$x_j$密度相连。注意<strong>密度相连关系是满足对称性的</strong>。</p>
+</li>
+</ol>
+<p>从下图可以很容易看出理解上述定义，图中MinPts=5，红色的点都是核心对象，因为其ϵ-邻域至少有5个样本。黑色的样本是非核心对象。</p>
+<ul>
+<li>所有核心对象密度直达的样本在以红色核心对象为中心的超球体内，如果不在超球体内，则不能密度直达。</li>
+<li>图中用绿色箭头连起来的核心对象组成了密度可达的样本序列。在这些密度可达的样本序列的 ϵ-邻域内</li>
+<li>所有的样本相互都是密度相连的。</li>
+</ul>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/19.png"></p>
+<h3 id="聚类思想"><a href="#聚类思想" class="headerlink" title="聚类思想"></a>聚类思想</h3><p>DBSCAN的聚类定义很简单：由密度可达关系导出的最大密度相连的样本集合，即为我们最终聚类的一个类别，或者说一个簇。</p>
+<p>这个DBSCAN的簇里面可以有一个或者多个核心对象。如果只有一个核心对象，则簇里其他的非核心对象样本都在这个核心对象的ϵ-邻域里；如果有多个核心对象，则簇里的任意一个核心对象的ϵ-邻域中一定有一个其他的核心对象，否则这两个核心对象无法密度可达。这些核心对象的ϵ-邻域里所有的样本的集合组成的一个DBSCAN聚类簇。</p>
+<p>那么怎么才能找到这样的簇样本集合呢？DBSCAN使用的方法很简单，它任意选择一个没有类别的核心对象作为种子，然后找到所有这个核心对象能够密度可达的样本集合，即为一个聚类簇。接着继续选择另一个没有类别的核心对象去寻找密度可达的样本集合，这样就得到另一个聚类簇。一直运行到所有核心对象都有类别为止。</p>
+<p>基本上这就是DBSCAN算法的主要内容了，是不是很简单？但是我们还是有三个问题没有考虑。</p>
+<ul>
+<li>第一个是一些异常样本点或者说少量游离于簇外的样本点，这些点不在任何一个核心对象在周围，在DBSCAN中，我们一般将这些样本点标记为噪音点。</li>
+</ul>
+<p>+　第二个是距离的度量问题，即如何计算某样本和核心对象样本的距离。在DBSCAN中，<strong>一般采用最近邻思想</strong>，采用某一种距离度量来衡量样本距离，比如欧式距离。这和KNN分类算法的最近邻思想完全相同。对应少量的样本，寻找最近邻可以直接去计算所有样本的距离，如果样本量较大，则一般采用KD树或者球树来快速的搜索最近邻。如果大家对于最近邻的思想，距离度量，KD树和球树不熟悉，建议参考 <a href="http://www.cnblogs.com/pinard/p/6061661.html" target="_blank" rel="noopener">K近邻法(KNN)原理小结</a>。</p>
+<ul>
+<li>第三种问题比较特殊，某些样本可能到两个核心对象的距离都小于 ϵ，但是这两个核心对象由于不是密度直达，又不属于同一个聚类簇，那么如果界定这个样本的类别呢？一般来说，此时DBSCAN采用先来后到，先进行聚类的类别簇会标记这个样本为它的类别。也就是说<strong>DBSCAN的算法不是完全稳定的算法</strong>。</li>
+</ul>
+<h3 id="算法"><a href="#算法" class="headerlink" title="算法"></a>算法</h3><p>下面我们对DBSCAN聚类算法的流程做一个总结。</p>
+<p>输入：样本集 $D= (x_1,x_2,\cdots,x_m)$，邻域参数 (ϵ,MinPts), 样本距离度量方式 </p>
+<p>输出：簇划分C.　</p>
+<ol>
+<li>初始化核心对象集合$\Omega = \emptyset$, 初始化聚类簇数 $k=0$，初始化未访问样本集合 $ \Gamma = D$,  簇划分$C = \emptyset$</li>
+<li>对于 $j=1,2\cdots,m$, 按下面步骤，找出所有核心对象<ul>
+<li>通过距离度量方式，找到样本 $x<em>j$ 的 ϵ-邻域 样本集 $N</em>\epsilon(x_j)$ </li>
+<li>如果子样本集样本个数满足 $|N_\epsilon(x_j)|\geq MinPts$ , 就将样本$x_j$ 加入核心对象的样本集合中去：$\Omega = \Omega \cup{x_j}$ </li>
+</ul>
+</li>
+<li>如果核心对象集合 $\Omega = \emptyset $，则算法结束，否则转入步骤4.</li>
+<li>在核心对象集合$\Omega$中，随机选择一个核心对象$o$，初始化当前簇核心对象队列 $\Omega_{cur}={o}$, 初始化类别序号$k=k+1$，初始化当前簇样本集合 $C_k={o}$, 更新未访问样本集合 $\Gamma=\Gamma−{o}$ </li>
+<li>如果当前簇核心对象队列 $\Omega_{cur}=\emptyset$，则当前聚类簇 $C_k$ 生成完毕, 更新簇划分$C={C_1,C_2\cdots,C_k}$, 更新核心对象集合$\Omega = \Omega- C_k$， 转入步骤3。否则更新核心对象集合 $\Omega=\Omega−C_k$。</li>
+<li>在当前簇核心对象队列 $\Omega<em>{cur}$ 中取出一个核心对象 $o’$,通过邻域距离阈值 ϵ找出所有的 ϵ-邻域子样本集$N</em>\epsilon(o’)$，令$\Delta=N<em>c(o’)\cap \Gamma $, 更新当前簇样本集合$C_k = C_k\cup\Delta$, 更新未访问样本集合$\Gamma=\Gamma−\Delta$, 更新$\Omega</em>{cur} = \Omega_{cur}\cup(\Delta\cap\Omega)-o’$，转入步骤5.</li>
+<li>如果 $x_i\in D$ 但是 $x_i\notin C_k,k=1,2\cdots,K$ ，那么我们称点 $x_i$ 为噪声</li>
+</ol>
+<p>输出结果为： 簇划分 $C = {C_1,C_2\cdots,C_m}$ </p>
+<p>我们用一个可视化的例子来展现DBSCAN的聚类效果：这里由于点很多，采取的是在图片上等距离得取几个点，判断这几个点中是否存在核心对象，然后从选中的核心对象开始聚类。我们发现DBSCAN可以对非凸数据集(圆环)进行聚类，而Kmeans是达不到这种效果的。</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/20.gif"></p>
+<h3 id="小结-1"><a href="#小结-1" class="headerlink" title="小结"></a>小结</h3><p>和传统的K-Means算法相比，DBSCAN最大的不同就是<strong>不需要输入类别数k</strong>，当然它最大的优势是可以发现任意形状的聚类簇，而不是像K-Means，一般仅仅使用于凸的样本集聚类。同时它在聚类的同时还可以找出异常点，这点和BIRCH算法类似。</p>
+<p>用通俗的话来说：我联系的到的人，都是我的朋友，我联系不到的，反正不属于我这类。如果有人被孤立了，他就是噪声</p>
+<p>那么我们什么时候需要用DBSCAN来聚类呢？一般来说，如果数据集是稠密的，并且数据集不是凸的，那么用DBSCAN会比K-Means聚类效果好很多；如果数据集不是稠密的，则不推荐用DBSCAN来聚类，因为如果$\epsilon$设置的不好的话，很可能都是噪声。</p>
+<p>下面对DBSCAN算法的优缺点做一个总结。</p>
+<p>DBSCAN的主要优点有：</p>
+<ol>
+<li>可以对任意形状的稠密数据集进行聚类，相对的，K-Means之类的聚类算法一般只适用于凸数据集。</li>
+<li>可以在聚类的同时发现异常点，对数据集中的异常点不敏感。</li>
+<li>聚类结果没有偏倚，相对的，K-Means之类的聚类算法初始值对聚类结果有很大影响。</li>
+</ol>
+<p>DBSCAN的主要缺点有：</p>
+<ol>
+<li>如果样本集的密度不均匀、聚类间距差相差很大时，聚类质量较差，这时用DBSCAN聚类一般不适合。</li>
+<li>如果样本集较大时，聚类收敛时间较长，此时可以对搜索最近邻时建立的KD树或者球树进行规模限制来改进。</li>
+<li>调参相对于传统的K-Means之类的聚类算法稍复杂，主要需要对距离阈值 ϵ，邻域样本数阈值MinPts联合调参，不同的参数组合对最后的聚类效果有较大影响。</li>
+</ol>
+<h1 id="聚类方法的评价"><a href="#聚类方法的评价" class="headerlink" title="聚类方法的评价"></a>聚类方法的评价</h1><p>聚类有效性是评价聚类结果的方式，主要分为外部聚类的有效性和内布聚类的有效性。它们的区别就在于：对于这个数据集，我们知不知道它的标签，如果知道，相当于借助了“外部”信息，就是外部聚类的有效性。反之就是内部聚类的有效性</p>
+<h2 id="外部聚类的有效性"><a href="#外部聚类的有效性" class="headerlink" title="外部聚类的有效性"></a>外部聚类的有效性</h2><p>对于n个测试样本(数据集) $x_i(i=1,2\cdots,n)$ </p>
+<ul>
+<li><p>假定分类结果为 $\mathcal C = {C_1,C_2\cdots,C_K}$  并满足：</p>
+<script type="math/tex; mode=display">
+C_k\cap C_l = \emptyset\\
+\bigcup_{k=1}^KC_i = X</script><ul>
+<li>K 为聚类的数目</li>
+</ul>
+</li>
+<li><p>假设 “真实的” 标签划分 $\mathcal P = {P<em>1,P_2\cdots,P</em>{K’}}$ 并满足：</p>
+<script type="math/tex; mode=display">
+P_k\cap P_l = \emptyset\\
+\bigcup_{k=1}^KP_i = X</script><ul>
+<li>K’ 为真实分类数目</li>
+</ul>
+</li>
+</ul>
+<p>因此，我们可以给出可能性矩阵的定义：</p>
+<p><img src="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/21.png"></p>
+<p>我们可以计算：</p>
+<script type="math/tex; mode=display">
+p_{ij} = \frac{n_{ij}}{n},p_i = \frac{n_{i\cdot}}{n},p_j = \frac{n_{\cdot j}}{n}</script><h3 id="常用指标"><a href="#常用指标" class="headerlink" title="常用指标"></a>常用指标</h3><p>对 K 均值聚类算法而言，熵和纯度是两种最常用的外部度量</p>
+<h4 id="熵"><a href="#熵" class="headerlink" title="熵"></a>熵</h4><script type="math/tex; mode=display">
+E = -\sum_i p_i\bigg(\sum_j\frac{p_{ij}}{p_i}\ln\frac{p_{ij}}{p_i} \bigg)</script><h4 id="纯度"><a href="#纯度" class="headerlink" title="纯度"></a>纯度</h4><script type="math/tex; mode=display">
+P = \sum_i p_i(\max_j\frac{p_{ij}}{p_i})</script><h2 id="内部聚类的有效性"><a href="#内部聚类的有效性" class="headerlink" title="内部聚类的有效性"></a>内部聚类的有效性</h2><p>聚类一般是没有标签的，所以外部聚类有效性指标有很大的局限性。因此现在来讲讲内部聚类的有效性。</p>
+<p>内部聚类有效性要看两个准则：</p>
+<h3 id="紧密度-Compactness"><a href="#紧密度-Compactness" class="headerlink" title="紧密度(Compactness)"></a>紧密度(Compactness)</h3><p>紧密度是在同一类内不同个体之间紧密关联的度量</p>
+<ul>
+<li>方差可以体现数据的紧密度；低方差表明紧密度好。</li>
+<li>很多紧密度的定义是依赖于距离的，如：最大或平均两两距离，基于中心的最大或平均距离等。</li>
+</ul>
+<h3 id="区分度-Seperation"><a href="#区分度-Seperation" class="headerlink" title="区分度(Seperation)"></a>区分度(Seperation)</h3><p>区分度是不同类别区间程度的度量。</p>
+<ul>
+<li>例如，两个类中心的距离，或者是最短距离，通常作为区分度的度量</li>
+<li>密度(density) 也会用于度量区分度。</li>
+</ul>
+<h3 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h3><h4 id="均方标准差"><a href="#均方标准差" class="headerlink" title="均方标准差"></a>均方标准差</h4><script type="math/tex; mode=display">
+RMSSTD = \bigg(\frac{\sum_{k=1}^K \sum_{i\in C_k}||\boldsymbol x_i-\boldsymbol m_k||^2 }{p\sum_{k=1}^K(n_{k}-1)}  \bigg)^{1/2}</script><p>用语言来表述，分子是：每个个体减去每个组的均值；分母中，p代表维度，右边是总的样本的个数。</p>
+<p>RMSSTD 越小，就代表紧密度越好</p>
+<h4 id="R平方-RS"><a href="#R平方-RS" class="headerlink" title="R平方 (RS)"></a>R平方 (RS)</h4><script type="math/tex; mode=display">
+RS = 1-\frac{\sum_{k=1}^K\sum_{i\in C_k}||\boldsymbol x_i-\boldsymbol m_k||^2}{\sum_{i=1}^n||\boldsymbol x_i-\boldsymbol  {\overline x}||^2}</script><p>这个方法是从回归中迁移过来的，分子是 SSE，即组内个体减去组均值的平方和。分母是SST 即所有样本减去整体样本的平方和</p>
+<h1 id="选超参"><a href="#选超参" class="headerlink" title="选超参"></a>选超参</h1><p>因为很多聚类算法都需要我们手动选择超参，那么有什么通用的方法吗？</p>
+<h2 id="轮廓法"><a href="#轮廓法" class="headerlink" title="轮廓法"></a>轮廓法</h2><p>第一种是轮廓法，是一种直观的、且用于验证聚类结果的方法。</p>
+<p>基本思想就是：同类相似，异类不同。</p>
+<p>在轮廓法中，需要定义一个重要的概念——轮廓值。 轮廓值是一个-1到1之间的值，需要通过计算获得。</p>
+<p>一般认为，轮廓值较高表示该样本被很好得聚到其所属的类，而不和其他类相似。</p>
+<p>如果大部分的样本具有较高的轮廓值，那么聚类的结果是恰当的；如果存在许多样本具有较低的轮廓值，甚至是负值，那么聚类的个数可能不合适</p>
+<h3 id="具体方法"><a href="#具体方法" class="headerlink" title="具体方法"></a>具体方法</h3><h4 id="计算-a-i"><a href="#计算-a-i" class="headerlink" title="计算 a(i)"></a>计算 a(i)</h4><p>对于某个聚类结果 $\mathcal C = {C_1,C_2\cdots,C_K}$  ：</p>
+<p>那么，对于第 i 个样本，假定其属于第k 类，$n_k$ 表示第k 类中的样本量，令$a(i)$ 表示第i个样本与 第k类的 其他样本的 平均距离。即：</p>
+<script type="math/tex; mode=display">
+a(i) = \frac{1}{n_k-1} \sum_{j\in \mathcal C_k,j\neq i}\text{dist}(i,j)</script><p>我们注意到 $a(i)$ 表示第i 个样本与其同属一类的样本的平均<strong>不相似度</strong>，如果该类只有第i个样本本身，那么$a(i)$ 为0</p>
+<h4 id="计算b-i"><a href="#计算b-i" class="headerlink" title="计算b(i)"></a>计算b(i)</h4><p>在计算 b(i) 之前，我们要对第i个样本和另一个样本量为 $n<em>{k’}$ 的类 $\mathcal C</em>{k’}$ ，令$d(i,\mathcal C_{k’})$为第i个样本与第 $k’$ 个类的所有样本的平均<strong>不相似度</strong></p>
+<script type="math/tex; mode=display">
+d(i,\mathcal C_{k'}) = \frac{1}{n_{k'}}\sum_{j\in \mathcal C_{k'}}\text{dist}(i,j)</script><p>然后我们可以定义 $b(i)$，令</p>
+<script type="math/tex; mode=display">
+b(i) = \min_{k'\neq k} d(i,\mathcal C_k')</script><p>用来表示<strong>第i 个样本和不属于同一类的最近距离</strong></p>
+<h4 id="计算轮廓值-s-i"><a href="#计算轮廓值-s-i" class="headerlink" title="计算轮廓值 s(i)"></a>计算轮廓值 s(i)</h4><p>对于第 i 个样本，我们定义轮廓值 $s(i)$ 为：</p>
+<script type="math/tex; mode=display">
+s(i) = \frac{b(i)-a(i)}{\max\big(a(i),b(i)\big)}</script><p>对于所有n个样本，可以计算平均轮廓值，用于度量聚类数目 K 是否合适</p>
+<p>由此，以<strong>最大的平均轮廓值</strong>对应的K 作为最优聚类数目，这种方法被称为是轮廓法</p>
+<h2 id="CH指数"><a href="#CH指数" class="headerlink" title="CH指数"></a>CH指数</h2><p>CH 指数是与方差分析中的 F 检验统计量是相似的。</p>
+<p>假定我们对 n 个样本进行聚类，对于某个聚类结果 $\mathcal C = {C_1,C_2\cdots,C_K}$  ：我们分别考虑类间的平方和$B(K)$ 和 类内的平方和 $W(K)$ </p>
+<p>那么，CH指数可以定义为：</p>
+<script type="math/tex; mode=display">
+CH(K) = \frac{B(K)/K-1}{W(K)/(n-K)}</script><p>其中，</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&W(K) = \sum_{k=1}^K \sum_{i\in \mathcal C_k}||\boldsymbol x_i-\boldsymbol{\overline x_k}||^2\\
+&\overline x_k = \frac{1}{n_k}\sum_{i\in\mathcal C_k}\boldsymbol x_i\\
+\end{align}</script><script type="math/tex; mode=display">
+\begin{align}
+&B(K) = \sum_{k=1}^K\sum_{i\in\mathcal C_k} ||\overline  {\boldsymbol x_i}-\boldsymbol {\overline{\overline x}}_k ||^2\\
+&\overline{\overline {\boldsymbol x}} = \frac{1}{K} \sum_{k=1}^K \overline {\boldsymbol x}_k
+\end{align}</script><p>基于方差分解公式，在给定样本时，$B(K)$ 与 $W(K)$ 的和是一个定值</p>
+<p>如果 $B(K)$ 越大，则 $W(K)$ 越小，那么满足对聚类的基本思想：类内差异小，类间差异大</p>
+<p>我们可以通过最大化 CH指数来得到最优的聚类数目K</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/" title="统计方法ch5-聚类1">https://jasonxqh.github.io/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95/" rel="tag"><i class="fa fa-tag"></i> 统计方法</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/01/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E5%88%86%E6%9E%90-%E7%9F%A9%E9%98%B5%E7%89%88/" rel="next" title="线性回归分析-矩阵版">
+                <i class="fa fa-chevron-left"></i> 线性回归分析-矩阵版
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/09/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch8-%E7%89%B9%E5%BE%81%E5%80%BC%E8%AE%A1%E7%AE%97/" rel="prev" title="数据科学算法ch8-特征值计算">
+                数据科学算法ch8-特征值计算 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">427</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#统计方法ch5-聚类1"><span class="nav-number">1.</span> <span class="nav-text">统计方法ch5-聚类1</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本概念"><span class="nav-number">1.0.1.</span> <span class="nav-text">基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基本定义"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">基本定义</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#距离的意义"><span class="nav-number">2.</span> <span class="nav-text">距离的意义</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#点间距离"><span class="nav-number">2.1.</span> <span class="nav-text">点间距离</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#连续变量的点间距离"><span class="nav-number">2.1.1.</span> <span class="nav-text">连续变量的点间距离</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#欧氏距离"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">欧氏距离</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#平方欧氏距离"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">平方欧氏距离</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#闵式距离"><span class="nav-number">2.1.1.3.</span> <span class="nav-text">闵式距离</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#曼哈顿距离-绝对距离"><span class="nav-number">2.1.1.4.</span> <span class="nav-text">曼哈顿距离(绝对距离)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#切比雪夫距离-最大距离"><span class="nav-number">2.1.1.5.</span> <span class="nav-text">切比雪夫距离(最大距离)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#兰氏距离"><span class="nav-number">2.1.1.6.</span> <span class="nav-text">兰氏距离</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#马氏距离"><span class="nav-number">2.1.1.7.</span> <span class="nav-text">马氏距离</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#皮尔逊线性相关系数"><span class="nav-number">2.1.1.8.</span> <span class="nav-text">皮尔逊线性相关系数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#余弦相似度"><span class="nav-number">2.1.1.9.</span> <span class="nav-text">余弦相似度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#肯德尔秩相关系数"><span class="nav-number">2.1.1.10.</span> <span class="nav-text">肯德尔秩相关系数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#斯皮尔曼秩相关系数"><span class="nav-number">2.1.1.11.</span> <span class="nav-text">斯皮尔曼秩相关系数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#混合变量的点间距离"><span class="nav-number">2.1.2.</span> <span class="nav-text">混合变量的点间距离</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#定性变量"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">定性变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#定量变量"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">定量变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#定序变量"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">定序变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#相似度"><span class="nav-number">2.1.2.4.</span> <span class="nav-text">相似度</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类间距离"><span class="nav-number">2.1.3.</span> <span class="nav-text">类间距离</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#sinple-linkage"><span class="nav-number">2.1.3.1.</span> <span class="nav-text">sinple linkage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#complete-linkage"><span class="nav-number">2.1.3.2.</span> <span class="nav-text">complete linkage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#centroid-linkage"><span class="nav-number">2.1.3.3.</span> <span class="nav-text">centroid linkage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#关联准则"><span class="nav-number">2.1.3.4.</span> <span class="nav-text">关联准则</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#层次聚类"><span class="nav-number">3.</span> <span class="nav-text">层次聚类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#K-Means-聚类"><span class="nav-number">4.</span> <span class="nav-text">K-Means 聚类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#目标与思想"><span class="nav-number">4.0.1.</span> <span class="nav-text">目标与思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#步骤"><span class="nav-number">4.0.2.</span> <span class="nav-text">步骤</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#高斯混合模型-GM"><span class="nav-number">5.</span> <span class="nav-text">高斯混合模型(GM)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">5.0.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#由来"><span class="nav-number">5.0.2.</span> <span class="nav-text">由来</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EM算法"><span class="nav-number">5.0.3.</span> <span class="nav-text">EM算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#E-步"><span class="nav-number">5.0.3.1.</span> <span class="nav-text">E 步</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#M步"><span class="nav-number">5.0.3.2.</span> <span class="nav-text">M步</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Q1"><span class="nav-number">5.0.3.2.1.</span> <span class="nav-text">Q1</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Q2"><span class="nav-number">5.0.3.2.2.</span> <span class="nav-text">Q2</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">5.0.4.</span> <span class="nav-text">小结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#DBScan"><span class="nav-number">6.</span> <span class="nav-text">DBScan</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述-1"><span class="nav-number">6.0.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基本概念-1"><span class="nav-number">6.0.2.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#聚类思想"><span class="nav-number">6.0.3.</span> <span class="nav-text">聚类思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#算法"><span class="nav-number">6.0.4.</span> <span class="nav-text">算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结-1"><span class="nav-number">6.0.5.</span> <span class="nav-text">小结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#聚类方法的评价"><span class="nav-number">7.</span> <span class="nav-text">聚类方法的评价</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#外部聚类的有效性"><span class="nav-number">7.1.</span> <span class="nav-text">外部聚类的有效性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#常用指标"><span class="nav-number">7.1.1.</span> <span class="nav-text">常用指标</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#熵"><span class="nav-number">7.1.1.1.</span> <span class="nav-text">熵</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#纯度"><span class="nav-number">7.1.1.2.</span> <span class="nav-text">纯度</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内部聚类的有效性"><span class="nav-number">7.2.</span> <span class="nav-text">内部聚类的有效性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#紧密度-Compactness"><span class="nav-number">7.2.1.</span> <span class="nav-text">紧密度(Compactness)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#区分度-Seperation"><span class="nav-number">7.2.2.</span> <span class="nav-text">区分度(Seperation)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#指标"><span class="nav-number">7.2.3.</span> <span class="nav-text">指标</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#均方标准差"><span class="nav-number">7.2.3.1.</span> <span class="nav-text">均方标准差</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#R平方-RS"><span class="nav-number">7.2.3.2.</span> <span class="nav-text">R平方 (RS)</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#选超参"><span class="nav-number">8.</span> <span class="nav-text">选超参</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#轮廓法"><span class="nav-number">8.1.</span> <span class="nav-text">轮廓法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#具体方法"><span class="nav-number">8.1.1.</span> <span class="nav-text">具体方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#计算-a-i"><span class="nav-number">8.1.1.1.</span> <span class="nav-text">计算 a(i)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#计算b-i"><span class="nav-number">8.1.1.2.</span> <span class="nav-text">计算b(i)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#计算轮廓值-s-i"><span class="nav-number">8.1.1.3.</span> <span class="nav-text">计算轮廓值 s(i)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CH指数"><span class="nav-number">8.2.</span> <span class="nav-text">CH指数</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1265.2k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+  
+
+  
+
+</body>
+</html>

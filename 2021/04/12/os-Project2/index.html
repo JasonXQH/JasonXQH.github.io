@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="操作系统," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Project2 进程调度实验要求在MINIX3中实现 Earlist-Deadline-First 近似实时调度功能：  提供设置进程执行期限的系统调度 chrt(long deadline) ,用于将调用该系统调用的进程设为实时进程，其执行的期限为：从调用处开始deadline秒。例如：  1234#include &lt;unistd.h&gt;&#x2F;&#x2F;……chrt(10);&#x2F;* 该程序将可以运">
+<meta property="og:type" content="article">
+<meta property="og:title" content="os-Project2">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/04/12/os-Project2/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Project2 进程调度实验要求在MINIX3中实现 Earlist-Deadline-First 近似实时调度功能：  提供设置进程执行期限的系统调度 chrt(long deadline) ,用于将调用该系统调用的进程设为实时进程，其执行的期限为：从调用处开始deadline秒。例如：  1234#include &lt;unistd.h&gt;&#x2F;&#x2F;……chrt(10);&#x2F;* 该程序将可以运">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/16.png">
+<meta property="article:published_time" content="2021-04-12T04:40:22.000Z">
+<meta property="article:modified_time" content="2021-05-17T15:40:50.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/04/12/os-Project2/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/04/12/os-Project2/"/>
+
+
+
+
+
+  <title>os-Project2 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/04/12/os-Project2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">os-Project2</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-04-12T12:40:22+08:00">
+                2021-04-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  3.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  14
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Project2-进程调度"><a href="#Project2-进程调度" class="headerlink" title="Project2 进程调度"></a>Project2 进程调度</h1><h2 id="实验要求"><a href="#实验要求" class="headerlink" title="实验要求"></a>实验要求</h2><p>在MINIX3中实现 Earlist-Deadline-First 近似实时调度功能：</p>
+<ol>
+<li>提供设置进程执行期限的系统调度 <code>chrt(long deadline)</code> ,用于将调用该系统调用的进程设为实时进程，其执行的期限为：从调用处开始deadline秒。例如：</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="comment">//……</span></span><br><span class="line">chrt(<span class="number">10</span>);<span class="comment">/* 该程序将可以运行的最长时间为10秒，若没有运行结束，则强制结束*/</span></span><br><span class="line"><span class="comment">//……</span></span><br></pre></td></tr></table></figure>
+<p><code>chrt</code>的定义：</p>
+<p><code>int chrt(long deadline);</code>  deadline 是最后期限值(秒)，返回值1表示成功，返回值0表示该调用出错</p>
+<ol>
+<li>在内核进程表中需要增加一个条目，用于表示进程的实时属性；修改相关代码，新增一个系统调用chrt，用于设置其进程表中的实时属性。</li>
+<li>修改proc.c和proc.h中相关的调度代码，实现最早deadline的用户进程相对于其它用户进程具有更高的优先级，从而被优先调度运行。</li>
+<li>在用户程序中，可以在不同位置调用多次chrt系统调用，在未到deadline之前，调用chrt将会改变该程序的deadline。</li>
+<li>未调用chrt的程序将以普通的用户进程(非实时进程)在系统中运行</li>
+</ol>
+<h2 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h2><h3 id="增加系统调用chrt"><a href="#增加系统调用chrt" class="headerlink" title="增加系统调用chrt"></a>增加系统调用<code>chrt</code></h3><p>MINIX3中的系统调用结构分成三个层次：应用层，服务层，内核层。在这三层中分别进行代码修改，实现系统调用chrt的信息传递。从应用层用<code>_syscall</code>将信息传递到服务层，在服务层用<code>_kernel_call</code>将信息传递到内核层，在内核层对进程结构体增加deadline成员。</p>
+<h4 id="应用层"><a href="#应用层" class="headerlink" title="应用层"></a>应用层</h4><p>需要添加的系统调用chrt可以定义在unistd头文件中，并在libc中添加chrt函数体实现。</p>
+<ul>
+<li>在<code>/usr/src/include/unistd.h</code>中添加chrt函数定义</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//...</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">chrt</span><span class="params">(<span class="keyword">long</span>)</span></span>;</span><br><span class="line"><span class="comment">//...</span></span><br></pre></td></tr></table></figure>
+<p>这里我犯了一个很愚蠢的错误，一开始我写的是 <code>int char(long deadline)</code>，虽然kernel编译成功但是在编译test.c 的时候却始终找不到chrt 函数，经过修改后排除错误</p>
+<ul>
+<li>在<code>/usr/src/minix/lib/libc/sys/chrt.c</code>中添加chrt函数实现。可用alarm函数实现超时强制终止。参照该文件夹下fork.c文件，在实现中通过<code>_syscall</code>(调用号)向系统服务传递。例如：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">fork</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">	<span class="keyword">return</span>(_syscall(PM_PROC_NR, PM_FORK, &amp;m));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>chrt.c</code>如下图所示：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/cdefs.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"namespace.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;lib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">chrt</span><span class="params">(<span class="keyword">long</span> deadline)</span></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">timeval</span> <span class="title">tv</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">timezone</span> <span class="title">tz</span>;</span></span><br><span class="line">    message m;</span><br><span class="line">    <span class="built_in">memset</span>(&amp;m,<span class="number">0</span>,<span class="keyword">sizeof</span>(m));</span><br><span class="line">    <span class="comment">//设置alarm</span></span><br><span class="line">    alarm((<span class="keyword">unsigned</span> <span class="keyword">int</span>)deadline);</span><br><span class="line">    <span class="comment">//将当前时间记录下来 算deadline</span></span><br><span class="line">    <span class="keyword">if</span>(deadline&gt;<span class="number">0</span>)&#123;</span><br><span class="line">    gettimeofday(&amp;tv,&amp;tz);</span><br><span class="line">    deadline = tv.tv_sec + deadline; </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//存deadline</span></span><br><span class="line">    m.m2_l1=deadline;</span><br><span class="line">  	<span class="comment">//把m传到服务层当中去</span></span><br><span class="line">    <span class="keyword">return</span>(_syscall(PM_PROC_NR,PM_CHRT,&amp;m));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>timeval</code> 使用来获得时间的</p>
+<p><code>timezone</code> 是用来获得时区的</p>
+<p> <code>gettimeofday</code> 用来获取当前的时间的函数，包含在头文件 <code>#include &lt;sys/time.h&gt;</code> 中</p>
+<p><code>_syscall</code>函数可以用来查找系统调用。PM_PROC_NR 将会用来存放PM_CHRT的系统调用号，</p>
+<ul>
+<li>在<code>/usr/src/minix/lib/libc/sys</code>中 <code>Makefile.inc</code>文件添加chrt.c条目（添加C文件后，需在同目录下的Makefile/Makefile.inc中添加条目）</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/1.png" style="zoom:67%;"> </p>
+<h4 id="服务层："><a href="#服务层：" class="headerlink" title="服务层："></a>服务层：</h4><p>需要向MINIX系统的进程管理服务中注册chrt，使得chrt服务可以向应用层提供。</p>
+<ul>
+<li>在<code>/usr/src/minix/servers/pm/proto.h</code>中添加<code>do_chrt</code>函数定义。</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/12.png"></p>
+<p>因为 <code>do_chrt</code> 的功能是调用 <code>sys_chrt()</code>函数，并不需要传入参数，所以这里写<code>void</code></p>
+<ul>
+<li>在<code>/usr/src/minix/servers/pm/chrt.c</code>中添加<code>chrt</code>函数实现，调用<code>sys_chrt()</code></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">"pm.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;minix/syslib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;minix/callnr.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;minix/com.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;minix/vm.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"mproc.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ptrace.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/resource.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;minix/sched.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;assert.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">do_chrt</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="comment">// who_p 是用来获取进程信息的，类型是endpoint_t;m_in.m2_l1就是deadline</span></span><br><span class="line">    sys_chrt(who_p, m_in.m2_l1); </span><br><span class="line">    <span class="keyword">return</span> OK;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在<code>/usr/src/minix/include/minix/callnr.h</code>中定义<code>PM_CHRT</code>编号。用来帮助应用层的系统调用能找到</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/2.png" style="zoom:67%;"></p>
+<p>我一开始没有定义 PM_CHRT 的编号，导致 make build 的时候总是报告称<code>error: use of undeclared identifier &#39;PM_CHRT&#39;</code></p>
+<ul>
+<li>在<code>/usr/src/minix/servers/pm/Makefile</code>中添加<code>chrt.c</code>条目。</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/3.png" style="zoom:67%;"></p>
+<ul>
+<li>在<code>/usr/src/minix/servers/pm/table.c</code>中调用映射表。</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/4.png" style="zoom:67%;"></p>
+<ul>
+<li>在<code>/usr/src/minix/include/minix/syslib.h</code>中添加<code>sys_chrt()</code>定义。</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/5.png" style="zoom:67%;"></p>
+<ul>
+<li>在<code>/usr/src/minix/lib/libsys/sys_chrt.c</code>中添加<code>sys_chrt ()</code>实现。可参照该文件夹下的<code>sys_fork</code>文件，在实现中通过<code>_kernel_call</code> (调用号)向内核传递。例如：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sys_fork</span><span class="params">(parent, child, child_endpoint, flags, msgaddr)</span></span>&#123;</span><br><span class="line">	_kernel_call(SYS_FORK, &amp;m);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"syslib.h"</span></span></span><br><span class="line"><span class="comment">// 目的就是把进程和deadline提取出来，然后调用 kernel_call() 传入内核</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sys_chrt</span><span class="params">(proc_ep, deadline)</span></span></span><br><span class="line"><span class="function"><span class="keyword">endpoint_t</span> proc_ep</span>;</span><br><span class="line"><span class="keyword">long</span> deadline;</span><br><span class="line">&#123;</span><br><span class="line">    message m;</span><br><span class="line">    <span class="keyword">int</span> r;</span><br><span class="line">    m.m2_i1 = proc_ep; <span class="comment">//m2_i1 支持传送一个 int 类型的数据</span></span><br><span class="line">    m.m2_l1 = deadline; <span class="comment">// m2_l1 支持传送一个long 类型的数据</span></span><br><span class="line">  <span class="comment">//和syscall一样，这里通过SYS_CHRT和do_chrt的映射，把message传入内核层并调用do_chrt修改进程信息</span></span><br><span class="line">    r=_kernel_call(SYS_CHRT, &amp;m);</span><br><span class="line">    <span class="keyword">return</span> r;</span><br><span class="line">&#125;、</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在<code>/usr/src/minix/lib/libsys</code>中的<code>Makefile</code>中添加<code>sys_chrt.c</code>条目。</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/6.png"></p>
+<h4 id="内核层"><a href="#内核层" class="headerlink" title="内核层"></a>内核层</h4><p>在MINIX内核中实现进程调度功能，此处可以直接修改内核信息，例如<strong>进程的截至时间</strong>。</p>
+<ul>
+<li>在<code>/usr/src/minix/kernel/system.h</code>中添加<code>do_chrt</code>函数定义。</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/8.png"></p>
+<ul>
+<li>在 <code>/usr/src/minix/kernel/config.h</code>中添加 <code>USE_CHRT</code></li>
+</ul>
+<p>踩坑：这一步虽然在实验说明中没有写，但是我们要加上去。否则在编译 测试文件的时候会报错</p>
+<p><img src="/2021/04/12/os-Project2/14.png"></p>
+<ul>
+<li>在<code>/usr/src/minix/kernel/system/do_chrt.c</code>中添加<code>do_chrt</code>函数实现。参考该文件下的<code>do_fork</code>文件，修改调用者进程信息。例如：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">fork</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">	<span class="keyword">return</span>(_syscall(PM_PROC_NR, PM_FORK, &amp;m));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="do-chrt-c"><a href="#do-chrt-c" class="headerlink" title="do_chrt.c"></a>do_chrt.c</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"kernel/system.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"kernel/vm.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;assert.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;minix/endpoint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;minix/u64.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> USE_CHRT</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">do_chrt</span><span class="params">(struct proc *caller, message *m_ptr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">proc</span> *<span class="title">rp</span>;</span></span><br><span class="line">    <span class="keyword">long</span> exp_time;</span><br><span class="line">    exp_time = m_ptr-&gt;m2_l1;</span><br><span class="line">    <span class="comment">//通过 proc_addr 定位内核中进程地址</span></span><br><span class="line">    rp = proc_addr(m_ptr-&gt;m2_i1);</span><br><span class="line">    <span class="comment">//将消息结构体中的deadline 赋值给该进程的 p_deadline</span></span><br><span class="line">    rp-&gt;deadline = exp_time;</span><br><span class="line">    <span class="keyword">return</span> (OK);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">/* USE_CHRT */</span></span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>在<code>/usr/src/minix/kernel/system/</code>中<code>Makefile.inc</code>文件添加<code>do_chrt.c</code>条目。</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/7.png"></p>
+<ul>
+<li>在<code>/usr/src/minix/include/minix/com.h</code>中定义<code>SYS_CHRT</code>编号。方便Kernel_Call找到SYS_CHRT函数。</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/9.png"></p>
+<ul>
+<li>在<code>/usr/src/minix/kernel/system.c</code>中添加<code>SYS_CHRT</code>编号到<code>do_chrt</code>的映射。</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/10.png"></p>
+<ul>
+<li>在<code>/usr/src/minix/commands/service/parse.c</code>的<code>system_tab</code>中添加名称编号对。</li>
+</ul>
+<p><img src="/2021/04/12/os-Project2/11.png"></p>
+<p>踩坑：这个文件中有两个struct，一个都是 <code>VM_****</code>,一个都是 <code>SYS_****</code> ,不要放错，我因为这个调试了很久</p>
+<h3 id="Minix3中的进程调度"><a href="#Minix3中的进程调度" class="headerlink" title="Minix3中的进程调度"></a>Minix3中的进程调度</h3><ul>
+<li><p>MINIX3使用一种多级调度算法。进程优先级数字越小，优先级越高，根据优先级不同分成了16个可运行进程队列。每个队列内部采用时间片轮转调度，找到最高非空优先级队列，选取队列首部可运行的进程，当用完了时间片，则移到当前队列的队尾（详见教材P124）。</p>
+</li>
+<li><p><strong>将EDF添加到多级调度算法</strong>中，可控制入队实现<strong>实时调度</strong>（也可有其他新颖方式，得分更高）。入队是将当前剩余时间（终止时间-运行时间）大于0的进程添加到某个优先级队列，即设置进程优先级（需要选择合适的优先级否则执行效果不理想）。</p>
+</li>
+<li><p>在该队列内部将时间片轮转调度改成剩余时间最少优先调度，即将剩余时间最小的进程移到队列首部。</p>
+</li>
+<li><p>进程调度模块位于<code>/usr/src/minix/kernel/</code>下的<code>proc.h</code>和<code>proc.c</code>，修改影响进程调度顺序的部分。</p>
+<h4 id="proc-h"><a href="#proc-h" class="headerlink" title="proc.h"></a>proc.h</h4></li>
+<li><p>struct proc 维护每个进程的信息，用于调度决策。添加deadline成员。</p>
+<p>利用xcode 可以很清楚得看见 proc 这个结构的内部成员：</p>
+<p><img src="/2021/04/12/os-Project2/13.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> struct proc * <span class="title">pick_proc</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;	</span><br><span class="line">	<span class="comment">//...	</span></span><br><span class="line">	<span class="keyword">long</span> deadline;</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="proc-c"><a href="#proc-c" class="headerlink" title="proc.c"></a>proc.c</h4></li>
+<li><p>switch_to_user() 选择进程进行切换。</p>
+</li>
+<li><p>enqueue_head() 按优先级将进程加入列队首。实验中需要将实时进程的优先级设<strong>置成合适的</strong>优先级。这里我设置成了5。也就是说，当我给进程设置了 deadline 之后，这个实时进程的优先级就会变成5。然后多级调度算法就会发现这个较高的优先级并执行入队操作：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(rp-&gt;deadline &gt; <span class="number">0</span>) &#123;</span><br><span class="line">      rp-&gt;p_priority = <span class="number">5</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ul>
+<li><p>enqueue() 按优先级将进程加入列队尾。同上。</p>
+</li>
+<li><p>pick_proc() 从队列中返回一个可调度的进程。遍历<strong>设置的</strong>优先级队列，<strong>返回剩余时间最小并可运行的进程</strong>。</p>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> struct proc * <span class="title">pick_proc</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="comment">/* Decide who to run now.  A new process is selected an returned.</span></span><br><span class="line"><span class="comment"> * When a billable process is selected, record it in 'bill_ptr', so that the </span></span><br><span class="line"><span class="comment"> * clock task can tell who to bill for system time.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * This function always uses the run queues of the local cpu!</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">  <span class="keyword">register</span> <span class="class"><span class="keyword">struct</span> <span class="title">proc</span> *<span class="title">rp</span>;</span>			<span class="comment">/* process to run */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">proc</span> **<span class="title">rdy_head</span>;</span></span><br><span class="line">  <span class="keyword">int</span> q;				<span class="comment">/* iterate over queues */</span></span><br><span class="line">	<span class="keyword">register</span> <span class="class"><span class="keyword">struct</span> <span class="title">proc</span> *<span class="title">next</span>;</span> <span class="comment">// 中间变量,用来指代下一个进程</span></span><br><span class="line">  <span class="comment">/* Check each of the scheduling queues for ready processes. The number of</span></span><br><span class="line"><span class="comment">   * queues is defined in proc.h, and priorities are set in the task table.</span></span><br><span class="line"><span class="comment">   * If there are no processes ready to run, return NULL.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  rdy_head = get_cpulocal_var(run_q_head);</span><br><span class="line">  <span class="keyword">for</span> (q=<span class="number">0</span>; q &lt; NR_SCHED_QUEUES; q++) &#123;	</span><br><span class="line">      <span class="keyword">if</span>(!(rp = rdy_head[q])) &#123;</span><br><span class="line">        TRACE(VF_PICKPROC, <span class="built_in">printf</span>(<span class="string">"cpu %d queue %d empty\n"</span>, cpuid, q););</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    	<span class="comment">//这里是新加入的部分</span></span><br><span class="line">    </span><br><span class="line"> 	<span class="keyword">if</span> (q == <span class="number">5</span>) &#123; <span class="comment">/* 如果优先级等于5，说明可能是设置deadline的进程，下面要找剩余时间最小的进程*/</span></span><br><span class="line">        rp = rdy_head[q];</span><br><span class="line">        next = rp-&gt;p_nextready;</span><br><span class="line">        <span class="comment">/* 拿到当前和下一个进程 */</span></span><br><span class="line">        <span class="keyword">while</span> (next != <span class="literal">NULL</span>) &#123;<span class="comment">//遍历进程</span></span><br><span class="line">            <span class="keyword">if</span> (next-&gt;deadline &gt; <span class="number">0</span>) &#123; <span class="comment">/* 再次判断，防止原本优先级就是7的进程，留下用了chrt的 */</span></span><br><span class="line">            <span class="comment">/* 如果当前的进程deadline为0了，或者说是当前进程的剩余时间比下一个进程的剩余时间更长 </span></span><br><span class="line"><span class="comment">            * 那么，就需要交换这两个进程，最终将会筛选得到剩余时间最短的进程。</span></span><br><span class="line"><span class="comment">            */</span></span><br><span class="line">                <span class="keyword">if</span> (rp-&gt;deadline == <span class="number">0</span> || (rp-&gt;deadline &gt; next-&gt;deadline))&#123;</span><br><span class="line">                    <span class="keyword">if</span> (proc_is_runnable(next)) &#123; <span class="comment">//判断是否在运行</span></span><br><span class="line">                        rp = next;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">          <span class="comment">/* 比下一个 */</span></span><br><span class="line">          next = next-&gt;p_nextready;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">      assert(proc_is_runnable(rp));</span><br><span class="line">      <span class="keyword">if</span> (priv(rp)-&gt;s_flags &amp; BILLABLE)	 	</span><br><span class="line">        get_cpulocal_var(bill_ptr) = rp; <span class="comment">/* bill for system time */</span></span><br><span class="line">      <span class="keyword">return</span> rp;</span><br><span class="line">  &#125;   </span><br><span class="line">  <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="实验结果"><a href="#实验结果" class="headerlink" title="实验结果"></a>实验结果</h3><h4 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h4><p>测试用例来说明这个函数更直观：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;lib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">proc</span><span class="params">(<span class="keyword">int</span> id)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="comment">//创建三个子进程，并赋予子进程id</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; <span class="number">4</span>; i++)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> (fork() == <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      proc(i);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">proc</span><span class="params">(<span class="keyword">int</span> id)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> loop;</span><br><span class="line">  <span class="keyword">switch</span> (id)</span><br><span class="line">  &#123;</span><br><span class="line">  <span class="keyword">case</span> <span class="number">1</span>: <span class="comment">//子进程1，设置deadline=20</span></span><br><span class="line">    chrt(<span class="number">20</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"proc1 set success\n"</span>);</span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">  <span class="keyword">case</span> <span class="number">2</span>: <span class="comment">//子进程2，设置deadline=15</span></span><br><span class="line">    chrt(<span class="number">15</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"proc2 set success\n"</span>);</span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">  <span class="keyword">case</span> <span class="number">3</span>: <span class="comment">//子进程3，普通进程</span></span><br><span class="line">    chrt(<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"proc3 set success\n"</span>);</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">for</span> (loop = <span class="number">1</span>; loop &lt; <span class="number">40</span>; loop++)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="comment">//子进程1在5s后设置deadline=5</span></span><br><span class="line">    <span class="keyword">if</span> (id == <span class="number">1</span> &amp;&amp; loop == <span class="number">5</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      chrt(<span class="number">5</span>);</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">"Change proc1 deadline to 5s\n"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//子进程3在10s后设置deadline=3</span></span><br><span class="line">    <span class="keyword">if</span> (id == <span class="number">3</span> &amp;&amp; loop == <span class="number">10</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      chrt(<span class="number">3</span>);</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">"Change proc3 deadline to 3s\n"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    sleep(<span class="number">1</span>); <span class="comment">//睡眠，否则会打印很多信息</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"prc%d heart beat %d\n"</span>, id, loop);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="输出"><a href="#输出" class="headerlink" title="输出"></a>输出</h4><p>编译完成之后，我们把测试用的 <code>test.c</code>文件放到   文件夹下，然后 <code>clang test.c -o test</code> 编译文件 <code>./test</code> 运行可执行文件，结果如下图所示：</p>
+<p><img src="/2021/04/12/os-Project2/15.png"></p>
+<p>显然这个答案并不是正确的，但是起码在kernel中添加了chrt 函数。第二天我调试了四五个小时(主要时间花在编译上面)，将内核层多次删改后再次尝试，这次成功了：</p>
+<p><img src="/2021/04/12/os-Project2/16.png"></p>
+<p>在测试中，在<code>main</code>函数中<code>fork</code>三个子进程(P1, P2, P3)，并为每个子进程设置id。</p>
+<p><code>P1</code>和<code>P2</code>为实时进程，<code>deadline</code>分别设为20s和15s。</p>
+<p>三个子进程会打印出子进程id和循环次数。</p>
+<p>第0s时：优先级<code>P2 &gt; P1 &gt; P3</code>;</p>
+<p>第5s 时：P1设置deadline为5s，P1调用chrt(5);</p>
+<p>第5s后：优先级<code>P1 &gt; P2 &gt; P3</code>;</p>
+<p>第10s时：P3设置deadline为3s，P3调用chrt(3);</p>
+<p>第10s后：优先级<code>P3 &gt; P2</code>;</p>
+<p>n 打印输出信息，观察子进程执行顺序是否正确.</p>
+<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><ul>
+<li>MINIX的不同服务模块和内核都是运行在不同进程中，只能使用基于消息的进程间系统调用/内核调用，不能使用直接调用普通C函数。</li>
+<li>添加调用编号，需要修改取值范围限制。</li>
+<li>以源码为准（博客等资料版本落后）。</li>
+<li>善用source insight高级功能（调用关系，全局搜索）。</li>
+<li>善用git diff 检查代码修改。修改涉及文件较多，git diff可直观看到修改内容，避免引入无意的错误。</li>
+<li>善用FileZilla功能。连接虚拟机，拉取需修改的文件，修改后上传到虚拟机。</li>
+</ul>
+<h3 id="编译方法"><a href="#编译方法" class="headerlink" title="编译方法"></a>编译方法</h3><ul>
+<li><code>cd /usr/src</code></li>
+<li><code>make build</code> #首次编译，或者修改了头文件，Makefile时使用，时间较长。</li>
+<li><code>Make build MKUPDATE=yes</code> #增量式编译，适用于少量C源代码修改时使用。</li>
+<li><code>reboot</code> #重启，默认情况下自动选择latest kernel（新生成的kernel），需要原始版本时手工选择。</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li><p>这次实验要求我们修改的东西很多，我的解决步骤是：</p>
+<p>应用层$\longrightarrow$服务层$\longrightarrow$内核层$\longrightarrow$修改进程调度算法</p>
+<p>在每一part做完之后，都会编译一下kernal，如果没有报错，说明修改的代码没有问题</p>
+</li>
+<li><p>找到效率高的工作流很重要。我的工作软件如下：</p>
+<p>Typora 负责步骤查看和报告撰写</p>
+<p>Terminus 负责用ssh连接虚拟机与命令操作</p>
+<p>Transmit3 负责用ftp连接虚拟机的文件系统，配合xcode 修改代码</p>
+<p>Chrome、Acrobat 用于博客查看与资料查阅</p>
+</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/04/12/os-Project2/" title="os-Project2">https://jasonxqh.github.io/2021/04/12/os-Project2/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"><i class="fa fa-tag"></i> 操作系统</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/04/11/%E5%A4%9A%E7%BB%B4%E9%9A%8F%E6%9C%BA%E5%8F%98%E9%87%8F3-4-3-5/" rel="next" title="多维随机变量3.4-3.5">
+                <i class="fa fa-chevron-left"></i> 多维随机变量3.4-3.5
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/" rel="prev" title="计算机网络报告7">
+                计算机网络报告7 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">427</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Project2-进程调度"><span class="nav-number">1.</span> <span class="nav-text">Project2 进程调度</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#实验要求"><span class="nav-number">1.1.</span> <span class="nav-text">实验要求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现过程"><span class="nav-number">1.2.</span> <span class="nav-text">实现过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#增加系统调用chrt"><span class="nav-number">1.2.1.</span> <span class="nav-text">增加系统调用chrt</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#应用层"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">应用层</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务层："><span class="nav-number">1.2.1.2.</span> <span class="nav-text">服务层：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内核层"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">内核层</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#do-chrt-c"><span class="nav-number">1.2.1.3.1.</span> <span class="nav-text">do_chrt.c</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Minix3中的进程调度"><span class="nav-number">1.2.2.</span> <span class="nav-text">Minix3中的进程调度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#proc-h"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">proc.h</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#proc-c"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">proc.c</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实验结果"><span class="nav-number">1.2.3.</span> <span class="nav-text">实验结果</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#测试用例"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">测试用例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#输出"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">输出</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项"><span class="nav-number">1.3.</span> <span class="nav-text">注意事项</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编译方法"><span class="nav-number">1.3.1.</span> <span class="nav-text">编译方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">1.4.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1265.2k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>

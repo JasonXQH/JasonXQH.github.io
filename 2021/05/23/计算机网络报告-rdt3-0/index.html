@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="计算机网络," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="计算机网络报告-rdt3.0在我的学习博客 可靠数据传输原理 rdt3.0 中，我已经详细介绍了 rdt3.0 的发送方和接收方的有限状态机，并且介绍了 GBN 和 SR 的原理。 报文类我们把packet 抽象出来单独写一个类。在这个类中，我们提供了一些方法——生成包的方法生成和检验校验和的方法，解析报文的方法，模拟包报文出错的方法 1234567891011121314151617181920">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络报告-rdt3.0">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="计算机网络报告-rdt3.0在我的学习博客 可靠数据传输原理 rdt3.0 中，我已经详细介绍了 rdt3.0 的发送方和接收方的有限状态机，并且介绍了 GBN 和 SR 的原理。 报文类我们把packet 抽象出来单独写一个类。在这个类中，我们提供了一些方法——生成包的方法生成和检验校验和的方法，解析报文的方法，模拟包报文出错的方法 1234567891011121314151617181920">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/3.png">
+<meta property="article:published_time" content="2021-05-23T02:29:14.000Z">
+<meta property="article:modified_time" content="2022-08-24T20:31:40.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2021/05/23/计算机网络报告-rdt3-0/"/>
+
+
+
+
+
+  <title>计算机网络报告-rdt3.0 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">计算机网络报告-rdt3.0</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-05-23T10:29:14+08:00">
+                2021-05-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.6k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  11
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="计算机网络报告-rdt3-0"><a href="#计算机网络报告-rdt3-0" class="headerlink" title="计算机网络报告-rdt3.0"></a>计算机网络报告-rdt3.0</h1><p>在我的学习博客 <a href="https://jasonxqh.github.io/2021/05/03/计算机网络-运输层总结/#rdt3-0">可靠数据传输原理 rdt3.0</a> 中，我已经详细介绍了 rdt3.0 的发送方和接收方的有限状态机，并且介绍了 GBN 和 SR 的原理。</p>
+<h2 id="报文类"><a href="#报文类" class="headerlink" title="报文类"></a>报文类</h2><p>我们把packet 抽象出来单独写一个类。在这个类中，我们提供了一些方法——生成包的方法生成和检验校验和的方法，解析报文的方法，模拟包报文出错的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company; </span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">packet</span> </span>&#123;</span><br><span class="line">   <span class="comment">// 类中必须囊括序号、以及检验和</span></span><br><span class="line">   Integer seqNo;</span><br><span class="line">   Integer checksum;</span><br><span class="line">  <span class="comment">// 发送的内容</span></span><br><span class="line">   <span class="keyword">public</span> String content;</span><br><span class="line">   </span><br><span class="line">  <span class="comment">// 初始化的packet 的seqNo=1, </span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">packet</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      seqNo = <span class="number">1</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">// 这个方法教给发送者调用，可以将读取的信息封装到 packet当中</span></span><br><span class="line">   	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createPacket</span><span class="params">(String pContent,<span class="keyword">int</span> seqNo)</span> </span>&#123;</span><br><span class="line">		content = pContent;</span><br><span class="line">   	<span class="comment">// 为内容设置校验和</span></span><br><span class="line">		checksum = generateChecksum(content);</span><br><span class="line">   	<span class="comment">// 在rdt3.0中，序号只可能是0或者1，由发送者控制序号的变化</span></span><br><span class="line">		<span class="keyword">this</span>.seqNo = seqNo;</span><br><span class="line">	&#125;</span><br><span class="line">   <span class="comment">// 帮助发送者生成统一格式的信息</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">generateMessage</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> seqNo+ <span class="string">" "</span> + checksum + <span class="string">" "</span> + content;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">// 生成检验和的函数，原本算法就是将前面3个16位相加，但是这里没有源端口和目的端口</span></span><br><span class="line">  <span class="comment">// 因此，我们对发送的信息做一个处理，将其转换为ascii码作为检验和</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> Integer <span class="title">generateChecksum</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">int</span> asciiInt;</span><br><span class="line">      <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; s.length(); i++) &#123;</span><br><span class="line">         asciiInt = (<span class="keyword">int</span>) s.charAt(i);</span><br><span class="line">         sum = sum + asciiInt;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> sum;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 这个方法是帮助接收者解析从套接字获取的data</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">parseMessage</span><span class="params">(String pcontent)</span> </span>&#123;</span><br><span class="line">       String[] splited = pcontent.split(<span class="string">"\\s+"</span>);</span><br><span class="line">       <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; splited.length; i++) &#123; </span><br><span class="line">         <span class="comment">// 依次赋值给seqNo 和 checksum</span></span><br><span class="line">          seqNo = Integer.parseInt(splited[<span class="number">0</span>]);</span><br><span class="line">          checksum = Integer.parseInt(splited[<span class="number">1</span>]);</span><br><span class="line">        <span class="comment">// 最后一个元素才是 要发送的内容</span></span><br><span class="line">          content = splited[<span class="number">2</span>];</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 模拟包出错，可以将checksum+1</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">corruptChecksum</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       checksum = checksum + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 这个方法是帮助接收者判断包裹的信息是否出错的，也就是将计算得到的checksum和发送来的checksum作比较</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">validateMessage</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    	Integer newChecksum = generateChecksum(content);</span><br><span class="line">    	<span class="keyword">if</span> (newChecksum.equals(checksum))</span><br><span class="line">    		<span class="keyword">return</span>  seqNo;</span><br><span class="line">    <span class="comment">//如果两者不相等，说明包损坏了，给发送者发送相反的ACK，这样发送者就知道出错了，需要重发</span></span><br><span class="line">    	<span class="keyword">else</span> &#123;</span><br><span class="line">        seqNo = <span class="number">1</span>-seqNo;</span><br><span class="line">        <span class="keyword">return</span> seqNo;</span><br><span class="line">    	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="网络层搭建"><a href="#网络层搭建" class="headerlink" title="网络层搭建"></a>网络层搭建</h2><p>要实现rdt 3.0 我们首先要搭建一个底层的网络层,作为传输信道。它的作用就是连接两个”主机端“，这里，发送者和接收者用同一主机上的两个进程来模拟。这样，发送者和接收者就可以通过”网络层”来相互传递消息了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company; </span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">network</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 泛型 List用来存放要发送的所有信息</span></span><br><span class="line">	<span class="keyword">static</span> List&lt;Object&gt; allMessages = <span class="keyword">new</span> ArrayList&lt;Object&gt;();</span><br><span class="line">  <span class="comment">// 用serverSocket这个类型的套接字来接入发送者和接收者</span></span><br><span class="line">	<span class="keyword">static</span> ServerSocket serverSocket;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">		<span class="keyword">int</span> portNumber;</span><br><span class="line">    </span><br><span class="line">    portNumber = <span class="number">5678</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">			serverSocket = <span class="keyword">new</span> ServerSocket(portNumber);</span><br><span class="line">			System.out.println(<span class="string">"Waiting... connect receiver"</span>);</span><br><span class="line">      <span class="comment">/*</span></span><br><span class="line"><span class="comment">      服务器需随时待命，因为不知道客户端什么时候会发来请求，此时，我们需要使用ServerSocket</span></span><br><span class="line"><span class="comment">      ServerSocket与Socket不同，ServerSocket是等待客户端的请求，一旦获得一个连接请求，就创建一个Socket示例来与客户端进行通信。 </span></span><br><span class="line"><span class="comment">      */</span></span><br><span class="line">				<span class="keyword">new</span> MessageThread(serverSocket.accept()).start();</span><br><span class="line">				<span class="keyword">new</span> MessageThread(serverSocket.accept()).start();</span><br><span class="line">		&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">			System.out.println(<span class="string">"I/O failure: "</span> + e.getMessage());</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将接收到的套接字传送给MessageThread类，为了模拟出 检验和出现错误、丢包的情况，我们这里需要分类来写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> Socket socket = <span class="keyword">null</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String ACK2 = <span class="string">"ACK2"</span>;</span><br><span class="line">	MessageThread mt = <span class="keyword">null</span>;</span><br><span class="line">	<span class="keyword">int</span> ID = <span class="number">0</span>;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">MessageThread</span><span class="params">(Socket socket)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.socket = socket;</span><br><span class="line">		allMessages.add(<span class="keyword">this</span>);</span><br><span class="line">		ID = allMessages.size() - <span class="number">1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		String input = <span class="string">""</span>;</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			PrintWriter streamOut = <span class="keyword">null</span>;</span><br><span class="line">			BufferedReader readerIn = <span class="keyword">null</span>;</span><br><span class="line">      <span class="comment">//  给接进来的socket创建一个PrintWriter，这样就可以直接通过println来向客户端或者服务端传信息</span></span><br><span class="line">			streamOut = <span class="keyword">new</span> PrintWriter(socket.getOutputStream(), <span class="keyword">true</span>);</span><br><span class="line">      <span class="comment">// 给socket的输入流创建一个 BufferedReader,作为缓冲区，</span></span><br><span class="line">			readerIn = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(socket.getInputStream()));</span><br><span class="line">	</span><br><span class="line">			System.out.println(<span class="string">"Get connection from: "</span> + socket.getRemoteSocketAddress().toString());</span><br><span class="line">			</span><br><span class="line">			<span class="keyword">while</span> ((input = readerIn.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 如果读入为空</span></span><br><span class="line">				<span class="keyword">if</span> (input.equals(<span class="string">"-1"</span>)) &#123;</span><br><span class="line">					<span class="comment">// 且这个线程为 发送者，那么就给接收者发一个-1</span></span><br><span class="line">					<span class="keyword">if</span> (ID == <span class="number">1</span>) &#123;</span><br><span class="line">						sendToOtherThread(<span class="string">"-1"</span>);</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">// 这是一个正则表达式，用来匹配任意空白字符的，也就是按照空白处分割message</span></span><br><span class="line">				String[] splitedMsg = input.split(<span class="string">"\\s+"</span>);</span><br><span class="line">				<span class="comment">//现在开始我们要模拟 顺利发送、丢包、包损坏这些情况</span></span><br><span class="line">				<span class="keyword">double</span> x = Math.random();</span><br><span class="line">				</span><br><span class="line">				<span class="comment">//这里我设置了有一半的几率会顺利通过。当receiver 回传ack时，长度只有1，这里也设为通过</span></span><br><span class="line">				<span class="keyword">if</span> (x &lt; <span class="number">0.5</span> || splitedMsg.length == <span class="number">1</span>) <span class="comment">// PASS</span></span><br><span class="line">				&#123;</span><br><span class="line">					<span class="keyword">if</span> (splitedMsg[<span class="number">0</span>].contains(<span class="string">"ACK"</span>)) &#123;</span><br><span class="line">						System.out.println(<span class="string">"Receiver: "</span> + splitedMsg[<span class="number">0</span>] + <span class="string">", to Sender"</span>);</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span>  </span><br><span class="line">						System.out.println(<span class="string">"Sender: Packet"</span> + splitedMsg[<span class="number">0</span>]  +<span class="string">", PASS"</span>);</span><br><span class="line">          <span class="comment">// 将一个端的信息发送到另外一端</span></span><br><span class="line">					sendToOtherThread(input);</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">// 如果出现了包损坏，我们的策略就是修改检验和，几率是1/4</span></span><br><span class="line">				<span class="keyword">else</span> <span class="keyword">if</span> (x &gt;= <span class="number">0.5</span> &amp;&amp; x &lt;= <span class="number">0.75</span>) <span class="comment">// CORRUPT</span></span><br><span class="line">				&#123;</span><br><span class="line">          <span class="comment">// 创建一个新的packet对象</span></span><br><span class="line">					packet p = <span class="keyword">new</span> packet();</span><br><span class="line">					p.parseMessage(input);</span><br><span class="line">					p.corruptChecksum();</span><br><span class="line">					System.out.println(<span class="string">"Sender: Packet"</span> + splitedMsg[<span class="number">0</span>]  + <span class="string">", CORRUPT"</span>);</span><br><span class="line">          <span class="comment">//将生成的数据发送给另外一端</span></span><br><span class="line">					sendToOtherThread(p.generateMessage());</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">// 有1/4 的几率会丢包，出现丢失时，不需要使用 sendToOtherThread,这里我没有用线程，因此我只能回传给Sender一个丢包信息，并等待sender重传</span></span><br><span class="line">				<span class="keyword">else</span> &#123;</span><br><span class="line">					System.out.println(<span class="string">"Sender: Packet"</span> + splitedMsg[<span class="number">0</span>] + <span class="string">", DROP"</span>);</span><br><span class="line">          streamOut.println(ACK2);</span><br><span class="line">        &#125;</span><br><span class="line">		   &#125;</span><br><span class="line">		   socket.close();</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">				e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 给套接字输出流创建一个 PrintWriter，然后通过 println 将pMessage传给对应的套接字</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">send</span><span class="params">(String pMessage)</span> </span>&#123;</span><br><span class="line">		PrintWriter streamOut = <span class="keyword">null</span>;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			streamOut = <span class="keyword">new</span> PrintWriter(socket.getOutputStream(), <span class="keyword">true</span>);</span><br><span class="line">			streamOut.println(pMessage);	</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">				e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// 这个方法是将信息从一个进程发送到另一个进程的</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendToOtherThread</span><span class="params">(String pMessage)</span> </span>&#123;</span><br><span class="line">      mt = (MessageThread)allMessages.get(<span class="number">1</span>-ID);</span><br><span class="line">      <span class="comment">// 通过上面定义的方法，将文件传送给另外一端</span></span><br><span class="line">      mt.send(pMessage);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="发送者"><a href="#发送者" class="headerlink" title="发送者"></a>发送者</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> java.lang.Thread.sleep;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">sender</span> </span>&#123;</span><br><span class="line">	<span class="keyword">static</span> String hostName;</span><br><span class="line">	<span class="keyword">static</span> <span class="keyword">int</span> portNumber;</span><br><span class="line">	<span class="keyword">static</span> String fileName;</span><br><span class="line">	<span class="keyword">int</span> SeqNo;</span><br><span class="line">  <span class="comment">// 首先设置一些必要的信息，比如端口号，主机名，需要传送的文件</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        hostName = <span class="string">"localhost"</span>;</span><br><span class="line">        portNumber = <span class="number">5678</span>;</span><br><span class="line">        fileName = <span class="string">"/Users/jasonxu/IdeaProjects/rdt3.0/src/com/company/message.txt"</span>;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 然后开启发送者</span></span><br><span class="line">			<span class="keyword">new</span> sender().startSender(hostName, portNumber, fileName);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">			System.out.println(<span class="string">"Something falied: "</span> + e.getMessage());</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startSender</span><span class="params">(String hostName, <span class="keyword">int</span> portNumber, String fileName)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line"></span><br><span class="line">		Socket socket = <span class="keyword">null</span>;</span><br><span class="line">		PrintWriter streamOut = <span class="keyword">null</span>;</span><br><span class="line">		BufferedReader streamIn = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 创建套接字</span></span><br><span class="line">			socket = <span class="keyword">new</span> Socket(hostName, portNumber);</span><br><span class="line">      <span class="comment">// 创建一个套接字的输出流</span></span><br><span class="line">			streamOut = <span class="keyword">new</span> PrintWriter(socket.getOutputStream(), <span class="keyword">true</span>);</span><br><span class="line">      <span class="comment">// 创建一个缓冲区，用来读取收到的信息</span></span><br><span class="line">			streamIn = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(socket.getInputStream()));</span><br><span class="line"></span><br><span class="line">			String ACK;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 从文件读取信息流</span></span><br><span class="line">				FileInputStream fstream = <span class="keyword">new</span> FileInputStream(fileName);</span><br><span class="line">        <span class="comment">// 将信息流转化成数据流</span></span><br><span class="line">				DataInputStream dataIn = <span class="keyword">new</span> DataInputStream(fstream);</span><br><span class="line">				BufferedReader buffReader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(dataIn));</span><br><span class="line"></span><br><span class="line">				String input;</span><br><span class="line"></span><br><span class="line">				<span class="keyword">int</span> totalSent = <span class="number">0</span>;</span><br><span class="line">				String message = <span class="string">""</span>;</span><br><span class="line">				<span class="comment">// 首先创建一个新的包</span></span><br><span class="line">				packet pak = <span class="keyword">new</span> packet();</span><br><span class="line">        <span class="comment">// 开始从 buffReader读取数据</span></span><br><span class="line">				<span class="keyword">while</span> ((input = buffReader.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">          <span class="comment">//将信息按照空隙分开</span></span><br><span class="line">					String[] splited = input.split(<span class="string">"\\s+"</span>);</span><br><span class="line">					<span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">          <span class="comment">// 对每一段文字，生成一个包，按顺序发送</span></span><br><span class="line">					<span class="keyword">while</span> (i &lt; splited.length) &#123;</span><br><span class="line">            <span class="comment">// 创建包</span></span><br><span class="line">						pak.createPacket(splited[i],<span class="keyword">this</span>.SeqNo);</span><br><span class="line">            <span class="comment">// 给包填充 data</span></span><br><span class="line">						message = pak.generateMessage();</span><br><span class="line">            <span class="comment">// 将数据推出去</span></span><br><span class="line">						streamOut.println(message);</span><br><span class="line">            <span class="comment">// 从输入缓冲区读取数据</span></span><br><span class="line">						ACK = streamIn.readLine();</span><br><span class="line">						</span><br><span class="line">						totalSent++;</span><br><span class="line">						<span class="comment">//如果ACK的数值与发送报文的序号一致，则i++,发送下一个报文</span></span><br><span class="line">						 <span class="keyword">if</span> (validateACK(ACK, pak.seqNo)) &#123;</span><br><span class="line">							i++;</span><br><span class="line">               <span class="comment">//序号0和1之间转换</span></span><br><span class="line">							<span class="keyword">this</span>.SeqNo = <span class="number">1</span>-<span class="keyword">this</span>.SeqNo;</span><br><span class="line">							System.out.println(<span class="string">"Waiting: "</span> + ACK + <span class="string">", totalsent: "</span> + totalSent + <span class="string">", "</span> + ACK + <span class="string">"Successfully sent"</span>);</span><br><span class="line">						&#125;</span><br><span class="line">						<span class="keyword">else</span> &#123;</span><br><span class="line">              <span class="comment">// 否则就说明丢失或者损坏，需要等待重传</span></span><br><span class="line">							 System.out.println(<span class="string">"Waiting: packet"</span>+ pak.seqNo + <span class="string">" CORRUPT OR LOST"</span> + <span class="string">", totalsent: "</span> + totalSent + <span class="string">", Waiting for resend"</span>);</span><br><span class="line">							 sleep(<span class="number">1000</span>);</span><br><span class="line">						 &#125;</span><br><span class="line">					&#125;</span><br><span class="line">					streamOut.println(-<span class="number">1</span>);</span><br><span class="line">				&#125;</span><br><span class="line">        <span class="comment">//全部发送完成后，关闭输入流</span></span><br><span class="line">				dataIn.close();</span><br><span class="line">			&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">				System.err.println(<span class="string">"Error: "</span> + e.getMessage());</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">catch</span> (UnknownHostException e) &#123;</span><br><span class="line">			System.err.println(<span class="string">"Cannot find the host: "</span> + hostName);</span><br><span class="line">			System.exit(<span class="number">1</span>);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">			System.err.println(<span class="string">"Couldn't read/write from the connection: "</span> + e.getMessage());</span><br><span class="line">			System.exit(<span class="number">1</span>);</span><br><span class="line">		&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">			<span class="keyword">assert</span> streamOut != <span class="keyword">null</span>;</span><br><span class="line">			streamOut.close();</span><br><span class="line">			<span class="keyword">assert</span> streamIn != <span class="keyword">null</span>;</span><br><span class="line">			streamIn.close();</span><br><span class="line">			socket.close();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">  <span class="comment">// 这个方法帮助发送者判断ACK号是否和序列号相等</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">validateACK</span><span class="params">(String ACKfromNetwork, Integer seqNo)</span> </span>&#123;</span><br><span class="line">		String ACKN = <span class="string">"ACK"</span> + seqNo.toString();</span><br><span class="line">		<span class="keyword">return</span> ACKN.equals(ACKfromNetwork);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="接收者"><a href="#接收者" class="headerlink" title="接收者"></a>接收者</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company; </span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">receiver</span> </span>&#123;</span><br><span class="line">	<span class="keyword">static</span> String hostName;</span><br><span class="line">	<span class="keyword">static</span> <span class="keyword">int</span> portNumber;</span><br><span class="line"><span class="comment">// 首先给接收者确定一些基本信息： 主机名，端口</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        hostName = <span class="string">"localhost"</span>;</span><br><span class="line">        portNumber = <span class="number">5678</span>;</span><br><span class="line">        </span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 启动一个接收者</span></span><br><span class="line">			<span class="keyword">new</span> receiver().startReceiver(hostName, portNumber);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">			System.out.println(<span class="string">"Something falied: "</span> + e.getMessage());</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startReceiver</span><span class="params">(String hostName, <span class="keyword">int</span> portNumber)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line"> </span><br><span class="line">		Socket socket = <span class="keyword">null</span>;</span><br><span class="line">		PrintWriter streamOut = <span class="keyword">null</span>;</span><br><span class="line">		BufferedReader streamIn = <span class="keyword">null</span>;</span><br><span class="line"> </span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 创建套接字、套接字输入输出流</span></span><br><span class="line">			socket = <span class="keyword">new</span> Socket(hostName, portNumber);</span><br><span class="line">			streamOut = <span class="keyword">new</span> PrintWriter(socket.getOutputStream(), <span class="keyword">true</span>);</span><br><span class="line">			streamIn = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(socket.getInputStream()));</span><br><span class="line">					</span><br><span class="line">			String input, output;</span><br><span class="line">			<span class="keyword">int</span> totalReceived = <span class="number">0</span>;</span><br><span class="line">			StringBuilder msg = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">			System.out.println(<span class="string">"Waiting... connect sender"</span>);</span><br><span class="line"></span><br><span class="line">			<span class="comment">// 创建一个新的包，用来返回ack信息</span></span><br><span class="line">			packet pak = <span class="keyword">new</span> packet();</span><br><span class="line">			<span class="keyword">while</span> ((input = streamIn.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">				<span class="comment">// 如果输入为-1，说明包已经发送完毕，同时跳出循环</span></span><br><span class="line">				<span class="keyword">if</span> (input.equals(<span class="string">"-1"</span>)) &#123;</span><br><span class="line">					streamOut.println(-<span class="number">1</span>);</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">// 解析收到的包中的信息</span></span><br><span class="line">				pak.parseMessage(input);</span><br><span class="line">				totalReceived++;</span><br><span class="line">        <span class="comment">// 验证包是否正确</span></span><br><span class="line">				<span class="keyword">int</span> tempNumber = pak.validateMessage();</span><br><span class="line">				output = <span class="string">"Waiting seqNo: "</span> + pak.seqNo+ <span class="string">", validateMessage: ACK"</span> + tempNumber+ <span class="string">", totalReceived: "</span> + totalReceived + <span class="string">", input"</span> + input;</span><br><span class="line">        <span class="comment">// 如果ack序号和seqNo不相等，说明包错了，等待重传</span></span><br><span class="line">				<span class="keyword">if</span>(pak.validateMessage()!=tempNumber)</span><br><span class="line">					System.out.println(<span class="string">"Waiting seqNo: "</span> + pak.seqNo+ <span class="string">", validateMessage: ACK"</span> + tempNumber+<span class="string">", Packet"</span>+pak.seqNo+<span class="string">" Corrupt,Please Resend"</span>);</span><br><span class="line">				<span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="comment">//包正确，那么打印、输出</span></span><br><span class="line">					msg.append(pak.content).append(<span class="string">" "</span>);</span><br><span class="line">					System.out.println(output);</span><br><span class="line">				&#125;</span><br><span class="line">        <span class="comment">// 返回ACK序号</span></span><br><span class="line">				streamOut.println(<span class="string">"ACK"</span>+pak.validateMessage());</span><br><span class="line">			&#125;</span><br><span class="line">      <span class="comment">// 打印所有信息</span></span><br><span class="line">			System.out.println(<span class="string">"Total Message: "</span> + msg);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (UnknownHostException e) &#123;</span><br><span class="line">			System.err.println(<span class="string">"Cannot find the host: "</span> + hostName);</span><br><span class="line">			System.exit(<span class="number">1</span>);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">			System.err.println(<span class="string">"Couldn't read/write from the connection: "</span> + e.getMessage());</span><br><span class="line">			System.exit(<span class="number">1</span>);</span><br><span class="line">		&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">			streamOut.close();</span><br><span class="line">			streamIn.close();</span><br><span class="line">			socket.close();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="结果："><a href="#结果：" class="headerlink" title="结果："></a>结果：</h2><h3 id="network"><a href="#network" class="headerlink" title="network"></a>network</h3><p><img src="/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/1.png" style="zoom:67%;"></p>
+<p>这是运输通道的打印信息，我们看到，第一个packet0是顺利通过的，第二个packet1的第一次发送出现了包错误，因此返回了一个ACK0, 重发后通过。第三个包出现了两次丢包和两次出错，最后通过。</p>
+<h3 id="receiver"><a href="#receiver" class="headerlink" title="receiver"></a>receiver</h3><p><img src="/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/2.png" style="zoom:67%;"></p>
+<p>这是接收者的打印信息，我们看到出现丢包的话，接收者是收不到的，但是如果出现包错误，那么接收者会返回一个不同的ACK序号通知发送者重发</p>
+<h3 id="sender"><a href="#sender" class="headerlink" title="sender"></a>sender</h3><p><img src="/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/3.png" style="zoom:67%;"></p>
+<p>这是发送者的打印信息，如果出现丢包或者包错误，会等待后重新发送，同时记录发送包的次数</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/" title="计算机网络报告-rdt3.0">https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"><i class="fa fa-tag"></i> 计算机网络</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/05/21/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80%E5%A4%8D%E4%B9%A0%E5%A4%A7%E7%BA%B2/" rel="next" title="数据科学数学基础复习大纲">
+                <i class="fa fa-chevron-left"></i> 数据科学数学基础复习大纲
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/" rel="prev" title="计算机网络报告Week12">
+                计算机网络报告Week12 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">427</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#计算机网络报告-rdt3-0"><span class="nav-number">1.</span> <span class="nav-text">计算机网络报告-rdt3.0</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#报文类"><span class="nav-number">1.1.</span> <span class="nav-text">报文类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网络层搭建"><span class="nav-number">1.2.</span> <span class="nav-text">网络层搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发送者"><span class="nav-number">1.3.</span> <span class="nav-text">发送者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接收者"><span class="nav-number">1.4.</span> <span class="nav-text">接收者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结果："><span class="nav-number">1.5.</span> <span class="nav-text">结果：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#network"><span class="nav-number">1.5.1.</span> <span class="nav-text">network</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#receiver"><span class="nav-number">1.5.2.</span> <span class="nav-text">receiver</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sender"><span class="nav-number">1.5.3.</span> <span class="nav-text">sender</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1265.2k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>
