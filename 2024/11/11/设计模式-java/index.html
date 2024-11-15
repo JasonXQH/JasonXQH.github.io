@@ -97,8 +97,10 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://jasonxqh.github.io/2024/11/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-java/1.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2024/11/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-java/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/11/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-java/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/11/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-java/4.png">
 <meta property="article:published_time" content="2024-11-11T06:14:41.000Z">
-<meta property="article:modified_time" content="2024-11-12T07:55:40.290Z">
+<meta property="article:modified_time" content="2024-11-13T04:46:21.520Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="java">
 <meta name="twitter:card" content="summary">
@@ -390,7 +392,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  3.1k
+                  4.3k
                 </span>
               
 
@@ -406,7 +408,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  13
+                  18
                 </span>
               
             </div>
@@ -505,6 +507,75 @@
 <p>最后，我们需要修改一开始的抽奖操作，那一大段规则过滤的代码可以简化为：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//2. 责任链抽奖</span></span><br><span class="line">ILogicChain logicChain = chainFactory.openLogicChain(strategyId);</span><br><span class="line">Integer randomAwardId = logicChain.logic(userId, strategyId);</span><br></pre></td></tr></table></figure>
 <p><strong>构造责任链</strong>：比如该策略的ruleModels为<code>rule_blacklist,rule_weight</code>。 那么责任链就是 <code>rule_blacklist -&gt; rule_weight -&gt; default</code> 先过滤黑名单，再过滤权重，如果都放行，那么执行默认抽奖。</p>
+<h2 id="规则树构建"><a href="#规则树构建" class="headerlink" title="规则树构建"></a>规则树构建</h2><p>解决了前置规则过滤，现在我们来看看抽奖中规则过滤。逻辑是这样的：</p>
+<p><img src="/2024/11/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-java/3.png" style="zoom:80%;"></p>
+<p>这是一个非多分支情况的规则过滤。单独的责任链是不能满足的，如果是拆分开抽奖中规则和抽奖后规则分阶段处理，中间单独写逻辑处理库存操作。那么是可以实现的。但这样的方式始终不够优雅，配置化的内容较低，后续的规则开发仍需要在代码上改造。所以这里可以使用规则树的结构，实现规则过滤。</p>
+<p>因此，我们需要把库存处理也当做是一种规则，库存足够，说明满足规则，放行；库存不够，说明不满足规则，接管—&gt;给兜底奖励。流程如下：</p>
+<p><img src="/2024/11/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-java/4.png" style="zoom:67%;"></p>
+<h3 id="规则树结构"><a href="#规则树结构" class="headerlink" title="规则树结构"></a>规则树结构</h3><ol>
+<li><strong>接口 <code>ILogicTreeNode</code></strong>：<ul>
+<li>定义了树节点的基础操作，即 <code>logic</code> 方法。每个节点都有 <code>logic</code> 方法来判断当前节点是否符合条件，并返回相应的决策状态。</li>
+</ul>
+</li>
+<li><strong>具体实现节点 <code>RuleStockLogicTreeNode</code>、<code>RuleLuckAwardLogicTreeNode</code>、<code>RuleLockLogicTreeNode</code></strong>：<ul>
+<li>每个节点实现了 <code>ILogicTreeNode</code>，并定义了各自的逻辑。例如，<code>RuleStockLogicTreeNode</code> 和 <code>RuleLuckAwardLogicTreeNode</code> 返回 <code>TAKE_OVER</code>，表示节点接管；<code>RuleLockLogicTreeNode</code> 返回 <code>ALLOW</code>，表示放行到下一个节点。</li>
+</ul>
+</li>
+<li><strong>工厂类 <code>DefaultTreeFactory</code></strong>：<ul>
+<li>负责管理不同的 <code>ILogicTreeNode</code> 实例。通过构造器注入 <code>Map&lt;String, ILogicTreeNode&gt;</code>，在运行时动态决定使用哪种节点逻辑。</li>
+<li>提供 <code>openLogicTree</code> 方法生成决策树引擎 <code>DecisionTreeEngine</code>，并传入节点实例映射和规则树配置（<code>RuleTreeVO</code>）。</li>
+</ul>
+</li>
+<li><strong>规则树引擎 <code>DecisionTreeEngine</code></strong>：<ul>
+<li>核心逻辑处理类，用于遍历规则树，按顺序检查节点并作出决策。</li>
+<li><code>process</code> 方法：从根节点开始，根据每个节点的决策结果决定下一步的执行节点。如果判断为接管，那么返回兜底奖励，如果判断为放行，则执行下一个节点。</li>
+<li><code>nextNode</code> 方法：负责判断下一节点的路径，依据 <code>RuleTreeNodeLineVO</code> 中的条件是接管还是放行，决定进入的下一个节点。</li>
+</ul>
+</li>
+<li><strong>规则数据对象（<code>RuleTreeNodeVO</code>、<code>RuleTreeNodeLineVO</code>、<code>RuleTreeVO</code>）</strong>：<ul>
+<li><code>RuleTreeVO</code> 表示整个决策树结构，包括根节点、各个节点和连线。</li>
+<li><code>RuleTreeNodeVO</code> 表示树中的单个节点，包含规则标识、描述、下一步连线等信息。</li>
+<li><code>RuleTreeNodeLineVO</code> 表示节点之间的连线条件，包括条件类型（如等于、大于等）、下一节点等信息。</li>
+</ul>
+</li>
+<li><strong>枚举 <code>RuleLimitTypeVO</code> 和 <code>RuleLogicCheckTypeVO</code></strong>：<ul>
+<li><code>RuleLimitTypeVO</code>：定义了节点连线的判断条件（如等于、大于、枚举等），用于 <code>nextNode</code> 判断逻辑。</li>
+<li><code>RuleLogicCheckTypeVO</code>：用于标识逻辑节点的检查结果，如 <code>TAKE_OVER</code> 表示节点接管、<code>ALLOW</code> 表示允许通过等。</li>
+</ul>
+</li>
+</ol>
+<p>测试如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * rule_lock --左--&gt; rule_luck_award</span></span><br><span class="line"><span class="comment"> *           --右--&gt; rule_stock --右--&gt; rule_luck_award</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_tree_rule</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 构建参数</span></span><br><span class="line">    RuleTreeNodeVO rule_lock = RuleTreeNodeVO.builder()</span><br><span class="line">            .treeId(<span class="number">100000001</span>)</span><br><span class="line">            .ruleKey(<span class="string">"rule_lock"</span>)</span><br><span class="line">            .ruleDesc(<span class="string">"限定用户已完成N次抽奖后解锁"</span>)</span><br><span class="line">            .ruleValue(<span class="string">"1"</span>)</span><br><span class="line">            .treeNodeLineVOList(<span class="keyword">new</span> ArrayList&lt;RuleTreeNodeLineVO&gt;() &#123;&#123;</span><br><span class="line">                add(RuleTreeNodeLineVO.builder()</span><br><span class="line">                        .treeId(<span class="number">100000001</span>)</span><br><span class="line">                        .ruleNodeFrom(<span class="string">"rule_lock"</span>)</span><br><span class="line">                        .ruleNodeTo(<span class="string">"rule_luck_award"</span>)</span><br><span class="line">                        .ruleLimitType(RuleLimitTypeVO.EQUAL)</span><br><span class="line">                        .ruleLimitValue(RuleLogicCheckTypeVO.TAKE_OVER)</span><br><span class="line">                        .build());</span><br><span class="line"></span><br><span class="line">                add(RuleTreeNodeLineVO.builder()</span><br><span class="line">                        .treeId(<span class="number">100000001</span>)</span><br><span class="line">                        .ruleNodeFrom(<span class="string">"rule_lock"</span>)</span><br><span class="line">                        .ruleNodeTo(<span class="string">"rule_stock"</span>)</span><br><span class="line">                        .ruleLimitType(RuleLimitTypeVO.EQUAL)</span><br><span class="line">                        .ruleLimitValue(RuleLogicCheckTypeVO.ALLOW)</span><br><span class="line">                        .build());</span><br><span class="line">            &#125;&#125;)</span><br><span class="line">            .build();</span><br><span class="line"></span><br><span class="line">    RuleTreeNodeVO rule_luck_award = RuleTreeNodeVO.builder()</span><br><span class="line">            .treeId(<span class="number">100000001</span>)</span><br><span class="line">            .ruleKey(<span class="string">"rule_luck_award"</span>)</span><br><span class="line">            .ruleDesc(<span class="string">"限定用户已完成N次抽奖后解锁"</span>)</span><br><span class="line">            .ruleValue(<span class="string">"1"</span>)</span><br><span class="line">            .treeNodeLineVOList(<span class="keyword">null</span>)</span><br><span class="line">            .build();</span><br><span class="line"></span><br><span class="line">    RuleTreeNodeVO rule_stock = RuleTreeNodeVO.builder()</span><br><span class="line">            .treeId(<span class="number">100000001</span>)</span><br><span class="line">            .ruleKey(<span class="string">"rule_stock"</span>)</span><br><span class="line">            .ruleDesc(<span class="string">"库存处理规则"</span>)</span><br><span class="line">            .ruleValue(<span class="keyword">null</span>)</span><br><span class="line">            .treeNodeLineVOList(<span class="keyword">new</span> ArrayList&lt;RuleTreeNodeLineVO&gt;() &#123;&#123;</span><br><span class="line">                add(RuleTreeNodeLineVO.builder()</span><br><span class="line">                        .treeId(<span class="number">100000001</span>)</span><br><span class="line">                        .ruleNodeFrom(<span class="string">"rule_lock"</span>)</span><br><span class="line">                        .ruleNodeTo(<span class="string">"rule_luck_award"</span>)</span><br><span class="line">                        .ruleLimitType(RuleLimitTypeVO.EQUAL)</span><br><span class="line">                        .ruleLimitValue(RuleLogicCheckTypeVO.TAKE_OVER)</span><br><span class="line">                        .build());</span><br><span class="line">            &#125;&#125;)</span><br><span class="line">            .build();</span><br><span class="line"></span><br><span class="line">    RuleTreeVO ruleTreeVO = <span class="keyword">new</span> RuleTreeVO();</span><br><span class="line">    ruleTreeVO.setTreeId(<span class="number">100000001</span>);</span><br><span class="line">    ruleTreeVO.setTreeName(<span class="string">"决策树规则；增加dall-e-3画图模型"</span>);</span><br><span class="line">    ruleTreeVO.setTreeDesc(<span class="string">"决策树规则；增加dall-e-3画图模型"</span>);</span><br><span class="line">    ruleTreeVO.setTreeRootRuleNode(<span class="string">"rule_lock"</span>);</span><br><span class="line"></span><br><span class="line">    ruleTreeVO.setTreeNodeMap(<span class="keyword">new</span> HashMap&lt;String, RuleTreeNodeVO&gt;() &#123;&#123;</span><br><span class="line">        put(<span class="string">"rule_lock"</span>, rule_lock);</span><br><span class="line">        put(<span class="string">"rule_stock"</span>, rule_stock);</span><br><span class="line">        put(<span class="string">"rule_luck_award"</span>, rule_luck_award);</span><br><span class="line">    &#125;&#125;);</span><br><span class="line"></span><br><span class="line">    IDecisionTreeEngine treeEngine = defaultTreeFactory.openLogicTree(ruleTreeVO);</span><br><span class="line"></span><br><span class="line">    DefaultTreeFactory.StrategyAwardData data = treeEngine.process(<span class="string">"xiaofuge"</span>, <span class="number">100001L</span>, <span class="number">100</span>);</span><br><span class="line">    log.info(<span class="string">"测试结果：&#123;&#125;"</span>, JSON.toJSONString(data));</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="运行时的流程"><a href="#运行时的流程" class="headerlink" title="运行时的流程"></a>运行时的流程</h3><ol>
+<li><strong>初始化决策树引擎</strong>：<ul>
+<li><code>DefaultTreeFactory</code> 接收配置对象 <code>RuleTreeVO</code>，并调用 <code>openLogicTree</code> 方法生成 <code>DecisionTreeEngine</code>。</li>
+</ul>
+</li>
+<li><strong>调用 <code>process</code> 方法</strong>：<ul>
+<li>决策树引擎的 <code>process</code> 方法接收 <code>userId</code>、<code>strategyId</code>、<code>awardId</code>，并从 <code>RuleTreeVO</code> 中提取根节点开始执行。</li>
+</ul>
+</li>
+<li><strong>遍历节点执行逻辑</strong>：<ul>
+<li><code>process</code> 方法根据当前节点的 <code>ruleKey</code> 获取相应的 <code>ILogicTreeNode</code> 实现类。</li>
+<li>调用节点的 <code>logic</code> 方法执行规则逻辑，返回 <code>TreeActionEntity</code>（包含 <code>ruleLogicCheckTypeVO</code> 和 <code>strategyAwardData</code>）。</li>
+<li>通过<code>ruleLogicCheckTypeVO</code> 检查当前节点的执行结果：<ul>
+<li><code>TAKE_OVER</code>：表示当前节点已经做出决策，直接返回 <code>strategyAwardData</code>，结束决策流程。</li>
+<li><code>ALLOW</code>：表示允许继续执行，根据 <code>nextNode</code> 方法判断下一个节点。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>判断下一节点</strong>：<ul>
+<li><code>nextNode</code> 方法根据 <code>RuleTreeNodeLineVO</code> 中的条件值和当前节点返回的状态判断下一步要执行的节点。</li>
+<li>遍历 <code>treeNodeLineVOList</code>，调用 <code>decisionLogic</code> 方法根据连线条件决定是否满足要求。</li>
+<li>如果满足要求，返回下一个节点的标识 <code>ruleNodeTo</code>，并将该节点作为下一步的处理节点。</li>
+</ul>
+</li>
+<li><strong>返回决策结果</strong>：<ul>
+<li>当流程到达某个 <code>TAKE_OVER</code> 节点或遍历完所有节点时，<code>process</code> 方法返回最终的 <code>StrategyAwardData</code>，包含最终的决策结果，如 <code>awardId</code> 和 <code>awardRuleValue</code>。</li>
+</ul>
+</li>
+</ol>
 
       
     </div>
@@ -571,6 +642,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2024/11/14/redis%E5%AE%9E%E7%8E%B0%E9%98%B2%E8%B6%85%E5%8D%96%E7%AD%96%E7%95%A5/" rel="prev" title="redis实现防超卖策略">
+                redis实现防超卖策略 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -652,7 +727,7 @@
               
                 <a href="/archives%7C%7C%20archive">
               
-                  <span class="site-state-item-count">427</span>
+                  <span class="site-state-item-count">428</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -745,7 +820,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#设计模式"><span class="nav-number">1.</span> <span class="nav-text">设计模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#工厂模式"><span class="nav-number">1.1.</span> <span class="nav-text">工厂模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#示例"><span class="nav-number">1.1.1.</span> <span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工厂模式-责任链模式"><span class="nav-number">1.2.</span> <span class="nav-text">工厂模式+责任链模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#未优化的代码"><span class="nav-number">1.2.1.</span> <span class="nav-text">未优化的代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重构-链节点"><span class="nav-number">1.2.2.</span> <span class="nav-text">重构-链节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重构-链工厂"><span class="nav-number">1.2.3.</span> <span class="nav-text">重构-链工厂</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#设计模式"><span class="nav-number">1.</span> <span class="nav-text">设计模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#工厂模式"><span class="nav-number">1.1.</span> <span class="nav-text">工厂模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#示例"><span class="nav-number">1.1.1.</span> <span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工厂模式-责任链模式"><span class="nav-number">1.2.</span> <span class="nav-text">工厂模式+责任链模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#未优化的代码"><span class="nav-number">1.2.1.</span> <span class="nav-text">未优化的代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重构-链节点"><span class="nav-number">1.2.2.</span> <span class="nav-text">重构-链节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重构-链工厂"><span class="nav-number">1.2.3.</span> <span class="nav-text">重构-链工厂</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#规则树构建"><span class="nav-number">1.3.</span> <span class="nav-text">规则树构建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#规则树结构"><span class="nav-number">1.3.1.</span> <span class="nav-text">规则树结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行时的流程"><span class="nav-number">1.3.2.</span> <span class="nav-text">运行时的流程</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
@@ -786,7 +861,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">1265.2k</span>
+    <span title="Site words total count">1271k</span>
   
 </div>
 

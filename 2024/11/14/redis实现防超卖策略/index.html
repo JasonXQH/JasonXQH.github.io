@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="redis,java," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="redis实现防超卖策略在高并发的场景下，尤其是电商等需要控制库存的系统，超卖是一个常见的问题。超卖指的是用户在高并发情况下能够购买已经售完的商品。通过 Redis 实现防止超卖的策略，通常包括以下几个关键部分： 1. 库存控制的基本思路 使用 Redis 存储商品的库存信息。Redis 提供的高并发支持和高性能，可以帮助快速响应并发请求。 通过 Redis 的原子性操作（如 DECR）来实现库存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis实现防超卖策略">
+<meta property="og:url" content="https://jasonxqh.github.io/2024/11/14/redis%E5%AE%9E%E7%8E%B0%E9%98%B2%E8%B6%85%E5%8D%96%E7%AD%96%E7%95%A5/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="redis实现防超卖策略在高并发的场景下，尤其是电商等需要控制库存的系统，超卖是一个常见的问题。超卖指的是用户在高并发情况下能够购买已经售完的商品。通过 Redis 实现防止超卖的策略，通常包括以下几个关键部分： 1. 库存控制的基本思路 使用 Redis 存储商品的库存信息。Redis 提供的高并发支持和高性能，可以帮助快速响应并发请求。 通过 Redis 的原子性操作（如 DECR）来实现库存">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/11/14/redis%E5%AE%9E%E7%8E%B0%E9%98%B2%E8%B6%85%E5%8D%96%E7%AD%96%E7%95%A5/4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/11/14/redis%E5%AE%9E%E7%8E%B0%E9%98%B2%E8%B6%85%E5%8D%96%E7%AD%96%E7%95%A5/5.jpg">
+<meta property="article:published_time" content="2024-11-14T05:22:55.000Z">
+<meta property="article:modified_time" content="2024-11-15T06:16:35.330Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="redis">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2024/11/14/redis%E5%AE%9E%E7%8E%B0%E9%98%B2%E8%B6%85%E5%8D%96%E7%AD%96%E7%95%A5/4.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2024/11/14/redis实现防超卖策略/"/>
+
+
+
+
+
+  <title>redis实现防超卖策略 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2024/11/14/redis%E5%AE%9E%E7%8E%B0%E9%98%B2%E8%B6%85%E5%8D%96%E7%AD%96%E7%95%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">redis实现防超卖策略</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2024-11-14T13:22:55+08:00">
+                2024-11-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  4.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  16
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="redis实现防超卖策略"><a href="#redis实现防超卖策略" class="headerlink" title="redis实现防超卖策略"></a>redis实现防超卖策略</h1><p>在高并发的场景下，尤其是电商等需要控制库存的系统，<strong>超卖</strong>是一个常见的问题。超卖指的是用户在高并发情况下能够购买已经售完的商品。通过 Redis 实现防止超卖的策略，通常包括以下几个关键部分：</p>
+<h3 id="1-库存控制的基本思路"><a href="#1-库存控制的基本思路" class="headerlink" title="1. 库存控制的基本思路"></a>1. <strong>库存控制的基本思路</strong></h3><ul>
+<li>使用 Redis 存储商品的库存信息。Redis 提供的高并发支持和高性能，可以帮助快速响应并发请求。</li>
+<li>通过 Redis 的原子性操作（如 <code>DECR</code>）来实现库存的扣减，并利用<strong>非独占锁机制</strong>来避免并发请求导致的库存超卖。</li>
+</ul>
+<h3 id="2-非独占锁与消息队列的协同作用"><a href="#2-非独占锁与消息队列的协同作用" class="headerlink" title="2. 非独占锁与消息队列的协同作用"></a>2. 非独占锁与消息队列的协同作用</h3><h4 id="2-1-非独占锁的作用：扣减标识"><a href="#2-1-非独占锁的作用：扣减标识" class="headerlink" title="2.1 非独占锁的作用：扣减标识"></a>2.1 非独占锁的作用：扣减标识</h4><ul>
+<li><strong>防止超卖</strong>：在高并发场景中，库存扣减操作需要确保每个扣减请求是唯一的，这样才能避免库存被误扣。通过 <code>setNx</code> 实现的<strong>非独占锁</strong>，可以确保每个扣减操作是独立的，并且通过锁的存在来标识每个扣减请求。</li>
+<li><strong>库存扣减的标识作用</strong>：每次库存扣减都会创建一个与当前库存数（例如 <code>cacheKey_99</code> 或 <code>cacheKey_98</code>）相关联的锁。这个锁并不是用来控制其他请求对资源的访问，而是作为一个 <strong>操作标识</strong>，确保每个操作在进行时被唯一标识，从而确保库存的唯一性。</li>
+<li><strong>与库存数绑定</strong>：锁的粒度是与库存数紧密绑定的，而不是共享一个通用的库存锁。例如，当线程1将库存从100扣减到99时，生成的锁是 <code>cacheKey_99</code>，而当线程2将库存从99扣减到98时，生成的锁是 <code>cacheKey_98</code>。虽然它们的操作是并行的，但每个操作都会确保 <strong>独立性</strong>，因此不会产生竞争。</li>
+</ul>
+<h4 id="2-2-为什么需要非独占锁？"><a href="#2-2-为什么需要非独占锁？" class="headerlink" title="2.2 为什么需要非独占锁？"></a>2.2 为什么需要非独占锁？</h4><ul>
+<li><strong>处理网络异常与集群抖动</strong>：在高并发的情况下，尤其是像秒杀这样的场景中，网络延迟或 Redis 集群的主从切换可能导致请求失败或者网络超时，从而导致一些错误。比如说：库存扣减10w次，可能不一定真的扣减了10w次，那么我们就需要每次扣减的时候，保存一个扣减的证明，这个证明就是锁。通过 <code>setNx</code> 锁的机制，即使出现网络异常或 Redis 重试，仍然能够保证一个库存对应一把锁，不会超卖。</li>
+<li><strong>认为调整库存后的拦截: </strong> 另外就是出现问题时候，运营可能会调整库存。比如说：原来只有200个库存，抽奖的过程中添加锁，已经将库存减少到了100，这个时候人为添加100的库存的话，如果装配了的话，需要重新开始减，300-200范围内的锁还能获取，但是200-100范围内的锁已经都有了，就会被已经存在的锁拦截。防止一个商品多次被抽奖或者购买。</li>
+</ul>
+<h4 id="2-4-消息队列的作用-削峰保护数据库"><a href="#2-4-消息队列的作用-削峰保护数据库" class="headerlink" title="2.4 消息队列的作用: 削峰保护数据库"></a>2.4 消息队列的作用: 削峰保护数据库</h4><ul>
+<li><strong>削峰填谷</strong>：在秒杀、抢购等高并发场景中，直接操作数据库会造成极大的压力，特别是对库存的持久化操作。因此，使用消息队列来异步处理库存扣减操作，能够有效减轻数据库的瞬时压力，避免系统因并发访问而崩溃。</li>
+<li><strong>延迟消费与批处理</strong>：消息队列能够将库存扣减的任务延迟消费并批量处理。这种设计使得数据库更新操作不再直接依赖于每个扣减请求的实时响应，而是通过异步的方式集中更新，避免数据库因并发请求造成瓶颈。</li>
+<li><strong>确保最终一致性</strong>：消息队列的使用不仅有助于减轻数据库压力，还确保了库存扣减的 <strong>最终一致性</strong>。尽管存在异步处理，但通过消息队列的消费机制，最终会确保数据库中的库存数会正确更新，而不会出现超卖。</li>
+<li><strong>异步执行与顺序执行</strong>：通过消息队列，库存更新的操作可以按照队列中的顺序进行，这样即使有多个扣减请求，也能保证最终库存的一致性。队列消费时，会按顺序进行库存更新，避免并发处理中的错误和数据不一致。</li>
+</ul>
+<h2 id="扣减库存的执行流程"><a href="#扣减库存的执行流程" class="headerlink" title="扣减库存的执行流程"></a>扣减库存的执行流程</h2><h4 id="0-装配策略时一并装配库存信息"><a href="#0-装配策略时一并装配库存信息" class="headerlink" title="0. 装配策略时一并装配库存信息"></a>0. 装配策略时一并装配库存信息</h4><p>当在装配抽奖策略的时候，我们可以将奖品信息一并存放到Redis中，其键为strategyId和awardId，值为awardCount</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">assembleLotteryStrategy</span><span class="params">(Long strategyId)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//1. 查询策略配置</span></span><br><span class="line">   ...</span><br><span class="line">    <span class="comment">//2. 缓存奖品库存，用于decr扣减库存使用</span></span><br><span class="line">    <span class="keyword">for</span>(StrategyAwardEntity strategyAwardEntity : strategyAwardEntities) &#123;</span><br><span class="line">        Integer awardId = strategyAwardEntity.getAwardId();</span><br><span class="line">        Integer awardCount = strategyAwardEntity.getAwardCount();</span><br><span class="line">        cacheStrategyCount(strategyId,awardId,awardCount);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//3.1 默认装配配置[全量抽奖概率]</span></span><br><span class="line">    <span class="comment">//3.2 权重策略配置，适用于rule_weight权重规则配置</span></span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="1-扣减库存请求的触发"><a href="#1-扣减库存请求的触发" class="headerlink" title="1. 扣减库存请求的触发"></a>1. <strong>扣减库存请求的触发</strong></h4><p>用户发起购买请求或参与活动时，后台系统会接收到一个请求，需要检查和扣减库存。这时，可能会出现大量并发请求。我们需要通过 Redis 控制库存的扣减，防止超卖。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//在规则树的库存规则节点上，需要执行库存扣减操作</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> DefaultTreeFactory.<span class="function">TreeActionEntity <span class="title">logic</span><span class="params">(String userId, Long strategyId, Integer awardId,String ruleValue)</span> </span>&#123;</span><br><span class="line">    log.info(<span class="string">"规则过滤-库存扣减 userId:&#123;&#125; strategyId:&#123;&#125; awardId:&#123;&#125;"</span>, userId, strategyId, awardId);</span><br><span class="line">    Boolean status = strategyDispatch.subtractionAwardStock(strategyId, awardId);</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-库存扣减（Redis-DECR）"><a href="#2-库存扣减（Redis-DECR）" class="headerlink" title="2. 库存扣减（Redis DECR）"></a>2. <strong>库存扣减（Redis <code>DECR</code>）</strong></h4><ul>
+<li>每次请求都会尝试通过 Redis 扣减库存，Redis 提供的 <code>DECR</code> 命令是原子性的，这意味着它可以确保库存减少的操作是线程安全的。</li>
+<li>比如，如果库存为 100，当第一次请求到来时，库存会通过 <code>DECR</code> 命令减到 99；第二次请求到来时，库存再减到 98，依此类推。</li>
+<li>通过 <code>DECR</code> 执行库存减少操作，确保每次库存减少时，只有一个线程能操作该库存。</li>
+</ul>
+<p><strong>注意</strong>：</p>
+<ul>
+<li>如果 <code>DECR</code> 返回负数，说明库存已经为 0 或不足。这时需要采取补偿措施，如返回库存不足的错误信息。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Repository层的操作，先decr扣减redis中的库存，再返回锁</span></span><br><span class="line"><span class="comment">//具体为什么要返回锁，上文已有讨论：</span></span><br><span class="line"><span class="comment">//即使decr是原子性的,扣减10w次也不一定真的减了10w次库存，因此要一个凭证，即lock</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Boolean <span class="title">subtractAwardStock</span><span class="params">(String cacheKey)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> surplus = redisService.decr(cacheKey);</span><br><span class="line">    <span class="keyword">if</span>(surplus &lt; <span class="number">0</span>)&#123;</span><br><span class="line">        redisService.setValue(cacheKey, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    String lockKey = cacheKey + Constants.UNDERLINE + surplus;</span><br><span class="line">    Boolean lock = redisService.setNx(lockKey);</span><br><span class="line">    <span class="keyword">if</span>(!lock) log.info(<span class="string">"策略奖品库存加锁失败 &#123;&#125;"</span>,lockKey);</span><br><span class="line">    <span class="keyword">return</span> lock;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="3-加锁机制（SETNX）"><a href="#3-加锁机制（SETNX）" class="headerlink" title="3. 加锁机制（SETNX）"></a>3. <strong>加锁机制（<code>SETNX</code>）</strong></h4><ul>
+<li>对于库存的每个减少操作，我们需要设置一个锁来确保在库存减少后，其他线程不能立即进行修改操作。</li>
+<li><code>SETNX</code> 是 Redis 的一种原子操作，它确保只有在锁不存在的情况下，才能成功创建锁。</li>
+<li>每次库存减少后，我们创建一个基于库存数（<code>surplus</code>）的锁，如 <code>cacheKey:98</code>，<strong>确保每个库存值有唯一的锁</strong>。</li>
+</ul>
+<h4 id="4-库存扣减成功后的消息队列"><a href="#4-库存扣减成功后的消息队列" class="headerlink" title="4. 库存扣减成功后的消息队列"></a>4. <strong>库存扣减成功后的消息队列</strong></h4><ul>
+<li>为了延迟执行库存更新（比如数据库操作），我们通过将库存更新任务加入到消息队列中，由消费者异步处理。</li>
+<li>这样，库存的扣减和数据库更新分离开，避免了在高并发下直接修改数据库的压力。</li>
+<li>消息队列可以用如 Kafka 或 RabbitMQ 等工具来实现。但这里使用的是redis中的阻塞队列和延迟队列，每个扣减成功的请求都会把相关的信息（如策略ID、奖品ID、剩余库存）发送到队列中，消费者会异步消费消息并执行数据库更新。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> DefaultTreeFactory.<span class="function">TreeActionEntity <span class="title">logic</span><span class="params">(String userId, Long strategyId, Integer awardId,String ruleValue)</span> </span>&#123;</span><br><span class="line">    log.info(<span class="string">"规则过滤-库存扣减 userId:&#123;&#125; strategyId:&#123;&#125; awardId:&#123;&#125;"</span>, userId, strategyId, awardId);</span><br><span class="line">    Boolean status = strategyDispatch.subtractionAwardStock(strategyId, awardId);</span><br><span class="line">    <span class="comment">// status 为true，库存扣减成功，否则失败</span></span><br><span class="line">    <span class="comment">//成功，则发送队列消息</span></span><br><span class="line">    <span class="keyword">if</span>(status)&#123;</span><br><span class="line">        <span class="comment">//写入延迟队列，延迟消费更新数据库记录</span></span><br><span class="line">        log.info(<span class="string">"规则过滤-库存扣减成功，向队列发送消息 "</span>);</span><br><span class="line">        strategyRepository.awardStockConsumeSendQueue( StrategyAwardStockKeyVO.builder()</span><br><span class="line">                        .strategyId(strategyId)</span><br><span class="line">                        .awardId(awardId)</span><br><span class="line">                        .build());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> DefaultTreeFactory.TreeActionEntity.builder()</span><br><span class="line">                .ruleLogicCheckTypeVO(RuleLogicCheckTypeVO.TAKE_OVER)</span><br><span class="line">                .strategyAwardVO(DefaultTreeFactory.StrategyAwardVO.builder()</span><br><span class="line">                        .awardId(awardId)</span><br><span class="line">                        .awardRuleValue(<span class="string">""</span>)</span><br><span class="line">                        .build())</span><br><span class="line">                .build();</span><br><span class="line">    &#125;</span><br><span class="line">    log.info(<span class="string">"规则过滤-库存扣减失败，走兜底"</span>);</span><br><span class="line">    <span class="keyword">return</span> DefaultTreeFactory.TreeActionEntity.builder()</span><br><span class="line">            .ruleLogicCheckTypeVO(RuleLogicCheckTypeVO.TAKE_OVER)</span><br><span class="line">            .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><code>awardStockConsumeSendQueue()</code></strong> 方法：</p>
+<ul>
+<li>该方法的作用是将一个 <code>StrategyAwardStockKeyVO</code> 对象推送到 Redis 的延迟队列 <code>RDelayedQueue</code> 中。</li>
+<li><code>RDelayedQueue</code> 是基于 <code>RBlockingQueue</code> 实现的，可以在指定的延迟时间后异步消费队列中的元素。在这里，元素将在 3 秒后被消费。</li>
+<li>延迟队列主要用于解耦和异步处理某些操作，比如更新库存数据库时，减少对数据库的瞬时压力。</li>
+<li>通过 <code>delayedQueue.offer()</code> 方法将 <code>strategyAwardStockKeyVO</code> 放入延迟队列，3 秒后，队列中的元素会被消费。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">awardStockConsumeSendQueue</span><span class="params">(StrategyAwardStockKeyVO strategyAwardStockKeyVO)</span> </span>&#123;</span><br><span class="line">    String cacheKey = Constants.RedisKey.STRATEGY_AWARD_COUNT_QUERY_KEY;</span><br><span class="line">    RBlockingQueue&lt;Object&gt; blockingQueue = redisService.getBlockingQueue(cacheKey);</span><br><span class="line">    RDelayedQueue&lt;Object&gt; delayedQueue = redisService.getDelayedQueue(blockingQueue);</span><br><span class="line">    delayedQueue.offer(strategyAwardStockKeyVO,<span class="number">3</span>, TimeUnit.SECONDS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="8-定时任务的消费"><a href="#8-定时任务的消费" class="headerlink" title="8. 定时任务的消费"></a>8. <strong>定时任务的消费</strong></h4><ul>
+<li>消费者从消息队列中获取库存扣减的任务后，执行延迟更新数据库的操作。例如，可以使用定时任务每隔一段时间从队列中取出消息，处理库存更新。</li>
+<li><strong>延迟消费</strong> 可以帮助平衡系统负载，避免直接在请求时进行库存的数据库更新。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@Component</span>()</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UpdateAwardStockJob</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Resource</span></span><br><span class="line">    <span class="keyword">private</span> IRaffleStock raffleStock;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Scheduled</span>(cron = <span class="string">"0/5 * * * * ?"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">exec</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            log.info(<span class="string">"定时任务，更新奖品消耗库存[延迟队列获取，降低对数据库的更新频次， 不要产生竞争"</span>);</span><br><span class="line">            StrategyAwardStockKeyVO strategyAwardStockKeyVO = raffleStock.takeQueueValue();</span><br><span class="line">            <span class="keyword">if</span>(<span class="keyword">null</span> == strategyAwardStockKeyVO)&#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            log.info(<span class="string">"定时任务，更新奖品消耗库存 strategyId:&#123;&#125; awardId:&#123;&#125; "</span>,strategyAwardStockKeyVO.getStrategyId(), strategyAwardStockKeyVO.getAwardId());</span><br><span class="line">            raffleStock.updateStrategyAwardStock(strategyAwardStockKeyVO.getStrategyId(), strategyAwardStockKeyVO.getAwardId());</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        &#125;<span class="keyword">catch</span> (Exception e)&#123;</span><br><span class="line">            log.error(<span class="string">"定时任务，更新奖品消耗库存失败"</span>,e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><code>takeQueueValue()</code></strong> 方法：</p>
+<ul>
+<li>从 Redis 阻塞队列中获取一个 <code>StrategyAwardStockKeyVO</code> 类型的对象。</li>
+<li>如果队列为空，调用 <code>poll()</code> 方法会使当前线程阻塞，直到有新数据可供消费。</li>
+<li><code>poll()</code> 会在有数据时返回一个元素，如果队列为空，则返回 <code>null</code>。</li>
+</ul>
+<p><strong><code>updateStrategyAwardStock()</code></strong> 方法：</p>
+<ul>
+<li>根据 <code>strategyId</code> 和 <code>awardId</code> 参数，创建一个 <code>StrategyAward</code> 实体，并设置这两个属性。</li>
+<li>调用 DAO 层的方法 <code>updateStrategyAwardStock()</code> 来更新数据库中的库存数据。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> StrategyAwardStockKeyVO <span class="title">takeQueueValue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String cacheKey = Constants.RedisKey.STRATEGY_AWARD_COUNT_QUERY_KEY;</span><br><span class="line">    RBlockingQueue&lt;StrategyAwardStockKeyVO&gt; destinationQueue = redisService.getBlockingQueue(cacheKey);</span><br><span class="line">    <span class="keyword">return</span> destinationQueue.poll();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">updateStrategyAwardStock</span><span class="params">(Long strategyId, Integer awardId)</span> </span>&#123;</span><br><span class="line">    StrategyAward strategyAward = <span class="keyword">new</span> StrategyAward();</span><br><span class="line">    strategyAward.setStrategyId(strategyId);</span><br><span class="line">    strategyAward.setAwardId(awardId);</span><br><span class="line">    strategyAwardDao.updateStrategyAwardStock(strategyAward);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">update</span> <span class="attr">id</span>=<span class="string">"updateStrategyAwardStock"</span> &gt;</span></span><br><span class="line">    UPDATE strategy_award</span><br><span class="line">    SET award_count_surplus = award_count_surplus -1</span><br><span class="line">    WHERE strategy_id = #&#123;strategyId&#125;</span><br><span class="line">      AND award_id = #&#123;awardId&#125;</span><br><span class="line">      AND award_count_surplus &gt; 0</span><br><span class="line"><span class="tag">&lt;/<span class="name">update</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h2 id="Redis底层原理"><a href="#Redis底层原理" class="headerlink" title="Redis底层原理"></a>Redis底层原理</h2><h3 id="非独占锁的实现"><a href="#非独占锁的实现" class="headerlink" title="非独占锁的实现"></a>非独占锁的实现</h3><h4 id="getBucket-key-trySet-quot-lock-quot"><a href="#getBucket-key-trySet-quot-lock-quot" class="headerlink" title="getBucket(key).trySet(&quot;lock&quot;)"></a><code>getBucket(key).trySet(&quot;lock&quot;)</code></h4><p>在这个项目中我们实际上是这样来实现setNx的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//在redissonService中包装了一层</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Boolean <span class="title">setNx</span><span class="params">(String key)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> redissonClient.getBucket(key).trySet(<span class="string">"lock"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>底层实现</strong>：<code>getBucket(key).trySet(&quot;lock&quot;)</code> 其实是对 Redis 中 <code>SETNX</code> 命令的封装。在 Redis 中，<code>SETNX</code> 的作用是：如果指定的 key 不存在，则设置它的值为指定的内容，并返回 <code>true</code>；如果 key 已经存在，则返回 <code>false</code>，表示锁已经被占用。</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li><strong>非可重入</strong>：一旦一个线程获得了锁，其他线程不能重复获取。</li>
+<li><strong>没有自动释放</strong>：<code>trySet</code> 本身没有为锁设置过期时间，必须由客户端来手动管理锁的释放，否则可能会导致死锁。</li>
+<li><strong>简洁性</strong>：这是一个比较简单、轻量的分布式锁实现，适用于对锁的功能要求不高的场景。</li>
+</ul>
+<p>然而，使用 <code>trySet</code> 只能确保锁的 <strong>唯一性</strong>，但并没有处理锁的 <strong>过期时间</strong>、<strong>可重入性</strong>、<strong>锁的安全性</strong>、<strong>自动续期</strong> 等功能，这些功能是分布式锁中非常关键的部分，尤其是在高并发的分布式场景中。</p>
+<h4 id="getLock-锁（RLock）"><a href="#getLock-锁（RLock）" class="headerlink" title="getLock 锁（RLock）"></a><code>getLock</code> 锁（<code>RLock</code>）</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RLock lock = redissonClient.getLock(key);</span><br></pre></td></tr></table></figure>
+<p><code>getLock</code> 是 Redisson 提供的分布式锁 API，它背后是基于 Redis 实现的一个 <strong>可重入</strong>、<strong>可过期</strong>、<strong>高可用</strong> 的分布式锁。通过 <code>getLock(key)</code> 获取的锁会被封装为 <code>RLock</code> 对象，该锁提供了更多的功能和控制，尤其在复杂的分布式环境中，能够有效避免死锁和保证锁的释放。</p>
+<ul>
+<li><strong>底层实现</strong>：<code>getLock(key)</code> 返回的是一个 <code>RLock</code> 对象，它是基于 Redis 的原子命令（如 <code>SETNX</code>、<code>EXPIRE</code> 等）实现的分布式锁。<code>RLock</code> 提供了许多高级功能，如 <strong>可重入性</strong>、<strong>锁超时</strong>、<strong>自动释放</strong>、<strong>重试机制</strong> 等。</li>
+<li><strong>特点</strong>：<ul>
+<li><strong>重入性</strong>：同一线程可以多次获取同一把锁，而不会导致死锁。</li>
+<li><strong>锁过期</strong>：可以指定锁的过期时间，确保锁不会因为线程崩溃或异常释放导致死锁。</li>
+<li><strong>高并发安全性</strong>：通过 <code>lock()</code>、<code>tryLock()</code> 等方法，确保锁的可靠性。</li>
+<li><strong>操作简便性</strong>：通过 <code>RLock</code> 对象，可以使用锁的操作方法来直接控制锁的行为，如 <code>lock()</code>, <code>unlock()</code>, <code>tryLock()</code> 等。</li>
+</ul>
+</li>
+</ul>
+<h3 id="RDelayedQueue"><a href="#RDelayedQueue" class="headerlink" title="RDelayedQueue"></a>RDelayedQueue</h3><p>在 Redisson 中，<code>RDelayedQueue</code> 是基于 Redis 的 <strong>延迟队列</strong> 实现的，它允许你将任务延迟一段时间后再执行。在你的代码中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">delayedQueue.offer(strategyAwardStockKeyVO, <span class="number">3</span>, TimeUnit.SECONDS);</span><br></pre></td></tr></table></figure>
+<p>这行代码的意思是将 <code>strategyAwardStockKeyVO</code> 对象放入一个延迟队列中，并设置延迟时间为 3 秒。底层实现的核心原理如下：</p>
+<h4 id="1-RDelayedQueue-的工作原理"><a href="#1-RDelayedQueue-的工作原理" class="headerlink" title="1. RDelayedQueue 的工作原理"></a>1. <strong>RDelayedQueue 的工作原理</strong></h4><p><img src="/2024/11/14/redis%E5%AE%9E%E7%8E%B0%E9%98%B2%E8%B6%85%E5%8D%96%E7%AD%96%E7%95%A5/4.jpg" style="zoom:67%;"></p>
+<ul>
+<li><strong>redisson_delay_queue_timeout:xxx</strong>，sorted set数据类型，存放所有延迟任务，按照延迟任务的到期时间戳（提交任务时的时间戳 + 延迟时间）来排序的，所以列表的最前面的第一个元素就是整个延迟队列中最早要被执行的任务，这个概念很重要</li>
+<li><strong>redisson_delay_queue:xxx</strong>，list数据类型，暂时没发现什么用，只是在提交任务时会写入这里面，队列转移时又会删除里面的元素。如果直接对 DelayedQueue执行poll()操作，不管有没有过期，都会删除list和sorted set中的元素。</li>
+<li><strong>xxx</strong>：list数据类型，被称为目标队列，这个里面存放的任务都是已经到了延迟时间的，可以被消费者获取的任务，所以上面demo中的RBlockingQueue的take方法是从这个目标队列中获取到任务的</li>
+<li><strong>redisson_delay_queue_channel:xxx</strong>，是一个channel，用来通知客户端开启一个延迟任务</li>
+</ul>
+<h4 id="2-底层流程"><a href="#2-底层流程" class="headerlink" title="2. 底层流程"></a>2. <strong>底层流程</strong></h4><ul>
+<li><strong>设置延迟时间</strong>：<ul>
+<li>当你调用 <code>offer(strategyAwardStockKeyVO, 3, TimeUnit.SECONDS)</code> 时，Redisson 会计算出当前时间加上 3 秒钟的时间戳（例如，假设当前时间是 <code>T</code>，那么延迟时间戳为 <code>T + 3秒</code>）。</li>
+<li>然后，Redisson 会将 <code>strategyAwardStockKeyVO</code> 对象存储到 Redis 的 Sorted Set 中，<code>score</code> 为 <code>T + 3秒</code>，并且 <code>value</code> 为 <code>strategyAwardStockKeyVO</code>。</li>
+</ul>
+</li>
+<li><strong>等待时间到达</strong>：<ul>
+<li><code>RDelayedQueue</code> 并不会阻塞执行线程，而是会周期性地检查 Redis 中的元素的 <code>score</code>（即延迟时间）。</li>
+<li>直到当前时间大于或等于元素的延迟时间，Redisson 才会将该元素从 Sorted Set 中移除，并放入到 <strong><code>RBlockingQueue</code></strong> 中。</li>
+<li>由于 <code>RBlockingQueue</code> 是一个阻塞队列，一旦元素被添加到该队列中，消费者就可以从中获取到元素。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2024/11/14/redis%E5%AE%9E%E7%8E%B0%E9%98%B2%E8%B6%85%E5%8D%96%E7%AD%96%E7%95%A5/5.jpg" style="zoom:67%;"></p>
+<h4 id="RBlockingQueue-和-RDelayedQueue-的协作"><a href="#RBlockingQueue-和-RDelayedQueue-的协作" class="headerlink" title="RBlockingQueue 和 RDelayedQueue 的协作"></a><strong><code>RBlockingQueue</code> 和 <code>RDelayedQueue</code> 的协作</strong></h4><p><strong>协作流程</strong>：<code>RDelayedQueue</code> 的底层实现依赖于 <code>RBlockingQueue</code>，因此在使用 <code>RDelayedQueue</code> 时，需要传入一个 <code>RBlockingQueue</code> 作为参数。这是因为 <code>RDelayedQueue</code> 的设计目的在于实现带延迟的队列，它的核心功能是允许元素被延迟消费。 而延迟的元素需要在最终消费时，依赖于 <code>RBlockingQueue</code> 的阻塞队列特性。</p>
+<p>为了实现这一点，<code>RDelayedQueue</code> 需要借助 <code>RBlockingQueue</code> 的阻塞队列功能，即：</p>
+<ol>
+<li><strong>延迟入队：</strong><ul>
+<li>当元素被放入 <code>RDelayedQueue</code> 时，它并不会立即被消费，而是根据延迟时间来计算何时能被消费。</li>
+</ul>
+</li>
+<li><strong>延迟消费：</strong><ul>
+<li>一旦延迟时间到了，元素会被消费，但消费过程需要阻塞等待。这个阻塞等待过程正是通过 <code>RBlockingQueue</code> 来实现的。</li>
+<li><code>RBlockingQueue</code> 提供了 <code>take()</code>、<code>poll()</code> 等阻塞方法，直到元素满足延迟消费条件后，才会从队列中取出并消费。</li>
+</ul>
+</li>
+</ol>
+<h3 id="set-和-setNX"><a href="#set-和-setNX" class="headerlink" title="set 和 setNX"></a>set 和 setNX</h3><p>Redis 底层是单线程的，所有命令执行都是顺序的，所以 <code>SET</code> 和 <code>SETNX</code> 命令在 Redis 的单线程环境下都会按顺序执行，不会出现并发执行的问题。但它们之间有一些重要的区别，尤其在 <strong>命令的行为</strong> 和 <strong>用法场景</strong> 上。</p>
+<h3 id="命令的区别"><a href="#命令的区别" class="headerlink" title="命令的区别"></a>命令的区别</h3><ul>
+<li><p><strong><code>SET</code> 命令</strong>：用于设置一个键值对。如果指定的 <code>key</code> 已经存在，它会覆盖原有的值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SET key value</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果 <code>key</code> 已经存在，<code>SET</code> 会直接更新该 <code>key</code> 的值。</li>
+<li>如果 <code>key</code> 不存在，则会插入新的 <code>key-value</code> 对。</li>
+</ul>
+</li>
+<li><p><strong><code>SETNX</code> 命令</strong>：用于在 <code>key</code> 不存在时，设置该 <code>key</code> 的值。如果 <code>key</code> 已经存在，则 <strong>不执行任何操作</strong>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SETNX key value</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果 <code>key</code> 已经存在，<code>SETNX</code> 不会对该 <code>key</code> 进行任何修改，返回 <code>0</code>。</li>
+<li>如果 <code>key</code> 不存在，则设置 <code>key</code> 的值，并返回 <code>1</code>。</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>SETNX</code> 的用途</strong>：由于它只有在 <code>key</code> 不存在时才设置 <code>key</code>，这使得它成为实现分布式锁的一种非常有效的方式。你可以通过 <code>SETNX</code> 来尝试获取一个锁（设置一个 <code>key</code>），如果锁已存在，其他请求就无法获取到这个锁，从而避免了竞争条件。</p>
+<p>例如，执行 <code>SETNX</code> 命令时，如果某个资源已经被占用（<code>key</code> 已存在），则其他线程或进程就无法再占用这个资源。这种特性使得它成为分布式系统中控制资源争用的一种常用手段。</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2024/11/14/redis%E5%AE%9E%E7%8E%B0%E9%98%B2%E8%B6%85%E5%8D%96%E7%AD%96%E7%95%A5/" title="redis实现防超卖策略">https://jasonxqh.github.io/2024/11/14/redis%E5%AE%9E%E7%8E%B0%E9%98%B2%E8%B6%85%E5%8D%96%E7%AD%96%E7%95%A5/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/redis/" rel="tag"><i class="fa fa-tag"></i> redis</a>
+          
+            <a href="/tags/java/" rel="tag"><i class="fa fa-tag"></i> java</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2024/11/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-java/" rel="next" title="设计模式-java">
+                <i class="fa fa-chevron-left"></i> 设计模式-java
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">428</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#redis实现防超卖策略"><span class="nav-number">1.</span> <span class="nav-text">redis实现防超卖策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-库存控制的基本思路"><span class="nav-number">1.0.1.</span> <span class="nav-text">1. 库存控制的基本思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-非独占锁与消息队列的协同作用"><span class="nav-number">1.0.2.</span> <span class="nav-text">2. 非独占锁与消息队列的协同作用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-非独占锁的作用：扣减标识"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">2.1 非独占锁的作用：扣减标识</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-为什么需要非独占锁？"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">2.2 为什么需要非独占锁？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-4-消息队列的作用-削峰保护数据库"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">2.4 消息队列的作用: 削峰保护数据库</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#扣减库存的执行流程"><span class="nav-number">1.1.</span> <span class="nav-text">扣减库存的执行流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#0-装配策略时一并装配库存信息"><span class="nav-number">1.1.0.1.</span> <span class="nav-text">0. 装配策略时一并装配库存信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-扣减库存请求的触发"><span class="nav-number">1.1.0.2.</span> <span class="nav-text">1. 扣减库存请求的触发</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-库存扣减（Redis-DECR）"><span class="nav-number">1.1.0.3.</span> <span class="nav-text">2. 库存扣减（Redis DECR）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-加锁机制（SETNX）"><span class="nav-number">1.1.0.4.</span> <span class="nav-text">3. 加锁机制（SETNX）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-库存扣减成功后的消息队列"><span class="nav-number">1.1.0.5.</span> <span class="nav-text">4. 库存扣减成功后的消息队列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-定时任务的消费"><span class="nav-number">1.1.0.6.</span> <span class="nav-text">8. 定时任务的消费</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis底层原理"><span class="nav-number">1.2.</span> <span class="nav-text">Redis底层原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#非独占锁的实现"><span class="nav-number">1.2.1.</span> <span class="nav-text">非独占锁的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#getBucket-key-trySet-quot-lock-quot"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">getBucket(key).trySet(&quot;lock&quot;)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#getLock-锁（RLock）"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">getLock 锁（RLock）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RDelayedQueue"><span class="nav-number">1.2.2.</span> <span class="nav-text">RDelayedQueue</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-RDelayedQueue-的工作原理"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">1. RDelayedQueue 的工作原理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-底层流程"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">2. 底层流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RBlockingQueue-和-RDelayedQueue-的协作"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">RBlockingQueue 和 RDelayedQueue 的协作</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#set-和-setNX"><span class="nav-number">1.2.3.</span> <span class="nav-text">set 和 setNX</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#命令的区别"><span class="nav-number">1.2.4.</span> <span class="nav-text">命令的区别</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1271k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>
