@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="java,大营销," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="限流组件开发与学习为了让羊毛党利用脚本等工具快速多次抽奖印象活动体验，我们可以写一个限流的组件，来阻止短时间内大量请求。 首先来定义这个注解：RateLimiterAccessInterceptor 注解 RateLimiterAccessInterceptor1234567891011121314151617@Retention(RetentionPolicy.RUNTIME)@Target(E">
+<meta property="og:type" content="article">
+<meta property="og:title" content="限流组件开发与学习">
+<meta property="og:url" content="https://jasonxqh.github.io/2025/01/02/%E9%99%90%E6%B5%81%E7%BB%84%E4%BB%B6%E5%BC%80%E5%8F%91%E4%B8%8E%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="限流组件开发与学习为了让羊毛党利用脚本等工具快速多次抽奖印象活动体验，我们可以写一个限流的组件，来阻止短时间内大量请求。 首先来定义这个注解：RateLimiterAccessInterceptor 注解 RateLimiterAccessInterceptor1234567891011121314151617@Retention(RetentionPolicy.RUNTIME)@Target(E">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-01-02T02:11:44.000Z">
+<meta property="article:modified_time" content="2025-01-02T08:49:11.970Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="大营销">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2025/01/02/限流组件开发与学习/"/>
+
+
+
+
+
+  <title>限流组件开发与学习 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2025/01/02/%E9%99%90%E6%B5%81%E7%BB%84%E4%BB%B6%E5%BC%80%E5%8F%91%E4%B8%8E%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">限流组件开发与学习</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2025-01-02T10:11:44+08:00">
+                2025-01-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  3.4k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  15
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="限流组件开发与学习"><a href="#限流组件开发与学习" class="headerlink" title="限流组件开发与学习"></a>限流组件开发与学习</h1><p>为了让羊毛党利用脚本等工具快速多次抽奖印象活动体验，我们可以写一个限流的组件，来阻止短时间内大量请求。</p>
+<p>首先来定义这个注解：<code>RateLimiterAccessInterceptor</code></p>
+<h2 id="注解-RateLimiterAccessInterceptor"><a href="#注解-RateLimiterAccessInterceptor" class="headerlink" title="注解 RateLimiterAccessInterceptor"></a>注解 <code>RateLimiterAccessInterceptor</code></h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(ElementType.METHOD)</span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> RateLimiterAccessInterceptor &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 用哪个字段作为拦截标识，未配置则默认走全部 */</span></span><br><span class="line">    <span class="function">String <span class="title">key</span><span class="params">()</span> <span class="keyword">default</span> "all"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 限制频次（每秒请求次数） */</span></span><br><span class="line">    <span class="function"><span class="keyword">double</span> <span class="title">permitsPerSecond</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 黑名单拦截（多少次限制后加入黑名单）0 不限制 */</span></span><br><span class="line">    <span class="function"><span class="keyword">double</span> <span class="title">blacklistCount</span><span class="params">()</span> <span class="keyword">default</span> 0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 拦截后的执行方法 */</span></span><br><span class="line">    <span class="function">String <span class="title">fallbackMethod</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个注解用于标识需要进行限流的方法。该注解包含以下属性：</p>
+<ul>
+<li><strong>key</strong>: 用于指定哪个字段作为限流的标识符，默认值为 <code>&quot;all&quot;</code>，表示对所有请求统一限流。</li>
+<li><strong>permitsPerSecond</strong>: 每秒允许的请求次数，用于配置限流的频率。</li>
+<li><strong>blacklistCount</strong>: 黑名单拦截的阈值，当某个标识符的请求次数超过该值后，将其加入黑名单。默认值为 <code>0</code>，表示不启用黑名单功能。</li>
+<li><strong>fallbackMethod</strong>: 当请求被限流或拦截后，执行的回调方法名称。</li>
+</ul>
+<h2 id="切面类-RateLimiterAOP"><a href="#切面类-RateLimiterAOP" class="headerlink" title="切面类  RateLimiterAOP"></a>切面类  RateLimiterAOP</h2><p><code>RateLimiterAOP</code> 是一个切面类，负责拦截标注了 <code>RateLimiterAccessInterceptor</code> 注解的方法，并实现具体的限流逻辑。</p>
+<h3 id="主要成员变量："><a href="#主要成员变量：" class="headerlink" title="主要成员变量："></a>主要成员变量：</h3><ul>
+<li><strong>rateLimiterSwitch</strong>: 通过 <code>@DCCValue</code> 注解从配置中心获取的限流开关，用于控制限流功能的开启和关闭。</li>
+<li><strong>loginRecord</strong>: 使用 Guava 的 <code>Cache</code> 实现，每个 <code>key</code> 对应一个 <code>RateLimiter</code>，用于控制请求频率。记录的有效期为 1 分钟。</li>
+<li><strong>blacklist</strong>: 使用 Guava 的 <code>Cache</code> 实现，用于记录被加入黑名单的标识符，记录的有效期为 24 小时。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RateLimiterAOP</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@DCCValue</span>(<span class="string">"rateLimiterSwitch:close"</span>)</span><br><span class="line">    <span class="keyword">private</span> String rateLimiterSwitch;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 个人限频记录1分钟</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Cache&lt;String, RateLimiter&gt; loginRecord = CacheBuilder.newBuilder()</span><br><span class="line">            .expireAfterWrite(<span class="number">1</span>, TimeUnit.MINUTES)</span><br><span class="line">            .build();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 个人限频黑名单24h - 分布式业务场景，可以记录到 Redis 中</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Cache&lt;String, Long&gt; blacklist = CacheBuilder.newBuilder()</span><br><span class="line">            .expireAfterWrite(<span class="number">24</span>, TimeUnit.HOURS)</span><br><span class="line">            .build();</span><br><span class="line">  <span class="comment">/**/</span></span><br><span class="line"><span class="comment">&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="切点定义："><a href="#切点定义：" class="headerlink" title="切点定义："></a>切点定义：</h3><p>定义了一个切点 <code>aopPoint</code>，匹配所有标注了 <code>RateLimiterAccessInterceptor</code> 注解的方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RateLimiterAOP</span> </span>&#123;</span><br><span class="line"><span class="comment">/**/</span></span><br><span class="line"><span class="comment">    <span class="doctag">@Pointcut</span>("<span class="doctag">@annotation</span>(io.github.jasonxqh.types.annotations.RateLimiterAccessInterceptor)")</span></span><br><span class="line"><span class="comment">    public void aopPoint()&#123;&#125;</span></span><br><span class="line"><span class="comment">/**/</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="环绕通知-doRouter："><a href="#环绕通知-doRouter：" class="headerlink" title="环绕通知 doRouter："></a>环绕通知 <code>doRouter</code>：</h3><h4 id="RateLimiter是什么类？"><a href="#RateLimiter是什么类？" class="headerlink" title="RateLimiter是什么类？"></a>RateLimiter是什么类？</h4><p><strong><code>RateLimiter</code> 类介绍：</strong></p>
+<ul>
+<li><strong>来源</strong>：<code>RateLimiter</code> 是 Google Guava 库中的一个类，位于 <code>com.google.common.util.concurrent</code> 包中。</li>
+<li><strong>功能</strong>：实现了基于令牌桶算法的限流器，用于控制代码执行的速率，防止系统被过多请求压垮。</li>
+</ul>
+<p><strong>主要特性：</strong></p>
+<ol>
+<li><strong>令牌桶算法</strong>：<ul>
+<li><code>RateLimiter</code> 采用令牌桶算法，通过以固定速率生成令牌，控制请求的速率。</li>
+<li>每个请求在执行前需要从桶中获取一个令牌，如果令牌可用，则允许请求执行；否则，拒绝请求。</li>
+</ul>
+</li>
+<li><strong>两种获取令牌的方式</strong>：<ul>
+<li><strong>阻塞获取</strong>：<code>acquire()</code> 方法会阻塞，直到获取到令牌。</li>
+<li><strong>非阻塞获取</strong>：<code>tryAcquire()</code> 方法会立即返回，表示是否成功获取到令牌。</li>
+</ul>
+</li>
+<li><strong>速率控制</strong>：<ul>
+<li>可以动态调整令牌生成速率，适应不同的限流需求。</li>
+</ul>
+</li>
+</ol>
+<p><strong>主要方法：</strong></p>
+<ul>
+<li><strong><code>RateLimiter.create(double permitsPerSecond)</code></strong>：<ul>
+<li>创建一个以指定速率（每秒发放的令牌数）生成令牌的 <code>RateLimiter</code> 实例。因此，我们在用<code>@RateLimiterAccessInterceptor</code> 注解一个方法的时候，需要定义这个<code>permitsPerSecond</code>字段，他决定了隔多少秒可以抽一次奖。</li>
+</ul>
+</li>
+<li><strong><code>boolean tryAcquire()</code></strong>：<ul>
+<li>尝试立即获取一个令牌，如果成功返回 <code>true</code>，否则返回 <code>false</code>。</li>
+<li>非阻塞方式，适用于需要快速判断是否允许请求的场景。</li>
+</ul>
+</li>
+<li><strong><code>void acquire()</code></strong>：<ul>
+<li>阻塞直到获取到一个令牌，适用于需要严格限制执行速率的场景。</li>
+</ul>
+</li>
+</ul>
+<h4 id="核心逻辑"><a href="#核心逻辑" class="headerlink" title="核心逻辑"></a>核心逻辑</h4><p>这是核心的限流逻辑实现。以下是详细流程：</p>
+<ol>
+<li><strong>限流开关检查</strong>：<ul>
+<li>如果 <code>rateLimiterSwitch</code> 未配置或值为 <code>&quot;close&quot;</code>，则不进行限流，直接执行目标方法 <code>pjp.proceed()</code>。</li>
+</ul>
+</li>
+<li><strong>获取限流标识符</strong>：<ul>
+<li>从注解中获取 <code>key</code> 属性值。</li>
+<li>通过 <code>getAttrValue</code> 方法，从目标方法的参数中提取出 <code>key</code> 对应的值 <code>keyAttr</code>。</li>
+<li>如果 <code>keyAttr</code> 为 <code>&quot;all&quot;</code>，则表示对所有请求统一限流；否则，对特定标识符（如 <code>userId</code>）进行限流。</li>
+</ul>
+</li>
+<li><strong>黑名单检查</strong>：<ul>
+<li>如果 <code>blacklistCount</code> 不为 <code>0</code>，并且 <code>keyAttr</code> 已经在黑名单中且超过了 <code>blacklistCount</code>，则直接调用回调方法 <code>fallbackMethod</code>，拒绝此次请求。</li>
+</ul>
+</li>
+<li><strong>限流检查</strong>：<ul>
+<li>从 <code>loginRecord</code> 中获取对应 <code>key</code> 的 <code>RateLimiter</code> 实例，如果不存在则创建一个新的 <code>RateLimiter</code>，并放入缓存中。<code>loginRecord</code> 中的 <code>RateLimiter</code> 会在 1 分钟后过期，若该用户在此期间没有新的请求，其 <code>RateLimiter</code> 会被移除。</li>
+<li>调用 <code>rateLimiter.tryAcquire()</code>尝试获取一个许可。如果获取失败，表示当前请求超出限流频率：<ul>
+<li>如果 <code>blacklistCount</code> 不为 <code>0</code>，即配置的黑名单阈值不为 <code>0</code>。则记录此次超频行为，更新黑名单计数。</li>
+<li>调用回调方法 <code>fallbackMethod</code>，拒绝此次请求。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>允许请求</strong>：<ul>
+<li>如果成功获取到许可，则执行目标方法 <code>pjp.proceed()</code>，允许此次请求通过。</li>
+</ul>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RateLimiterAOP</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Around</span>(<span class="string">"aopPoint() &amp;&amp; @annotation(rateLimiterAccessInterceptor)"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">doRouter</span><span class="params">(ProceedingJoinPoint pjp, RateLimiterAccessInterceptor rateLimiterAccessInterceptor)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        <span class="comment">//限流开关[open 开启 ，close 关闭] 关闭后不走限流策略</span></span><br><span class="line">        <span class="keyword">if</span>(StringUtils.isBlank(rateLimiterSwitch)||<span class="string">"close"</span>.equals(rateLimiterSwitch))&#123;</span><br><span class="line">            <span class="keyword">return</span> pjp.proceed();</span><br><span class="line">        &#125;</span><br><span class="line">        String key = rateLimiterAccessInterceptor.key();</span><br><span class="line">        <span class="keyword">if</span>(StringUtils.isBlank(key))&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"uId is null or empty"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        String keyAttr = getAttrValue(key, pjp.getArgs());</span><br><span class="line">        log.info(<span class="string">"aop attr &#123;&#125;"</span>,keyAttr);</span><br><span class="line">        <span class="keyword">if</span>(!<span class="string">"all"</span>.equals(keyAttr)</span><br><span class="line">                &amp;&amp; rateLimiterAccessInterceptor.blacklistCount() != <span class="number">0</span></span><br><span class="line">                &amp;&amp; <span class="keyword">null</span> != blacklist.getIfPresent(keyAttr)</span><br><span class="line">                &amp;&amp; blacklist.getIfPresent(keyAttr) &gt; rateLimiterAccessInterceptor.blacklistCount()) &#123;</span><br><span class="line">            log.info(<span class="string">"限流-黑名单拦截(24h)：&#123;&#125;"</span>, keyAttr);</span><br><span class="line">            <span class="keyword">return</span> fallbackMethodResult(pjp, rateLimiterAccessInterceptor.fallbackMethod());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        RateLimiter rateLimiter = loginRecord.getIfPresent(key);</span><br><span class="line">        <span class="keyword">if</span>(rateLimiter == <span class="keyword">null</span>)&#123;</span><br><span class="line">            rateLimiter = RateLimiter.create(rateLimiterAccessInterceptor.permitsPerSecond());</span><br><span class="line">            loginRecord.put(key, rateLimiter);</span><br><span class="line">        &#125;</span><br><span class="line">				<span class="comment">//未获取到令牌，超出了限制频率，视为违约1次，那么此时就需要在黑名单中加入1次</span></span><br><span class="line">        <span class="keyword">if</span>(!rateLimiter.tryAcquire())&#123;</span><br><span class="line">            <span class="keyword">if</span>(rateLimiterAccessInterceptor.blacklistCount() != <span class="number">0</span>)&#123;</span><br><span class="line">                <span class="keyword">if</span>(<span class="keyword">null</span> == blacklist.getIfPresent(keyAttr))&#123;</span><br><span class="line">                    blacklist.put(keyAttr, <span class="number">1L</span>);</span><br><span class="line">                &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                    blacklist.put(keyAttr, blacklist.getIfPresent(keyAttr) + <span class="number">1L</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            log.info(<span class="string">"限流-超频次拦截:&#123;&#125; "</span>,keyAttr);</span><br><span class="line">            <span class="keyword">return</span> fallbackMethodResult(pjp, rateLimiterAccessInterceptor.fallbackMethod());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> pjp.proceed();</span><br><span class="line">    &#125;</span><br><span class="line"> <span class="comment">/**/</span></span><br><span class="line"><span class="comment">&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="辅助方法："><a href="#辅助方法：" class="headerlink" title="辅助方法："></a>辅助方法：</h3><ul>
+<li><strong>fallbackMethodResult</strong>：通过反射调用用户配置的回调方法。当请求被限流或拦截后，执行此方法以返回预定义的响应。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 调用用户配置的回调方法，当拦截后，返回回调结果。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> Object <span class="title">fallbackMethodResult</span><span class="params">(JoinPoint jp, String fallbackMethod)</span> <span class="keyword">throws</span> NoSuchMethodException, InvocationTargetException, IllegalAccessException </span>&#123;</span><br><span class="line">    Signature sig = jp.getSignature();</span><br><span class="line">    MethodSignature methodSignature = (MethodSignature) sig;</span><br><span class="line">    Method method = jp.getTarget().getClass().getMethod(fallbackMethod, methodSignature.getParameterTypes());</span><br><span class="line">    <span class="keyword">return</span> method.invoke(jp.getThis(), jp.getArgs());</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/**/</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>getAttrValue</strong>：根据 <code>key</code> 从目标方法的参数中提取对应的值。支持通过反射获取对象属性值，适应不同参数类型。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 实际根据自身业务调整，主要是为了获取通过某个值做拦截</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getAttrValue</span><span class="params">(String attr, Object[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (args[<span class="number">0</span>] <span class="keyword">instanceof</span> String) &#123;</span><br><span class="line">        <span class="keyword">return</span> args[<span class="number">0</span>].toString();</span><br><span class="line">    &#125;</span><br><span class="line">    String filedValue = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">for</span> (Object arg : args) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (StringUtils.isNotBlank(filedValue)) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// filedValue = BeanUtils.getProperty(arg, attr);</span></span><br><span class="line">            <span class="comment">// fix: 使用lombok时，uId这种字段的get方法与idea生成的get方法不同，会导致获取不到属性值，改成反射获取解决</span></span><br><span class="line">            filedValue = String.valueOf(<span class="keyword">this</span>.getValueByName(arg, attr));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">"获取路由属性值失败 attr：&#123;&#125;"</span>, attr, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> filedValue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>getValueByName</strong> 和 <strong>getFieldByName</strong>：通过反射获取对象的指定属性值，支持获取父类属性。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取对象的特定属性值</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> item 对象</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> name 属性名</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 属性值</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@author</span> tang</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> Object <span class="title">getValueByName</span><span class="params">(Object item, String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Field field = getFieldByName(item, name);</span><br><span class="line">            <span class="keyword">if</span> (field == <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            field.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">            Object o = field.get(item);</span><br><span class="line">            field.setAccessible(<span class="keyword">false</span>);</span><br><span class="line">            <span class="keyword">return</span> o;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IllegalAccessException e) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">/**/</span></span><br><span class="line"><span class="comment">&#125;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 根据名称获取方法，该方法同时兼顾继承类获取父类的属性</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> item 对象</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> name 属性名</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> 该属性对应方法</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> tang</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> Field <span class="title">getFieldByName</span><span class="params">(Object item, String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Field field;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            field = item.getClass().getDeclaredField(name);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NoSuchFieldException e) &#123;</span><br><span class="line">            field = item.getClass().getSuperclass().getDeclaredField(name);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> field;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (NoSuchFieldException e) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="实际使用"><a href="#实际使用" class="headerlink" title="实际使用"></a>实际使用</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RateLimiterAccessInterceptor</span>(key = <span class="string">"userId"</span>,fallbackMethod = <span class="string">"drawRateLimiterError"</span>,permitsPerSecond = <span class="number">1.0</span>d,blacklistCount = <span class="number">1</span>)</span><br><span class="line"><span class="meta">@RequestMapping</span>(value = <span class="string">"draw"</span>, method = RequestMethod.POST)</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Response&lt;ActivityDrawResponseDTO&gt; <span class="title">draw</span><span class="params">(@RequestBody ActivityDrawRequestDTO requestDTO)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        log.info(<span class="string">"活动抽奖开始 userId:&#123;&#125; activityId:&#123;&#125;"</span>, requestDTO.getUserId(), requestDTO.getActivityId());</span><br><span class="line">        <span class="comment">// 0.降级开关 [open为开启，close为关闭]</span></span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isNotBlank(degradeSwitch) &amp;&amp; <span class="string">"open"</span>.equals(degradeSwitch)) &#123;</span><br><span class="line">            log.info(<span class="string">"当前degradeSwitch配置降级: &#123;&#125;"</span>,degradeSwitch);</span><br><span class="line">            <span class="keyword">return</span> Response.&lt;ActivityDrawResponseDTO&gt;builder()</span><br><span class="line">                    .code(ResponseCode.DEGRADE_SWITCH.getCode())</span><br><span class="line">                    .info(ResponseCode.DEGRADE_SWITCH.getInfo())</span><br><span class="line">                    .build();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Long activityId = requestDTO.getActivityId();</span><br><span class="line">        String userId = requestDTO.getUserId();</span><br><span class="line">        <span class="keyword">if</span>(activityId == <span class="keyword">null</span> || userId == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> AppException(ResponseCode.ILLEGAL_PARAMETER.getCode(),ResponseCode.ILLEGAL_PARAMETER.getInfo());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//1. 构建抽奖单,此时已经执行抽奖次数扣减了</span></span><br><span class="line">        UserRaffleOrderEntity orderEntity = activityPartakeService.createOrder(activityId, userId);</span><br><span class="line">        log.info(<span class="string">"活动抽奖，创建订单 userId:&#123;&#125; activityId:&#123;&#125; orderId:&#123;&#125;"</span>,userId,activityId, orderEntity.getOrderId());</span><br><span class="line">        <span class="comment">//2. 执行抽奖,消费抽奖单</span></span><br><span class="line">        RaffleAwardEntity raffleAwardEntity = strategyService.performRaffle(RaffleFactorEntity.builder()</span><br><span class="line">                .strategyId(orderEntity.getStrategyId())</span><br><span class="line">                .userId(userId)</span><br><span class="line">                .endDateTime(orderEntity.getEndDateTime())</span><br><span class="line">                .build());</span><br><span class="line"></span><br><span class="line">        <span class="comment">//3.构造发奖记录，存储记录和Task，并更新抽奖单状态为已使用</span></span><br><span class="line">        UserAwardRecordEntity userAwardRecord = UserAwardRecordEntity.builder()</span><br><span class="line">                .userId(orderEntity.getUserId())</span><br><span class="line">                .activityId(orderEntity.getActivityId())</span><br><span class="line">                .strategyId(orderEntity.getStrategyId())</span><br><span class="line">                .orderId(orderEntity.getOrderId())</span><br><span class="line">                .awardId(raffleAwardEntity.getAwardId())</span><br><span class="line">                .awardTitle(raffleAwardEntity.getAwardTitle())</span><br><span class="line">                .awardConfig(raffleAwardEntity.getAwardConfig())</span><br><span class="line">                .awardTime(<span class="keyword">new</span> Date())</span><br><span class="line">                .awardState(AwardStateVO.create)</span><br><span class="line">                .build();</span><br><span class="line">        awardService.saveUserAwardRecord(userAwardRecord);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//4.返回结果</span></span><br><span class="line">        Response&lt;ActivityDrawResponseDTO&gt; response = Response.&lt;ActivityDrawResponseDTO&gt;builder()</span><br><span class="line">                .code(ResponseCode.SUCCESS.getCode())</span><br><span class="line">                .info(ResponseCode.SUCCESS.getInfo())</span><br><span class="line">                .data(ActivityDrawResponseDTO.builder()</span><br><span class="line">                        .awardIndex(raffleAwardEntity.getSort())</span><br><span class="line">                        .awardTitle(raffleAwardEntity.getAwardTitle())</span><br><span class="line">                        .awardId(raffleAwardEntity.getAwardId())</span><br><span class="line">                        .build())</span><br><span class="line">                .build();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> response;</span><br><span class="line">    &#125;<span class="keyword">catch</span> (AppException e) &#123;</span><br><span class="line">        log.error(<span class="string">"活动抽奖失败 userId:&#123;&#125; activityId:&#123;&#125;"</span>, requestDTO.getUserId(), requestDTO.getActivityId(), e);</span><br><span class="line">        <span class="keyword">return</span> Response.&lt;ActivityDrawResponseDTO&gt;builder()</span><br><span class="line">                .code(e.getCode())</span><br><span class="line">                .info(e.getInfo())</span><br><span class="line">                .build();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        log.error(<span class="string">"活动抽奖失败 userId:&#123;&#125; activityId:&#123;&#125;"</span>, requestDTO.getUserId(), requestDTO.getActivityId(), e);</span><br><span class="line">        <span class="keyword">return</span> Response.&lt;ActivityDrawResponseDTO&gt;builder()</span><br><span class="line">                .code(ResponseCode.UN_ERROR.getCode())</span><br><span class="line">                .info(ResponseCode.UN_ERROR.getInfo())</span><br><span class="line">                .build();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> Response&lt;ActivityDrawResponseDTO&gt; <span class="title">drawRateLimiterError</span><span class="params">(@RequestBody ActivityDrawRequestDTO requestDTO)</span> </span>&#123;</span><br><span class="line">    log.error(<span class="string">"抽奖活动限流 userId:&#123;&#125; activityId:&#123;&#125;"</span>, requestDTO.getUserId(), requestDTO.getActivityId());</span><br><span class="line">    <span class="keyword">return</span> Response.&lt;ActivityDrawResponseDTO&gt;builder()</span><br><span class="line">            .code(ResponseCode.RATE_LIMITER.getCode())</span><br><span class="line">            .info(ResponseCode.RATE_LIMITER.getInfo())</span><br><span class="line">            .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Redis版本"><a href="#Redis版本" class="headerlink" title="Redis版本"></a>Redis版本</h2><p>我们可以将缓存在Guava中的BlackList和loginRecord缓存在redis中，并模拟出RateLimiter的令牌桶策略：</p>
+<p>使用Redis实现类似RateLimiter的令牌桶逻辑如下：</p>
+<p><strong>令牌桶的构建和更新</strong></p>
+<ul>
+<li>获取限流速率 <code>permitsPerSecond</code>。</li>
+<li>构建令牌桶的 Redis 键 <code>bucketKey</code>。</li>
+<li>从 Redis 获取对应的令牌桶状态 <code>bucketMap</code>，包含 <code>tokens</code> 和 <code>last_refill_time</code>。</li>
+<li>如果 <code>bucketMap</code> 为 <code>null</code> 或为空，初始化令牌数为 <code>1</code>，设置 <code>last_refill_time</code> 为当前时间，并设置过期时间为 <code>1 小时</code>。</li>
+<li>否则，从 <code>bucketMap</code> 中获取当前的 <code>storedTokens</code> 和 <code>last_refill_time</code>。</li>
+<li>计算自上次补充令牌以来经过的毫秒数 <code>elapsedMs</code>。</li>
+<li>根据限流速率计算新产生的令牌数 <code>newTokens</code>。</li>
+<li>将新令牌数添加到 <code>storedTokens</code>，并限制令牌数不超过 <code>1</code>（令牌桶容量），这样不管中间间隔了多少时间，都不会令令牌累计。</li>
+<li>更新 <code>last_refill_time</code> 为当前时间。</li>
+</ul>
+<p><strong>判断令牌是否足够</strong></p>
+<ul>
+<li>如果 <code>storedTokens</code> 不足（即 <code>&lt;= 0</code>），表示请求超过了限流频率。</li>
+<li>如果配置了黑名单阈值且 <code>keyAttr</code> 不是 <code>&quot;all&quot;</code>，则将 <code>keyAttr</code> 的黑名单计数器递增 <code>1</code>。</li>
+<li>如果是第一次违反限流（<code>newVal == 1</code>），设置黑名单键的过期时间为 <code>24 小时</code>。</li>
+<li>更新令牌桶的状态（虽然 <code>storedTokens</code> 已经不够，但依然更新是为了保持数据一致性）。</li>
+<li>记录日志并调用回调方法 <code>fallbackMethod</code>，拦截请求。</li>
+</ul>
+<p><strong>扣减令牌并允许请求</strong></p>
+<ul>
+<li>如果有足够的令牌（<code>storedTokens &gt; 0</code>），则扣减 <code>1</code> 个令牌。说明这次是允许访问的</li>
+<li>更新令牌桶的状态。</li>
+<li>允许请求继续执行目标方法。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Around</span>(<span class="string">"aopPoint() &amp;&amp; @annotation(rateLimiterAccessInterceptor)"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">doRouter</span><span class="params">(ProceedingJoinPoint pjp, RateLimiterAccessInterceptor rateLimiterAccessInterceptor)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1. 检查总开关</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(rateLimiterSwitch)</span><br><span class="line">            || <span class="string">"close"</span>.equalsIgnoreCase(rateLimiterSwitch)) &#123;</span><br><span class="line">        <span class="keyword">return</span> pjp.proceed();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2. 从注解取到 key，即uid</span></span><br><span class="line">    String key = rateLimiterAccessInterceptor.key();</span><br><span class="line">    <span class="keyword">if</span>(StringUtils.isBlank(key))&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"uId is null or empty"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取调用方法时传入的真正值，比如 userId</span></span><br><span class="line">    String keyAttr = getAttrValue(key, pjp.getArgs());</span><br><span class="line">    log.info(<span class="string">"[RateLimiterAOP] keyAttr=&#123;&#125;"</span>, keyAttr);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// -------------------------------------</span></span><br><span class="line">    <span class="comment">// 黑名单逻辑：如果某 keyAttr 超频几次，就记到这里</span></span><br><span class="line">    <span class="comment">// key:  BLACKLIST_PREFIX + keyAttr</span></span><br><span class="line">    <span class="comment">// val:  超过次数</span></span><br><span class="line">    <span class="comment">// TTL:  24 小时</span></span><br><span class="line">    <span class="comment">// -------------------------------------</span></span><br><span class="line">    <span class="comment">// 3. 如果设置了黑名单次数，就先检查黑名单</span></span><br><span class="line">    <span class="keyword">double</span> blackCountThreshold = rateLimiterAccessInterceptor.blacklistCount();</span><br><span class="line">    <span class="comment">// 非 "all" 且设定了黑名单阈值时，先检查是否已经在黑名单</span></span><br><span class="line">    <span class="keyword">if</span> (!<span class="string">"all"</span>.equals(keyAttr) &amp;&amp; blackCountThreshold &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        String blackKey = Constants.RedisKey.BLACKLIST_PREFIX + keyAttr;</span><br><span class="line">        Integer blackVal = redisService.getValue(blackKey);</span><br><span class="line">        <span class="keyword">if</span> (blackVal != <span class="keyword">null</span> &amp;&amp; (<span class="keyword">double</span>) blackVal &gt; blackCountThreshold) &#123;</span><br><span class="line">            <span class="comment">// 已达黑名单阈值</span></span><br><span class="line">            log.info(<span class="string">"限流-黑名单拦截(24h)：&#123;&#125;"</span>, keyAttr);</span><br><span class="line">            <span class="keyword">return</span> fallbackMethodResult(pjp, rateLimiterAccessInterceptor.fallbackMethod());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3) 令牌桶逻辑：TOKEN_BUCKET_PREFIX + userId =&gt; RMap&lt;String, String&gt;</span></span><br><span class="line">    <span class="keyword">double</span> permitsPerSecond = rateLimiterAccessInterceptor.permitsPerSecond();</span><br><span class="line">    String bucketKey = Constants.RedisKey.TOKEN_BUCKET_PREFIX + keyAttr;</span><br><span class="line">    <span class="comment">// 3.1) 获取 map 中的 tokens / lastRefillTime</span></span><br><span class="line">    RMap&lt;String, String&gt; bucketMap = redisService.getMap(bucketKey);</span><br><span class="line">    <span class="keyword">long</span> currentTime = System.currentTimeMillis();</span><br><span class="line">  	<span class="comment">//初始必须为1，否则会直接触发黑名单</span></span><br><span class="line">    <span class="keyword">long</span> storedTokens = <span class="number">1L</span>;</span><br><span class="line">    <span class="keyword">long</span> lastRefillTime = currentTime;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (bucketMap == <span class="keyword">null</span> || bucketMap.isEmpty()) &#123;</span><br><span class="line">        <span class="comment">// 第一次初始化</span></span><br><span class="line">        bucketMap = redisService.getMap(bucketKey);</span><br><span class="line">        bucketMap.put(<span class="string">"tokens"</span>, String.valueOf(storedTokens));</span><br><span class="line">        bucketMap.put(<span class="string">"last_refill_time"</span>, String.valueOf(lastRefillTime));</span><br><span class="line">        <span class="comment">// 如果需要令牌桶也自动过期，可调用</span></span><br><span class="line">        bucketMap.expire(<span class="number">1</span>, TimeUnit.HOURS);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        String tokenStr = bucketMap.get(<span class="string">"tokens"</span>);</span><br><span class="line">        String timeStr  = bucketMap.get(<span class="string">"last_refill_time"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (tokenStr != <span class="keyword">null</span>) &#123;</span><br><span class="line">            storedTokens = Long.parseLong(tokenStr);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (timeStr != <span class="keyword">null</span>) &#123;</span><br><span class="line">            lastRefillTime = Long.parseLong(timeStr);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3.2) 计算需要补充的新令牌</span></span><br><span class="line">    <span class="keyword">long</span> elapsedMs = currentTime - lastRefillTime;</span><br><span class="line">    <span class="keyword">if</span> (elapsedMs &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">double</span> permitsPerMs = permitsPerSecond / <span class="number">1000.0</span>;</span><br><span class="line">        <span class="keyword">long</span> newTokens = (<span class="keyword">long</span>) (elapsedMs * permitsPerMs);</span><br><span class="line">        <span class="keyword">if</span> (newTokens &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            storedTokens += newTokens;</span><br><span class="line">            <span class="comment">// 上限限制为1，也就是每隔permitsPerSecond最多只能产出1个令牌，无法堆积</span></span><br><span class="line">            storedTokens = Math.min(storedTokens, <span class="number">1</span>);</span><br><span class="line">            lastRefillTime = currentTime;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3.3) 判断令牌是否足够</span></span><br><span class="line">    <span class="keyword">if</span> (storedTokens &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// 不足 =&gt; 违约一次 =&gt; 进入黑名单统计</span></span><br><span class="line">        <span class="keyword">if</span> (blackCountThreshold &gt; <span class="number">0</span> &amp;&amp; !<span class="string">"all"</span>.equals(keyAttr)) &#123;</span><br><span class="line">            String blackKey = Constants.RedisKey.BLACKLIST_PREFIX + keyAttr;</span><br><span class="line">            <span class="keyword">long</span> newVal = redisService.incrBy(blackKey, <span class="number">1</span>);</span><br><span class="line">            <span class="comment">// 如果是第一次违约 =&gt; 设置 24h 过期</span></span><br><span class="line">            <span class="keyword">if</span> (newVal == <span class="number">1</span>) &#123;</span><br><span class="line">                redisService.expire(blackKey, <span class="number">24</span>, TimeUnit.HOURS);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 更新令牌桶信息（可能 lastRefillTime 已刷新）</span></span><br><span class="line">        bucketMap.put(<span class="string">"tokens"</span>, String.valueOf(storedTokens));</span><br><span class="line">        bucketMap.put(<span class="string">"last_refill_time"</span>, String.valueOf(lastRefillTime));</span><br><span class="line">        log.info(<span class="string">"限流-超频次拦截(keyAttr=&#123;&#125;) =&gt; fallback"</span>, keyAttr);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> fallbackMethodResult(pjp, rateLimiterAccessInterceptor.fallbackMethod());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3.4) 如果有令牌 =&gt; 扣减一个</span></span><br><span class="line">    storedTokens -= <span class="number">1</span>;</span><br><span class="line">    bucketMap.put(<span class="string">"tokens"</span>, String.valueOf(storedTokens));</span><br><span class="line">    bucketMap.put(<span class="string">"last_refill_time"</span>, String.valueOf(lastRefillTime));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4) 正常执行被拦截方法</span></span><br><span class="line">    <span class="keyword">return</span> pjp.proceed();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2025/01/02/%E9%99%90%E6%B5%81%E7%BB%84%E4%BB%B6%E5%BC%80%E5%8F%91%E4%B8%8E%E5%AD%A6%E4%B9%A0/" title="限流组件开发与学习">https://jasonxqh.github.io/2025/01/02/%E9%99%90%E6%B5%81%E7%BB%84%E4%BB%B6%E5%BC%80%E5%8F%91%E4%B8%8E%E5%AD%A6%E4%B9%A0/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"><i class="fa fa-tag"></i> java</a>
+          
+            <a href="/tags/%E5%A4%A7%E8%90%A5%E9%94%80/" rel="tag"><i class="fa fa-tag"></i> 大营销</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/" rel="next" title="zookeeper学习">
+                <i class="fa fa-chevron-left"></i> zookeeper学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">435</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#限流组件开发与学习"><span class="nav-number">1.</span> <span class="nav-text">限流组件开发与学习</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#注解-RateLimiterAccessInterceptor"><span class="nav-number">1.1.</span> <span class="nav-text">注解 RateLimiterAccessInterceptor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#切面类-RateLimiterAOP"><span class="nav-number">1.2.</span> <span class="nav-text">切面类  RateLimiterAOP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#主要成员变量："><span class="nav-number">1.2.1.</span> <span class="nav-text">主要成员变量：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#切点定义："><span class="nav-number">1.2.2.</span> <span class="nav-text">切点定义：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#环绕通知-doRouter："><span class="nav-number">1.2.3.</span> <span class="nav-text">环绕通知 doRouter：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#RateLimiter是什么类？"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">RateLimiter是什么类？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#核心逻辑"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">核心逻辑</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#辅助方法："><span class="nav-number">1.2.4.</span> <span class="nav-text">辅助方法：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实际使用"><span class="nav-number">1.3.</span> <span class="nav-text">实际使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis版本"><span class="nav-number">1.4.</span> <span class="nav-text">Redis版本</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1295.2k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>
