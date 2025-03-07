@@ -95,12 +95,14 @@
 <meta property="og:site_name" content="Jason‘s Blog">
 <meta property="og:description" content="大营销-更新日志12.06 2.0版本部署成功 增加分库分表，支持分布式部署 完善用户抽奖功能    12.16 3.0版本部署成功，网址http:&#x2F;&#x2F;117.72.108.9:3000&#x2F;?userId&#x3D;xxx&amp;activityId&#x3D;100301  实现积分功能 积分兑换抽奖次数 积分查询 sku产品列表     TODOLIST  分布式架构的引入 抽奖10次接口 滚动播放排：xxx抽中">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/12/16/%E5%A4%A7%E8%90%A5%E9%94%80-%E6%9B%B4%E6%96%B0%E6%97%A5%E5%BF%97/1.png">
 <meta property="article:published_time" content="2024-12-16T05:44:50.000Z">
-<meta property="article:modified_time" content="2024-12-23T02:01:52.840Z">
+<meta property="article:modified_time" content="2025-01-05T06:36:28.460Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="java">
 <meta property="article:tag" content="big-market">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2024/12/16/%E5%A4%A7%E8%90%A5%E9%94%80-%E6%9B%B4%E6%96%B0%E6%97%A5%E5%BF%97/1.png">
 
 
 
@@ -388,7 +390,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  116
+                  705
                 </span>
               
 
@@ -404,7 +406,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  1
+                  2
                 </span>
               
             </div>
@@ -454,6 +456,44 @@
 <h2 id="12-23"><a href="#12-23" class="headerlink" title="12.23"></a>12.23</h2><ul>
 <li>引入dubbo+nacos配置</li>
 </ul>
+<h2 id="12-30"><a href="#12-30" class="headerlink" title="12.30"></a>12.30</h2><ul>
+<li>引入降级策略和限流策略</li>
+</ul>
+<h2 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h2><h3 id="达到权重值之后，可选择消耗幸运值阶梯次数，来实现保底抽奖"><a href="#达到权重值之后，可选择消耗幸运值阶梯次数，来实现保底抽奖" class="headerlink" title="达到权重值之后，可选择消耗幸运值阶梯次数，来实现保底抽奖"></a>达到权重值之后，可选择消耗幸运值阶梯次数，来实现保底抽奖</h3><p><img src="/2024/12/16/%E5%A4%A7%E8%90%A5%E9%94%80-%E6%9B%B4%E6%96%B0%E6%97%A5%E5%BF%97/1.png"></p>
+<p>思路：</p>
+<ul>
+<li>首先，在数据库中添加两个字段，我想着是把他添加到<code>raffle_activity_account</code>表格中，</li>
+</ul>
+<p>之前查询抽奖次数使用的是这个函数：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 查询用户抽奖总次数</span></span><br><span class="line">Integer userActivityAccountTotalUseCount  = raffleActivityAccountQuotaService.queryActivityAccountPartakeCount(userId,activityId);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">queryActivityAccountPartakeCount</span><span class="params">(String userId, Long activityId)</span> </span>&#123;</span><br><span class="line">        RaffleActivityAccount raffleActivityAccount = accountDao.queryActivityAccountByUserIdAndActivityId(RaffleActivityAccount.builder()</span><br><span class="line">                .activityId(activityId)</span><br><span class="line">                .userId(userId)</span><br><span class="line">                .build());</span><br><span class="line">        <span class="keyword">return</span> raffleActivityAccount.getTotalCount()-raffleActivityAccount.getTotalCountSurplus();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>是将总Count减去getTotalCountSurplus得到的。</p>
+<ol>
+<li>步骤1：添加字段</li>
+</ol>
+<ul>
+<li>现在我想加入两个字段，1个是<code>total_raffled_count</code>,代表该用户已经抽过多少次的奖了，1个是<code>available_raffled_count</code>,代表用户当前可使用在保底抽奖上的抽奖次数。</li>
+<li>在用户抽奖,更新<code>raffle_activity_account</code>的时候，可以同步更新<code>total_raffled_count</code>为<code>raffleActivityAccount.getTotalCount()-raffleActivityAccount.getTotalCountSurplus();</code></li>
+<li>同时更新<code>available_raffled_count = available_raffled_count + 1</code>(这个1即抽奖次数，但是未来可能会开发10连抽功能，因此这个1需要修改的，参考<code>raffle_activity_sku</code>的做法)</li>
+</ul>
+<ol>
+<li>步骤2：改变查询方法</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Integer <span class="title">queryActivityAccountPartakeCount</span><span class="params">(String userId, Long activityId)</span> </span>&#123;</span><br><span class="line">    RaffleActivityAccount raffleActivityAccount = accountDao.queryActivityAccountByUserIdAndActivityId(RaffleActivityAccount.builder()</span><br><span class="line">            .activityId(activityId)</span><br><span class="line">            .userId(userId)</span><br><span class="line">            .build());</span><br><span class="line">    <span class="keyword">return</span> raffleActivityAccount.getAvailableRaffledCount();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同时，在责任链节点中，由于也需要查询抽奖次数，因此也要做相应的修改</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Integer <span class="title">queryActivityAccountTotalUseCount</span><span class="params">(String userId, Long strategyId)</span> </span>&#123;</span><br><span class="line">    Long activityId = raffleActivityDao.queryActivityIdByStrategyId(strategyId);</span><br><span class="line">    RaffleActivityAccount raffleActivityAccount = raffleActivityAccountDao.queryActivityAccountByUserIdAndActivityId(RaffleActivityAccount.builder()</span><br><span class="line">            .activityId(activityId)</span><br><span class="line">            .userId(userId)</span><br><span class="line">            .build());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> raffleActivityAccount.getAvailableRaffledCount();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>消耗已抽奖的次数，兑换保底抽奖机会</li>
+</ol>
+<p>当用户消耗抽奖次数兑换保底的时候，会扣减<code>available_raffled_count</code>的值，同时走规则树策略，抽保底。</p>
+<ul>
+<li>需要喜修改draw 这个 api，传入参数是：抽奖阶梯的id，用户id，是否需要开启保底抽奖的判断flag</li>
+<li>api的功能：根据抽奖阶梯id，从<code>raffle_activity_account</code>中，扣去available_raffled_count次数，再保底抽奖，走责任链rule weight节点。如果不点击保底抽奖，那么就不需要走责任链rule weight节点。</li>
+</ul>
+<h3 id="使用异步线程增加10连抽的功能"><a href="#使用异步线程增加10连抽的功能" class="headerlink" title="使用异步线程增加10连抽的功能"></a>使用异步线程增加10连抽的功能</h3><ol>
+<li>系统配置一套活动、规则，发奖部分增加再来一次的奖品发放</li>
+<li></li>
+<li>监控系统</li>
+<li>订单ID，引用了hutool包的雪花算法加redis自增Id作为wokerId同时把用户分库分表放在后缀，这样可以通过订单直接查询，就是太长25位(弃用了)</li>
+</ol>
 
       
     </div>
@@ -607,7 +647,7 @@
               
                 <a href="/archives%7C%7C%20archive">
               
-                  <span class="site-state-item-count">435</span>
+                  <span class="site-state-item-count">438</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -629,7 +669,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-count">67</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
@@ -700,7 +740,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#大营销-更新日志"><span class="nav-number">1.</span> <span class="nav-text">大营销-更新日志</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#12-06"><span class="nav-number">1.1.</span> <span class="nav-text">12.06</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-16"><span class="nav-number">1.2.</span> <span class="nav-text">12.16</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-23"><span class="nav-number">1.3.</span> <span class="nav-text">12.23</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#大营销-更新日志"><span class="nav-number">1.</span> <span class="nav-text">大营销-更新日志</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#12-06"><span class="nav-number">1.1.</span> <span class="nav-text">12.06</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-16"><span class="nav-number">1.2.</span> <span class="nav-text">12.16</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-23"><span class="nav-number">1.3.</span> <span class="nav-text">12.23</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-30"><span class="nav-number">1.4.</span> <span class="nav-text">12.30</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TODO"><span class="nav-number">1.5.</span> <span class="nav-text">TODO</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#达到权重值之后，可选择消耗幸运值阶梯次数，来实现保底抽奖"><span class="nav-number">1.5.1.</span> <span class="nav-text">达到权重值之后，可选择消耗幸运值阶梯次数，来实现保底抽奖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用异步线程增加10连抽的功能"><span class="nav-number">1.5.2.</span> <span class="nav-text">使用异步线程增加10连抽的功能</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
@@ -741,7 +781,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">1295.2k</span>
+    <span title="Site words total count">1288.5k</span>
   
 </div>
 

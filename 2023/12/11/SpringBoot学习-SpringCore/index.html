@@ -110,7 +110,7 @@
 <meta property="og:image" content="https://jasonxqh.github.io/2023/12/11/SpringBoot%E5%AD%A6%E4%B9%A0-SpringCore/13.png">
 <meta property="og:image" content="https://jasonxqh.github.io/2023/12/11/SpringBoot%E5%AD%A6%E4%B9%A0-SpringCore/14.png">
 <meta property="article:published_time" content="2023-12-11T12:30:20.000Z">
-<meta property="article:modified_time" content="2024-02-01T03:45:09.920Z">
+<meta property="article:modified_time" content="2025-01-07T08:38:23.480Z">
 <meta property="article:author" content="Jason">
 <meta property="article:tag" content="spring">
 <meta name="twitter:card" content="summary">
@@ -402,7 +402,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  6.2k
+                  7.4k
                 </span>
               
 
@@ -418,7 +418,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  22
+                  27
                 </span>
               
             </div>
@@ -608,27 +608,68 @@
 <p>全局的 Lazy 初始化可以通过在 <code>application.properties</code> 文件中设置一个属性来实现：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">arduinoCopy code</span><br><span class="line">spring.main.lazy-initialization&#x3D;true</span><br></pre></td></tr></table></figure>
 <p>当这个属性设置为 <code>true</code> 时，它会影响 Spring 应用程序上下文中所有 bean 的默认行为，使得所有的 bean 都采用懒加载策略。这意味着 Spring 容器在启动时不会创建任何 bean 的实例，除非它们被显式地请求，例如，一个 REST 控制器的端点被访问时。</p>
-<h2 id="Component-Scaning"><a href="#Component-Scaning" class="headerlink" title="Component Scaning"></a>Component Scaning</h2><h3 id="应用启动流程"><a href="#应用启动流程" class="headerlink" title="应用启动流程"></a>应用启动流程</h3><ol>
-<li><strong>启动 Spring 应用程序</strong>:<ul>
+<h2 id="应用启动流程"><a href="#应用启动流程" class="headerlink" title="应用启动流程"></a>应用启动流程</h2><h3 id="启动-Spring-应用程序"><a href="#启动-Spring-应用程序" class="headerlink" title="启动 Spring 应用程序:"></a><strong>启动 Spring 应用程序</strong>:</h3><ul>
 <li><code>main</code> 方法调用 <code>SpringApplication.run(SpringcoredemoApplication.class, args);</code>，这是启动 Spring 应用程序的标准方式。它启动了 Spring 的上下文。</li>
 </ul>
-</li>
-<li><strong>处理 <code>@SpringBootApplication</code> 注解</strong>:<ul>
+<h3 id="处理-SpringBootApplication-注解"><a href="#处理-SpringBootApplication-注解" class="headerlink" title="处理 @SpringBootApplication 注解:"></a><strong>处理 <code>@SpringBootApplication</code> 注解</strong>:</h3><ul>
 <li><code>@SpringBootApplication</code> 是一个方便的注解，它包含了 <code>@EnableAutoConfiguration</code>、<code>@ComponentScan</code> 和 <code>@Configuration</code> 这三个注解。Spring Boot 会处理这个复合注解，并激活它包含的三个注解的功能。</li>
-<li><strong>自动配置 (<code>@EnableAutoConfiguration</code>)</strong>:<ul>
-<li>Spring Boot 会尝试根据添加到 classpath 中的 jar 依赖来自动配置你的 Spring 应用。例如，如果 classpath 下有 H2 数据库的 jar，它可能会自动配置一个内存数据库。</li>
+</ul>
+<h4 id="1-自动配置-EnableAutoConfiguration"><a href="#1-自动配置-EnableAutoConfiguration" class="headerlink" title="1. 自动配置 (@EnableAutoConfiguration):"></a>1. <strong>自动配置 (<code>@EnableAutoConfiguration</code>)</strong>:</h4><p><code>@EnableAutoConfiguration</code>的主要作用是通过<strong>自动配置类</strong>来为应用程序提供自动化的配置。它是Spring Boot自动配置机制的入口，开启了基于约定的配置，而不是手动指定所有的配置项。这个注解的核心是通过条件化的配置来自动配置Spring应用程序。</p>
+<p><code>@EnableAutoConfiguration</code>是一个组合注解，实际上，它包含了以下的注解：</p>
+<ul>
+<li><code>@Import(AutoConfigurationImportSelector.class)</code>：该注解会引导Spring Boot去扫描自动配置类。</li>
+<li><code>@EnableAspectJAutoProxy(proxyTargetClass = false)</code>：启用AspectJ自动代理（用于支持<code>@Aspect</code>）。</li>
+<li><code>@ConditionalOnClass</code>、<code>@ConditionalOnMissingBean</code>等条件化注解：这些注解帮助自动配置类根据具体的条件进行启用或禁用。</li>
+</ul>
+<h5 id="①-步骤一：-Import-AutoConfigurationImportSelector-class"><a href="#①-步骤一：-Import-AutoConfigurationImportSelector-class" class="headerlink" title="① 步骤一：@Import(AutoConfigurationImportSelector.class)"></a>① 步骤一：<code>@Import(AutoConfigurationImportSelector.class)</code></h5><ul>
+<li><code>@EnableAutoConfiguration</code>的最核心部分是通过<code>@Import(AutoConfigurationImportSelector.class)</code>来实现的。<code>AutoConfigurationImportSelector</code>是一个<code>ImportSelector</code>，它的任务是决定哪些自动配置类应该被加载到Spring应用上下文中。<ul>
+<li><code>AutoConfigurationImportSelector</code>会调用<code>SpringFactoriesLoader</code>来加载<code>META-INF/spring.factories</code>文件，查找和<code>EnableAutoConfiguration</code>相关的配置类。这些类一般都有<code>@Configuration</code>注解</li>
+<li>这些配置类会根据条件化注解（如<code>@ConditionalOnClass</code>、<code>@ConditionalOnMissingBean</code>等）来判断是否应该加载。</li>
 </ul>
 </li>
-<li><strong>组件扫描 (<code>@ComponentScan</code>)</strong>:<ul>
+</ul>
+<h5 id="②-步骤二：扫描META-INF-spring-factories文件"><a href="#②-步骤二：扫描META-INF-spring-factories文件" class="headerlink" title="② 步骤二：扫描META-INF/spring.factories文件"></a>② 步骤二：扫描<code>META-INF/spring.factories</code>文件</h5><ul>
+<li><p>Spring Boot通过<code>SpringFactoriesLoader</code>加载所有模块中的<code>META-INF/spring.factories</code>文件。<code>spring.factories</code>文件中定义了自动配置类的列表，这些类被注册到Spring的上下文中。</p>
+<p>例如，<code>spring.factories</code>文件中可能包含如下内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.boot.autoconfigure.EnableAutoConfiguration&#x3D;\</span><br><span class="line">org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration,\</span><br><span class="line">org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration</span><br></pre></td></tr></table></figure>
+<p>这意味着，当启用自动配置时，Spring Boot会加载<code>ServletWebServerFactoryAutoConfiguration</code>和<code>DataSourceAutoConfiguration</code>等类，并尝试根据项目的依赖和条件来自动配置Web服务器和数据源。</p>
+</li>
+</ul>
+<h5 id="③-步骤三：条件化自动配置类"><a href="#③-步骤三：条件化自动配置类" class="headerlink" title="③ 步骤三：条件化自动配置类"></a>③ 步骤三：条件化自动配置类</h5><ul>
+<li><p>自动配置类通常使用Spring的条件注解来控制它们是否应该被启用。常见的条件注解包括：</p>
+<ul>
+<li><code>@ConditionalOnClass</code>：如果类路径中存在指定的类，才会加载该自动配置类。例如，<code>@ConditionalOnClass(DataSource.class)</code>表示当类路径中存在<code>DataSource</code>时才会加载数据源相关的配置。</li>
+<li><code>@ConditionalOnMissingBean</code>：如果上下文中没有某个类型的bean，才会加载该自动配置类。例如，<code>@ConditionalOnMissingBean(DataSource.class)</code>表示只有当没有<code>DataSource</code>类型的bean时，才会创建并注入一个<code>DataSource</code> bean。</li>
+<li><code>@ConditionalOnProperty</code>：只有在某个配置项的属性值满足条件时才会加载配置类。例如，<code>@ConditionalOnProperty(prefix = &quot;spring.datasource&quot;, name = &quot;url&quot;)</code>表示只有当<code>spring.datasource.url</code>属性存在时才会加载数据源配置。</li>
+</ul>
+<p>这些条件化注解使得自动配置变得灵活，能够根据具体的项目需求动态启用或禁用某些配置。</p>
+</li>
+</ul>
+<h5 id="④-步骤四：注册自动配置类到上下文"><a href="#④-步骤四：注册自动配置类到上下文" class="headerlink" title="④ 步骤四：注册自动配置类到上下文"></a>④ 步骤四：注册自动配置类到上下文</h5><ul>
+<li><p>根据<code>AutoConfigurationImportSelector</code>的选择，符合条件的自动配置类会被加载到Spring应用上下文中。这些类通常是带有<code>@Configuration</code>注解的Java类，意味着它们会被作为Spring Bean注册到应用上下文中。</p>
+<p>例如，<code>ServletWebServerFactoryAutoConfiguration</code>会配置嵌入式Web服务器，<code>DataSourceAutoConfiguration</code>会配置数据库连接池等。</p>
+</li>
+</ul>
+<h5 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h5><p>我在<code>starter</code>module的resouces文件夹下，新建了一个META-INF文件夹，里面定义了<code>spring.factories</code>文件：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.boot.autoconfigure.EnableAutoConfiguration=io.github.jasonxqh.dynamic.thread.pool.sdk.config.DynamicThreadPoolAutoConfig</span><br></pre></td></tr></table></figure></p>
+<p>告知扫描器，这里有个需要自动配置的类，路径是<code>io.github.jasonxqh.dynamic.thread.pool.sdk.config.DynamicThreadPoolAutoConfig</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DynamicThreadPoolAutoConfig</span> </span>&#123;</span><br><span class="line">    <span class="comment">//创建一个服务，可以注入进来</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Logger logger = LoggerFactory.getLogger(DynamicThreadPoolAutoConfig<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">    <span class="meta">@Bean</span>(<span class="string">"dynamicThreadPoolService"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">dynamicThreadPoolService</span><span class="params">(ApplicationContext applicationContext, Map&lt;String,ThreadPoolExecutor&gt; threadPoolExecutorMap)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        String applicationName = applicationContext.getEnvironment().getProperty(<span class="string">"spring.application.name"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(StringUtil.isBlank(applicationName)) &#123;</span><br><span class="line">            applicationName = <span class="string">"default app"</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        logger.info(<span class="string">"dynamicThreadPoolService applicationName: &#123;&#125;"</span>, applicationName);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> String();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后，当我启动 application的时候，就会扫描到这里有个<code>@Configuration</code>注解的类需要自动配置了。</p>
+<h5 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h5><p>如果这个类，不用<code>@Configuration</code>注解的话，还会被自动注册吗？</p>
+<p>如果我们在<code>spring.factories</code>中定义了自动配置类的路径，那么不管这个类是否被<code>@Configuratino</code>注解，都会被自动注册。</p>
+<p><strong><code>@Configuration</code> 和 <code>@Bean</code></strong>:</p>
+<ul>
+<li><code>@Configuration</code> 注解是用于告诉 Spring 容器该类是一个配置类，并且可以定义 <code>@Bean</code> 方法。实际上，<code>@Configuration</code> 会触发 Spring 的代理机制，确保方法返回的对象会被正确地注册到 Spring 上下文中。</li>
+<li><strong>重要</strong>：如果你删除了 <code>@Configuration</code> 注解，但方法仍然标注了 <code>@Bean</code>，这个方法仍然可以注册为 Spring Bean，但类本身<strong>不再作为配置类</strong>处理。这意味着 <code>@Bean</code> 方法还是会执行并注册 Bean，但不会被 Spring 视为全局配置类。</li>
+</ul>
+<h4 id="组件扫描-ComponentScan"><a href="#组件扫描-ComponentScan" class="headerlink" title="组件扫描 (@ComponentScan):"></a><strong>组件扫描 (<code>@ComponentScan</code>)</strong>:</h4><ul>
 <li>Spring Boot 会扫描启动类 <code>SpringcoredemoApplication</code> 所在的包以及子包，默认情况下不扫描其他包。并查找带有 <code>@Component</code>、<code>@Service</code>、<code>@Repository</code>、<code>@Controller</code> 等注解的类，并将它们注册为 Spring 应用程序上下文中的 bean。</li>
+<li>如果你的<code>Application.java</code>在一个模块（例如<code>moduleA</code>）中，那么Spring Boot会扫描<code>moduleA</code>中所有的类和资源。如果其他模块（例如<code>moduleB</code>）通过<code>依赖关系</code>添加到<code>moduleA</code>中，这些模块中的类也会被扫描到。</li>
+<li>如果<code>Application.java</code>的包路径是<code>com.example.app</code>，那么默认情况下，Spring会扫描<code>com.example.app</code>包及其子包中的所有类。如果需要扫描其他模块的类，可以通过调整<code>@ComponentScan</code>注解的<code>basePackages</code>属性来指定需要扫描的包。</li>
 </ul>
-</li>
-<li><strong>额外的配置 (<code>@Configuration</code>)</strong>:<ul>
+<h4 id="额外的配置-Configuration"><a href="#额外的配置-Configuration" class="headerlink" title="额外的配置 (@Configuration):"></a><strong>额外的配置 (<code>@Configuration</code>)</strong>:</h4><ul>
 <li>这允许在应用程序中定义额外的配置类。这些类中可以使用 <code>@Bean</code> 注解来注册更多的 bean 到 Spring 应用程序上下文中，或者使用 <code>@Import</code> 注解来引入其他配置类。</li>
 </ul>
-</li>
-</ul>
-</li>
+<ol>
 <li><strong>创建和注册 Bean</strong>:<ul>
 <li>在自动配置和组件扫描的基础上，Spring Boot 会创建和注册所有识别出的 bean，包括从配置类中定义的 bean。</li>
 </ul>
@@ -642,7 +683,7 @@
 </ul>
 </li>
 </ol>
-<h4 id="扫描非启动类所在包"><a href="#扫描非启动类所在包" class="headerlink" title="扫描非启动类所在包"></a>扫描非启动类所在包</h4><p>当应用程序的组件不仅仅位于启动类所在的包和其子包时，会出错，如下所示：</p>
+<h3 id="扫描非启动类所在包"><a href="#扫描非启动类所在包" class="headerlink" title="扫描非启动类所在包"></a>扫描非启动类所在包</h3><p>当应用程序的组件不仅仅位于启动类所在的包和其子包时，会出错，如下所示：</p>
 <p><img src="/2023/12/11/SpringBoot%E5%AD%A6%E4%B9%A0-SpringCore/6.png" style="zoom:100%;"></p>
 <p>此时，我们需要告诉 Spring Boot 去扫描其他的包。图片中展示了如何使用 <code>@SpringBootApplication</code> 注解的 <code>scanBasePackages</code> 属性来明确列出 Spring Boot 在启动时应该扫描的基础包。</p>
 <p>如果有组件分布在不同的包中，例如 <code>com.luv2code.util</code>，<code>org.acme.cart</code>，和 <code>edu.cmu.srs</code>，您可以按如下方式配置：</p>
@@ -899,7 +940,7 @@
               
                 <a href="/archives%7C%7C%20archive">
               
-                  <span class="site-state-item-count">435</span>
+                  <span class="site-state-item-count">438</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -921,7 +962,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-count">67</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
@@ -992,7 +1033,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SpringBoot学习-SpringCore"><span class="nav-number">1.</span> <span class="nav-text">SpringBoot学习-SpringCore</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#IoC和DI"><span class="nav-number">1.1.</span> <span class="nav-text">IoC和DI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#控制反转（Inversion-of-Control-IoC）"><span class="nav-number">1.1.1.</span> <span class="nav-text">控制反转（Inversion of Control, IoC）:</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例子"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖注入（Dependency-Injection-DI）"><span class="nav-number">1.1.2.</span> <span class="nav-text">依赖注入（Dependency Injection, DI）:</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Autowiring"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">Autowiring</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Constructor-Injection"><span class="nav-number">1.1.3.</span> <span class="nav-text">Constructor Injection</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#工作流程"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">工作流程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Setter-Injection"><span class="nav-number">1.1.4.</span> <span class="nav-text">Setter Injection</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#工作流程-1"><span class="nav-number">1.1.4.1.</span> <span class="nav-text">工作流程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Qualifier"><span class="nav-number">1.1.5.</span> <span class="nav-text">@Qualifier</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Primary"><span class="nav-number">1.1.6.</span> <span class="nav-text">@Primary</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lazy"><span class="nav-number">1.1.7.</span> <span class="nav-text">@Lazy</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Component-Scaning"><span class="nav-number">1.2.</span> <span class="nav-text">Component Scaning</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#应用启动流程"><span class="nav-number">1.2.1.</span> <span class="nav-text">应用启动流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#扫描非启动类所在包"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">扫描非启动类所在包</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bean-Scope"><span class="nav-number">1.3.</span> <span class="nav-text">Bean Scope</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bean-LifeCycle"><span class="nav-number">1.4.</span> <span class="nav-text">Bean LifeCycle</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#例子："><span class="nav-number">1.4.1.</span> <span class="nav-text">例子：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bean"><span class="nav-number">1.5.</span> <span class="nav-text">@Bean</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SpringBoot学习-SpringCore"><span class="nav-number">1.</span> <span class="nav-text">SpringBoot学习-SpringCore</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#IoC和DI"><span class="nav-number">1.1.</span> <span class="nav-text">IoC和DI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#控制反转（Inversion-of-Control-IoC）"><span class="nav-number">1.1.1.</span> <span class="nav-text">控制反转（Inversion of Control, IoC）:</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例子"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖注入（Dependency-Injection-DI）"><span class="nav-number">1.1.2.</span> <span class="nav-text">依赖注入（Dependency Injection, DI）:</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Autowiring"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">Autowiring</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Constructor-Injection"><span class="nav-number">1.1.3.</span> <span class="nav-text">Constructor Injection</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#工作流程"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">工作流程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Setter-Injection"><span class="nav-number">1.1.4.</span> <span class="nav-text">Setter Injection</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#工作流程-1"><span class="nav-number">1.1.4.1.</span> <span class="nav-text">工作流程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Qualifier"><span class="nav-number">1.1.5.</span> <span class="nav-text">@Qualifier</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Primary"><span class="nav-number">1.1.6.</span> <span class="nav-text">@Primary</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lazy"><span class="nav-number">1.1.7.</span> <span class="nav-text">@Lazy</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#应用启动流程"><span class="nav-number">1.2.</span> <span class="nav-text">应用启动流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#启动-Spring-应用程序"><span class="nav-number">1.2.1.</span> <span class="nav-text">启动 Spring 应用程序:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理-SpringBootApplication-注解"><span class="nav-number">1.2.2.</span> <span class="nav-text">处理 @SpringBootApplication 注解:</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-自动配置-EnableAutoConfiguration"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">1. 自动配置 (@EnableAutoConfiguration):</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#①-步骤一：-Import-AutoConfigurationImportSelector-class"><span class="nav-number">1.2.2.1.1.</span> <span class="nav-text">① 步骤一：@Import(AutoConfigurationImportSelector.class)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#②-步骤二：扫描META-INF-spring-factories文件"><span class="nav-number">1.2.2.1.2.</span> <span class="nav-text">② 步骤二：扫描META-INF&#x2F;spring.factories文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#③-步骤三：条件化自动配置类"><span class="nav-number">1.2.2.1.3.</span> <span class="nav-text">③ 步骤三：条件化自动配置类</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#④-步骤四：注册自动配置类到上下文"><span class="nav-number">1.2.2.1.4.</span> <span class="nav-text">④ 步骤四：注册自动配置类到上下文</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#例子-1"><span class="nav-number">1.2.2.1.5.</span> <span class="nav-text">例子</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#疑问"><span class="nav-number">1.2.2.1.6.</span> <span class="nav-text">疑问</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#组件扫描-ComponentScan"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">组件扫描 (@ComponentScan):</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#额外的配置-Configuration"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">额外的配置 (@Configuration):</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#扫描非启动类所在包"><span class="nav-number">1.2.3.</span> <span class="nav-text">扫描非启动类所在包</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bean-Scope"><span class="nav-number">1.3.</span> <span class="nav-text">Bean Scope</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bean-LifeCycle"><span class="nav-number">1.4.</span> <span class="nav-text">Bean LifeCycle</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#例子："><span class="nav-number">1.4.1.</span> <span class="nav-text">例子：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bean"><span class="nav-number">1.5.</span> <span class="nav-text">@Bean</span></a></li></ol></li></ol></div>
             
 
           </div>
@@ -1033,7 +1074,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">1295.2k</span>
+    <span title="Site words total count">1288.5k</span>
   
 </div>
 
