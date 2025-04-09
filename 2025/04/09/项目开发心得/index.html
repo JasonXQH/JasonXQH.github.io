@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="一些思考," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="项目开发心得数据库篇 postgres一般使用TEXT而不是用VARCHAR 对于一些字段，我们要求他可以为空，但是不能为空字符串。此时null 表示“没有提供数据”，而空字符串则被认为是无效或错误的输入。比如一些枚举类，它们一旦有值，通常需要用于后续业务逻辑或者系统校验，如果保存了空字符串，可能引发逻辑错误或数据不一致。 access_token TEXT CHECK (access_token">
+<meta property="og:type" content="article">
+<meta property="og:title" content="项目开发心得">
+<meta property="og:url" content="https://jasonxqh.github.io/2025/04/09/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E5%BF%83%E5%BE%97/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="项目开发心得数据库篇 postgres一般使用TEXT而不是用VARCHAR 对于一些字段，我们要求他可以为空，但是不能为空字符串。此时null 表示“没有提供数据”，而空字符串则被认为是无效或错误的输入。比如一些枚举类，它们一旦有值，通常需要用于后续业务逻辑或者系统校验，如果保存了空字符串，可能引发逻辑错误或数据不一致。 access_token TEXT CHECK (access_token">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-04-09T14:30:13.000Z">
+<meta property="article:modified_time" content="2025-04-09T14:32:29.155Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="一些思考">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2025/04/09/项目开发心得/"/>
+
+
+
+
+
+  <title>项目开发心得 | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2025/04/09/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E5%BF%83%E5%BE%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">项目开发心得</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2025-04-09T22:30:13+08:00">
+                2025-04-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.8k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  7
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="项目开发心得"><a href="#项目开发心得" class="headerlink" title="项目开发心得"></a>项目开发心得</h1><h2 id="数据库篇"><a href="#数据库篇" class="headerlink" title="数据库篇"></a>数据库篇</h2><ul>
+<li>postgres一般使用TEXT而不是用VARCHAR</li>
+<li>对于一些字段，我们要求他可以为空，但是不能为空字符串。此时null 表示“没有提供数据”，而空字符串则被认为是无效或错误的输入。比如一些枚举类，它们一旦有值，通常需要用于后续业务逻辑或者系统校验，如果保存了空字符串，可能引发逻辑错误或数据不一致。<ul>
+<li><code>access_token TEXT CHECK (access_token IS NULL OR access_token &lt;&gt; &#39;&#39;)</code></li>
+</ul>
+</li>
+<li>对于其他一些字段，我们会要求它不能为空，但是可以为字符串。比如默认配置项、必要文本输入等 <code>seller_id BIGINT NOT NULL</code></li>
+<li>对于一些Unique的值 ，我们要在创建数据表格的时候，就将其约束起来，不要等到后续再去维护。<strong>要向上推</strong><ul>
+<li>比如<code>CREATE UNIQUE INDEX sellers_seller_id_store_id_idx ON public.sellers (seller_id);</code></li>
+<li>要知道数据库是最后一层保障，很多判断应该在应用层做判断，如果数据库报错一定是代码写错了。<h2 id="OpenAPI"><a href="#OpenAPI" class="headerlink" title="OpenAPI"></a>OpenAPI</h2><h3 id="OpenAPI-与数据库表类型匹配"><a href="#OpenAPI-与数据库表类型匹配" class="headerlink" title="OpenAPI 与数据库表类型匹配"></a>OpenAPI 与数据库表类型匹配</h3><a href="obsidian://open?vault=obsidian&amp;file=%E9%A1%B9%E7%9B%AEsop%2F04-mig25codegen">mig25-codegen的下载和基本操作</a><br>我们要编写符合mig25的<code>openapi.yaml</code> , 最好是要将openapi中定义的component中的字段和数据库表中的字段匹配起来。</li>
+</ul>
+</li>
+<li>比如数据库表中字段类型为long，在openapi中可以这样设置：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">type:</span> <span class="string">integer</span>  </span><br><span class="line"><span class="attr">format:</span> <span class="string">int64</span>  </span><br><span class="line"><span class="attr">example:</span> <span class="number">1052101482</span></span><br></pre></td></tr></table></figure></li>
+<li>比如数据库表中的字段类型是UUID，在openapi中可以这样设置<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">leyan_seller_id:</span>  </span><br><span class="line">  <span class="attr">type:</span> <span class="string">string</span>  </span><br><span class="line">  <span class="attr">format:</span> <span class="string">uuid</span>  </span><br><span class="line">  <span class="attr">example:</span> <span class="string">'44cfdf24-6a22-4ba8-dedc-55e62aeadd85'</span></span><br></pre></td></tr></table></figure>
+<h3 id="OpenAPI-component-设置-DTO-TO-VO"><a href="#OpenAPI-component-设置-DTO-TO-VO" class="headerlink" title="OpenAPI component 设置 DTO TO VO"></a>OpenAPI component 设置 DTO TO VO</h3>由于我们使用了<code>mig25-codegen</code> 这个插件，因此他可以根据OpenAPI的定义生成出相关VO和DTO的转换逻辑。这样就方便了对请求格式和返回格式的处理。<br>假设我们的 Model 名称为<code>Seller</code>，可以通过它对数据库进行增删改查的工作。<h4 id="request"><a href="#request" class="headerlink" title="request"></a>request</h4>那么当<code>requestBody</code>  中传入了json格式的seller，如何将其直接转换为可以操控数据库的类型Seller？<br>首先需要在OpenAPI的component中找到定义的seller,然后添加<code>x-request</code> 属性<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">SubsystemSeller:</span>  </span><br><span class="line">  <span class="attr">type:</span> <span class="string">object</span>  </span><br><span class="line">  <span class="attr">x-response:</span> <span class="string">Seller</span>  </span><br><span class="line">  <span class="attr">x-request:</span> <span class="string">Seller</span></span><br></pre></td></tr></table></figure>
+然后在方法中：<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> seller = Seller.newRecord(requestBody)</span><br></pre></td></tr></table></figure>
+如果说OpenAPI中定义的某些component和Seller Model不完全对应，只有其中某些字段，那么也可以用这种方法：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">SubsystemToken:</span>  </span><br><span class="line">  <span class="attr">type:</span> <span class="string">object</span>  </span><br><span class="line">  <span class="attr">x-request:</span> <span class="string">Seller</span>  </span><br><span class="line">  <span class="attr">required:</span> <span class="string">[</span> <span class="string">access_token,</span> <span class="string">app_name</span> <span class="string">]</span></span><br></pre></td></tr></table></figure>
+此时，假设传入的requestBody中包含了这个SubsystemToken，可以用<code>update</code> 来更新Seller Model实现更新操作。<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">seller.update(requestBody.SubsystemToken)</span><br></pre></td></tr></table></figure>
+当然，不管是那种方式，最后都需要 <code>seller.store()</code> 将其应用到数据库中。<h4 id="response"><a href="#response" class="headerlink" title="response"></a>response</h4>同样的，当我从数据库中拿到了一些记录，但他们是Model类型，如何将其以OpenAPI规定的格式传出？<br>此时我们可以定义<code>x-response</code> ，正如上面所说的那样。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val responses &#x3D; loadedSellerOrders.map &#123; it.includes(fields).toResponse(OpenApiSellerOrder) &#125;</span><br></pre></td></tr></table></figure>
+对于数据库中处理得到的loadedSellerOrders,对其执行toResponse操作转换成OpenAPI所定义的格式<h2 id="Controller"><a href="#Controller" class="headerlink" title="Controller"></a>Controller</h2>我们的目标是</li>
+<li>[!] 尽量不去手动的做VO和DTO之间的转换，而是交给codegen去完成。</li>
+<li>[!] 尽量使用codegen生成的api进行操作，如<code>find</code>,<code>findBy</code>,<code>update</code>,<code>store</code>,<code>delete</code>等。代码要包含两方面：1. 要做什么 2.怎么去做。好的代码只体现1，2对developer是透明的，尽量交给框架去完成。<h3 id="Exception-Mapper"><a href="#Exception-Mapper" class="headerlink" title="Exception Mapper"></a>Exception Mapper</h3>对于很多方法，可能都会抛出同一类错误，比如说<code>NOT FOUND</code> ，那么我们有没有什么合适的方法去同意管理起来，而不是在每个方法中写一模一样的错误处理方法？<br>这时我们就需要用到<code>@ServerExceptionMapper</code> 注解，我们在Controller类中配置，统一处理特定类型的错误，比如说：<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Path(<span class="meta-string">"/superbook/subsystem"</span>)</span>  </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SuperbookController</span> </span>&#123;  </span><br><span class="line">  <span class="meta">@ServerExceptionMapper</span>  </span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">handle</span><span class="params">(e: <span class="type">NoDataFoundException</span>)</span></span>: Response &#123;  </span><br><span class="line">    <span class="comment">// 返回 JSON 格式的错误信息  </span></span><br><span class="line">    <span class="keyword">val</span> body =  </span><br><span class="line">      mapOf(  </span><br><span class="line">        <span class="string">"code"</span> to <span class="number">404</span>,  </span><br><span class="line">        <span class="string">"error"</span> to <span class="string">"NOT_FOUND"</span>,  </span><br><span class="line">        <span class="string">"message"</span> to (e.message ?: <span class="string">"Resource not found"</span>),  </span><br><span class="line">      )  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> Response  </span><br><span class="line">      .status(Response.Status.NOT_FOUND)  </span><br><span class="line">      .type(MediaType.APPLICATION_JSON)  </span><br><span class="line">      .entity(body)  </span><br><span class="line">      .build()  </span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="mig25-codegen-find和findBy"><a href="#mig25-codegen-find和findBy" class="headerlink" title="mig25-codegen : find和findBy"></a>mig25-codegen : find和findBy</h3>当我们使用mig25生成的models的时候，可以使用它提供的API和数据库进行交互。那么<code>find</code>和<code>findBy</code> 有什么区别？<br>简单来说，<code>find</code> 只能根据主键进行查询，所以直接传入主键值即可。<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Seller.find(updatedFields.leyanSellerId)</span><br></pre></td></tr></table></figure>
+但是<code>findBy</code> 的参数是一个条件，可以查询任意字段值<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Seller.findBy(  Seller.SELLERS.LEYAN_SELLER_ID.eq(installSystem.subsystemSeller.leyanSellerId),  </span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+此外，还有一个差别,我们看一下二者的底层实现：<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">findBy</span><span class="params">(<span class="keyword">vararg</span> conditions: <span class="type">Condition</span>)</span></span> = <span class="keyword">where</span>(*conditions).fetchOne()  </span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">find</span><span class="params">(value: <span class="type">T</span>)</span></span> = <span class="keyword">where</span>(pk.eq(value)).fetchSingle()</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><strong>fetchOne()</strong>：<ul>
+<li>如果<strong>查询结果没有记录</strong>，返回 <strong>null</strong>。</li>
+<li>如果查询结果返回多于一条记录，则抛出异常（例如 <code>NonUniqueResultException</code>）。    </li>
+<li>适用于“可选”结果场景，即允许结果为空。</li>
+</ul>
+</li>
+<li><strong>fetchSingle()</strong>：<ul>
+<li>要求查询必须返回<strong>恰好一条记录</strong>。</li>
+<li>如果查询<strong>结果为空，则抛出异常</strong>（例如 <code>NoDataFoundException</code> 或者其他与“没有数据”相关的异常）；如果结果超过一条，也会抛出异常。</li>
+<li>用于预期必须存在一个记录的场景，并且希望在不存在时立即获得错误提示。<h3 id="Delete软删除"><a href="#Delete软删除" class="headerlink" title="Delete软删除"></a>Delete软删除</h3>在写delete方法的时候，通常使用软删除，将一些重要信息置空，而不是用<code>delete</code>将整行record删除。<h2 id="Test-amp-amp-Bugfix"><a href="#Test-amp-amp-Bugfix" class="headerlink" title="Test &amp;&amp; Bugfix"></a>Test &amp;&amp; Bugfix</h2></li>
+</ul>
+</li>
+</ul>
+<p>对于更新、插入等方法的测试，在测试插入之后，需要绕过接口直接查数据库并Assert状态是否已经更新。而且<strong>需要Assert所有字段</strong>。这样比较容易发现bug，当我们发现bug的时候，需要写一个尽可能详细的test去把这个bug的边界给囊括住，这样可以更好的帮助修复。<br>如：<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span>  </span><br><span class="line"><span class="function"><span class="keyword">fun</span> `test enableSubsystem updates existing seller <span class="keyword">if</span> already exists`<span class="params">()</span></span> &#123;  </span><br><span class="line">  <span class="keyword">val</span> subsystemName = ... </span><br><span class="line">  <span class="comment">// 使用 fixture 中已存在的 sellerOne  val existingId = sellerOne.leyanSellerId!!  </span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 构造示例请求体 InstallSystem  </span></span><br><span class="line">  <span class="keyword">val</span> subsystemInstallSystem =  ...</span><br><span class="line">  </span><br><span class="line">  Given &#123;  </span><br><span class="line">    ...</span><br><span class="line">  &#125; When &#123;  </span><br><span class="line">    ...</span><br><span class="line">  &#125; Then &#123;  </span><br><span class="line">    ...</span><br><span class="line">  &#125;  </span><br><span class="line">  <span class="comment">//需要从数据库fetch出来注意比较</span></span><br><span class="line">  <span class="keyword">val</span> seller = Seller.find(existingId)  </span><br><span class="line">  </span><br><span class="line">  assertNotNull(seller, <span class="string">"Seller 应该存在"</span>)  </span><br><span class="line">  assertEquals(existingId, seller.leyanSellerId, <span class="string">"leyan_seller_id 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="number">1052101482</span>, seller.sellerId, <span class="string">"seller_id 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="number">425920014</span>, seller.storeId, <span class="string">"store_id 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="string">"updated_seller_nick"</span>, seller.sellerNick, <span class="string">"seller_nick 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="string">"更新后的店铺标题"</span>, seller.storeTitle, <span class="string">"store_title 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="string">"taobao"</span>, seller.platform, <span class="string">"platform 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="string">"5c4f37e8-2447-4dd6-b31e-9d678904b051"</span>, seller.organizationId.toString(), <span class="string">"organization_id 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="string">"淘宝"</span>, seller.sellerType, <span class="string">"seller_type 应该匹配"</span>)  </span><br><span class="line">  <span class="comment">// bugfix: 这里是框架性错误，第二次update失效，expected accessToken:"updated_access_token"  </span></span><br><span class="line">  assertEquals(<span class="string">"updated_access_token"</span>, seller.accessToken, <span class="string">"access_token 应该匹配"</span>)  </span><br><span class="line">  <span class="comment">// bugfix: 这里是框架性错误，第二次update失效，expected appName:"tb_lyzr"  </span></span><br><span class="line">  assertEquals(<span class="string">"tb_lyzr"</span>, seller.appName, <span class="string">"app_name 应该匹配"</span>)  </span><br><span class="line">  <span class="comment">// bugfix: 这里是框架性错误，第二次update失效，expected:"Instant.parse("2030-01-01T00:00:00Z") "  </span></span><br><span class="line">  assertEquals(Instant.parse(<span class="string">"2030-01-01T00:00:00Z"</span>), seller.expiresAt?.toInstant(), <span class="string">"expiresAt 应该匹配"</span>)  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="bugfix"><a href="#bugfix" class="headerlink" title="bugfix"></a>bugfix</h3><p>此外，当发现bug的时候，我们如何上报，也是需要标准的处理方式<br>比如这里我发现了一个框架性的错误，无法解决。</p>
+<ul>
+<li>先在原来的分支编写 <strong>错误的、但是可以通过的测试</strong></li>
+<li>再checkout一条 <code>bugfix</code> 分支，编写 <strong>正确的、但是无法通过的测试</strong></li>
+<li>这样leader修改完之后，直接测试bugfix分支，通过以后，将bugfix分支merge到原先分支，就会得到<strong>正确的、且可以通过的测试</strong></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2025/04/09/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E5%BF%83%E5%BE%97/" title="项目开发心得">https://jasonxqh.github.io/2025/04/09/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E5%BF%83%E5%BE%97/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" rel="tag"><i class="fa fa-tag"></i> 一些思考</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2025/03/07/%E5%9B%9E%E6%BA%AF%E5%89%AA%E6%9E%9D%E6%95%B4%E7%90%86/" rel="next" title="回溯剪枝整理">
+                <i class="fa fa-chevron-left"></i> 回溯剪枝整理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">439</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">68</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#项目开发心得"><span class="nav-number">1.</span> <span class="nav-text">项目开发心得</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库篇"><span class="nav-number">1.1.</span> <span class="nav-text">数据库篇</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OpenAPI"><span class="nav-number">1.2.</span> <span class="nav-text">OpenAPI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#OpenAPI-与数据库表类型匹配"><span class="nav-number">1.2.1.</span> <span class="nav-text">OpenAPI 与数据库表类型匹配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OpenAPI-component-设置-DTO-TO-VO"><span class="nav-number">1.2.2.</span> <span class="nav-text">OpenAPI component 设置 DTO TO VO</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#request"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">request</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#response"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">response</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Controller"><span class="nav-number">1.3.</span> <span class="nav-text">Controller</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Exception-Mapper"><span class="nav-number">1.3.1.</span> <span class="nav-text">Exception Mapper</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mig25-codegen-find和findBy"><span class="nav-number">1.3.2.</span> <span class="nav-text">mig25-codegen : find和findBy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Delete软删除"><span class="nav-number">1.3.3.</span> <span class="nav-text">Delete软删除</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Test-amp-amp-Bugfix"><span class="nav-number">1.4.</span> <span class="nav-text">Test &amp;&amp; Bugfix</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bugfix"><span class="nav-number">1.4.1.</span> <span class="nav-text">bugfix</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1290.3k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>
