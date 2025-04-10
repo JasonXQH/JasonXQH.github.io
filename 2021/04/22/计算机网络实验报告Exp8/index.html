@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Exp8: UDP报⽂分析⼀、实验⽬的了解 UDP 协议的⼯作原理 ⼆、实验任务使⽤Wireshark快速了解UDP协议 三、实验过程3.1 UDP 协议⽤户数据报(UDP)协议是运输层提供的⼀种最低限度的复⽤&#x2F;分解服务，可以在⽹络层和正确的⽤户即进程间传输数据。UDP 是⼀种不提供不必要服务的轻量级运输协议，除了复⽤&#x2F;分⽤功能和简单的差错检测之外，⼏乎就是 IP 协议了，也可以说它仅提供最⼩服务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络实验报告Exp8">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Exp8: UDP报⽂分析⼀、实验⽬的了解 UDP 协议的⼯作原理 ⼆、实验任务使⽤Wireshark快速了解UDP协议 三、实验过程3.1 UDP 协议⽤户数据报(UDP)协议是运输层提供的⼀种最低限度的复⽤&#x2F;分解服务，可以在⽹络层和正确的⽤户即进程间传输数据。UDP 是⼀种不提供不必要服务的轻量级运输协议，除了复⽤&#x2F;分⽤功能和简单的差错检测之外，⼏乎就是 IP 协议了，也可以说它仅提供最⼩服务">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/0.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/2.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/8.png">
+<meta property="article:published_time" content="2021-04-22T15:32:39.000Z">
+<meta property="article:modified_time" content="2022-08-24T20:32:24.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/0.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>计算机网络实验报告Exp8 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机网络实验报告Exp8
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-04-22 23:32:39" itemprop="dateCreated datePublished" datetime="2021-04-22T23:32:39+08:00">2021-04-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-08-25 04:32:24" itemprop="dateModified" datetime="2022-08-25T04:32:24+08:00">2022-08-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Exp8-UDP报⽂分析"><a href="#Exp8-UDP报⽂分析" class="headerlink" title="Exp8: UDP报⽂分析"></a>Exp8: UDP报⽂分析</h1><h2 id="⼀、实验⽬的"><a href="#⼀、实验⽬的" class="headerlink" title="⼀、实验⽬的"></a>⼀、实验⽬的</h2><p>了解 UDP 协议的⼯作原理</p>
+<h2 id="⼆、实验任务"><a href="#⼆、实验任务" class="headerlink" title="⼆、实验任务"></a>⼆、实验任务</h2><p>使⽤Wireshark快速了解UDP协议</p>
+<h2 id="三、实验过程"><a href="#三、实验过程" class="headerlink" title="三、实验过程"></a>三、实验过程</h2><h3 id="3-1-UDP-协议"><a href="#3-1-UDP-协议" class="headerlink" title="3.1 UDP 协议"></a>3.1 UDP 协议</h3><p>⽤户数据报(UDP)协议是运输层提供的⼀种最低限度的复⽤/分解服务，可以在⽹络层和正确的⽤户即进程间传输数据。UDP 是⼀种不提供不必要服务的轻量级运输协议，除了复⽤/分⽤功能和简单的差错检测之外，⼏乎就是 IP 协议了，也可以说它仅提供最⼩服务。UDP 是⽆连接的，因此在两个进程通信前没有握⼿过程。UDP 协议提供⼀种不可靠数据传输服务，也就是说，当⼀个进程讲⼀个报⽂发送进 UDP套接字时，UDP 协议并不保证该报⽂将到达接收进程。也正是由于 UDP 不修复错误，因此到达接收进程的报⽂也可能是乱序到达的。UDP 是⾯向报⽂的，这是因为 UDP 并不会对应⽤层传递下来的报⽂进⾏任何处理，对于报⽂的边界信息都会保存，向下交付时交付的是完整报⽂。</p>
+<p><img src="/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/0.png" style="zoom:67%;"></p>
+<h3 id="3-2-UDP-报⽂结构"><a href="#3-2-UDP-报⽂结构" class="headerlink" title="3.2 UDP 报⽂结构"></a>3.2 UDP 报⽂结构</h3><p>UDP ⾸部只有 4 个字段：源端⼝号、⽬的端⼝号、⻓度、校验和，其中每个字段<strong>由 2 个字节</strong>组成。</p>
+<p><img src="/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/1.png" style="zoom:67%;"></p>
+<h3 id="3-3-实验操作"><a href="#3-3-实验操作" class="headerlink" title="3.3 实验操作"></a>3.3 实验操作</h3><ol>
+<li><p>在 Wireshark 中捕获数据包，然后执⾏⼀些会导致主机发送和接收多个 UDP 数据包的操作。也可以什么也不做，仅执⾏ wireshark 捕获以便获取其他程序发给您的 UDP 数据包。有⼀种特殊情况：简单⽹络管理协议（SNMP）在 UDP 内部发送 SNMP 消息，因此可能会在跟踪中找到⼀些SNMP 消息（以及 UDP 数据包）。</p>
+</li>
+<li><p>停⽌数据包捕获后，设置数据包筛选器，以便 Wireshark 仅显示在主机上发送和接收的 UDP 数据包。 选择其中⼀个 UDP 数据包并在详细信息窗⼝中展开 UDP 字段。</p>
+</li>
+</ol>
+<p><img src="/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/2.jpg" style="zoom:67%;"></p>
+<h4 id="task1"><a href="#task1" class="headerlink" title="task1:"></a>task1:</h4><p>从跟踪中选择⼀个 UDP 数据包。从此数据包中，识别并确定 UDP ⾸部字段，请为这些字段命名并将实验结果附在实验报告中。</p>
+<p>UDP首部有8个字节，由4个字段构成，每个字段都是两个字节，<br>1.<strong>源端口</strong>： 源端口号，需要对方回信时选用，不需要时全部置0.<br>2.<strong>目的端口</strong>：目的端口号，在终点交付报文的时候需要用到。<br>3.<strong>长度</strong>：UDP的数据报文的长度（包括首部和数据）其最小值为8（只有首部）<br>4.<strong>校验和</strong>：检测UDP数据报在传输中是否有错，有错则丢弃。</p>
+<p>下面这段报文节选自Wireshark捕捉到的一个UDP数据包</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">User Datagram Protocol, Src Port: 52355, Dst Port: 8000</span><br><span class="line">    Source Port: 52355  		# 源端口</span><br><span class="line">    Destination Port: 8000	# 目标端口</span><br><span class="line">    Length: 76							# 长度为76字节</span><br><span class="line">    Checksum: 0x1545 [unverified] # 检验和</span><br><span class="line">    [Checksum Status: Unverified]	</span><br><span class="line">    [Stream index: 4]</span><br><span class="line">    [Timestamps]</span><br><span class="line">    UDP payload (68 bytes) # 数据部分是总长度减去首部的长度</span><br></pre></td></tr></table></figure>
+<h4 id="task2"><a href="#task2" class="headerlink" title="task2:"></a>task2:</h4><p>根据选择的UDP数据包，确定 UDP 报头字段的⻓度，请将实验结果附在实验报告中。</p>
+<p><img src="/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/2.png" style="zoom:67%;"></p>
+<p>我们发现这个UDP报头字段的长度是8个字节，因为每个字段长度为两个字节：</p>
+<p>Source Port: cc 83 ， 转换成十进制就是52355，即端口号</p>
+<p>Destination Port：1f 40,转换成十进制就是8000</p>
+<p>Length: 00 4c,转换成十进制就是76 也就是报文长度</p>
+<h4 id="task3"><a href="#task3" class="headerlink" title="task3:"></a>task3:</h4><p>UDP⾸部中的⻓度字段的值指的是什么？使⽤捕获的 UDP 数据包进⾏验证，请将实验结果附在实验报告中。</p>
+<p>UDP的数据报文的长度（包括首部和数据）其最小值为8（只有首部）。</p>
+<p>比如说这个UDP报文，首部的长度是8个字节，data部分如下：</p>
+<p><img src="/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/3.png" style="zoom:67%;">‘</p>
+<p>我们发现Data部分的长度是68个bytes，从十六进制数字中也可以看出一共有68个字节。</p>
+<h4 id="task4"><a href="#task4" class="headerlink" title="task4:"></a>task4:</h4><p> UDP 有效负载中可包含的最⼤字节数是多少？请将实验结果附在实验报告中。</p>
+<p>因为UDP首部中，长度的字段只有2个字节也就是16位。所以能表示的最大数为$2^{16}-1=65535$ 。又UDP首部占据了8字节，所以有效负载中可包含的最⼤字节数是 $65535-8 = 65527$ 字节。</p>
+<p><strong>⾸先先认识下有效负载</strong>：</p>
+<blockquote>
+<p>有效负载是被传输数据中的⼀部分，⽽这部分才是数据传输的最基本的⽬的，和有效负载⼀同被传送的数据还有：数据头或称作元数据，有时候也被称为开销数据，这些数据⽤来辅助数据传输。</p>
+</blockquote>
+<h4 id="task5"><a href="#task5" class="headerlink" title="task5:"></a>task5:</h4><p>最⼤可能的源端⼝号是多少？请将实验结果附在实验报告中。</p>
+<p>因为端口号也只有2个字节，因此最大能表达的数为65535，因此最大可能的源端口号是 65535</p>
+<p>在之前我们编写的UDP Provider和UDP searcher文件当中，我们可以来验证这个结论：</p>
+<p>当我们申请65535端口的时候，是可以正常利用UDP来发送数据处理数据的</p>
+<p><img src="/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/4.png" style="zoom:67%;"></p>
+<p>但是当我们申请65536端口的时候，Java会给我们一个报错，说 Port out of range,说明 65536接口是非法的。</p>
+<p><img src="/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/5.png" style="zoom:67%;"></p>
+<h4 id="task6"><a href="#task6" class="headerlink" title="task6:"></a>task6:</h4><p>根据选择的UDP数据包指出UDP的协议号是多少？请以⼗六进制和⼗进制表示法给出答案，并将实验结果附在实验报告中。</p>
+<p>协议号指的是一个协议在IP包头中的一个字段,IP头中的协议号用来说明IP报文中承载的是哪种协议.目的主机收到IP包后，根据IP协议号确定送给哪个模块（TCP/UDP/ICMP…）处理，送给TCP/UDP模块的报文根据端口号确定送给哪个应用程序处理。</p>
+<p><img src="/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/6.png" style="zoom:67%;"></p>
+<p>我们在IPV4报文中找到了UDP的协议号，是17</p>
+<p>用同样的方法可以找到</p>
+<p>TCP的协议号是6</p>
+<p>HTTP的协议号是80</p>
+<p>DNS的协议号是53</p>
+<h4 id="task7"><a href="#task7" class="headerlink" title="task7:"></a>task7:</h4><p>观察发送 UDP 数据包后接收响应的 UDP 数据包，这是对发送的 UDP 数据包的回复，请描述两个数据包中<strong>端⼝号</strong>之间的关系。(提示：对于响应 UDP ⽬的地应该为发送 UDP 包的地址。）请将实验结果附在实验报告中。</p>
+<p>我们找到了这样一组发送UDP数据包和响应的UDP数据包。</p>
+<p><img src="/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/7.png" style="zoom:67%;"></p>
+<p>他们的编号是532493和532494。</p>
+<p>532493 这个包的源地址是：192.168.31.15也就是我本地的电脑地址，目的地址是180.153.91.44 ，源端口是52355，目的端口是8000</p>
+<p>532494 这个包的原地址是：180.153.91.44，而目的地之是192.168.31.15, 源端口是8000，目的端口是52355</p>
+<p><img src="/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/8.png" style="zoom:67%;"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"># 计算机网络</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/" rel="prev" title="计算机网络报告7">
+      <i class="fa fa-chevron-left"></i> 计算机网络报告7
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/04/23/UDPping%E7%A8%8B%E5%BA%8F/" rel="next" title="UDPping程序">
+      UDPping程序 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Exp8-UDP报⽂分析"><span class="nav-number">1.</span> <span class="nav-text">Exp8: UDP报⽂分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#⼀、实验⽬的"><span class="nav-number">1.1.</span> <span class="nav-text">⼀、实验⽬的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#⼆、实验任务"><span class="nav-number">1.2.</span> <span class="nav-text">⼆、实验任务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、实验过程"><span class="nav-number">1.3.</span> <span class="nav-text">三、实验过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-UDP-协议"><span class="nav-number">1.3.1.</span> <span class="nav-text">3.1 UDP 协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-UDP-报⽂结构"><span class="nav-number">1.3.2.</span> <span class="nav-text">3.2 UDP 报⽂结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-实验操作"><span class="nav-number">1.3.3.</span> <span class="nav-text">3.3 实验操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#task1"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">task1:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task2"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">task2:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task3"><span class="nav-number">1.3.3.3.</span> <span class="nav-text">task3:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task4"><span class="nav-number">1.3.3.4.</span> <span class="nav-text">task4:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task5"><span class="nav-number">1.3.3.5.</span> <span class="nav-text">task5:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task6"><span class="nav-number">1.3.3.6.</span> <span class="nav-text">task6:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task7"><span class="nav-number">1.3.3.7.</span> <span class="nav-text">task7:</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

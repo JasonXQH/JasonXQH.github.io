@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="多重比较和双因子方差分析之前我们学习了单因子方差分析，单因子方差分析是用来比较分组之间均值是否相等的问题，但是当我们拒绝原假设之后，我们不知道哪些组是相等的，哪些组是不相等的。因此我们需要进一步考虑这个问题。 多重比较水平均值差的置信区间首先我们要想，到底是原假设成立的时候，因子A是显著的还是备择假设成立的时候因子A是显著的。答案是备择假设，因为当原假设成立的时候，不同组之间的均值是相等的，因此因">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多重比较和双因子方差分析">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="多重比较和双因子方差分析之前我们学习了单因子方差分析，单因子方差分析是用来比较分组之间均值是否相等的问题，但是当我们拒绝原假设之后，我们不知道哪些组是相等的，哪些组是不相等的。因此我们需要进一步考虑这个问题。 多重比较水平均值差的置信区间首先我们要想，到底是原假设成立的时候，因子A是显著的还是备择假设成立的时候因子A是显著的。答案是备择假设，因为当原假设成立的时候，不同组之间的均值是相等的，因此因">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/7.png">
+<meta property="article:published_time" content="2021-10-07T00:38:20.000Z">
+<meta property="article:modified_time" content="2022-01-05T05:13:02.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="统计方法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/9.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>多重比较和双因子方差分析 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          多重比较和双因子方差分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-10-07 08:38:20" itemprop="dateCreated datePublished" datetime="2021-10-07T08:38:20+08:00">2021-10-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-05 13:13:02" itemprop="dateModified" datetime="2022-01-05T13:13:02+08:00">2022-01-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="多重比较和双因子方差分析"><a href="#多重比较和双因子方差分析" class="headerlink" title="多重比较和双因子方差分析"></a>多重比较和双因子方差分析</h1><p>之前我们学习了单因子方差分析，单因子方差分析是用来比较分组之间均值是否相等的问题，但是当我们拒绝原假设之后，我们不知道哪些组是相等的，哪些组是不相等的。因此我们需要进一步考虑这个问题。</p>
+<h2 id="多重比较"><a href="#多重比较" class="headerlink" title="多重比较"></a>多重比较</h2><h3 id="水平均值差的置信区间"><a href="#水平均值差的置信区间" class="headerlink" title="水平均值差的置信区间"></a>水平均值差的置信区间</h3><p>首先我们要想，到底是原假设成立的时候，因子A是显著的还是备择假设成立的时候因子A是显著的。答案是<strong>备择假设</strong>，因为当原假设成立的时候，不同组之间的均值是相等的，因此因子A是不显著的。</p>
+<p>当因子A显著时，有充分的理由认为因子A的各个水平中<strong>至少存在一对的均值是不相等的</strong>。但这并不说明，所有的水平均值都是不相等的。那么，我们就想知道哪些水平的均值是不相等的。一个很自然的想法就是，给定一对水平$(i,i’)$  ，构造$\mu<em>i-\mu</em>{i’}$​ 的区间估计。如果该区间不包括0，就说明$\mu<em>i$和$\mu</em>{i’}$必不相等。</p>
+<p>我们来构造区间估计的枢轴量：</p>
+<ul>
+<li>分布为：</li>
+</ul>
+<script type="math/tex; mode=display">
+\overline{y_{i\cdot}}\sim N(\mu_i,\frac{\sigma^2}{m})~ \text{和}~~\overline{y_{i'}}\sim N(\mu_{i'},\frac{\sigma^2}{m})</script><p>因为两者独立，所以 $\overline y<em>{i\cdot}-\overline y</em>{i’}\sim N(\mu<em>i-\mu</em>{i’},2\sigma^2m^{-1})$​ . 对其进行标准化：</p>
+<script type="math/tex; mode=display">
+\frac{(\overline y_{i\cdot}-\overline y_{i'})-(\mu_i-\mu_{i'})}{\sqrt{2\sigma^2m^{-1}}}\sim N(0,1)</script><p>因为这个分布中$\sigma^2$是未知的，我们要用其估计 $\hat\sigma^2$来代替。估计哪里来呢？在两样本方差t检验中，定义的是和方差。那么在这个情况下，每一组都是对方差的一个估计，那么我们只要对每一组方差都进行一个加权平均就可以了。即$SS_E/n-a$  ，分母是由a个水平，每个水平是(m-1) 乘起来就是 $n-a$​​ 。 这样的估计更加稳定，因为有更多的组，波动更小。</p>
+<p><img src="/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/9.png"> </p>
+<h3 id="多重比较问题"><a href="#多重比较问题" class="headerlink" title="多重比较问题"></a>多重比较问题</h3><p>问题又来了，如果是两样本t检验的区间估计，只存在一个区间，但是在这个问题中,一共有a个不同的水平，总共有 a(a-1)/2 对不同的水平组合，每一对水平都有一个置信水平为1的置信区间。然而，要求其同时成立的话，其联合置信水平就无法达到$1-\alpha$了</p>
+<p>比如说，若$A_1,A_2\cdots,A_k$ 表示k个随机事件，且每个事件发生的概率均为$1-\alpha$ ,即 $P(A_i)=1-\alpha.i=1,2\cdots,k$ 则其共同发生的概率为：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+P(\cap_{i=1}^k A_i) &\leq P(A_1) = 1-\alpha\\
+P(\cap_{i=1}^k A_i) &= 1-P(\cup_{i=1}^k\overline A_i)\\
+&\geq 1-\sum_{i=1}^k P(\overline A_i) = 1-k(1-(1-\alpha))\\
+&=1-k\alpha
+\end{align}</script><p>这说明它们同时发生的概率实际上要在$1-k\alpha$ 和 $1-\alpha$ 之间，可能要比 $1-\alpha$ 小很多</p>
+<p>那么，为了使得它们同时发生的概率不低于$1-\alpha$ ，一个很自然的方法就是把每个事件发生的概率都提高。也就是让$\alpha$ 取得更小，让置信水平从 $1-\alpha/2$ 提高到 $1-\alpha/(a(a-1)/2)$ </p>
+<p>于是：</p>
+<script type="math/tex; mode=display">
+P(\cap_{i=1}^{a(a-1)/2}A_i) \geq 1-a(a-1)/2\cdot\frac{\alpha}{a(a-1)/2} = 1-\alpha</script><p>这叫做<em>Bonferroni</em>方法，虽然这种方法非常简单，但是会导致所得到的置信区间过于保守，精度很差</p>
+<h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>在方差分析中，经F检验拒绝原假设，表明因子A是显著的，即a个水平的均值不全相等。进一步，我们需要确定哪些水平之间是存在差异的，哪些水平之间是没有差异的。</p>
+<p>在$a(a&gt;2)$ 个水平均值中同时比较任意两个水平均值间有无明显差异的问题叫做<strong>多重比较</strong>，也就是说，在显著性水平为 $\alpha$ 同时检验 $a(a-1)/2$ 个假设</p>
+<script type="math/tex; mode=display">
+H_0^{ii'}:\mu_i = \mu_{i'} .\\1\leq i<i'\leq a</script><p>当$H<em>0^{ii’}$​ 成立时，$|\overline y</em>{i\cdot}-\overline y_{i’}|$​ 不应过大，过大就应该拒绝 $H_0^{ii’}$​</p>
+<p>于是，在同时考察这些 $H_0^{ii’}$ 时，这些$H_0^{ii’}$中至少有一个不成立就构成了多重比较检验的拒绝域，即拒绝域的形式就是：</p>
+<script type="math/tex; mode=display">
+W=\bigcup_{1\leq i<i'\leq a}\{|\overline y_{i\cdot}-\overline y_{i'\cdot}|\geq c_{ii'}\}</script><p>其中$c_{ii’}$是临界值，由原假设 $H_0^{ii’}$成立时$P(W)=\alpha$ 来确定。 </p>
+<h3 id="Tukey方法"><a href="#Tukey方法" class="headerlink" title="Tukey方法"></a>Tukey方法</h3><p>由多重比较我们可以得出，要求 $a(a-1)/2$​​​ 个临界值$c<em>{ii’}$​​ 这是很烦的一件事， 而Tukey方法则对其进行了简化，对所求的临界值提出一些合理的假设。因为由于<strong>各个水平下重复次数均相等</strong>，基于对称性一个很自然的要求是$c</em>{ii’}$​​是相等的，我们记为c。</p>
+<script type="math/tex; mode=display">
+P(W) = P(\bigcup_{i\leq i<i'\leq a}\{|\overline y_{i\cdot}-\overline y_{i'\cdot}|\geq c\})\\
+=1-P(\bigcap_{1\leq i<i'\leq a}\{|\overline y_{i\cdot}-\overline y_{i'\cdot}|< c\})\\
+=1-P(\max_{1\leq i<i'\leq a}\{|\overline y_{i\cdot}-\overline y_{i'\cdot}|< c\})\\
+=P(\max_{1\leq i<i'\leq a}\{|\overline y_{i\cdot}-\overline y_{i'\cdot}|\geq c\})\\
+=P(\max_{1\leq i<i'\leq a}|\frac{(\overline y_{i\cdot}-\mu)-(\overline y_{i'\cdot}-\mu)}{\hat\sigma/\sqrt m}|\geq \frac{c}{\hat\sigma/\sqrt m}\})\\
+=P(\max_{i}\frac{(\overline y_{i\cdot}-\mu)}{\hat\sigma/\sqrt m}-\min_{i}\frac{\overline y_{i\cdot}-\mu}{\hat\sigma/\sqrt m}\geq \frac{c}{\hat\sigma/\sqrt m}\})\\</script><p>第一步就是 德摩根公式。</p>
+<p>第二步：要求交集小于c，就是要让这里面最大的差值要小于c</p>
+<p>第三步：正常转换</p>
+<p>第四步：标准化，分子让其减去$\mu$和加上$\mu$,分母上除以$\hat\sigma/\sqrt m$ </p>
+<p>第五步：我们要求第四步式子的最大值，一定是最大减最小值。</p>
+<p>我们要确定c的值，就要将c反解出来。</p>
+<p>我们令不等号左边的式子为一随机变量：这是一个很复杂的随机变量，既有矩又有次序统计量。</p>
+<script type="math/tex; mode=display">
+q(a,df)=\max_{i}\frac{(\overline y_{i\cdot}-\mu)}{\hat\sigma/\sqrt m}-\min_{i}\frac{\overline y_{i\cdot}-\mu}{\hat\sigma/\sqrt m}</script><p>因为 </p>
+<script type="math/tex; mode=display">
+\frac{\overline y_{i\cdot}-\mu}{\hat\sigma/\sqrt m}\sim t(n-a)</script><p>在原假设成立的情况下，$\mu_i$都为$\mu$ </p>
+<p>$q(a,df)$ 可以看做a个独立同分布的自由度为df的t分布的随机变量的极差。一般称q为t化极差统计量。</p>
+<p>这个分布并不是常见的分布，它与水平数目a和t分布的自由度 df=n-a有关，但是与$\mu,\sigma^2,m$​ 无关。</p>
+<h4 id="概述-1"><a href="#概述-1" class="headerlink" title="概述"></a>概述</h4><p>那么，如何获得t化极差统计量的分布？可以通过蒙特卡罗方法获得：</p>
+<p><img src="/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/1.png" style="zoom:67%;"></p>
+<h4 id="反解"><a href="#反解" class="headerlink" title="反解"></a>反解</h4><p>我们可以由：</p>
+<script type="math/tex; mode=display">
+P(W) = P(q(a,df)\geq \sqrt m c/\hat\sigma) = \alpha</script><p>来推出：</p>
+<script type="math/tex; mode=display">
+c=q_{1-\alpha}(a,df)\hat\sigma/\sqrt m</script><p>其中，$q_\alpha(a,df)$表示$q(a,df)$的$\alpha$分位数</p>
+<h4 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h4><p>在给定的显著性水平$\alpha$下，确定t化极差统计量的分位数$q<em>{1-\alpha}(a,df)$ 并计算 $c=q</em>{1-\alpha}(a,df)\hat\sigma/\sqrt m$</p>
+<p>比较每一组样本均值的差与临界值c的大小，如果$|\overline y<em>{i\cdot}-\overline y</em>{i’\cdot}\geq c$</p>
+<p>那么认为水平i与水平 $i’$ 之间有显著差异，反之则认为这两个水平之间无差异</p>
+<h2 id="双因子方差分析"><a href="#双因子方差分析" class="headerlink" title="双因子方差分析"></a>双因子方差分析</h2><h3 id="主效应与交互效应"><a href="#主效应与交互效应" class="headerlink" title="主效应与交互效应"></a>主效应与交互效应</h3><p>事实上，在实际问题中，影响响应变量的因子数量不止一个，在这里我们考虑两个因子A和B。假定因子A有a个不同的水平，因子B有b个不同的水平，那么因子A和因子B的组合共有ab种。而且，在每一种因子组合下，对响应变量有m次重复观测。</p>
+<p>当某一因子的水平改变时导致了响应变量发生变化，称该现象为<strong>因子效应</strong>。</p>
+<p>某一因子对响应变量的直接影响，称为主效应</p>
+<h4 id="主效应"><a href="#主效应" class="headerlink" title="主效应"></a>主效应</h4><p><img src="/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/2.png" style="zoom:67%;"></p>
+<p>在这种情况下：</p>
+<p>因子A的主效应： $= \frac{40+50}{2}-\frac{20+30}{2}=20$</p>
+<p>因子B的主效应： $=\frac{30+50}{2}-\frac{20+40}{2}=10$​</p>
+<p>这表明了：</p>
+<p>因子A从低水平增至高水平时，其平均响应变量增加了20个单位</p>
+<p>因子B从低水平增至高水平时，其平均响应变量增加了10个单位</p>
+<h4 id="交互效应"><a href="#交互效应" class="headerlink" title="交互效应"></a>交互效应</h4><p>除了主效应之外，因子对响应变量的影响还存在另外一种形式：</p>
+<ul>
+<li>在一些化工生产中，温度和材料都是影响产品质量的重要因素，不同材料在不同温度水平下对产品质量的影响是不同的</li>
+<li>在线上购物行为中，消费者会存在从众心理，而线上商家会利用优惠券的让利形式进一步刺激消费者购买，因此在这些因素的共同作用下，电商主播直播带货非常火爆</li>
+</ul>
+<p>所以说，当对于两个因子来说，因子A和因子B给响应变量产生的影响有影响，这种影响不是因子A对响应变量直接的影响，而是一种间接作用，称为交互效应。比如说这种情况：</p>
+<p><img src="/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/3.png" style="zoom:67%;"></p>
+<ul>
+<li>在因子B处于低水平时，因子A的效应为：$60-20=40$</li>
+<li>在因子B处于高水平时，因子A的效应为：$30-40=-10$</li>
+</ul>
+<p>这表明了，因子A的效应是依赖于因子B所选择的水平，由此可见因子A和因子B之间存在交互作用。交互作用的大小可以用因子B处于不同水平下因子A的效应的平均差来表示，即：</p>
+<p>因子A和B的交互效应$=\frac{-10-40}{2}=-25$</p>
+<h4 id="判断方法"><a href="#判断方法" class="headerlink" title="判断方法"></a>判断方法</h4><p>我们可以通过图像来判断两个因子之间是否存在交互效应：</p>
+<p><img src="/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/4.png" style="zoom:80%;"></p>
+<p>在第一种情况下，因子A无论在什么水平下，因子B的增量是一样的，因此可以判断A和B是不交互的</p>
+<p>在第二种情况下，因子A的水平高低对B的增量产生影响，反之亦然，因此可以判断A和B是互相交互的。</p>
+<h3 id="双因子方差分析的模型及假设"><a href="#双因子方差分析的模型及假设" class="headerlink" title="双因子方差分析的模型及假设"></a>双因子方差分析的模型及假设</h3><p>那么我们有没有一个量化的方法来考虑这个问题呢？</p>
+<p>首先，我们要给出一些假定：</p>
+<ul>
+<li><p>因子A有a个水平，$i=1,2\cdots,a$ </p>
+</li>
+<li><p>因子B有b个水平，$j=1,2\cdots,b$</p>
+</li>
+<li><p>$y_{ijk}$​ 表示因子A处于第i个水平和因子B处于第j个水平时响应变量的第k个观测值，$k=1,2\cdots,m$</p>
+</li>
+<li><p>在这个模型中，样本量为$n=abm$</p>
+</li>
+</ul>
+<p>通常，数据按照下表的形式呈现：</p>
+<p><img src="/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/5.png" style="zoom:80%;"></p>
+<p>和单因子方差分析的模型一样，双因子方差分析模型也有均值模型和效应模型</p>
+<h4 id="均值模型"><a href="#均值模型" class="headerlink" title="均值模型"></a>均值模型</h4><p>在双因子方差分析的均值模型可以定义为：</p>
+<script type="math/tex; mode=display">
+y_{ijk} = \mu_{ij}+\epsilon_{ijk}\cases{i=1,2\cdots,a\\~\\j=1,2\cdots,b\\~\\k=1,2\cdots,m}</script><p>$\mu<em>{ij}$可以认为是不同因子水平组合下响应变量$y</em>{ijk}$的均值</p>
+<h4 id="效应模型"><a href="#效应模型" class="headerlink" title="效应模型"></a>效应模型</h4><p>我们可以将$\mu_{ij}$分为四个部分，在双因子方差分析的效应模型可以定义为：</p>
+<script type="math/tex; mode=display">
+y_{ijk} = \mu+\alpha_i+\beta_j+(\alpha\beta)_{ij}+\epsilon_{ijk}\cases{i=1,2\cdots,a\\~\\j=1,2\cdots,b\\~\\k=1,2\cdots,m}</script><ul>
+<li>$\mu$ 表示总体均值</li>
+<li>$\alpha_i$表示因子A(行因子)的第i个水平效应(主效应)</li>
+<li>$\beta_i$表示因子B(列因子)的第j个水平效应(主效应)</li>
+<li>$(\alpha\beta)<em>{ij}$表示因子A和B之间的交互关系，注意不等价于$\alpha_i\cdot\beta_j$ , 我们需要将$(\alpha\beta)</em>{ij}$​看成是一个新的符号？为什么不成立呢？因为一旦成立，交互效应就会等于主效应的乘积，那么就成为一个约束、一个假设了</li>
+</ul>
+<p>此外，类似于单因子方差分析效应模型，为避免参数不可识别的问题，我们对这些效应参数需要一些约束</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\sum_{i=1}^a \alpha_i = 0,\\ 
+&\sum_{j=1}^b\beta_j = 0,\\ 
+&\sum_{i=1}^a(\alpha\beta)_{ij} = \sum_{j=1}^b (\alpha\beta)_{ij} = 0
+\end{align}</script><p>此外我们要对实验误差$\varepsilon_{ijk}$ 进行一个假设，将其看成是均值为0且方差为$\sigma^2$ 的正态分布随机变量，即：</p>
+<script type="math/tex; mode=display">
+\varepsilon_{ijk} \sim N(0,\sigma^2)</script><h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>双因子方差分析模型的一般形式为：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&y_{ijk} = \mu+\alpha_i+\beta_j+(\alpha\beta)_{ij}+\varepsilon_{ijk},\varepsilon_{ijk}\sim N(0,\sigma^2)\\~\\
+&i=1,2\cdots,a;j=1,2\cdots,b;k=1,2\cdots,m\\~\\
+s.t.&\sum_{i=1}^a \alpha_i = 0,\sum_{j=1}^b \beta_i = 0\\
+&\sum_{i=1}^a(\alpha\beta)_{ij}=\sum_{j=1}^b{(\alpha\beta)_{ij}}=0\
+\end{align}</script><h3 id="双因子方差分析的检验"><a href="#双因子方差分析的检验" class="headerlink" title="双因子方差分析的检验"></a>双因子方差分析的检验</h3><h4 id="检验问题"><a href="#检验问题" class="headerlink" title="检验问题"></a>检验问题</h4><p>我们要检验的问题是：在双因子方差分析模型中，我们不仅关心因子A和B的主效应是否显著，还关心因子A和B的交互作用是否显著。</p>
+<p>我们要针对以下三组问题进行检验</p>
+<ul>
+<li>其一，判断因子A是否对响应变量有直接影响，即：</li>
+</ul>
+<script type="math/tex; mode=display">
+H_0:\alpha_1=\alpha_2\cdots=\alpha_a = 0~~vs~~H_1:\text{因子A至少存在一个水平}\alpha_i\neq 0</script><ul>
+<li>其二：判断因子B是否对响应变量有直接影响，即：</li>
+</ul>
+<script type="math/tex; mode=display">
+H_0:\beta_1=\beta_2=\cdots=\beta_b = 0 ~~vs~~H_1:\text{因子B至少存在一个水平}\beta_j\neq 0</script><ul>
+<li>其三，判断因子A和B是否对响应变量有交互作用，即：</li>
+</ul>
+<script type="math/tex; mode=display">
+\begin{align}
+&\text{H}_0 : \text{对于任意} i=1,2\cdots,a;j=1,2\cdots,b,(\alpha\beta)_{ij} = 0 ~~\text{均成立}\\~\\
+&\text{H}_1: \text{因子A和B至少存在一组水平组合}(\alpha\beta)_{ij}\neq 0
+\end{align}</script><h4 id="检验统计量"><a href="#检验统计量" class="headerlink" title="检验统计量"></a>检验统计量</h4><p>我们采用方差分解的想法来构建检验统计量。在介绍总偏差平方和分解公式之前，我们先来定义写必需符号</p>
+<ul>
+<li>$y_{i\cdot\cdot}$  表示在因子A第i个水平下响应变量的总和</li>
+<li>$y_{\cdot j\cdot}$  表示在因子B第j个水平下响应变量的综合2</li>
+<li>$y_{ij\cdot}$ 表示在因子A第i个水平下且因子B第j个水平下响应变量的总和</li>
+<li>$y_{\cdots}$ 表示所有响应变量的总和</li>
+<li>$\overline y<em>{i\cdot\cdot},\overline y</em>{\cdot j\cdot},\overline y<em>{ij\cdot},\overline y</em>{\cdots}$ 表示相应的均值</li>
+</ul>
+<p>我们可以用公式来表示这些符号，即：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&y_{i\cdot\cdot} =\sum_{j=1}^b\sum_{k=1}^m y_{ijk}&\overline y_{i\cdot\cdot}=\frac{1}{bm}y_{i\cdot\cdot}\\
+&y_{\cdot j\cdot} = \sum_{i=1}^a\sum_{k=1}^m y_{ijk}&\overline y_{\cdot j\cdot} =\frac{1}{am} y_{\cdot j\cdot}\\
+&y_{ij\cdot} = \sum_{k=1}^m y_{ijk}&\overline y_{ij\cdot} = \frac{1}{m}y_{ij\cdot}\\
+&y_{\cdots} = \sum_{i=1}^a\sum_{j=1}^b\sum_{k=1}^m y_{ijk} &\overline y_{\cdots} = \frac{1}{n}y_{\cdots}
+\end{align}</script><p>模仿单因子方差分析，我们可以给出$SS_T$的式子：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\sum_{i=1}^a\sum_{j=1}^b\sum_{k=1}^m(y_{ijk}-\overline y_{\cdots})^2 &= \sum_{i=1}^a\sum_{j=1}^b\sum_{k=1}^m((\overline y_{i\cdot\cdot}-\overline y_{\cdot\cdot\cdot})+(\overline y_{\cdot j\cdot}-\overline y_{ij\cdot})+(\overline y_{ij\cdot}-\overline y_{i\cdot\cdot}-\overline y_{\cdot j\cdot}+\overline y_{\cdot\cdot\cdot})+(\overline y_{ijk}-\overline y_{ij\cdot}))^2\\~\\
+&=bm\sum_{i=1}^a (y_{i\cdot\cdot}-\overline y_{\cdot\cdot\cdot})^2+am\sum_{j=1}^b(\overline y_{\cdot j\cdot}-\overline y_{\cdot\cdot\cdot})^2+m\sum_{i=1}^a\sum_{j=1}^b(\overline y_{ij\cdot}-\overline y_{i\cdot\cdot}-\overline y_{\cdot j \cdot}+\overline y_{\cdot\cdot\cdot})^2+\sum_{i=1}^a\sum_{j-1}^b\sum_{k=1}^m(y_{ijk}-\overline y_{ij\cdot})^2
+\end{align}</script><p>其中，中间项都是等于0的。用单因子的技巧就可以证明</p>
+<ul>
+<li>注意到，第一项是根据因子A对数据进行划分从而引起的偏差平方和，我们记为$SS_A$</li>
+<li>第二项类似地可以记为$SS_B$</li>
+<li>第三项可以写为$m\sum<em>{i=1}^a\sum</em>{j=1}^b((\overline y<em>{ij\cdot}-\overline y</em>{\cdot\cdot\cdot})-(\overline y<em>{i\cdot\cdot}-\overline y</em>{\cdot\cdot\cdot})-(\overline y<em>{\cdot j\cdot}-\overline y</em>{\cdot\cdot\cdot}))^2$ , 记为 $SS_{AB}$ </li>
+<li>最后一项，为了排除因子A和B的效应之外响应变量的剩余偏差平方和，我们记为$SS_E$</li>
+</ul>
+<p>总的偏差平方和的分解公式可以简记为：</p>
+<script type="math/tex; mode=display">
+SS_T = SS_A+SS_B+SS_{AB}+SS_E</script><p>类似于单因子方差分析模型，在双因子方差分析模型中，我们可以类似地利用三个比值：</p>
+<script type="math/tex; mode=display">
+\frac{SS_A}{SS_E},\frac{SS_B}{SS_E},\frac{SS_{AB}}{SS_E}</script><p>我们需要推导出$SS<em>E$ 和在原假设成立时$SS_A,SS_B,SS</em>{AB}$的分布</p>
+<p>因为$SS<em>A,SS_B,SS</em>{AB},SS<em>E$均为偏差平方和，所以一个合理的猜测是，这些偏差平方和的分布可能是一个卡方分布。根据Cochran定理，这些偏差平方和可以看做是多少个独立的随机变量的平方和。例如，$SS_A=bm\sum</em>{i=1}^a(\overline y<em>{i\cdot\cdot}-\overline y</em>{\cdot\cdot\cdot})$ 可以将数据按因子A的<strong>a个水平</strong>来进行分组，在第i组内响应变量的均值$\overline y<em>{i\cdot\cdot}$ 看作一个独立的样本，而$\overline y</em>{\cdot\cdot\cdot}$​​可以看做a组数据的样本均值。</p>
+<p>$SS<em>A$​ 可以看做是这a个数据的离差平方和乘以一个常数。对于离差平方和来说，自由度可以看作样本个数减一。于是，$SS_A$​ 的自由度为a-1。类似地，我们可以得到$SS_B,SS</em>{AB},SS_E$ 的自由度，如下表</p>
+<p><img src="/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/6.png" alt="6"></p>
+<p>类似于在单因子方差分析模型中的定义，偏差平方和除以相应的自由度之后所得到的被称为均方</p>
+<p>其实，构造检验统计量实际上是均方的比值，而不是偏差平方和的比值，这是因为F分布随机变量的构造方式。根据之前的定理，我们发现 $MS_E$​​​ 一直在$\sigma^2$​​​ 附近波动。</p>
+<p>只有当原假设成立时，$MS<em>A,MS_B,MS</em>{AB}$​​ 都会在$\sigma^2$​​ 附近波动的。于是，$\frac{MS<em>A}{MS_E},\frac{MS_B}{MS_E},\frac{MS</em>{AB}}{MS_E}$​​  都应该比较接近于1的，并不会特别大。如果差得比较远，就说明某一效应非常明显，我们就会拒绝原假设。</p>
+<p>因此，我们可以通过这三个比值，是否大于临界值，从而判断原假设成立，还是备择假设成立</p>
+<h4 id="均方的期望"><a href="#均方的期望" class="headerlink" title="均方的期望"></a>均方的期望</h4><p><img src="/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/8.png" alt="6"></p>
+<p>在双因子方差模型中，均方$MS<em>A,MS_B,MS</em>{AB},MS_E$ 的期望分别为：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&E(MS_A)=E(\frac{SS_A}{a-1})=\sigma^2 +\frac{bm\sum_{i=1}^a \alpha_i^2}{a-1}\\
+&E(MS_B)=E(\frac{SS_B}{b-1})=\sigma^2 +\frac{am\sum_{j=1}^b\beta_i^2}{b-1}\\
+&E(MS_{AB})=E(\frac{SS_{AB}}{(a-1)(b-1)})=\sigma^2 +\frac{m\sum_{i=1}^a\sum_{j=1}^b(\alpha\beta)_{ij}^2}{(a-1)(b-1)}\\
+&E(MS_E) = E(\frac{SS_E}{ab(m-1)})=\sigma^2
+\end{align}</script><h4 id="如何确定临界值？"><a href="#如何确定临界值？" class="headerlink" title="如何确定临界值？"></a>如何确定临界值？</h4><p>当原假设成立的时候，类似单因子方差分析模型，我们可以推出</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&SS_A\sim \mathcal{X}^2(a-1)\\
+&SS_B\sim \mathcal{X}^2(b-1)\\
+&SS_{AB}\sim \mathcal{X}^2((a-1)(b-1))\\
+&SS_E\sim \mathcal{X}^2(ab(m-1))
+\end{align}</script><p>而且$SS<em>A,SS_B,SS</em>{AB},SS_E$ 都是相互独立的</p>
+<p>于是，一个显而易见的结论是我们所需要的比值都是服从F分布的，即</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\frac{MS_A}{MS_E}\sim F(a-1,ab(m-1))\\
+&\frac{MS_B}{MS_E}\sim F(b-1,ab(m-1))\\
+&\frac{MS_{AB}}{MS_E}\sim F((a-1)(b-1),ab(m-1))\\
+\end{align}</script><p>由此，我们可以确定相应F分布的临界值</p>
+<p><img src="/2021/10/07/%E5%A4%9A%E9%87%8D%E6%AF%94%E8%BE%83%E5%92%8C%E5%8F%8C%E5%9B%A0%E5%AD%90%E6%96%B9%E5%B7%AE%E5%88%86%E6%9E%90/7.png" alt="7"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95/" rel="tag"># 统计方法</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/24/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E5%B7%A5%E7%A8%8B%E7%AE%97%E6%B3%95-%E5%93%88%E5%B8%8C/" rel="prev" title="数据科学与工程算法-哈希">
+      <i class="fa fa-chevron-left"></i> 数据科学与工程算法-哈希
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/10/11/%E4%B8%80%E5%85%83%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" rel="next" title="一元线性回归">
+      一元线性回归 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#多重比较和双因子方差分析"><span class="nav-number">1.</span> <span class="nav-text">多重比较和双因子方差分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#多重比较"><span class="nav-number">1.1.</span> <span class="nav-text">多重比较</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#水平均值差的置信区间"><span class="nav-number">1.1.1.</span> <span class="nav-text">水平均值差的置信区间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多重比较问题"><span class="nav-number">1.1.2.</span> <span class="nav-text">多重比较问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#概述"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">概述</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tukey方法"><span class="nav-number">1.1.3.</span> <span class="nav-text">Tukey方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#概述-1"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#反解"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">反解</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#步骤"><span class="nav-number">1.1.3.3.</span> <span class="nav-text">步骤</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#双因子方差分析"><span class="nav-number">1.2.</span> <span class="nav-text">双因子方差分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#主效应与交互效应"><span class="nav-number">1.2.1.</span> <span class="nav-text">主效应与交互效应</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#主效应"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">主效应</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#交互效应"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">交互效应</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#判断方法"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">判断方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双因子方差分析的模型及假设"><span class="nav-number">1.2.2.</span> <span class="nav-text">双因子方差分析的模型及假设</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#均值模型"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">均值模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#效应模型"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">效应模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双因子方差分析的检验"><span class="nav-number">1.2.3.</span> <span class="nav-text">双因子方差分析的检验</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#检验问题"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">检验问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#检验统计量"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">检验统计量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#均方的期望"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">均方的期望</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何确定临界值？"><span class="nav-number">1.2.3.4.</span> <span class="nav-text">如何确定临界值？</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

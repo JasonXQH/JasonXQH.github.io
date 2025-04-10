@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="BFSandDFSDFS深度优先搜索（Depth First Search，DFS），是最常见的图搜索方法之一。深度优先搜索沿着一条路径一直走下去，无法行进时，回退回退到刚刚访问的结点，似不撞南墙不回头，不到黄河不死心。深度优先遍历是按照深度优先搜索的方式对图进行遍历。 时刻牢记：  后被访问的顶点，其邻接点先被访问。根据深度优先遍历秘籍，后来先服务，可以借助于栈实现。递归本身就是使用栈实现的，因">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BFSandDFS">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/08/30/BFSandDFS/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="BFSandDFSDFS深度优先搜索（Depth First Search，DFS），是最常见的图搜索方法之一。深度优先搜索沿着一条路径一直走下去，无法行进时，回退回退到刚刚访问的结点，似不撞南墙不回头，不到黄河不死心。深度优先遍历是按照深度优先搜索的方式对图进行遍历。 时刻牢记：  后被访问的顶点，其邻接点先被访问。根据深度优先遍历秘籍，后来先服务，可以借助于栈实现。递归本身就是使用栈实现的，因">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/30/BFSandDFS/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/30/BFSandDFS/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/30/BFSandDFS/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/30/BFSandDFS/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/30/BFSandDFS/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/30/BFSandDFS/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/30/BFSandDFS/7.png">
+<meta property="article:published_time" content="2020-08-30T07:03:00.000Z">
+<meta property="article:modified_time" content="2022-12-08T07:29:22.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="Data_structure">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/08/30/BFSandDFS/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/08/30/BFSandDFS/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>BFSandDFS | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/08/30/BFSandDFS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          BFSandDFS
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-08-30 15:03:00" itemprop="dateCreated datePublished" datetime="2020-08-30T15:03:00+08:00">2020-08-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-12-08 15:29:22" itemprop="dateModified" datetime="2022-12-08T15:29:22+08:00">2022-12-08</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="BFSandDFS"><a href="#BFSandDFS" class="headerlink" title="BFSandDFS"></a>BFSandDFS</h1><h2 id="DFS"><a href="#DFS" class="headerlink" title="DFS"></a>DFS</h2><p>深度优先搜索（Depth First Search，DFS），是最常见的图搜索方法之一。深度优先搜索沿着一条路径一直走下去，无法行进时，回退回退到刚刚访问的结点，似不撞南墙不回头，不到黄河不死心。深度优先遍历是按照深度优先搜索的方式对图进行遍历。</p>
+<p>时刻牢记：  <strong>后被访问的顶点，其邻接点先被访问。</strong>根据深度优先遍历秘籍，后来先服务，可以借助于栈实现。递归本身就是使用栈实现的，因此使用递归方法更方便。</p>
+<p>1.初始化图中所有顶点未被访问。</p>
+<p>2.从图中的某个顶点<em>v</em>出发，访问<em>v</em>并标记已访问；</p>
+<p>3.依次检查<em>v</em>的所有邻接点<em>w</em>，如果<em>w</em>未被访问，则从<em>w</em>出发进行深度优先遍历（递归调用，重复2—3步）。</p>
+<p><img src="/2020/08/30/BFSandDFS/1.png" style="zoom:80%;"></p>
+<p><img src="/2020/08/30/BFSandDFS/2.png" style="zoom:80%;"></p>
+<p><img src="/2020/08/30/BFSandDFS/3.png" style="zoom:80%;"></p>
+<p><img src="/2020/08/30/BFSandDFS/4.png" style="zoom:80%;"></p>
+<p><img src="/2020/08/30/BFSandDFS/5.png" style="zoom:80%;"></p>
+<p><img src="/2020/08/30/BFSandDFS/6.png" style="zoom:80%;"></p>
+<h3 id="代码一览"><a href="#代码一览" class="headerlink" title="代码一览"></a>代码一览</h3><p>基于邻接表的深度优先遍历</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> MaxVnum=<span class="number">100</span>;<span class="comment">//顶点数最大值</span></span><br><span class="line"><span class="keyword">bool</span> visited[MaxVnum];  <span class="comment">//访问标志数组，其初值为"false"</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">char</span> VexType;<span class="comment">//顶点的数据类型为字符型</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">AdjNode</span>&#123;</span> <span class="comment">//定义邻接点类型</span></span><br><span class="line">	<span class="keyword">int</span> v; <span class="comment">//邻接点下标</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">AdjNode</span> *<span class="title">next</span>;</span> <span class="comment">//指向下一个邻接点</span></span><br><span class="line">&#125;AdjNode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">VexNode</span>&#123;</span> <span class="comment">//定义顶点类型</span></span><br><span class="line">   VexType data; <span class="comment">// VexType为顶点的数据类型，根据需要定义</span></span><br><span class="line">   AdjNode *first; <span class="comment">//指向第一个邻接点</span></span><br><span class="line">&#125;VexNode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>&#123;</span><span class="comment">//定义邻接表类型</span></span><br><span class="line">    VexNode  Vex[MaxVnum];</span><br><span class="line">    <span class="keyword">int</span> vexnum,edgenum; <span class="comment">//顶点数，边数</span></span><br><span class="line">&#125;ALGragh;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">locatevex</span><span class="params">(ALGragh G,VexType x)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//查找顶点信息的下标</span></span><br><span class="line">		<span class="keyword">if</span>(x==G.Vex[i].data)</span><br><span class="line">        	<span class="keyword">return</span> i;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;<span class="comment">//没找到</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">insertedge</span><span class="params">(ALGragh &amp;G,<span class="keyword">int</span> i,<span class="keyword">int</span> j)</span><span class="comment">//插入一条边</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    AdjNode *s;</span><br><span class="line">    s=<span class="keyword">new</span> AdjNode;</span><br><span class="line">    s-&gt;v=j;</span><br><span class="line">    s-&gt;next=G.Vex[i].first;</span><br><span class="line">    G.Vex[i].first=s;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">printg</span><span class="params">(ALGragh G)</span><span class="comment">//输出邻接表</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="built_in">cout</span>&lt;&lt;<span class="string">"----------邻接表如下：----------"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">   <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)</span><br><span class="line">   &#123;</span><br><span class="line">       AdjNode *t=G.Vex[i].first;</span><br><span class="line">       <span class="built_in">cout</span>&lt;&lt;G.Vex[i].data&lt;&lt;<span class="string">"：  "</span>;</span><br><span class="line">       <span class="keyword">while</span>(t!=<span class="literal">NULL</span>)</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="built_in">cout</span>&lt;&lt;<span class="string">"["</span>&lt;&lt;t-&gt;v&lt;&lt;<span class="string">"]  "</span>;</span><br><span class="line">           t=t-&gt;next;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CreateALGraph</span><span class="params">(ALGragh &amp;G)</span><span class="comment">//创建无向图邻接表</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i,j;</span><br><span class="line">    VexType u,v;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请输入顶点数和边数:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;G.vexnum&gt;&gt;G.edgenum;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请输入顶点信息:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//输入顶点信息，存入顶点信息数组</span></span><br><span class="line">		<span class="built_in">cin</span>&gt;&gt;G.Vex[i].data;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;G.vexnum;i++)</span><br><span class="line">        G.Vex[i].first=<span class="literal">NULL</span>;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请依次输入每条边的两个顶点u,v"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">while</span>(G.edgenum--)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cin</span>&gt;&gt;u&gt;&gt;v;</span><br><span class="line">        i=locatevex(G,u);<span class="comment">//查找顶点u的存储下标</span></span><br><span class="line">        j=locatevex(G,v);<span class="comment">//查找顶点v的存储下标</span></span><br><span class="line">        <span class="keyword">if</span>(i!=<span class="number">-1</span>&amp;&amp;j!=<span class="number">-1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            insertedge(G,i,j);</span><br><span class="line">            insertedge(G,j,i);<span class="comment">//无向图多插入一条边</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">			<span class="built_in">cout</span> &lt;&lt; <span class="string">"输入顶点信息错！请重新输入！"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">			G.edgenum++;<span class="comment">//本次输入不算</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">DFS_AL</span><span class="params">(ALGragh G,<span class="keyword">int</span> v)</span><span class="comment">//基于邻接表的深度优先遍历</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> w;</span><br><span class="line">    AdjNode *p;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;G.Vex[v].data&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">    visited[v]=<span class="literal">true</span>;</span><br><span class="line">    p=G.Vex[v].first;</span><br><span class="line">    <span class="keyword">while</span>(p)<span class="comment">//依次检查v的所有邻接点</span></span><br><span class="line">    &#123;</span><br><span class="line">		w=p-&gt;v;<span class="comment">//w为v的邻接点</span></span><br><span class="line">		<span class="keyword">if</span>(!visited[w])<span class="comment">//w未被访问</span></span><br><span class="line">       		DFS_AL(G,w);<span class="comment">//从w出发，递归深度优先遍历</span></span><br><span class="line">		p=p-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">DFS_AL</span><span class="params">(ALGragh G)</span><span class="comment">//非连通图，基于邻接表的深度优先遍历</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//非连通图需要查漏点，检查未被访问的顶点</span></span><br><span class="line">    	<span class="keyword">if</span>(!visited[i])<span class="comment">//i未被访问,以i为起点再次深度优先遍历</span></span><br><span class="line">       		DFS_AL(G,i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ALGragh G;</span><br><span class="line">    <span class="keyword">int</span> v;</span><br><span class="line">    VexType c;</span><br><span class="line">    CreateALGraph(G);<span class="comment">//创建有向图邻接表</span></span><br><span class="line">    printg(G);<span class="comment">//输出邻接表</span></span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入遍历连通图的起始点："</span>;</span><br><span class="line">	<span class="built_in">cin</span>&gt;&gt;c;</span><br><span class="line">	v=locatevex(G,c);<span class="comment">//查找顶点u的存储下标</span></span><br><span class="line">    <span class="keyword">if</span>(v!=<span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; <span class="string">"深度优先搜索遍历连通图结果："</span> &lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">        DFS_AL(G,v);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; <span class="string">"输入顶点信息错！请重新输入！"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>基于邻接矩阵的深度优先遍历。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MaxVnum 100  <span class="comment">//顶点数最大值</span></span></span><br><span class="line"><span class="keyword">bool</span> visited[MaxVnum];  <span class="comment">//访问标志数组，其初值为"false"</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">char</span> VexType;  <span class="comment">//顶点的数据类型，根据需要定义</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">int</span> EdgeType;  <span class="comment">//边上权值的数据类型，若不带权值的图，则为0或1</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>&#123;</span></span><br><span class="line">  VexType Vex[MaxVnum];</span><br><span class="line">  EdgeType Edge[MaxVnum][MaxVnum];</span><br><span class="line">  <span class="keyword">int</span> vexnum,edgenum; <span class="comment">//顶点数，边数</span></span><br><span class="line">&#125;AMGragh;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">locatevex</span><span class="params">(AMGragh G,VexType x)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//查找顶点信息的下标</span></span><br><span class="line">       <span class="keyword">if</span>(x==G.Vex[i])</span><br><span class="line">        <span class="keyword">return</span> i;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;<span class="comment">//没找到</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CreateAMGraph</span><span class="params">(AMGragh &amp;G)</span><span class="comment">//创建无向图的邻接矩阵</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i,j;</span><br><span class="line">    VexType u,v;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入顶点数："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;G.vexnum;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入边数:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;G.edgenum;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入顶点信息:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//输入顶点信息，存入顶点信息数组</span></span><br><span class="line">        <span class="built_in">cin</span>&gt;&gt;G.Vex[i];</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//初始化邻接矩阵所有值为0，如果是网，则初始化邻接矩阵为无穷大</span></span><br><span class="line">      <span class="keyword">for</span>(<span class="keyword">int</span> j=<span class="number">0</span>;j&lt;G.vexnum;j++)</span><br><span class="line">         G.Edge[i][j]=<span class="number">0</span>;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入每条边依附的两个顶点："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">while</span>(G.edgenum--)</span><br><span class="line">    &#123;</span><br><span class="line">       <span class="built_in">cin</span>&gt;&gt;u&gt;&gt;v;</span><br><span class="line">       i=locatevex(G,u);<span class="comment">//查找顶点u的存储下标</span></span><br><span class="line">       j=locatevex(G,v);<span class="comment">//查找顶点v的存储下标</span></span><br><span class="line">       <span class="keyword">if</span>(i!=<span class="number">-1</span>&amp;&amp;j!=<span class="number">-1</span>)</span><br><span class="line">         G.Edge[i][j]=G.Edge[j][i]=<span class="number">1</span>; <span class="comment">//邻接矩阵储置1，若有向图G.Edge[i][j]=1</span></span><br><span class="line">       <span class="keyword">else</span></span><br><span class="line">       &#123;</span><br><span class="line">           <span class="built_in">cout</span> &lt;&lt; <span class="string">"输入顶点信息错！请重新输入！"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">           G.edgenum++;<span class="comment">//本次输入不算</span></span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(AMGragh G)</span><span class="comment">//输出邻接矩阵</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"图的邻接矩阵为："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> j=<span class="number">0</span>;j&lt;G.vexnum;j++)</span><br><span class="line">        	<span class="built_in">cout</span>&lt;&lt;G.Edge[i][j]&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">DFS_AM</span><span class="params">(AMGragh G,<span class="keyword">int</span> v)</span><span class="comment">//基于邻接矩阵的深度优先遍历</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> w;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;G.Vex[v]&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">    visited[v]=<span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">for</span>(w=<span class="number">0</span>;w&lt;G.vexnum;w++)<span class="comment">//依次检查v的所有邻接点</span></span><br><span class="line">       <span class="keyword">if</span>(G.Edge[v][w]&amp;&amp;!visited[w])<span class="comment">//v、w邻接(G.Edge[v][w]为1)而且w未被访问</span></span><br><span class="line">          DFS_AM(G,w);<span class="comment">//从w顶点开始递归深度优先遍历</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> v;</span><br><span class="line">    VexType c;</span><br><span class="line">    AMGragh G;</span><br><span class="line">    CreateAMGraph(G);</span><br><span class="line">    <span class="built_in">print</span>(G);</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入遍历连通图的起始点："</span>;</span><br><span class="line">	<span class="built_in">cin</span>&gt;&gt;c;</span><br><span class="line">	v=locatevex(G,c);<span class="comment">//查找顶点u的存储下标</span></span><br><span class="line">    <span class="keyword">if</span>(v!=<span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; <span class="string">"深度优先搜索遍历连通图结果："</span> &lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">        DFS_AM(G,v);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; <span class="string">"输入顶点信息错！请重新输入！"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="算法分析"><a href="#算法分析" class="headerlink" title="算法分析"></a>算法分析</h3><p>1.<strong>基于邻接矩阵的DFS算法</strong></p>
+<p>查找每个顶点的邻接点需要<em>O</em>(<em>n</em>)时间，一共<em>n</em>个顶点，总的时间复杂度为$O(n^2)$，使用了一个递归工作栈，空间复杂度为<em>O</em>(<em>n</em>)。</p>
+<p>2.<strong>基于邻接表的DFS算法</strong></p>
+<p>查找顶点<em>vi</em>的邻接点需要<em>O</em>(<em>d</em>(<em>vi</em>))时间，<em>d</em>(<em>vi</em>)为<em>vi</em>的出度（无向图为度），对有向图而言，所有顶点的出度之和等于边数<em>e</em>，对无向图而言，所有顶点的度之和等于2e，因此查找邻接点的时间复杂度为$O(e)$，加上初始化时间$O(n)$，总的时间复杂度为$O(n+e)$，使用了一个递归工作栈，空间复杂度为$O(n)$。</p>
+<h2 id="BFS"><a href="#BFS" class="headerlink" title="BFS"></a>BFS</h2><p>广度优先搜索（Breadth First Search，BFS），又称为宽度优先搜索，是最常见的图搜索方法之一。广度优先搜索是从某个顶点（源点）出发，一次性访问所有未被访问的邻接点，再依次从这些访问过邻接点出发，…，似水中涟漪，似声音传播，一层层地传播开来。广度优先遍历是按照广度优先搜索的方式对图进行遍历。</p>
+<p><img src="/2020/08/30/BFSandDFS/7.png" style="zoom:80%;"></p>
+<p>记住： <strong>先被访问的顶点，其邻接点先被访问。</strong></p>
+<p>根据广度优先遍历秘籍，先来先服务，可以借助于队列实现。每个结点访问一次且只访问一次，因此可以设置一个辅助数组：</p>
+<p>visited[<em>i</em>]=false，表示第<em>i</em>个顶点未访问；</p>
+<p>visited[<em>i</em>]=true，表示第<em>i</em>个顶点已访问。</p>
+<p>1.初始化图中所有顶点未被访问，初始化一个空队列。</p>
+<p>2.从图中的某个顶点<em>v</em>出发，访问<em>v</em>并标记已访问，将<em>v</em>入队；</p>
+<p>3.如果队列非空，则继续执行，否则算法结束；</p>
+<p>4.队头元素<em>v</em>出队，依次访问<em>v</em>的所有未被访问邻接点，标记已访问并入队。转向步骤3；</p>
+<h3 id="代码一览-1"><a href="#代码一览-1" class="headerlink" title="代码一览"></a>代码一览</h3><p><strong>基于邻接表的广度优先遍历</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;queue&gt;//引入队列头文件</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> MaxVnum=<span class="number">100</span>;<span class="comment">//顶点数最大值</span></span><br><span class="line"><span class="keyword">bool</span> visited[MaxVnum];  <span class="comment">//访问标志数组，其初值为"false"</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">char</span> VexType;<span class="comment">//顶点的数据类型为字符型</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">AdjNode</span>&#123;</span> <span class="comment">//定义邻接点类型</span></span><br><span class="line">	<span class="keyword">int</span> v; <span class="comment">//邻接点下标</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">AdjNode</span> *<span class="title">next</span>;</span> <span class="comment">//指向下一个邻接点</span></span><br><span class="line">&#125;AdjNode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">VexNode</span>&#123;</span> <span class="comment">//定义顶点类型</span></span><br><span class="line">	VexType data; <span class="comment">// VexType为顶点的数据类型，根据需要定义</span></span><br><span class="line">	AdjNode *first; <span class="comment">//指向第一个邻接点</span></span><br><span class="line">&#125;VexNode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>&#123;</span><span class="comment">//定义邻接表类型</span></span><br><span class="line">    VexNode  Vex[MaxVnum];</span><br><span class="line">    <span class="keyword">int</span> vexnum,edgenum; <span class="comment">//顶点数，边数</span></span><br><span class="line">&#125;ALGragh;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">locatevex</span><span class="params">(ALGragh G,VexType x)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//查找顶点信息的下标</span></span><br><span class="line">		<span class="keyword">if</span>(x==G.Vex[i].data)</span><br><span class="line">			<span class="keyword">return</span> i;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;<span class="comment">//没找到</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">insertedge</span><span class="params">(ALGragh &amp;G,<span class="keyword">int</span> i,<span class="keyword">int</span> j)</span><span class="comment">//插入一条边</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    AdjNode *s;</span><br><span class="line">    s=<span class="keyword">new</span> AdjNode;</span><br><span class="line">    s-&gt;v=j;</span><br><span class="line">    s-&gt;next=G.Vex[i].first;</span><br><span class="line">    G.Vex[i].first=s;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">printg</span><span class="params">(ALGragh G)</span><span class="comment">//输出邻接表</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="built_in">cout</span>&lt;&lt;<span class="string">"----------邻接表如下：----------"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">   <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)</span><br><span class="line">   &#123;</span><br><span class="line">       AdjNode *t=G.Vex[i].first;</span><br><span class="line">       <span class="built_in">cout</span>&lt;&lt;G.Vex[i].data&lt;&lt;<span class="string">"：  "</span>;</span><br><span class="line">       <span class="keyword">while</span>(t!=<span class="literal">NULL</span>)</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="built_in">cout</span>&lt;&lt;<span class="string">"["</span>&lt;&lt;t-&gt;v&lt;&lt;<span class="string">"]  "</span>;</span><br><span class="line">           t=t-&gt;next;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CreateALGraph</span><span class="params">(ALGragh &amp;G)</span><span class="comment">//创建有向图邻接表</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i,j;</span><br><span class="line">    VexType u,v;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请输入顶点数和边数:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;G.vexnum&gt;&gt;G.edgenum;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入顶点信息:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//输入顶点信息，存入顶点信息数组</span></span><br><span class="line">        <span class="built_in">cin</span>&gt;&gt;G.Vex[i].data;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;G.vexnum;i++)</span><br><span class="line">        G.Vex[i].first=<span class="literal">NULL</span>;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请依次输入每条边的两个顶点u,v"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">while</span>(G.edgenum--)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cin</span>&gt;&gt;u&gt;&gt;v;</span><br><span class="line">        i=locatevex(G,u);<span class="comment">//查找顶点u的存储下标</span></span><br><span class="line">        j=locatevex(G,v);<span class="comment">//查找顶点v的存储下标</span></span><br><span class="line">        <span class="keyword">if</span>(i!=<span class="number">-1</span>&amp;&amp;j!=<span class="number">-1</span>)</span><br><span class="line">            insertedge(G,i,j);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">			<span class="built_in">cout</span> &lt;&lt; <span class="string">"输入顶点信息错！请重新输入！"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">			G.edgenum++;<span class="comment">//本次输入不算</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">BFS_AL</span><span class="params">(ALGragh G,<span class="keyword">int</span> v)</span><span class="comment">//基于邻接表的广度优先遍历</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> u,w;</span><br><span class="line">    AdjNode *p;</span><br><span class="line">    <span class="built_in">queue</span>&lt;<span class="keyword">int</span>&gt;Q; <span class="comment">//创建一个普通队列(先进先出)，里面存放int类型</span></span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;G.Vex[v].data&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">    visited[v]=<span class="literal">true</span>;</span><br><span class="line">    Q.push(v); <span class="comment">//源点v入队</span></span><br><span class="line">    <span class="keyword">while</span>(!Q.empty()) <span class="comment">//如果队列不空</span></span><br><span class="line">    &#123;</span><br><span class="line">        u=Q.front();<span class="comment">//取出队头元素赋值给u</span></span><br><span class="line">        Q.pop(); <span class="comment">//队头元素出队</span></span><br><span class="line">        p=G.Vex[u].first;</span><br><span class="line">        <span class="keyword">while</span>(p)<span class="comment">//依次检查u的所有邻接点</span></span><br><span class="line">        &#123;</span><br><span class="line">            w=p-&gt;v;<span class="comment">//w为u的邻接点</span></span><br><span class="line">            <span class="keyword">if</span>(!visited[w])<span class="comment">//w未被访问</span></span><br><span class="line">            &#123;</span><br><span class="line">            	<span class="built_in">cout</span>&lt;&lt;G.Vex[w].data&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">            	visited[w]=<span class="literal">true</span>;</span><br><span class="line">            	Q.push(w);</span><br><span class="line">            &#125;</span><br><span class="line">            p=p-&gt;next;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">BFS_AL</span><span class="params">(ALGragh G)</span><span class="comment">//非连通图，基于邻接表的广度优先遍历</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//非连通图需要查漏点，检查未被访问的顶点</span></span><br><span class="line">    	<span class="keyword">if</span>(!visited[i])<span class="comment">//i未被访问,以i为起点再次广度优先遍历</span></span><br><span class="line">       		BFS_AL(G,i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ALGragh G;</span><br><span class="line">    <span class="keyword">int</span> v;</span><br><span class="line">    VexType c;</span><br><span class="line">    CreateALGraph(G);<span class="comment">//创建有向图邻接表</span></span><br><span class="line">    printg(G);<span class="comment">//输出邻接表</span></span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请输入遍历连通图的起始点："</span>;</span><br><span class="line">	<span class="built_in">cin</span>&gt;&gt;c;</span><br><span class="line">	v=locatevex(G,c);<span class="comment">//查找顶点u的存储下标</span></span><br><span class="line">    <span class="keyword">if</span>(v!=<span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt;<span class="string">"广度优先搜索遍历连通图结果："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">        BFS_AL(G,v);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="string">"输入顶点信息错！请重新输入！"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>基于邻接矩阵的广度优先遍历</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;queue&gt;//引入队列头文件</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MaxVnum 100  <span class="comment">//顶点数最大值</span></span></span><br><span class="line"><span class="keyword">bool</span> visited[MaxVnum];  <span class="comment">//访问标志数组，其初值为"false"</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">char</span> VexType;  <span class="comment">//顶点的数据类型，根据需要定义</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">int</span> EdgeType;  <span class="comment">//边上权值的数据类型，若不带权值的图，则为0或1</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>&#123;</span></span><br><span class="line">	VexType Vex[MaxVnum];</span><br><span class="line">	EdgeType Edge[MaxVnum][MaxVnum];</span><br><span class="line">	<span class="keyword">int</span> vexnum,edgenum; <span class="comment">//顶点数，边数</span></span><br><span class="line">&#125;AMGragh;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">locatevex</span><span class="params">(AMGragh G,VexType x)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//查找顶点信息的下标</span></span><br><span class="line">		<span class="keyword">if</span>(x==G.Vex[i])</span><br><span class="line">       		<span class="keyword">return</span> i;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;<span class="comment">//没找到</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CreateAMGraph</span><span class="params">(AMGragh &amp;G)</span><span class="comment">//创建有向图的邻接矩阵</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i,j;</span><br><span class="line">    VexType u,v;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入顶点数："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;G.vexnum;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入边数:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;G.edgenum;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入顶点信息:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//输入顶点信息，存入顶点信息数组</span></span><br><span class="line">		<span class="built_in">cin</span>&gt;&gt;G.Vex[i];</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//初始化邻接矩阵所有值为0，如果是网，则初始化邻接矩阵为无穷大</span></span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> j=<span class="number">0</span>;j&lt;G.vexnum;j++)</span><br><span class="line">			G.Edge[i][j]=<span class="number">0</span>;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入每条边依附的两个顶点："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">while</span>(G.edgenum--)</span><br><span class="line">    &#123;</span><br><span class="line">       <span class="built_in">cin</span>&gt;&gt;u&gt;&gt;v;</span><br><span class="line">       i=locatevex(G,u);<span class="comment">//查找顶点u的存储下标</span></span><br><span class="line">       j=locatevex(G,v);<span class="comment">//查找顶点v的存储下标</span></span><br><span class="line">		<span class="keyword">if</span>(i!=<span class="number">-1</span>&amp;&amp;j!=<span class="number">-1</span>)</span><br><span class="line">			G.Edge[i][j]=<span class="number">1</span>; <span class="comment">//邻接矩阵储置1，若无向图G.Edge[i][j]=G.Edge[j][i]=1</span></span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">		&#123;</span><br><span class="line">			<span class="built_in">cout</span> &lt;&lt; <span class="string">"输入顶点信息错！请重新输入！"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">			G.edgenum++;<span class="comment">//本次输入不算</span></span><br><span class="line">		&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(AMGragh G)</span><span class="comment">//输出邻接矩阵</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"图的邻接矩阵为："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> j=<span class="number">0</span>;j&lt;G.vexnum;j++)</span><br><span class="line">			<span class="built_in">cout</span>&lt;&lt;G.Edge[i][j]&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">BFS_AM</span><span class="params">(AMGragh G,<span class="keyword">int</span> v)</span><span class="comment">//基于邻接矩阵的广度优先遍历</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> u,w;</span><br><span class="line">    <span class="built_in">queue</span>&lt;<span class="keyword">int</span>&gt;Q; <span class="comment">//创建一个普通队列(先进先出)，里面存放int类型</span></span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;G.Vex[v]&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">    visited[v]=<span class="literal">true</span>;</span><br><span class="line">    Q.push(v); <span class="comment">//源点v入队</span></span><br><span class="line">    <span class="keyword">while</span>(!Q.empty()) <span class="comment">//如果队列不空</span></span><br><span class="line">    &#123;</span><br><span class="line">        u=Q.front();<span class="comment">//取出队头元素赋值给u</span></span><br><span class="line">        Q.pop(); <span class="comment">//队头元素出队</span></span><br><span class="line">        <span class="keyword">for</span>(w=<span class="number">0</span>;w&lt;G.vexnum;w++)<span class="comment">//依次检查u的所有邻接点</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(G.Edge[u][w]&amp;&amp;!visited[w])<span class="comment">//u、w邻接而且w未被访问</span></span><br><span class="line">            &#123;</span><br><span class="line">               <span class="built_in">cout</span>&lt;&lt;G.Vex[w]&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">               visited[w]=<span class="literal">true</span>;</span><br><span class="line">               Q.push(w);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> v;</span><br><span class="line">    VexType c;</span><br><span class="line">    AMGragh G;</span><br><span class="line">    CreateAMGraph(G);</span><br><span class="line">    <span class="built_in">print</span>(G);</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入遍历连通图的起始点："</span>;</span><br><span class="line">	<span class="built_in">cin</span>&gt;&gt;c;</span><br><span class="line">	v=locatevex(G,c);<span class="comment">//查找顶点u的存储下标</span></span><br><span class="line">    <span class="keyword">if</span>(v!=<span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; <span class="string">"广度优先搜索遍历连通图结果："</span> &lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">        BFS_AM(G,v);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; <span class="string">"输入顶点信息错！请重新输入！"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="算法分析-1"><a href="#算法分析-1" class="headerlink" title="算法分析"></a>算法分析</h3><p>1.<strong>基于邻接矩阵的BFS算法</strong></p>
+<p>查找每个顶点的邻接点需要$O(n)$时间，一共$n$个顶点，总的时间复杂度为$O(n^2)$，使用了一个辅助队列，最坏的情况下每个顶点入队一次，空间复杂度为$O(n)$。</p>
+<p>2.<strong>基于邻接表的BFS算法</strong></p>
+<p>查找顶点<em>vi</em>的邻接点需要<em>O</em>(<em>d</em>(<em>vi</em>))时间，<em>d</em>(<em>vi</em>)为$v_i$的出度（无向图为度），对有向图而言，所有顶点的出度之和等于边数<em>e</em>，对无向图而言，所有顶点的度之和等于2<em>e</em>，因此查找邻接点的时间复杂度为<em>O</em>(<em>e</em>)，加上初始化时间$O(n)$，总的时间复杂度为$O(n+e)$，使用了一个辅助队列，最坏的情况下每个顶点入队一次，空间复杂度为$O(n)$。</p>
+<p>总而言之，只要是邻接矩阵，BFS、DFS都是 $O(n^2)$ ； 只要是邻接表，BFS、DFS 时间复杂度都是 $O(n)$</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Data-structure/" rel="tag"># Data_structure</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/29/%E6%9F%A5%E6%89%BE/" rel="prev" title="查找">
+      <i class="fa fa-chevron-left"></i> 查找
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/03/%E7%A6%BB%E6%95%A3%E6%95%B0%E5%AD%A6%E4%B9%8B%E9%9B%86%E5%90%88%E4%B8%8E%E5%87%BD%E6%95%B0/" rel="next" title="离散数学之集合与函数">
+      离散数学之集合与函数 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#BFSandDFS"><span class="nav-number">1.</span> <span class="nav-text">BFSandDFS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#DFS"><span class="nav-number">1.1.</span> <span class="nav-text">DFS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#代码一览"><span class="nav-number">1.1.1.</span> <span class="nav-text">代码一览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#算法分析"><span class="nav-number">1.1.2.</span> <span class="nav-text">算法分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BFS"><span class="nav-number">1.2.</span> <span class="nav-text">BFS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#代码一览-1"><span class="nav-number">1.2.1.</span> <span class="nav-text">代码一览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#算法分析-1"><span class="nav-number">1.2.2.</span> <span class="nav-text">算法分析</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="linux traffic controlTraffic Control 技术实现的基本原理就是 Queue（队列），通过在网络设备（包括：主机网卡、交换机、路由器等）的 Ingress 和 Egress 处使用一系列的 Queues 来对数据报文进行排队，继而控制它们的发送优先顺序和速率。同时，还可以针对不同的 Queues 施加相应的 Policy（策略），实现更灵活的功能特性。 首先，要使用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux_traffic_control">
+<meta property="og:url" content="https://jasonxqh.github.io/2023/11/07/linux-traffic-control/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="linux traffic controlTraffic Control 技术实现的基本原理就是 Queue（队列），通过在网络设备（包括：主机网卡、交换机、路由器等）的 Ingress 和 Egress 处使用一系列的 Queues 来对数据报文进行排队，继而控制它们的发送优先顺序和速率。同时，还可以针对不同的 Queues 施加相应的 Policy（策略），实现更灵活的功能特性。 首先，要使用">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2023/11/07/linux-traffic-control/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2023/11/07/linux-traffic-control/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2023/11/07/linux-traffic-control/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2023/11/07/linux-traffic-control/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2023/11/07/linux-traffic-control/5.png">
+<meta property="article:published_time" content="2023-11-07T12:02:23.000Z">
+<meta property="article:modified_time" content="2023-11-09T05:37:33.830Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2023/11/07/linux-traffic-control/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2023/11/07/linux-traffic-control/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>linux_traffic_control | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2023/11/07/linux-traffic-control/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          linux_traffic_control
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-11-07 20:02:23" itemprop="dateCreated datePublished" datetime="2023-11-07T20:02:23+08:00">2023-11-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-11-09 13:37:33" itemprop="dateModified" datetime="2023-11-09T13:37:33+08:00">2023-11-09</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="linux-traffic-control"><a href="#linux-traffic-control" class="headerlink" title="linux traffic control"></a>linux traffic control</h1><p>Traffic Control 技术实现的基本原理就是 Queue（队列），通过在网络设备（包括：主机网卡、交换机、路由器等）的 Ingress 和 Egress 处使用一系列的 Queues 来对数据报文进行排队，继而控制它们的发送优先顺序和速率。同时，还可以针对不同的 Queues 施加相应的 Policy（策略），实现更灵活的功能特性。</p>
+<p>首先，要使用tc指令，先要用<code>sudo apt-get install iproute2</code> 下载包</p>
+<h3 id="Add-constant-delay"><a href="#Add-constant-delay" class="headerlink" title="Add constant delay"></a>Add constant delay</h3><p>我们可以通过tc指令为ping增加延迟。</p>
+<p>首先我们可以通过<code>sudo lshw -C network | grep &#39;logical name&#39;</code> 来获得当前机器的网卡。</p>
+<p><img src="/2023/11/07/linux-traffic-control/1.png" style="zoom:67%;"></p>
+<p>首先我们来看没有增加延迟的时候，<code>ping baidu.com的结果</code></p>
+<p><img src="/2023/11/07/linux-traffic-control/2.png" style="zoom:67%;"></p>
+<p>然后我们通过指令增加延迟</p>
+<p><code>sudo tc qdisc add dev ens160 root netem delay 200ms</code></p>
+<p><img src="/2023/11/07/linux-traffic-control/3.png" style="zoom:67%;"></p>
+<p>此时可以用<code>sudo tc qdisc show dev ens160</code>来查看当前网卡的延时</p>
+<p><img src="/2023/11/07/linux-traffic-control/4.png" style="zoom:67%;"></p>
+<p>同样的，可以使用 <code>sudo tc qdisc del dev ens160 root</code> 来删除这个延时</p>
+<h3 id="Add-random-delay"><a href="#Add-random-delay" class="headerlink" title="Add random delay"></a>Add random delay</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">tc class add dev eth0 parent 1: classid 1:20 htb rate 8mibit</span><br><span class="line">tc class add dev eth0 parent 1: classid 1:30 htb rate 8mibit</span><br><span class="line"></span><br><span class="line">tc qdisc add dev eth0 parent 1:20 handle 20: sfq perturb 10</span><br><span class="line">tc qdisc add dev eth0 parent 1:30 handle 30: sfq perturb 10</span><br><span class="line"></span><br><span class="line">tc filter add dev eth0 parent 1: protocol ip prio 1 basic match &#39;cmp(u16 at 0 layer transport eq 1081)&#39; flowid 1:20</span><br><span class="line">tc filter add dev eth0 parent 1: protocol ip prio 1 basic match &#39;cmp(u16 at 0 layer transport eq 1082)&#39; flowid 1:30</span><br></pre></td></tr></table></figure>
+<h3 id="Add-packet-loss"><a href="#Add-packet-loss" class="headerlink" title="Add packet loss"></a>Add packet loss</h3><p>我们可以用<code>sudo tc qdisc add dev ens160 root netem loss 10%</code> 来设置一个丢包率</p>
+<p><img src="/2023/11/07/linux-traffic-control/5.png" style="zoom:67%;"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"># Define variables</span><br><span class="line">IP&#x3D;192.168.1.100&#x2F;32</span><br><span class="line">PORT&#x3D;8000</span><br><span class="line">INTERFACE&#x3D;eth0</span><br><span class="line">VIRTUAL_INTERFACE&#x3D;ifb0</span><br><span class="line"># Speed unit is Mbits&#x2F;s</span><br><span class="line">TUPLE_SPEED&#x3D;100</span><br><span class="line"></span><br><span class="line"># Add the virtual interface</span><br><span class="line">modprobe ifb numifbs&#x3D;1;</span><br><span class="line">ip link set dev &quot;$VIRTUAL_INTERFACE&quot; up;</span><br><span class="line"></span><br><span class="line"># Redirect ingress packets to egress virtual interface</span><br><span class="line">tc qdisc add dev &quot;$INTERFACE&quot; handle ffff: ingress</span><br><span class="line">tc filter add dev &quot;$INTERFACE&quot; parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev &quot;$VIRTUAL_INTERFACE&quot;;</span><br><span class="line"></span><br><span class="line"># Create root qdisc and class for the virtual interface</span><br><span class="line">tc qdisc add dev &quot;$VIRTUAL_INTERFACE&quot; root handle 1: htb;</span><br><span class="line">tc class add dev &quot;$VIRTUAL_INTERFACE&quot; parent 1: classid 1:10 htb rate &quot;$&#123;TUPLE_SPEED&#125;mbit&quot;;</span><br><span class="line"></span><br><span class="line"># Add a filter that match yor tuple </span><br><span class="line">tc filter add dev &quot;$VIRTUAL_INTERFACE&quot; protocol ip parent 1: prio 1 u32 match ip dst &quot;$&#123;IP&#125;&quot; match udp dst&quot;$&#123;PORT&#125;&quot; flowid 1:10;</span><br></pre></td></tr></table></figure>
+<h3 id="Set-bandwidth-limit"><a href="#Set-bandwidth-limit" class="headerlink" title="Set bandwidth limit"></a>Set bandwidth limit</h3>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/11/03/redis%E5%BA%94%E7%94%A8/" rel="prev" title="redis应用">
+      <i class="fa fa-chevron-left"></i> redis应用
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/11/17/%E5%8F%98%E8%89%B2%E9%BE%99%E5%93%88%E5%B8%8C-%E8%B0%83%E7%A0%94/" rel="next" title="变色龙哈希-调研">
+      变色龙哈希-调研 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#linux-traffic-control"><span class="nav-number">1.</span> <span class="nav-text">linux traffic control</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Add-constant-delay"><span class="nav-number">1.0.1.</span> <span class="nav-text">Add constant delay</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Add-random-delay"><span class="nav-number">1.0.2.</span> <span class="nav-text">Add random delay</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Add-packet-loss"><span class="nav-number">1.0.3.</span> <span class="nav-text">Add packet loss</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Set-bandwidth-limit"><span class="nav-number">1.0.4.</span> <span class="nav-text">Set bandwidth limit</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="拓扑排序​    —个无环的有向图称为有向无环图 (DirectedAcycline Graph, DAG)。$11$ ​    有向无环图是描述—个工程、 计划、 生产、 系统等流程的有效工具。 —个大工程可分为若干个子工程（活动）， 活动之间通常有—定的约束， 例如先做什么活动， 什么活动完成后才可以开始下—个活动。  ​    用顶点表示活动， 用弧表示活动之间的优先关系的有向图， 称为顶点">
+<meta property="og:type" content="article">
+<meta property="og:title" content="拓扑排序">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="拓扑排序​    —个无环的有向图称为有向无环图 (DirectedAcycline Graph, DAG)。$11$ ​    有向无环图是描述—个工程、 计划、 生产、 系统等流程的有效工具。 —个大工程可分为若干个子工程（活动）， 活动之间通常有—定的约束， 例如先做什么活动， 什么活动完成后才可以开始下—个活动。  ​    用顶点表示活动， 用弧表示活动之间的优先关系的有向图， 称为顶点">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/14.png">
+<meta property="article:published_time" content="2020-06-24T05:59:20.000Z">
+<meta property="article:modified_time" content="2020-06-24T09:11:46.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="Data_structure">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>拓扑排序 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          拓扑排序
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-06-24 13:59:20 / Modified: 17:11:46" itemprop="dateCreated datePublished" datetime="2020-06-24T13:59:20+08:00">2020-06-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%9B%BE/" itemprop="url" rel="index"><span itemprop="name">图</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="拓扑排序"><a href="#拓扑排序" class="headerlink" title="拓扑排序"></a>拓扑排序</h1><p>​    —个无环的有向图称为<strong>有向无环图</strong> (DirectedAcycline Graph, DAG)。$11$</p>
+<p>​    有向无环图是描述—个工程、 计划、 生产、 系统等流程的有效工具。 —个大工程可分为若干个子工程（活动）， 活动之间通常有—定的约束， 例如先做什么活动， 什么活动完成后才可以开始下—个活动。 </p>
+<p>​    用顶点表示活动， 用弧表示活动之间的优先关系的有向图， 称为顶点表示活动的网 (Activity On Vertex Network), 简称 AOV 网。 </p>
+<p>​    在 AOV 网中，若从顶点i 到顶点之间存在—条有向路径， 称顶点 i 是顶点 j 的前驱， 或者称顶点 j 是顶点 i 的后继。 若<i,j\>是图中的弧， 则称顶点i是顶点j 的互接前驱， 顶点 j 是顶点 i 的互接后驱。 </i,j\></p>
+<p>​    AOV网中的弧表示了活动之间存在的制约关系。 例如， 计算机专业的学生必须完成一系列规定的基础课和专业课才能毕业．学生按照怎样的顺序来学习这些课程呢？这个问题可以被看成是一个大的工程， 其活动就是学习每一门课程。这些课程的名称和代号如下表所示</p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/1.png" style="zoom:80%;"></p>
+<p>如果用顶点表示课程，弧表示先修关系，若课程i是课程j的先修课程，在用弧<i,j\> 表示，课程之间的关系如图</i,j\></p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/2.png" style="zoom:100%;"></p>
+<p>要想找什么课程先修，那就看有没有入度。入度为0即可输出。比如这里C0,C5都是可以先输出的</p>
+<p>C0一旦输出以后，C0的出度全部去掉。所以C1的入度从2变成了1……</p>
+<p><code>AOV</code>网中是不允许有环的，否则会出现自己是自己的前驱，陷入死循环。<strong>怎么判断<code>AOV</code>网中， 是否有环呢</strong>？一个检测的办法是对有向图的顶点进行拓扑排序。如果<code>AOV</code>网中所有的顶点都在拓扑序列中， 则<code>AOV</code>网中必定无环。因为有环的话，这个环中的每个顶点都是存在入度的  </p>
+<p><strong>拓扑排序</strong>是指将<code>AOV</code>网中的顶点排成一个<strong>线性序列</strong>，该序列必须满足： 若从顶点i到j有一条路径， 则该序列中顶点i一定在顶点j 之前</p>
+<p>如果进行拓扑排序呢? </p>
+<h3 id="基本思想"><a href="#基本思想" class="headerlink" title="基本思想"></a>基本思想</h3><p>1)     选择—个无前驱的顶点并输出</p>
+<p>2)    从图中删除该顶点和该顶点的所有发出边 </p>
+<p>3)    重复 1) 和 2), 直到不存在无前驱的顶点。 </p>
+<p>4)    如果输出的顶点数小于<code>AOV</code>网中的顶点数， 则说明网中有环，否则输出的序列即为拓扑序列。</p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/4.png" style="zoom:100%;"></p>
+<p>上述的描述过程中，有删除顶点和边的操作，实际上， 完全没必要真的删除顶点和边 。 可以将没有前驱的顶点 （入度为0) 暂存到栈中，输出时出栈即表示删除 。边的删除只需要将其邻接点的入度减一即可。 例如图中， 删除C0的所有发出边， 相当于将 C3, C2, C1 顶点的入度减去1, 如图 7-185 所示。 </p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/5.png" style="zoom: 67%;"></p>
+<h3 id="算法"><a href="#算法" class="headerlink" title="算法"></a>算法</h3><p>1)    求出各顶点的入度, 存入数组 indegree[]中，并将入度为0 的顶点入栈S。.,<br>2)    如果栈不空， 则重复执行以下操作</p>
+<ul>
+<li>栈顶元素i出栈，并保存到拓扑序列数组 topo[]中</li>
+<li>顶点i 的所有邻接点入度减1, 如果减1后入度为 0 , 立即入栈S.</li>
+</ul>
+<p>3)    如果输出的顶点数小千 AOV网中的顶点数，则说明网中有环，否则输出拓扑序列。</p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/6.png"></p>
+<p>因为经常要访问临界点，所以邻接表和链式前向星(静态邻接表)更好。 邻接表访问邻接点容易，计算入度难，因此为了计算顶点的入度，在创建邻接表的同时，再创建一个逆邻接表，根据逆邻接表计算各顶点的入度。</p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/7.png" style="zoom:67%;"></p>
+<h3 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h3><p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/8.png" style="zoom:110%;"></p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/9.png" style="zoom:120%;"></p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/10.png" style="zoom:120%;"></p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/11.png" style="zoom:120%;"></p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/12.png" style="zoom:120%;"></p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/13.png" style="zoom:120%;"></p>
+<p><img src="/2020/06/24/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/14.png" style="zoom:120%;"></p>
+<h3 id="算法分析"><a href="#算法分析" class="headerlink" title="算法分析"></a>算法分析</h3><p><strong>时间复杂度</strong>：求有向图中各顶点的入度需要遍历逆邻接表，算法的时间复杂度为O(e)。 度数为0的顶点入栈的时间复杂度为O(n), 若有向图无环，每个顶点出栈后其邻接点入度减1, 时间复杂度为O(e)。 总的时间复杂度为O(n+e)。 </p>
+<p><strong>空间复杂度</strong>：算法所需要的辅助空间包含入度数组indegree[]、拓扑序列数组 topo[] 、栈s, 则算法的空间复杂度是O(n)</p>
+<p>算法可视化 <a href="https://visualgo.net/zh/dfsbfs" target="_blank" rel="noopener">https://visualgo.net/zh/dfsbfs</a></p>
+<p><a href="https://www.cs.usfca.edu/~galles/visualization/TopoSortIndegree.html" target="_blank" rel="noopener">https://www.cs.usfca.edu/~galles/visualization/TopoSortIndegree.html</a></p>
+<h3 id="代码一览"><a href="#代码一览" class="headerlink" title="代码一览"></a>代码一览</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stack&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> MaxVnum=<span class="number">100</span>;<span class="comment">//顶点数最大值</span></span><br><span class="line"><span class="keyword">int</span> indegree[MaxVnum];<span class="comment">//入度数组</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="built_in">string</span> VexType;<span class="comment">//顶点的数据类型为字符串型</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">AdjNode</span>&#123;</span> <span class="comment">//定义邻接点类型</span></span><br><span class="line">	<span class="keyword">int</span> v; <span class="comment">//邻接点下标</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">AdjNode</span> *<span class="title">next</span>;</span> <span class="comment">//指向下一个邻接点</span></span><br><span class="line">&#125;AdjNode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">VexNode</span>&#123;</span> <span class="comment">//定义顶点类型</span></span><br><span class="line">	VexType data; <span class="comment">// VexType为顶点的数据类型，根据需要定义</span></span><br><span class="line">	AdjNode *first; <span class="comment">//指向第一个邻接点</span></span><br><span class="line">&#125;VexNode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>&#123;</span><span class="comment">//包含邻接表和逆邻接表</span></span><br><span class="line">    VexNode Vex[MaxVnum]; <span class="comment">//定义邻接表</span></span><br><span class="line">    VexNode converse_Vex[MaxVnum]; <span class="comment">//定义逆邻接表</span></span><br><span class="line">    <span class="keyword">int</span> vexnum,edgenum; <span class="comment">//顶点数，边数</span></span><br><span class="line">&#125;ALGragh;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">locatevex</span><span class="params">(ALGragh G,VexType x)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//查找顶点信息的下标</span></span><br><span class="line">       <span class="keyword">if</span>(x==G.Vex[i].data)</span><br><span class="line">        <span class="keyword">return</span> i;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;<span class="comment">//没找到</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">insertedge</span><span class="params">(ALGragh &amp;G,<span class="keyword">int</span> i,<span class="keyword">int</span> j)</span><span class="comment">//插入一条边</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    AdjNode *s1,*s2;</span><br><span class="line">    s1=<span class="keyword">new</span> AdjNode;<span class="comment">//创建邻接表结点</span></span><br><span class="line">    s1-&gt;v=j;</span><br><span class="line">    s1-&gt;next=G.Vex[i].first;</span><br><span class="line">    G.Vex[i].first=s1;</span><br><span class="line">    s2=<span class="keyword">new</span> AdjNode;<span class="comment">//创建逆邻接表结点</span></span><br><span class="line">    s2-&gt;v=i;</span><br><span class="line">    s2-&gt;next=G.converse_Vex[j].first;</span><br><span class="line">    G.converse_Vex[j].first=s2;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">printg</span><span class="params">(ALGragh G)</span><span class="comment">//输出邻接表</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="built_in">cout</span>&lt;&lt;<span class="string">"----------邻接表如下：----------"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">   <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)</span><br><span class="line">   &#123;</span><br><span class="line">       AdjNode *t=G.Vex[i].first;</span><br><span class="line">       <span class="built_in">cout</span>&lt;&lt;G.Vex[i].data&lt;&lt;<span class="string">"：  "</span>;</span><br><span class="line">       <span class="keyword">while</span>(t!=<span class="literal">NULL</span>)</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="built_in">cout</span>&lt;&lt;<span class="string">"["</span>&lt;&lt;t-&gt;v&lt;&lt;<span class="string">"]  "</span>;</span><br><span class="line">           t=t-&gt;next;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="built_in">cout</span>&lt;&lt;<span class="string">"----------逆邻接表如下：----------"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">   <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)</span><br><span class="line">   &#123;</span><br><span class="line">       AdjNode *t=G.converse_Vex[i].first;</span><br><span class="line">       <span class="built_in">cout</span>&lt;&lt;G.converse_Vex[i].data&lt;&lt;<span class="string">"：  "</span>;</span><br><span class="line">       <span class="keyword">while</span>(t!=<span class="literal">NULL</span>)</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="built_in">cout</span>&lt;&lt;<span class="string">"["</span>&lt;&lt;t-&gt;v&lt;&lt;<span class="string">"]  "</span>;</span><br><span class="line">           t=t-&gt;next;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CreateALGraph</span><span class="params">(ALGragh &amp;G)</span><span class="comment">//创建有向图的邻接表和逆邻接表</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i,j;</span><br><span class="line">    VexType u,v;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请输入顶点数和边数:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;G.vexnum&gt;&gt;G.edgenum;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">"请输入顶点信息:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//输入顶点信息，存入顶点信息数组</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cin</span>&gt;&gt;G.Vex[i].data;</span><br><span class="line">        G.converse_Vex[i].data=G.Vex[i].data;</span><br><span class="line">        G.Vex[i].first=<span class="literal">NULL</span>;</span><br><span class="line">        G.converse_Vex[i].first=<span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请依次输入每条边的两个顶点u,v"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">while</span>(G.edgenum--)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cin</span>&gt;&gt;u&gt;&gt;v;</span><br><span class="line">        i=locatevex(G,u);<span class="comment">//查找顶点u的存储下标</span></span><br><span class="line">        j=locatevex(G,v);<span class="comment">//查找顶点v的存储下标</span></span><br><span class="line">        <span class="keyword">if</span>(i!=<span class="number">-1</span>&amp;&amp;j!=<span class="number">-1</span>)</span><br><span class="line">            insertedge(G,i,j);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">           <span class="built_in">cout</span> &lt;&lt; <span class="string">"输入顶点信息错！请重新输入！"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">           G.edgenum++;<span class="comment">//本次输入不算</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FindInDegree</span><span class="params">(ALGragh G)</span><span class="comment">//求出各顶点的入度存入数组indegree中</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> i,count;</span><br><span class="line">	<span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;G.vexnum; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        count=<span class="number">0</span>;</span><br><span class="line">        AdjNode *p=G.converse_Vex[i].first;</span><br><span class="line">		<span class="keyword">if</span>(p)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">while</span>(p)</span><br><span class="line">			&#123;</span><br><span class="line">				p=p-&gt;next;</span><br><span class="line">				count++;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		indegree[i]=count;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"入度数组为："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//输出入度数组</span></span><br><span class="line">       <span class="built_in">cout</span>&lt;&lt;indegree[i]&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">TopologicalSort</span><span class="params">(ALGragh G, <span class="keyword">int</span> topo[])</span><span class="comment">//拓扑排序</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//有向图G采用邻接表存储结构</span></span><br><span class="line">    <span class="comment">//若G无回路，则生成G的一个拓扑序列topo[]并返回true，否则false</span></span><br><span class="line">	<span class="keyword">int</span> i,m;</span><br><span class="line">	<span class="built_in">stack</span>&lt;<span class="keyword">int</span>&gt;S;      <span class="comment">//初始化一个栈S，需要引入头文件#include&lt;stack&gt;</span></span><br><span class="line">    FindInDegree(G);  <span class="comment">//求出各顶点的入度存入数组indegree[]中</span></span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;G.vexnum;i++)</span><br><span class="line">		<span class="keyword">if</span>(!indegree[i])<span class="comment">//入度为0者进栈</span></span><br><span class="line">            S.push(i);</span><br><span class="line">	m=<span class="number">0</span>;            <span class="comment">//对输出顶点计数，初始为0</span></span><br><span class="line">	<span class="keyword">while</span>(!S.empty())<span class="comment">//栈S非空</span></span><br><span class="line">    &#123;</span><br><span class="line">		i=S.top();    <span class="comment">//取栈顶顶点i</span></span><br><span class="line">        S.pop();      <span class="comment">//栈顶顶点i出栈</span></span><br><span class="line">		topo[m]=i;    <span class="comment">//将i保存在拓扑序列数组topo中</span></span><br><span class="line">		m++;          <span class="comment">//对输出顶点计数</span></span><br><span class="line">		AdjNode *p=G.Vex[i].first;  <span class="comment">//p指向i的第一个邻接点</span></span><br><span class="line">		<span class="keyword">while</span>(p) <span class="comment">//i的所有邻接点入度减1</span></span><br><span class="line">        &#123;</span><br><span class="line">			<span class="keyword">int</span> k=p-&gt;v;			 <span class="comment">//k为i的邻接点</span></span><br><span class="line">			--indegree[k];       <span class="comment">//i的每个邻接点的入度减1</span></span><br><span class="line">			<span class="keyword">if</span>(indegree[k]==<span class="number">0</span>)  <span class="comment">//若入度减为0，则入栈</span></span><br><span class="line">			  S.push(k);</span><br><span class="line">			p=p-&gt;next;      <span class="comment">//p指向顶点i下一个邻接结点</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span>(m&lt;G.vexnum)<span class="comment">//该有向图有回路</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ALGragh G;</span><br><span class="line">    <span class="keyword">int</span> *topo=<span class="keyword">new</span> <span class="keyword">int</span>[G.vexnum];</span><br><span class="line">    CreateALGraph(G);<span class="comment">//创建有向图的邻接表和逆邻接表</span></span><br><span class="line">    printg(G);<span class="comment">//输出邻接表和逆邻接表</span></span><br><span class="line">    <span class="keyword">if</span>(TopologicalSort(G,topo))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="string">"拓扑序列为："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;G.vexnum;i++)<span class="comment">//输出拓扑序列</span></span><br><span class="line">            <span class="built_in">cout</span>&lt;&lt;topo[i]&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="string">"该图有环，无拓扑序列！"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="第二种算法"><a href="#第二种算法" class="headerlink" title="第二种算法"></a>第二种算法</h3><p>假设这是有向无环图。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stack&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> maxn=<span class="number">105</span>;</span><br><span class="line"><span class="keyword">int</span> <span class="built_in">map</span>[maxn][maxn],indegree[maxn],topo[maxn];<span class="comment">//利用了邻接矩阵</span></span><br><span class="line"><span class="keyword">int</span> n,m;</span><br><span class="line"><span class="built_in">stack</span>&lt;<span class="keyword">int</span>&gt;s;</span><br><span class="line"><span class="comment">//不接受字符串，只能整数</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">TopoSort</span><span class="params">()</span> <span class="comment">//拓扑排序</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> cnt=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;i++) <span class="comment">//入度为0的全部都入栈</span></span><br><span class="line">        <span class="keyword">if</span>(indegree[i]==<span class="number">0</span>)</span><br><span class="line">        	s.push(i);</span><br><span class="line">    <span class="keyword">while</span>(!s.empty())</span><br><span class="line">    &#123;</span><br><span class="line">		<span class="keyword">int</span> u=s.top(); <span class="comment">//取栈顶</span></span><br><span class="line">    	s.pop();	   <span class="comment">//出栈</span></span><br><span class="line">    	topo[++cnt]=u; <span class="comment">//然后把u存储到topo数组当中</span></span><br><span class="line">    	<span class="keyword">for</span>(<span class="keyword">int</span> j=<span class="number">1</span>;j&lt;=n;j++)<span class="comment">//访问所有u的邻接点</span></span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">map</span>[u][j])</span><br><span class="line">            	<span class="keyword">if</span>(--indegree[j]==<span class="number">0</span>)<span class="comment">//然后把临界点的入度减一</span></span><br><span class="line">        			s.push(j);	</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;n&gt;&gt;m;<span class="comment">//节点数和边数</span></span><br><span class="line">    <span class="built_in">memset</span>(<span class="built_in">map</span>,<span class="number">0</span>,<span class="keyword">sizeof</span>(<span class="built_in">map</span>));</span><br><span class="line">    <span class="built_in">memset</span>(indegree,<span class="number">0</span>,<span class="keyword">sizeof</span>(indegree));</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=m;i++)</span><br><span class="line">    &#123;</span><br><span class="line">    	<span class="keyword">int</span> u,v;</span><br><span class="line">    	<span class="keyword">while</span>(<span class="built_in">cin</span>&gt;&gt;u&gt;&gt;v)<span class="comment">//输入边</span></span><br><span class="line">    	&#123;</span><br><span class="line">    		<span class="built_in">map</span>[u][v]=<span class="number">1</span>;<span class="comment">//表示有一条u-&gt;v的边</span></span><br><span class="line">    		indegree[v]++;<span class="comment">//立即入度++</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	TopoSort();</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;n;i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;topo[i]&lt;&lt;<span class="string">" "</span>;</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;topo[n]&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Data-structure/" rel="tag"># Data_structure</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/21/%E5%9B%BE%E4%B8%8E%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95/" rel="prev" title="图与贪心算法">
+      <i class="fa fa-chevron-left"></i> 图与贪心算法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/26/PostgreSql%E5%9F%BA%E7%A1%80/" rel="next" title="PostgreSql基础">
+      PostgreSql基础 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#拓扑排序"><span class="nav-number">1.</span> <span class="nav-text">拓扑排序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本思想"><span class="nav-number">1.0.1.</span> <span class="nav-text">基本思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#算法"><span class="nav-number">1.0.2.</span> <span class="nav-text">算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#步骤"><span class="nav-number">1.0.3.</span> <span class="nav-text">步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#算法分析"><span class="nav-number">1.0.4.</span> <span class="nav-text">算法分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码一览"><span class="nav-number">1.0.5.</span> <span class="nav-text">代码一览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第二种算法"><span class="nav-number">1.0.6.</span> <span class="nav-text">第二种算法</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

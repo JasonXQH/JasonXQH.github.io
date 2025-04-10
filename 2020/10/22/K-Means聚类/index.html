@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="K-Means聚类首先我们要来看聚类(clustering) 和 分类(classification) 的区别： 参考博客： https:&#x2F;&#x2F;blog.csdn.net&#x2F;gdp12315_gu&#x2F;article&#x2F;details&#x2F;49777797 https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;1e7ddfddf14a 聚类：将物理或抽象对象的集合分成由类似的对象组成的多个类的过程被称为聚类。聚类">
+<meta property="og:type" content="article">
+<meta property="og:title" content="K-Means聚类">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="K-Means聚类首先我们要来看聚类(clustering) 和 分类(classification) 的区别： 参考博客： https:&#x2F;&#x2F;blog.csdn.net&#x2F;gdp12315_gu&#x2F;article&#x2F;details&#x2F;49777797 https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;1e7ddfddf14a 聚类：将物理或抽象对象的集合分成由类似的对象组成的多个类的过程被称为聚类。聚类">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/19.png">
+<meta property="article:published_time" content="2020-10-22T11:23:59.000Z">
+<meta property="article:modified_time" content="2020-10-22T14:30:34.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/2.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>K-Means聚类 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          K-Means聚类
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-10-22 19:23:59 / Modified: 22:30:34" itemprop="dateCreated datePublished" datetime="2020-10-22T19:23:59+08:00">2020-10-22</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="K-Means聚类"><a href="#K-Means聚类" class="headerlink" title="K-Means聚类"></a>K-Means聚类</h1><p>首先我们要来看聚类(clustering) 和 分类(classification) 的区别：</p>
+<p>参考博客： <a href="https://blog.csdn.net/gdp12315_gu/article/details/49777797" target="_blank" rel="noopener">https://blog.csdn.net/gdp12315_gu/article/details/49777797</a></p>
+<p><a href="https://www.jianshu.com/p/1e7ddfddf14a" target="_blank" rel="noopener">https://www.jianshu.com/p/1e7ddfddf14a</a></p>
+<h4 id="聚类："><a href="#聚类：" class="headerlink" title="聚类："></a>聚类：</h4><p><strong>将</strong>物理或抽象对象的<strong>集合分成</strong>由类似的对象组成的<strong>多个类</strong>的过程被称为聚类。聚类分析的一般做法是，先确定聚类统计量，然后利用统计量对样品或者变量进行聚类。对N个样品进行聚类的方法称为Q型聚类，常用的统计量称为“距离”；对于m个变量进行聚类的方法称为R型聚类，常用的统计量称为“相似系数”。       </p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Method name</th>
+<th>Parameters</th>
+<th>Scalability</th>
+<th>Use case</th>
+<th>Geometry (metric used)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://scikit-learn.org/stable/modules/clustering.html#k-means" target="_blank" rel="noopener">K-Means</a></td>
+<td>number of clusters</td>
+<td>Very large <code>n_samples</code>, medium <code>n_clusters</code> with <a href="https://scikit-learn.org/stable/modules/clustering.html#mini-batch-kmeans" target="_blank" rel="noopener">MiniBatch code</a></td>
+<td>General-purpose, even cluster size, flat geometry, not too many clusters</td>
+<td>Distances between points</td>
+</tr>
+<tr>
+<td><a href="https://scikit-learn.org/stable/modules/clustering.html#affinity-propagation" target="_blank" rel="noopener">Affinity propagation</a></td>
+<td>damping, sample preference</td>
+<td>Not scalable with n_samples</td>
+<td>Many clusters, uneven cluster size, non-flat geometry</td>
+<td>Graph distance (e.g. nearest-neighbor graph)</td>
+</tr>
+<tr>
+<td><a href="https://scikit-learn.org/stable/modules/clustering.html#mean-shift" target="_blank" rel="noopener">Mean-shift</a></td>
+<td>bandwidth</td>
+<td>Not scalable with <code>n_samples</code></td>
+<td>Many clusters, uneven cluster size, non-flat geometry</td>
+<td>Distances between points</td>
+</tr>
+<tr>
+<td><a href="https://scikit-learn.org/stable/modules/clustering.html#spectral-clustering" target="_blank" rel="noopener">Spectral clustering</a></td>
+<td>number of clusters</td>
+<td>Medium <code>n_samples</code>, small <code>n_clusters</code></td>
+<td>Few clusters, even cluster size, non-flat geometry</td>
+<td>Graph distance (e.g. nearest-neighbor graph)</td>
+</tr>
+<tr>
+<td><a href="https://scikit-learn.org/stable/modules/clustering.html#hierarchical-clustering" target="_blank" rel="noopener">Ward hierarchical clustering</a></td>
+<td>number of clusters or distance threshold</td>
+<td>Large <code>n_samples</code> and <code>n_clusters</code></td>
+<td>Many clusters, possibly connectivity constraints</td>
+<td>Distances between points</td>
+</tr>
+<tr>
+<td><a href="https://scikit-learn.org/stable/modules/clustering.html#hierarchical-clustering" target="_blank" rel="noopener">Agglomerative clustering</a></td>
+<td>number of clusters or distance threshold, linkage type, distance</td>
+<td>Large <code>n_samples</code> and <code>n_clusters</code></td>
+<td>Many clusters, possibly connectivity constraints, non Euclidean distances</td>
+<td>Any pairwise distance</td>
+</tr>
+<tr>
+<td><a href="https://scikit-learn.org/stable/modules/clustering.html#dbscan" target="_blank" rel="noopener">DBSCAN</a></td>
+<td>neighborhood size</td>
+<td>Very large <code>n_samples</code>, medium <code>n_clusters</code></td>
+<td>Non-flat geometry, uneven cluster sizes</td>
+<td>Distances between nearest points</td>
+</tr>
+<tr>
+<td><a href="https://scikit-learn.org/stable/modules/clustering.html#optics" target="_blank" rel="noopener">OPTICS</a></td>
+<td>minimum cluster membership</td>
+<td>Very large <code>n_samples</code>, large <code>n_clusters</code></td>
+<td>Non-flat geometry, uneven cluster sizes, variable cluster density</td>
+<td>Distances between points</td>
+</tr>
+<tr>
+<td><a href="https://scikit-learn.org/stable/modules/mixture.html#mixture" target="_blank" rel="noopener">Gaussian mixtures</a></td>
+<td>many</td>
+<td>Not scalable</td>
+<td>Flat geometry, good for density estimation</td>
+<td>Mahalanobis distances to  centers</td>
+</tr>
+<tr>
+<td><a href="https://scikit-learn.org/stable/modules/clustering.html#birch" target="_blank" rel="noopener">Birch</a></td>
+<td>branching factor, threshold, optional global clusterer.</td>
+<td>Large <code>n_clusters</code> and <code>n_samples</code></td>
+<td>Large dataset, outlier removal, data reduction.</td>
+<td>Euclidean distance between points</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="分类（Classification）："><a href="#分类（Classification）：" class="headerlink" title="分类（Classification）："></a>分类（Classification）：</h4><p>在已有分类标准下，对新数据进行划分，分类。</p>
+<h4 id="举例"><a href="#举例" class="headerlink" title="举例"></a>举例</h4><p>假设有一批人的年龄的数据，大致知道其中有一堆少年儿童，一堆青年人，一堆老年人。</p>
+<p><strong>聚类</strong>就是自动发现这三堆数据，并把相似的数据聚合到同一堆中。所以对于这个例子，如果要聚成3堆的话，那么输入就是一堆年龄数据，注意，此时的年龄数据并不带有类标号，也就是说我只知道里面大致有三堆人，至于谁是哪一堆，现在是不知道的，而输出就是每个数据所属的类标号，聚类完成之后，就知道谁和谁是一堆了。</p>
+<p><strong>分类</strong>就是，我事先告诉你，少年儿童、青年人及老年人的年龄是什么样的，现在新来了一个年龄，输出它的类标号，就是它是属于少年儿童、青年人、老年人的哪个类。一般来说，分类器是需要训练的，也就是要告诉你的算法，每个类的特征是什么样子，它才能识别新的数据。</p>
+<p> 刚才举的是一个超级简单的例子，方便大家理解。下面再举一个实际的例子。</p>
+<p>对于聚类，比如有些搜索引擎有“查看相似网页”的功能，这个就可以用聚类来做，把网页就行聚类，在聚类的结果中，每一个类中的网页看成是相似的。</p>
+<p>对于分类，比如手写识别就可以看到是分类问题，比如我写了10个“我”字，然后对这10个“我”字进行特征提取，就可以告诉算法，“我”字具有什么样的特征，于是来了一个新的“我”字，虽然笔画和之前的10个“我”字不完全一样，但是特征高度相似，于是就把这个手写的字分类到“我”这个类，就识别出来了。</p>
+<h2 id="K-Means-聚类算法"><a href="#K-Means-聚类算法" class="headerlink" title="K-Means 聚类算法"></a>K-Means 聚类算法</h2><p>对于这样一个二维数据集，我们可以对其进行 K-Means 聚类，结果就是原数据集被分成3类：</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/2.png" style="zoom:80%;"></p>
+<p>但是二维只是为了比较直观的展现K-Means 的功能，数据集可能是更高维度的，我们现在来看看K-Means 的内部逻辑</p>
+<ul>
+<li>选择我们想要的类的个数K；</li>
+<li>在平面上随机选择K个点，作为初始化类的中心点，不一定在原先数据当中；</li>
+<li>对于数据集中的每个点，要判断它属于我们之前K个中心点的哪一类。依据数据中的每个点对这K个点的距离的大小，找到最短的距离，那么就是每个数据点对应的类别，这一步可以称作是分配；</li>
+<li>重新计算一些新的中心点，就是应用之前分配的结果重新计算分配好的每个类当中的中心点；</li>
+<li><p>重新分配，如果重新分配的结果和之前分配的结果相同，则说明找到最佳的K-Means算法的结果，如果不同，那继续去第四步进行分配计算，直到找到最佳算法结果</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/3.png" style="zoom:80%;"></p>
+</li>
+</ul>
+<p>接下来我们具体拿一个例子来说明这些过程:</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/4.png" style="zoom:80%;"></p>
+<p>接下来我们要随机选择K=2 个点作为中心，并分别计算每个点距离这两个点的距离并进行分类。这里可以有个比较简单的计算方式，我们作出这两个点的垂直平分线，那么这个绿线上方的点都是离蓝色点比较近，下面的离红色比较近。</p>
+<p>经过第一次分类，我们得到的分类如下：</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/5.png" style="zoom:80%;"></p>
+<p>然后我们要计算一些新的中心点，也就是分配好的每个类当中的中心点。找到中心点之后我们又可以去重新分配数据。一直到重新分配的结果和未分配的结果相同时，完成聚类。</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/6.png" style="zoom:80%;"></p>
+<p>再次分类之后，我们得到：</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/7.png" style="zoom:80%;"></p>
+<p>对中心点进行更新：</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/8.png" style="zoom:80%;"></p>
+<p>对数据进行分配：</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/9.png" style="zoom:80%;"></p>
+<p>对中心点进行更新：</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/10.png" style="zoom:80%;"></p>
+<p>对数据进行分类，发现和之前的一样，说明聚类已经完成了：</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/11.png" style="zoom:80%;"></p>
+<h3 id="随机初始化陷阱"><a href="#随机初始化陷阱" class="headerlink" title="随机初始化陷阱"></a>随机初始化陷阱</h3><p>现在看看初始点的选择对最终K-Means聚类结果的影响。下面有一个例子，我们需要用K-Means算法对这组数据进行聚类，选择K=3。这里很明显有三类，我们这里就直接选择最佳的中心点并标记出这三类数据。</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/12.png" style="zoom:100%;"></p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/13.png" style="zoom:100%;"></p>
+<p>但是这里是我们肉眼看出来的三个中心点，但如果我们选择的不是最佳的中心点，则需要重复上述的45步，比如选的是下面这三个中心点。</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/14.png" style="zoom:100%;"></p>
+<p>这样得到的分类结果和之前那个显然是不同的。但这样就发生了同一组数据，却产生了两个不同的分类结果。区别就在于选择了不同的初始中心点。我们不好直接说哪一个分类算法更好，需要有一个方法来判断如何选择初始中心点。也就是说初始中心点不能随机进行选择了。现在有一个K-Means算法的更新版本，叫做K-Means++，它完美的解决了初始化中心点的陷阱，数学上来讲叫做局部最小值的一个陷阱。无论在R还是Python中，这个K-Means++都已经加入了算法当中，因此不用担心之后的代码实现会不会掉入这个陷阱。</p>
+<h2 id="代码："><a href="#代码：" class="headerlink" title="代码："></a>代码：</h2><h3 id="Selecting-The-Number-Of-Cluster"><a href="#Selecting-The-Number-Of-Cluster" class="headerlink" title="Selecting The Number Of Cluster"></a>Selecting The Number Of Cluster</h3><p>上文讲到的是选择中心点的陷阱，那么现在在谈谈如何选择类的个数。从直观上，上文中的图像大部分人应该很容易想到分为3组，也有的人可能想分为2组，但怎样选择才是最佳的分组方式是个需要好好研究的问题。首先来定义一个数学的量，组内平方和(WCSS)。</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/15.png" style="zoom:100%;"></p>
+<p>来看这个表达式，一共有3项，每一项代表对于每一组的平方和。比如第一项，就是对所有数据点对这一组中心点距离的平方。很显然，如果每一组的数据蜷缩的越紧，那么这个平方和就越小。</p>
+<p>那么如果将这组数据分为1组，那么这个组内平方和只有一项，那么这个结果很显然会很大。如果分为2组，那么结果比1组的肯定要小，当分为3组时，得到的结果会更小。也就是说，随着分组的个数增加，这个组内平方和会逐渐变小。那么现在的问题来了，如何选择最合适的分组的个数？</p>
+<p>这里要介绍一个法则，叫做手肘法则(The Elbow Method)。我们把随着分组个数的增加，WCSS的结果的图像画出来</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/16.png" style="zoom:100%;"></p>
+<p>找到最像手肘的这个点，这里就是3，那么这个点，就是最佳的分组的个数。这个曲线上可以看到，从1到2，和2到3时，下降的速率都是比较快的，但从3往后，下降的速率都是非常小的，那么我们要找的就是这样一个点，在到达这个点之前和从这个点开始的下降，速率的变化时最大的。</p>
+<h3 id="Clustering"><a href="#Clustering" class="headerlink" title="Clustering"></a>Clustering</h3><p>我们这次要用到的数据集部分如下，反映的是一个购物商场的购物信息。最后一列Spending Score是购物商场根据客户的信息打出的客户的评分，分数越低意味着客户花的钱越少，越高以为着客户花的越多。商场希望通过对客户的年收入和购物指数来进行分群</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/17.png" style="zoom:120%;"></p>
+<p>首先我们进行导库和导数据集</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line">dataset = pd.read_csv(<span class="string">'Mall_Customers.csv'</span>)</span><br><span class="line">X = dataset.iloc[:, [<span class="number">3</span>, <span class="number">4</span>]].values</span><br></pre></td></tr></table></figure>
+<h4 id="Using-the-elbow-method-to-find-the-optimal-number-of-clusters"><a href="#Using-the-elbow-method-to-find-the-optimal-number-of-clusters" class="headerlink" title="Using the elbow method to find the optimal number of clusters"></a>Using the elbow method to find the optimal number of clusters</h4><p>那么这个问题的自变量就是第四五列，年收入和购物指数。但它是个<strong>无监督学习</strong>，因此<strong>没有因变量</strong>。我们要将其最终分为几类。这里我们要用到的工具是<code>sklearn.cluster</code>中的<code>KMeans</code>类。首先要计算各个分组的WCSS。这里我们计算组数从1到10的情况。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.cluster <span class="keyword">import</span> KMeans</span><br><span class="line">wcss = []</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">11</span>):</span><br><span class="line">    kmeans = KMeans(n_clusters = i, init = <span class="string">'k-means++'</span>, random_state = <span class="number">42</span>)</span><br><span class="line">    kmeans.fit(X)</span><br><span class="line">    wcss.append(kmeans.inertia_)</span><br><span class="line">plt.plot(range(<span class="number">1</span>, <span class="number">11</span>), wcss)</span><br><span class="line">plt.title(<span class="string">'The Elbow Method'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Number of clusters'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'WCSS'</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p>这里的<code>KMeans</code>中的参数也解释下，<code>n_clusters</code>指的是分组数，<code>max_iter</code>指的是每一次计算时最大的循环个数，这里使用默认值300，<code>n_init</code>代表每一个做K平均算法时，会对多少组不同的中心值进行计算。<code>init</code>这个参数非常重要，指的是我们如何选择初始值，最简单的是<code>random</code>，即随机，但为了避免掉入随机初始值陷阱，这里使用<code>k-means++</code>。</p>
+<p>拟合好后得到组间距离就是<code>kmeans.inertia_</code>。这样我们就可以画出对于不同的分组数，<code>wcss</code>的图像。</p>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/18.png" style="zoom:120%;"></p>
+<p>那么通过手肘法则，可以得到最佳的分组个数是5组，则可以开始拟合数据。</p>
+<h4 id="Training-the-K-Means-model-on-the-dataset"><a href="#Training-the-K-Means-model-on-the-dataset" class="headerlink" title="Training the K-Means model on the dataset"></a>Training the K-Means model on the dataset</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kmeans = KMeans(n_clusters = <span class="number">5</span>, init = <span class="string">'k-means++'</span>, random_state = <span class="number">42</span>)</span><br><span class="line">y_kmeans = kmeans.fit_predict(X)</span><br></pre></td></tr></table></figure>
+<h4 id="Visualizing-the-clusters"><a href="#Visualizing-the-clusters" class="headerlink" title="Visualizing the clusters"></a>Visualizing the clusters</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">plt.scatter(X[y_kmeans == <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">            X[y_kmeans == <span class="number">0</span>, <span class="number">1</span>],</span><br><span class="line">            s = <span class="number">100</span>, </span><br><span class="line">            c = <span class="string">'red'</span>, </span><br><span class="line">            label = <span class="string">'Cluster 1'</span>)</span><br><span class="line">plt.scatter(X[y_kmeans == <span class="number">1</span>, <span class="number">0</span>], </span><br><span class="line">            X[y_kmeans == <span class="number">1</span>, <span class="number">1</span>],</span><br><span class="line">            s = <span class="number">100</span>,</span><br><span class="line">            c = <span class="string">'blue'</span>,</span><br><span class="line">            label = <span class="string">'Cluster 2'</span>)</span><br><span class="line">plt.scatter(X[y_kmeans == <span class="number">2</span>, <span class="number">0</span>],</span><br><span class="line">            X[y_kmeans == <span class="number">2</span>, <span class="number">1</span>],</span><br><span class="line">            s = <span class="number">100</span>, c = <span class="string">'green'</span>,</span><br><span class="line">            label = <span class="string">'Cluster 3'</span>)</span><br><span class="line">plt.scatter(X[y_kmeans == <span class="number">3</span>, <span class="number">0</span>],</span><br><span class="line">            X[y_kmeans == <span class="number">3</span>, <span class="number">1</span>], </span><br><span class="line">            s = <span class="number">100</span>, c = <span class="string">'cyan'</span>,</span><br><span class="line">            label = <span class="string">'Cluster 4'</span>)</span><br><span class="line">plt.scatter(X[y_kmeans == <span class="number">4</span>, <span class="number">0</span>],</span><br><span class="line">            X[y_kmeans == <span class="number">4</span>, <span class="number">1</span>],</span><br><span class="line">            s = <span class="number">100</span>, </span><br><span class="line">            c = <span class="string">'magenta'</span>,</span><br><span class="line">            label = <span class="string">'Cluster 5'</span>)</span><br><span class="line">plt.scatter(kmeans.cluster_centers_[:, <span class="number">0</span>],</span><br><span class="line">            kmeans.cluster_centers_[:, <span class="number">1</span>],</span><br><span class="line">            s = <span class="number">300</span>, </span><br><span class="line">            c = <span class="string">'yellow'</span>,</span><br><span class="line">            label = <span class="string">'Centroids'</span>)</span><br><span class="line">plt.title(<span class="string">'Clusters of customers'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Annual Income (k$)'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Spending Score (1-100)'</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/19.png" style="zoom:120%;"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/" rel="prev" title="决策树和随机森林分类器">
+      <i class="fa fa-chevron-left"></i> 决策树和随机森林分类器
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/25/Hierarchical-Clustering/" rel="next" title="Hierarchical_Clustering">
+      Hierarchical_Clustering <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#K-Means聚类"><span class="nav-number">1.</span> <span class="nav-text">K-Means聚类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#聚类："><span class="nav-number">1.0.0.1.</span> <span class="nav-text">聚类：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分类（Classification）："><span class="nav-number">1.0.0.2.</span> <span class="nav-text">分类（Classification）：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#举例"><span class="nav-number">1.0.0.3.</span> <span class="nav-text">举例</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#K-Means-聚类算法"><span class="nav-number">1.1.</span> <span class="nav-text">K-Means 聚类算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#随机初始化陷阱"><span class="nav-number">1.1.1.</span> <span class="nav-text">随机初始化陷阱</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代码："><span class="nav-number">1.2.</span> <span class="nav-text">代码：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Selecting-The-Number-Of-Cluster"><span class="nav-number">1.2.1.</span> <span class="nav-text">Selecting The Number Of Cluster</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Clustering"><span class="nav-number">1.2.2.</span> <span class="nav-text">Clustering</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Using-the-elbow-method-to-find-the-optimal-number-of-clusters"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">Using the elbow method to find the optimal number of clusters</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Training-the-K-Means-model-on-the-dataset"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">Training the K-Means model on the dataset</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Visualizing-the-clusters"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">Visualizing the clusters</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

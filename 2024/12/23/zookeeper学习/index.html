@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="zookeeper学习ZooKeeper 概述a. Znode（节点） Znode 是 ZooKeeper 中的数据单元，类似于文件系统中的文件或目录。 层级结构：ZooKeeper 使用类似于 UNIX 文件系统的层级结构来组织 Znode。每个 Znode 都有一个唯一的路径，例如 &#x2F;app&#x2F;config&#x2F;database。 节点类型： PERSISTENT（持久节点）：永久存在，除非被手动删">
+<meta property="og:type" content="article">
+<meta property="og:title" content="zookeeper学习">
+<meta property="og:url" content="https://jasonxqh.github.io/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="zookeeper学习ZooKeeper 概述a. Znode（节点） Znode 是 ZooKeeper 中的数据单元，类似于文件系统中的文件或目录。 层级结构：ZooKeeper 使用类似于 UNIX 文件系统的层级结构来组织 Znode。每个 Znode 都有一个唯一的路径，例如 &#x2F;app&#x2F;config&#x2F;database。 节点类型： PERSISTENT（持久节点）：永久存在，除非被手动删">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/4.png">
+<meta property="article:published_time" content="2024-12-23T06:22:39.000Z">
+<meta property="article:modified_time" content="2024-12-24T03:05:34.360Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="分布式系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/2.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>zookeeper学习 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          zookeeper学习
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-12-23 14:22:39" itemprop="dateCreated datePublished" datetime="2024-12-23T14:22:39+08:00">2024-12-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-12-24 11:05:34" itemprop="dateModified" datetime="2024-12-24T11:05:34+08:00">2024-12-24</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="zookeeper学习"><a href="#zookeeper学习" class="headerlink" title="zookeeper学习"></a>zookeeper学习</h1><h2 id="ZooKeeper-概述"><a href="#ZooKeeper-概述" class="headerlink" title="ZooKeeper 概述"></a><strong>ZooKeeper 概述</strong></h2><h3 id="a-Znode（节点）"><a href="#a-Znode（节点）" class="headerlink" title="a. Znode（节点）"></a>a. Znode（节点）</h3><ul>
+<li><strong>Znode</strong> 是 ZooKeeper 中的数据单元，类似于文件系统中的文件或目录。</li>
+<li><strong>层级结构</strong>：ZooKeeper 使用类似于 UNIX 文件系统的层级结构来组织 Znode。每个 Znode 都有一个唯一的路径，例如 <code>/app/config/database</code>。</li>
+<li>节点类型：<ul>
+<li><strong>PERSISTENT（持久节点）</strong>：永久存在，除非被手动删除。</li>
+<li><strong>EPHEMERAL（临时节点）</strong>：与客户端会话绑定，客户端断开连接后自动删除。</li>
+<li><strong>PERSISTENT_SEQUENTIAL（持久有序节点）</strong>：持久节点，Znode 名称后自动添加递增序号。</li>
+<li><strong>EPHEMERAL_SEQUENTIAL（临时有序节点）</strong>：临时节点，Znode 名称后自动添加递增序号。</li>
+</ul>
+</li>
+</ul>
+<p><strong>数据存储</strong>：</p>
+<ul>
+<li><strong>单一数据块</strong>：每个 <strong>Znode</strong> 可以存储一块数据，数据的大小在 <strong>Zookeeper</strong> 中有限制（默认最大为 <strong>1 MB</strong>，可以通过配置调整，但不建议存储大量数据）。</li>
+<li><strong>元数据</strong>：每个 <strong>Znode</strong> 除了存储数据外，还包含一些元数据，如版本号、ACL（访问控制列表）、创建时间等。</li>
+</ul>
+<h3 id="b-Watcher（观察者）"><a href="#b-Watcher（观察者）" class="headerlink" title="b. Watcher（观察者）"></a><strong>b. Watcher（观察者）</strong></h3><ul>
+<li><strong>功能</strong>：允许客户端为特定 <strong>Znode</strong> 注册 <strong>Watcher</strong>，当 <strong>Znode</strong> 的数据或子节点发生变化时，<strong>Watcher</strong> 会被触发，客户端可以即时感知到这些变化。</li>
+<li><strong>一次性</strong>：<strong>Watcher</strong> 是一次性的，触发后需要重新注册以持续监听。</li>
+</ul>
+<h3 id="c-会话与节点生命周期"><a href="#c-会话与节点生命周期" class="headerlink" title="c. 会话与节点生命周期"></a><strong>c. 会话与节点生命周期</strong></h3><ul>
+<li><strong>会话</strong>：客户端与 <strong>Zookeeper</strong> 之间的连接会话，有超时机制。如果客户端在会话超时时间内未能与 <strong>Zookeeper</strong> 通信，<strong>Zookeeper</strong> 会认为客户端失效，删除其所有 <strong>EPHEMERAL</strong> 节点。</li>
+<li><strong>节点生命周期</strong>：<strong>PERSISTENT</strong> 节点在创建后一直存在，除非被删除；<strong>EPHEMERAL</strong> 节点与会话绑定，随会话结束而自动删除。</li>
+</ul>
+<h3 id="d-ACL权限控制"><a href="#d-ACL权限控制" class="headerlink" title="d. ACL权限控制"></a>d. ACL权限控制</h3><p>Zookeeper 采⽤ ACL（Access Control Lists）策略来进⾏权限控制。定义了 五种权限：</p>
+<ul>
+<li>CREATE : 创建子节点的权限。</li>
+<li>READ : 获取节点数据和子节点列表的权限</li>
+<li>WRITE : 更新节点数据的权限</li>
+<li>DELETE : 删除子节点的权限</li>
+<li>ADMIN : 设置节点的 ACL 权限</li>
+</ul>
+<h2 id="Zookeeper-树形结构的设计原因"><a href="#Zookeeper-树形结构的设计原因" class="headerlink" title="Zookeeper 树形结构的设计原因"></a>Zookeeper 树形结构的设计原因</h2><h3 id="a-组织与管理"><a href="#a-组织与管理" class="headerlink" title="a. 组织与管理"></a><strong>a. 组织与管理</strong></h3><ul>
+<li><strong>层级化管理</strong>：树形结构使得数据能够以逻辑和有序的方式组织。例如，可以将所有配置相关的 Znode 放在 <code>/app/config</code> 下，将所有服务注册信息放在 <code>/app/services</code> 下。</li>
+<li><strong>模块化</strong>：不同模块或功能可以有各自的子树，便于模块化管理和维护。</li>
+<li><strong>命名空间隔离</strong>：通过层级路径，可以轻松实现不同应用或模块之间的数据隔离，避免命名冲突。</li>
+</ul>
+<h3 id="b-简化访问与导航"><a href="#b-简化访问与导航" class="headerlink" title="b. 简化访问与导航"></a><strong>b. 简化访问与导航</strong></h3><ul>
+<li><strong>路径导航</strong>：类似于文件系统，使用路径可以快速定位到特定的 Znode，简化了数据的访问和操作。</li>
+<li><strong>递归操作</strong>：树形结构支持递归创建、删除和遍历操作，使得批量操作更加方便。例如，<code>creatingParentsIfNeeded()</code> 方法可以自动创建所有必要的父节点。</li>
+</ul>
+<h3 id="c-支持-Watcher-机制"><a href="#c-支持-Watcher-机制" class="headerlink" title="c. 支持 Watcher 机制"></a><strong>c. 支持 Watcher 机制</strong></h3><ul>
+<li><strong>灵活的监听</strong>：客户端可以选择监听特定节点或整个子树的变化，提供了灵活的事件监听机制</li>
+<li><strong>事件传播</strong>：树形结构使得事件的传播和管理更加高效。例如，当父节点发生变化时，子节点的 Watcher 也可以相应地接收到通知，便于实现动态配置和服务发现。</li>
+<li><strong>事件隔离</strong>：通过层级路径，可以隔离不同模块或功能的事件，避免不必要的事件触发。</li>
+</ul>
+<h3 id="d-继承与权限管理"><a href="#d-继承与权限管理" class="headerlink" title="d. 继承与权限管理"></a><strong>d. 继承与权限管理</strong></h3><ul>
+<li><strong>继承机制</strong>：在树形结构中，子节点可以继承父节点的属性，如访问控制列表（ACL），简化了权限管理。</li>
+<li><strong>权限分层</strong>：通过层级路径，可以对不同层级的节点设置不同的权限，实现细粒度的访问控制。</li>
+</ul>
+<h2 id="实际应用中的树形结构优势"><a href="#实际应用中的树形结构优势" class="headerlink" title="实际应用中的树形结构优势"></a>实际应用中的树形结构优势</h2><h3 id="a-分布式配置管理"><a href="#a-分布式配置管理" class="headerlink" title="a. 分布式配置管理"></a><strong>a. 分布式配置管理</strong></h3><p>在微服务架构中，每个服务可能有不同的配置需求。通过树形路径，可以为每个服务或模块创建独立的配置节点。</p>
+<p><strong>示例路径</strong>：</p>
+<ul>
+<li><code>/config/serviceA/database</code>：服务 A 的数据库配置。</li>
+<li><code>/config/serviceB/cache</code>：服务 B 的缓存配置。</li>
+</ul>
+<h3 id="b-服务发现与注册"><a href="#b-服务发现与注册" class="headerlink" title="b. 服务发现与注册"></a><strong>b. 服务发现与注册</strong></h3><p>将每个服务实例注册到特定的路径下，便于服务的发现和负载均衡。</p>
+<p><strong>示例路径</strong>：</p>
+<ul>
+<li><code>/services/serviceA/instance1</code>：服务 A 的第一个实例。</li>
+<li><code>/services/serviceA/instance2</code>：服务 A 的第二个实例。</li>
+</ul>
+<h3 id="c-分布式锁"><a href="#c-分布式锁" class="headerlink" title="c. 分布式锁"></a><strong>c. 分布式锁</strong></h3><p>通过创建有序临时节点，实现公平的分布式锁机制。</p>
+<p><strong>示例路径</strong>：</p>
+<ul>
+<li><code>/locks/resource1</code>：资源 1 的锁节点。</li>
+</ul>
+<h3 id="d-Leader-选举"><a href="#d-Leader-选举" class="headerlink" title="d. Leader 选举"></a><strong>d. Leader 选举</strong></h3><p>在多实例应用中，通过有序临时节点选出一个 Leader 实例，负责协调任务或管理全局状态。</p>
+<p><strong>示例路径</strong>：</p>
+<ul>
+<li><code>/leader-election/serviceA</code>：服务 A 的 Leader 选举路径。</li>
+</ul>
+<h2 id="Zookeeper选主过程"><a href="#Zookeeper选主过程" class="headerlink" title="Zookeeper选主过程"></a>Zookeeper选主过程</h2><h3 id="1-1-选主的必要性"><a href="#1-1-选主的必要性" class="headerlink" title="1.1 选主的必要性"></a>1.1 选主的必要性</h3><p>在 Zookeeper 集群中，<strong>Leader</strong> 节点负责处理所有的写请求（如数据变更），并负责将这些变更同步到所有的 <strong>Follower</strong> 节点。为了确保系统的一致性和高可用性，当 Leader 节点出现故障或宕机时，集群需要迅速选举出新的 Leader，以维持服务的连续性。</p>
+<h3 id="1-2-选主的算法"><a href="#1-2-选主的算法" class="headerlink" title="1.2 选主的算法"></a>1.2 选主的算法</h3><p>Zookeeper 使用 <strong>ZAB（Zookeeper Atomic Broadcast）</strong> 协议来实现 Leader 选举和消息广播。ZAB 主要分为两个阶段：</p>
+<ol>
+<li><strong>选举阶段（Leader Election Phase）</strong></li>
+<li><strong>广播阶段（Broadcast Phase）</strong></li>
+</ol>
+<h4 id="1-2-1-选举阶段"><a href="#1-2-1-选举阶段" class="headerlink" title="1.2.1 选举阶段"></a>1.2.1 选举阶段</h4><p>选举过程遵循以下步骤：</p>
+<ol>
+<li><strong>初始化</strong>：<ul>
+<li>当 Zookeeper 集群启动时，所有节点都会尝试通过投票来选举 Leader。</li>
+<li>每个节点都会生成一个唯一的投票编号（zxid），用于区分不同的提议。</li>
+</ul>
+</li>
+<li><strong>投票流程</strong>：<ul>
+<li>每个节点首先向集群中的所有节点发送其自己的提议（包括自己的投票编号和当前状态）。</li>
+<li>每个节点接收到提议后，会根据以下规则决定是否接受该提议：<ul>
+<li><strong>如果提议的 zxid 大于当前已接受的 zxid</strong>，则接受该提议，并向提议者发送赞成票。</li>
+<li><strong>如果提议的 zxid 小于当前已接受的 zxid</strong>，则拒绝该提议。</li>
+<li><strong>如果提议的 zxid 等于当前已接受的 zxid</strong>，则根据节点的唯一标识符（如 IP 地址或端口号）决定接受或拒绝。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>达成共识</strong>：<ul>
+<li>一旦某个提议获得了超过半数节点的赞成票（即多数同意），该提议就被接受，并成为新的 Leader。</li>
+</ul>
+</li>
+<li><strong>故障恢复</strong>：<ul>
+<li>如果在一定时间内没有节点达成共识（例如网络分区或节点故障），集群会重新启动选举过程，直到新的 Leader 被选出。</li>
+</ul>
+</li>
+</ol>
+<h4 id="1-2-2-广播阶段"><a href="#1-2-2-广播阶段" class="headerlink" title="1.2.2 广播阶段"></a>1.2.2 广播阶段</h4><p>一旦 Leader 被选出，ZAB 进入广播阶段，负责在 Leader 和 Followers 之间同步数据变更。</p>
+<ol>
+<li><strong>数据同步</strong>：<ul>
+<li>Leader 负责将所有的写请求（如数据更新）广播给所有 Followers。</li>
+<li>Followers 接收到数据变更后，依次确认并应用这些变更。</li>
+</ul>
+</li>
+<li><strong>故障处理</strong>：<ul>
+<li>如果 Leader 在广播过程中发生故障，集群会重新进入选举阶段，选举出新的 Leader。</li>
+</ul>
+</li>
+</ol>
+<h3 id="1-3-选主过程中的一致性保证"><a href="#1-3-选主过程中的一致性保证" class="headerlink" title="1.3 选主过程中的一致性保证"></a>1.3 选主过程中的一致性保证</h3><p>Zookeeper 通过以下机制保证选主过程中的一致性：</p>
+<ul>
+<li><strong>顺序性</strong>：所有的投票和提议都是按顺序进行的，确保不会出现冲突。</li>
+<li><strong>多数原则</strong>：只有当提议获得了超过半数节点的赞成票时，才能被接受，防止脑裂（split-brain）问题。</li>
+<li><strong>Zxid（Zookeeper Transaction Id）</strong>：每个提议和数据变更都有唯一的 zxid，用于保证操作的顺序性和一致性。</li>
+</ul>
+<h2 id="一致性协议对比-ZAB-Raft-PBFT"><a href="#一致性协议对比-ZAB-Raft-PBFT" class="headerlink" title="一致性协议对比(ZAB,Raft,PBFT)"></a><strong>一致性协议</strong>对比(ZAB,Raft,PBFT)</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>ZAB</th>
+<th>Raft</th>
+<th>PBFT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>应用场景</strong></td>
+<td>专为 Zookeeper 设计</td>
+<td>通用分布式系统</td>
+<td>需要拜占庭容错的系统</td>
+</tr>
+<tr>
+<td><strong>选主机制</strong></td>
+<td>基于 ZAB，多数原则快速选举</td>
+<td>基于任期和投票，多轮投票过程</td>
+<td>基于轮询，多轮消息交换</td>
+</tr>
+<tr>
+<td><strong>一致性模型</strong></td>
+<td>原子广播，强一致性</td>
+<td>强一致性，线性一致性</td>
+<td>强一致性，拜占庭容错一致性</td>
+</tr>
+<tr>
+<td><strong>容错能力</strong></td>
+<td>Crash Fault Tolerance</td>
+<td>Crash Fault Tolerance</td>
+<td>Byzantine Fault Tolerance</td>
+</tr>
+<tr>
+<td><strong>通信复杂度</strong></td>
+<td>较低，针对性优化</td>
+<td>中等，日志复制需要</td>
+<td>高，通信复杂度 O(n²)</td>
+</tr>
+<tr>
+<td><strong>可理解性</strong></td>
+<td>中等，针对 Zookeeper 的专用设计</td>
+<td>高，设计理念清晰易懂</td>
+<td>低，协议复杂性高</td>
+</tr>
+<tr>
+<td><strong>性能与扩展性</strong></td>
+<td>优化小规模集群，高效同步</td>
+<td>可扩展至中等规模，Leader 瓶颈存在</td>
+<td>低，难以扩展到大规模集群</td>
+</tr>
+<tr>
+<td><strong>实现复杂性</strong></td>
+<td>中等，专用实现</td>
+<td>高，通用实现</td>
+<td>高，复杂实现</td>
+</tr>
+<tr>
+<td><strong>适用性</strong></td>
+<td>仅适用于 Zookeeper (读多写少、低延迟需求)</td>
+<td>适用于多种通用分布式系统</td>
+<td>适用于需要高安全性和容错性的场景(区块链等)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="Zookeeper-Leader的职责"><a href="#Zookeeper-Leader的职责" class="headerlink" title="Zookeeper Leader的职责"></a>Zookeeper Leader的职责</h2><p>Leader 节点在 Zookeeper 集群中承担以下主要职责：</p>
+<ol>
+<li><strong>处理所有的写请求</strong>：<ul>
+<li>所有客户端的写请求（如创建节点、删除节点、更新数据）都由 Leader 处理。</li>
+<li>Leader 接收到写请求后，会将这些请求转化为事务（Transaction），并通过<strong>ZAB 协议将事务日志</strong>同步到所有 Followers。</li>
+</ul>
+</li>
+<li><strong>事务日志管理</strong>：<ul>
+<li>Leader 维护事务日志（Transaction Log），记录所有的数据变更操作。</li>
+<li>事务日志用于在节点重启或故障恢复时，确保数据的一致性和持久性。</li>
+</ul>
+</li>
+<li><strong>数据同步</strong>：<ul>
+<li>Leader 负责将数据变更同步到所有 Followers，确保集群内的数据一致性。</li>
+<li>Leader 通过心跳机制（Heartbeat）定期向 Followers 发送心跳包，维持与 Followers 的连接。</li>
+</ul>
+</li>
+<li><strong>监控集群状态</strong>：<ul>
+<li>Leader 监控整个集群的健康状态，检测节点故障或网络问题。</li>
+<li>Leader 在检测到故障时，会触发相应的故障恢复机制，如重新选举 Leader 或调整数据同步策略。</li>
+</ul>
+</li>
+</ol>
+<h2 id="Zookeeper-的负载均衡机制"><a href="#Zookeeper-的负载均衡机制" class="headerlink" title="Zookeeper 的负载均衡机制"></a>Zookeeper 的负载均衡机制</h2><p>Zookeeper 集群的负载均衡主要体现在以下几个方面：</p>
+<h3 id="3-1-客户端连接的均衡"><a href="#3-1-客户端连接的均衡" class="headerlink" title="3.1 客户端连接的均衡"></a>3.1 客户端连接的均衡</h3><p>每个 Zookeeper 客户端（如应用服务器上的 Zookeeper 客户端库）会连接到集群中的一个特定 Zookeeper 节点。为了实现负载均衡，通常采取以下策略：</p>
+<ol>
+<li><strong>多节点连接配置</strong>：<ul>
+<li>在客户端配置中指定多个 Zookeeper 节点的地址（如 <code>zk1.example.com:2181, zk2.example.com:2181, zk3.example.com:2181</code>）。</li>
+<li>客户端库会自动选择一个可用的 Zookeeper 节点进行连接，通常是按顺序尝试，或者根据负载情况动态选择。</li>
+</ul>
+</li>
+<li><strong>随机连接策略</strong>：<ul>
+<li>客户端可以随机选择一个 Zookeeper 节点进行连接，避免所有客户端集中连接到同一个节点，均衡负载分布。</li>
+</ul>
+</li>
+<li><strong>智能连接管理</strong>：<ul>
+<li>客户端库会监控连接的节点状态，当当前连接的节点不可用时，自动切换到其他可用节点，确保高可用性和负载均衡。</li>
+</ul>
+</li>
+</ol>
+<h3 id="3-2-读写负载的分离"><a href="#3-2-读写负载的分离" class="headerlink" title="3.2 读写负载的分离"></a>3.2 读写负载的分离</h3><p>Zookeeper 的架构设计旨在将读操作和写操作分离，从而实现有效的负载均衡：</p>
+<ol>
+<li><strong>读操作由 Followers 处理</strong>：<ul>
+<li>大多数读请求（如获取节点数据、列出子节点等）可以由 Followers 直接处理，减少 Leader 的负载。</li>
+<li>Followers 可以独立处理读请求，不需要通过 Leader 转发，提高系统的整体吞吐量。</li>
+</ul>
+</li>
+<li><strong>写操作由 Leader 处理</strong>：<ul>
+<li>所有写请求必须由 Leader 处理，以保证数据的一致性和顺序性。</li>
+<li>虽然 Leader 负责写操作，但由于 Zookeeper 的高效设计，Leader 的负载通常不会成为瓶颈。</li>
+</ul>
+</li>
+</ol>
+<h3 id="3-3-数据同步和压缩优化"><a href="#3-3-数据同步和压缩优化" class="headerlink" title="3.3 数据同步和压缩优化"></a>3.3 数据同步和压缩优化</h3><p>为了优化负载和性能，Zookeeper 采用了一些数据同步和压缩的策略：</p>
+<ol>
+<li><strong>数据压缩（Data Compression）</strong>：<ul>
+<li>Zookeeper 支持对事务日志进行压缩，减少存储空间和网络传输负载。</li>
+<li>压缩后的事务日志可以更高效地同步到 Followers，减轻网络负担。</li>
+</ul>
+</li>
+<li><strong>快照机制（Snapshotting）</strong>：<ul>
+<li>定期对整个数据树进行快照（Snapshot），减少事务日志的数量和大小。</li>
+<li>在集群恢复或新节点加入时，可以通过快照快速恢复数据，提升系统的整体性能。</li>
+</ul>
+</li>
+</ol>
+<h3 id="3-4-集群规模和节点数量的优化"><a href="#3-4-集群规模和节点数量的优化" class="headerlink" title="3.4 集群规模和节点数量的优化"></a>3.4 集群规模和节点数量的优化</h3><p>为了实现负载均衡和高可用性，Zookeeper 集群的规模和节点数量需要合理配置：</p>
+<ol>
+<li><strong>奇数节点数</strong>：<ul>
+<li>集群通常配置为奇数个节点（如 3、5、7 个），以确保在部分节点故障时，仍能维持多数节点，保证 Leader 的选举和集群的可用性。</li>
+</ul>
+</li>
+<li><strong>合理的节点分布</strong>：<ul>
+<li>将 Zookeeper 节点分布在不同的物理或虚拟机上，避免单点故障和资源竞争。</li>
+<li>确保网络连接稳定，减少节点之间的通信延迟，提升数据同步效率。</li>
+</ul>
+</li>
+<li><strong>监控和调整</strong>：<ul>
+<li>通过监控工具（如 Prometheus、Grafana）实时监控集群的负载情况和性能指标。</li>
+<li>根据实际负载情况，动态调整集群规模，添加或移除节点，以优化负载均衡和性能。</li>
+</ul>
+</li>
+</ol>
+<h3 id="2-2-Leader-的高可用性"><a href="#2-2-Leader-的高可用性" class="headerlink" title="2.2 Leader 的高可用性"></a>2.2 Leader 的高可用性</h3><p>为了保证系统的高可用性，Zookeeper 集群通常部署为奇数个节点（如 3、5、7 个），以确保在半数以上节点正常工作时，Leader 能够被选举出来。这样，即使部分节点发生故障，集群仍能维持多数节点的可用性，继续提供服务。</p>
+<h3 id="2-3-Leader-的负载"><a href="#2-3-Leader-的负载" class="headerlink" title="2.3 Leader 的负载"></a>2.3 Leader 的负载</h3><p>尽管 Leader 主要负责写请求和数据同步，但它在正常运行时的负载相对可控。Zookeeper 的设计旨在使 Leader 节点不成为性能瓶颈：</p>
+<ul>
+<li><strong>高效的通信协议</strong>：ZAB 协议和 Zookeeper 的内部优化使得数据同步和事务处理高效快速。</li>
+<li><strong>轻量级操作</strong>：大多数读操作由 Followers 处理，Leader 只负责写操作和数据同步，减少了负载压力。</li>
+<li><strong>集群扩展</strong>：通过增加 Followers 节点，可以分担读请求的压力，间接减轻 Leader 的负载。</li>
+</ul>
+<h2 id><a href="#" class="headerlink" title=" "></a> </h2><h2 id="ZooKeeper-部署方案"><a href="#ZooKeeper-部署方案" class="headerlink" title="ZooKeeper 部署方案"></a>ZooKeeper 部署方案</h2><h3 id="部署一个集中式的-Zookeeper-集群"><a href="#部署一个集中式的-Zookeeper-集群" class="headerlink" title="部署一个集中式的 Zookeeper 集群"></a><strong>部署一个集中式的 Zookeeper 集群</strong></h3><p><strong>步骤如下：</strong></p>
+<ol>
+<li><p><strong>部署 Zookeeper 集群</strong>：</p>
+<ul>
+<li><strong>节点数量</strong>：建议使用 3 个或 5 个 Zookeeper 服务器节点，具体数量根据系统规模和高可用性需求决定。</li>
+<li><strong>独立服务器</strong>：将 Zookeeper 集群<strong>部署在专门的服务器或节点</strong>上，而不是应用服务器上，以避免资源竞争。</li>
+<li><strong>网络配置</strong>：确保所有 Zookeeper 节点之间以及应用服务器与 Zookeeper 集群之间的网络连接稳定且低延迟。</li>
+</ul>
+</li>
+<li><p><strong>配置应用服务器连接到 Zookeeper 集群</strong>：</p>
+<ul>
+<li><p><strong>客户端配置</strong>：在每台应用服务器上配置 Zookeeper 客户端，使其连接到整个 Zookeeper 集群，而不是单个节点。通常在配置中指定所有 Zookeeper 节点的地址，客户端会自动选择一个可用的节点进行连接。</p>
+</li>
+<li><p><strong>连接字符串示例</strong>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zookeeper.connect&#x3D;zk1.example.com:2181,zk2.example.com:2181,zk3.example.com:2181</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>故障切换</strong>：如果一个 Zookeeper 节点不可用，客户端会自动连接到其他可用节点，确保高可用性。</p>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="Zookeeper-集群中的配置变化通知机制"><a href="#Zookeeper-集群中的配置变化通知机制" class="headerlink" title="Zookeeper 集群中的配置变化通知机制"></a>Zookeeper 集群中的配置变化通知机制</h3><p>在实际部署中，所有应用实例将通过 Zookeeper 客户端连接到同一个 Zookeeper 集群。当某个配置节点发生变化时，Zookeeper 会通过其集群机制确保所有客户端（即所有应用实例）都能及时接收到配置变化的通知。这就是Zookeeper的Watcher机制，用于监听节点的变化。</p>
+<p>具体流程如下：</p>
+<ol>
+<li><strong>配置节点变化</strong>：<ul>
+<li>当某个配置节点（如 <code>/big-market-dcc/config/degradeSwitch</code>）在 Zookeeper 集群中发生变化时，所有连接到集群的客户端会收到相应的通知。</li>
+</ul>
+</li>
+<li><strong>通知分发</strong>：<ul>
+<li>Zookeeper 集群内部通过一致性协议确保所有节点上的数据一致，并通过网络将变化通知给所有订阅了该节点的客户端。</li>
+<li>每个应用服务器上其 连接到集群的 Zookeeper 客户端接收到通知，并根据监听器逻辑更新相应属性。</li>
+</ul>
+</li>
+</ol>
+<p><strong>示意图</strong></p>
+<p><img src="/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/2.png" style="zoom:80%;"></p>
+<ul>
+<li><strong>Zookeeper 集群</strong>：3 个 Zookeeper 节点组成一个集群，确保高可用性和数据一致性。</li>
+<li><strong>应用服务器</strong>：多个应用服务器通过 Zookeeper 客户端连接到 Zookeeper 集群，监听配置节点的变化。</li>
+</ul>
+<h3 id="实现步骤总结"><a href="#实现步骤总结" class="headerlink" title="实现步骤总结"></a>实现步骤总结</h3><ol>
+<li><strong>部署 Zookeeper 集群</strong>：<ul>
+<li>在独立的服务器上部署多个 Zookeeper 实例，形成一个集群（ensemble）。</li>
+<li>配置 <code>zoo.cfg</code> 文件，确保集群中各节点的正确通信和选举。</li>
+</ul>
+</li>
+<li><strong>配置应用服务器连接</strong>：<ul>
+<li>在每台应用服务器上，配置 Zookeeper 客户端连接到整个 Zookeeper 集群。</li>
+<li>确保应用服务器能够访问所有 Zookeeper 节点的地址和端口。</li>
+</ul>
+</li>
+<li><strong>实现动态配置监听</strong>：<ul>
+<li>您现有的 <code>DCCValueBeanFactory</code> 类通过 Zookeeper 客户端监听配置节点的变化。</li>
+<li>当配置节点变化时，所有应用服务器上的监听器都会收到通知，并相应地更新 Bean 的属性值。</li>
+</ul>
+</li>
+<li><strong>确保配置同步</strong>：<ul>
+<li>使用集中式 Zookeeper 集群，确保所有应用服务器共享相同的配置数据源，保证配置的一致性和同步性。</li>
+</ul>
+</li>
+</ol>
+<h2 id="在项目中使用Zookeeper"><a href="#在项目中使用Zookeeper" class="headerlink" title="在项目中使用Zookeeper"></a>在项目中使用Zookeeper</h2><h3 id="引入zookeeper"><a href="#引入zookeeper" class="headerlink" title="引入zookeeper"></a>引入zookeeper</h3><p>根pom文件，引入zookeeper包</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-zookeeper-discovery<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.1.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="单实例部署"><a href="#单实例部署" class="headerlink" title="单实例部署"></a>单实例部署</h3><ol>
+<li><code>docker-compose</code>文件，拉取zookeeper镜像</li>
+</ol>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zookeeper:</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">zookeeper:3.9.0</span></span><br><span class="line">  <span class="attr">container_name:</span> <span class="string">zookeeper</span></span><br><span class="line">  <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">  <span class="attr">hostname:</span> <span class="string">zoo1</span> </span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="number">2181</span><span class="string">:2181</span> <span class="comment"># 客户端连接端口</span></span><br><span class="line">  <span class="attr">environment:</span></span><br><span class="line">    <span class="attr">ZOO_MY_ID:</span> <span class="number">1</span></span><br><span class="line">    <span class="attr">ZOO_SERVERS:</span> <span class="string">server.1=zookeeper:2888:3888;2181</span></span><br><span class="line">  <span class="attr">networks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">my-network</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li><code>application-dev.yml</code>中引入zookeeper配置</li>
+</ol>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zookeeper:</span></span><br><span class="line">  <span class="attr">sdk:</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">connect-string:</span> <span class="number">192.168</span><span class="number">.1</span><span class="number">.108</span><span class="string">:2181</span></span><br><span class="line">      <span class="attr">base-sleep-time-ms:</span> <span class="number">1000</span></span><br><span class="line">      <span class="attr">max-retries:</span> <span class="number">3</span></span><br><span class="line">      <span class="attr">session-timeout-ms:</span> <span class="number">18000</span></span><br><span class="line">      <span class="attr">connection-timeout-ms:</span> <span class="number">30000</span></span><br></pre></td></tr></table></figure>
+<h3 id="多实例部署"><a href="#多实例部署" class="headerlink" title="多实例部署"></a>多实例部署</h3><p><code>Docker-compose.yml</code></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 多实例</span></span><br><span class="line">  <span class="attr">zookeeper1:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">zookeeper:3.9.0</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zookeeper1</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">zoo1</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">2181</span><span class="string">:2181</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="comment"># 当前容器在集群中的 ID</span></span><br><span class="line">      <span class="attr">ZOO_MY_ID:</span> <span class="number">1</span></span><br><span class="line">      <span class="comment"># 配置集群内所有 Zookeeper 实例的地址</span></span><br><span class="line">      <span class="comment"># 格式：server.id=hostname:2888:3888;&lt;clientPort&gt;</span></span><br><span class="line">      <span class="attr">ZOO_SERVERS:</span> <span class="string">&gt;</span></span><br><span class="line">        <span class="string">server.1=zoo1:2888:3888;2181</span></span><br><span class="line">        <span class="string">server.2=zoo2:2888:3888;2181</span></span><br><span class="line">        <span class="string">server.3=zoo3:2888:3888;2181</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">my-network</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">zookeeper2:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">zookeeper:3.9.0</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zookeeper2</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">zoo2</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">2182</span><span class="string">:2181</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="attr">ZOO_MY_ID:</span> <span class="number">2</span></span><br><span class="line">      <span class="attr">ZOO_SERVERS:</span> <span class="string">&gt;</span></span><br><span class="line">        <span class="string">server.1=zoo1:2888:3888;2181</span></span><br><span class="line">        <span class="string">server.2=zoo2:2888:3888;2181</span></span><br><span class="line">        <span class="string">server.3=zoo3:2888:3888;2181</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">my-network</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">zookeeper3:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">zookeeper:3.9.0</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zookeeper3</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">zoo3</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">2183</span><span class="string">:2181</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="attr">ZOO_MY_ID:</span> <span class="number">3</span></span><br><span class="line">      <span class="attr">ZOO_SERVERS:</span> <span class="string">&gt;</span></span><br><span class="line">        <span class="string">server.1=zoo1:2888:3888;2181</span></span><br><span class="line">        <span class="string">server.2=zoo2:2888:3888;2181</span></span><br><span class="line">        <span class="string">server.3=zoo3:2888:3888;2181</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">my-network</span></span><br><span class="line">      </span><br><span class="line"><span class="comment"># 多实例</span></span><br><span class="line">  <span class="attr">zoonavigator:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">elkozmon/zoonavigator:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zoonavigator</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">9020</span><span class="string">:9000</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">my-network</span></span><br><span class="line">    <span class="attr">depends_on:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">zookeeper1</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">zookeeper2</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">zookeeper3</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="comment"># 这里指定 ZooNavigator 默认连接的 Zookeeper 地址（可用逗号分隔多个）</span></span><br><span class="line">      <span class="attr">ZK_HOSTS:</span> <span class="string">"zoo1:2181,zoo2:2181,zoo3:2181"</span></span><br></pre></td></tr></table></figure>
+<p><code>application-dev.yml</code>中引入zookeeper配置</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zookeeper:</span></span><br><span class="line">  <span class="attr">sdk:</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">connect-string:</span> <span class="string">"localhost:2181,localhost:2182,localhost:2183"</span> </span><br><span class="line">      <span class="attr">base-sleep-time-ms:</span> <span class="number">1000</span></span><br><span class="line">      <span class="attr">max-retries:</span> <span class="number">3</span></span><br><span class="line">      <span class="attr">session-timeout-ms:</span> <span class="number">60000</span></span><br><span class="line">      <span class="attr">connection-timeout-ms:</span> <span class="number">15000</span></span><br></pre></td></tr></table></figure>
+<p>启动之后，通过<code>echo srvr | nc localhost 2182</code> 命令，可以查看zoo2的信息：<br><img src="/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/3.png" style="zoom:80%;"></p>
+<h3 id="ZookeeperClientConfigProperties-类"><a href="#ZookeeperClientConfigProperties-类" class="headerlink" title="ZookeeperClientConfigProperties 类"></a><strong><code>ZookeeperClientConfigProperties</code> 类</strong></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> io.github.jasonxqh.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> lombok.Data;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.context.properties.ConfigurationProperties;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@ConfigurationProperties</span>(prefix = <span class="string">"zookeeper.sdk.config"</span>, ignoreInvalidFields = <span class="keyword">true</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZookeeperClientConfigProperties</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String connectString;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> baseSleepTimeMs;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> maxRetries;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> sessionTimeoutMs;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> connectionTimeoutMs;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><strong><code>@ConfigurationProperties(prefix = &quot;zookeeper.sdk.config&quot;, ignoreInvalidFields = true)</code></strong>：</p>
+<ul>
+<li>这是 <strong>Spring Boot</strong> 的注解，用于将配置文件中的属性映射到这个类的字段。</li>
+<li><strong><code>prefix</code></strong>：指定前缀为 <code>zookeeper.sdk.config</code>，意味着配置文件中所有以这个前缀开头的属性都会映射到这个类中。</li>
+<li><strong><code>ignoreInvalidFields = true</code></strong>：如果配置文件中有无法映射的字段，Spring 会忽略它们，不会抛出异常。</li>
+</ul>
+</li>
+<li><p><strong><code>connectString</code></strong>：</p>
+<ul>
+<li><strong>描述</strong>：Zookeeper 集群的连接字符串，格式通常为 <code>host1:port1,host2:port2,host3:port3</code>。</li>
+<li><strong>示例</strong>：<code>localhost:2181</code> 或 <code>192.168.1.100:2181,192.168.1.101:2181</code></li>
+</ul>
+</li>
+<li><strong><code>baseSleepTimeMs</code></strong>：<ul>
+<li><strong>描述</strong>：重试连接时初始的等待时间，单位为毫秒。</li>
+<li><strong>作用</strong>：在连接失败后，Curator 会按照指数退避算法重试连接，<code>baseSleepTimeMs</code> 是初始等待时间。</li>
+</ul>
+</li>
+<li><strong><code>maxRetries</code></strong>：<ul>
+<li><strong>描述</strong>：最大重试次数。</li>
+<li><strong>作用</strong>：在连接失败后，Curator 会尝试重试，<code>maxRetries</code> 限制了重试的次数。</li>
+</ul>
+</li>
+<li><strong><code>sessionTimeoutMs</code></strong>：<ul>
+<li><strong>描述</strong>：Zookeeper 会话超时时间，单位为毫秒。</li>
+<li><strong>作用</strong>：如果客户端在这个时间内没有与 Zookeeper 服务器通信，服务器会认为客户端失效，并关闭会话。</li>
+</ul>
+</li>
+<li><strong><code>connectionTimeoutMs</code></strong>：<ul>
+<li><strong>描述</strong>：连接超时时间，单位为毫秒。</li>
+<li><strong>作用</strong>：客户端在建立与 Zookeeper 服务器的连接时，如果超过这个时间还未连接成功，则会抛出异常。</li>
+</ul>
+</li>
+</ul>
+<h3 id="ZooKeeperClientConfig-类"><a href="#ZooKeeperClientConfig-类" class="headerlink" title="ZooKeeperClientConfig 类"></a><strong><code>ZooKeeperClientConfig</code> 类</strong></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> io.github.jasonxqh.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.curator.framework.CuratorFramework;</span><br><span class="line"><span class="keyword">import</span> org.apache.curator.framework.CuratorFrameworkFactory;</span><br><span class="line"><span class="keyword">import</span> org.apache.curator.retry.ExponentialBackoffRetry;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.context.properties.EnableConfigurationProperties;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableConfigurationProperties</span>(ZookeeperClientConfigProperties<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">class</span> <span class="title">ZooKeeperClientConfig</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 多参数构建ZooKeeper客户端连接</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> client</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean</span>(name = <span class="string">"zookeeperClient"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> CuratorFramework <span class="title">createWithOptions</span><span class="params">(ZookeeperClientConfigProperties properties)</span> </span>&#123;</span><br><span class="line">        ExponentialBackoffRetry backoffRetry = <span class="keyword">new</span> ExponentialBackoffRetry(properties.getBaseSleepTimeMs(), properties.getMaxRetries());</span><br><span class="line">        CuratorFramework client = CuratorFrameworkFactory.builder()</span><br><span class="line">                .connectString(properties.getConnectString())</span><br><span class="line">                .retryPolicy(backoffRetry)</span><br><span class="line">                .sessionTimeoutMs(properties.getSessionTimeoutMs())</span><br><span class="line">                .connectionTimeoutMs(properties.getConnectionTimeoutMs())</span><br><span class="line">                .build();</span><br><span class="line">        client.start();</span><br><span class="line">        <span class="keyword">return</span> client;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="功能与作用"><a href="#功能与作用" class="headerlink" title="功能与作用"></a><strong>功能与作用</strong></h4><ul>
+<li><strong><code>@EnableConfigurationProperties(ZookeeperClientConfigProperties.class)</code></strong>：<ul>
+<li>启用 <strong><code>ZookeeperClientConfigProperties</code></strong> 类的配置属性绑定，确保 <strong>Spring</strong> 能够将配置文件中的属性正确映射到这个类中。</li>
+</ul>
+</li>
+<li><strong><code>@Bean(name = &quot;zookeeperClient&quot;)</code></strong>：<ul>
+<li>定义一个 <strong>Spring Bean</strong>，名字为 <code>zookeeperClient</code>。标识<code>createWithOptions</code>方法，告诉 <strong>Spring</strong> 该方法会返回一个对象，这个对象需要被注册为 <strong>Spring</strong> 容器中的 Bean。</li>
+<li><strong>返回类型</strong>：<code>CuratorFramework</code>，是 <strong>Zookeeper</strong> 的一个高级客户端框架，提供了比原生 Zookeeper 客户端更丰富、更易用的 API，简化了 Zookeeper 的操作，如服务发现、分布式锁等。</li>
+</ul>
+</li>
+</ul>
+<h4 id="方法详解"><a href="#方法详解" class="headerlink" title="方法详解"></a><strong>方法详解</strong></h4><ul>
+<li><code>createWithOptions</code>：<ul>
+<li><strong>参数</strong>：<code>ZookeeperClientConfigProperties properties</code>，自动注入配置属性。</li>
+<li><strong>步骤</strong>：<ol>
+<li>创建重试策略：<ul>
+<li>使用 <strong>ExponentialBackoffRetry</strong>，基于指数退避算法的重试策略，在每次重试失败后，等待时间逐渐增加，避免频繁重试导致的资源浪费。。</li>
+<li>参数为 <code>baseSleepTimeMs</code>（初始等待时间）和 <code>maxRetries</code>（最大重试次数）。</li>
+</ul>
+</li>
+<li>构建 CuratorFramework 客户端：<ul>
+<li><strong><code>connectString</code></strong>：Zookeeper 连接字符串。</li>
+<li><strong><code>retryPolicy</code></strong>：前面定义的重试策略。</li>
+<li><strong><code>sessionTimeoutMs</code></strong>：会话超时时间。</li>
+<li><strong><code>connectionTimeoutMs</code></strong>：连接超时时间。</li>
+</ul>
+</li>
+<li>启动客户端：<ul>
+<li>调用 <code>client.start()</code> 启动 CuratorFramework 客户端。</li>
+</ul>
+</li>
+<li>返回客户端：<ul>
+<li>将启动的 <code>CuratorFramework</code> 实例作为 Bean 返回，供其他组件使用。</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="测试类"><a href="#测试类" class="headerlink" title="测试类"></a>测试类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Resource</span></span><br><span class="line"><span class="keyword">private</span> CuratorFramework curatorFramework;</span><br></pre></td></tr></table></figure>
+<p>先引入<code>CuratorFramework</code> ,也就是刚才注册为Bean的那个对象</p>
+<h4 id="1-test-all-方法"><a href="#1-test-all-方法" class="headerlink" title="1.test_all 方法"></a>1.<strong><code>test_all</code> 方法</strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_all</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String path = <span class="string">"/big-market-dcc/config/downgradeSwitch"</span>;</span><br><span class="line">    String data = <span class="string">"0"</span>;</span><br><span class="line">    curatorFramework.create().withMode(CreateMode.EPHEMERAL).forPath(path, data.getBytes(StandardCharsets.UTF_8));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">2</span>; i++) &#123;</span><br><span class="line">        curatorFramework.setData().forPath(path, String.valueOf(i).getBytes(StandardCharsets.UTF_8));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>功能</strong>：</p>
+<ul>
+<li>创建一个 <strong>临时节点</strong>（<code>EPHEMERAL</code>），路径为 <code>/big-market-dcc/config/downgradeSwitch</code>，初始数据为 <code>&quot;0&quot;</code>。</li>
+<li>修改该节点的数据两次，分别设置为 <code>&quot;0&quot;</code> 和 <code>&quot;1&quot;</code>。</li>
+</ul>
+<p><strong>背后原理</strong>：</p>
+<ul>
+<li><strong>临时节点</strong>在客户端与 <strong>Zookeeper</strong> 的连接断开时自动删除。这对于需要自动清理的节点非常有用，如<strong>会话信息、临时锁</strong>等。</li>
+<li><strong>数据修改</strong>：通过 <code>setData</code> 方法更新节点的数据，操作顺序展示了 <strong>Zookeeper</strong> 对节点数据的顺序一致性。</li>
+</ul>
+<h4 id="2-createNode-方法"><a href="#2-createNode-方法" class="headerlink" title="2.createNode 方法"></a>2.<strong><code>createNode</code> 方法</strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createNode</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String path = <span class="string">"/big-market-dcc/config/downgradeSwitch/test/a"</span>;</span><br><span class="line">    String data = <span class="string">"0"</span>;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> == curatorFramework.checkExists().forPath(path)) &#123;</span><br><span class="line">        curatorFramework.create().creatingParentsIfNeeded().forPath(path);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>功能</strong>：</p>
+<ul>
+<li>创建一个 <strong>永久节点</strong>（默认模式，<code>PERSISTENT</code>），路径为 <code>/big-market-dcc/config/downgradeSwitch/test/a</code>，数据为 <code>&quot;0&quot;</code>（尽管未设置数据）。</li>
+<li>如果该路径不存在，则创建，包括必要的父节点。</li>
+</ul>
+<p><strong>背后原理</strong>：</p>
+<ul>
+<li><strong>永久节点</strong>在客户端与 <strong>Zookeeper</strong> 的连接断开后仍然存在，适用于需要长期存在的数据，如<strong>配置信息、服务注册</strong>等。</li>
+<li><strong><code>creatingParentsIfNeeded()</code></strong>：确保在创建目标节点之前，所有必要的父节点都已存在。如果父节点不存在，则自动创建。</li>
+</ul>
+<h4 id="3-createEphemeralNode-方法"><a href="#3-createEphemeralNode-方法" class="headerlink" title="3.createEphemeralNode 方法"></a>3.<strong><code>createEphemeralNode</code> 方法</strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createEphemeralNode</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String path = <span class="string">"/big-market-dcc/config/epnode"</span>;</span><br><span class="line">    String data = <span class="string">"0"</span>;</span><br><span class="line">    curatorFramework.create().withMode(CreateMode.EPHEMERAL).forPath(path, data.getBytes(StandardCharsets.UTF_8));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>功能</strong>：</p>
+<ul>
+<li>创建一个 <strong>临时节点</strong>，路径为 <code>/big-market-dcc/config/epnode</code>，数据为 <code>&quot;0&quot;</code>。</li>
+</ul>
+<p><strong>背后原理</strong>：</p>
+<ul>
+<li><strong>临时节点</strong>在客户端会话结束时自动删除，适用于需要临时存在的数据，如临时锁、会话信息等。</li>
+</ul>
+<h4 id="4-crateEphemeralSequentialNode-方法"><a href="#4-crateEphemeralSequentialNode-方法" class="headerlink" title="4.crateEphemeralSequentialNode 方法"></a>4.<strong><code>crateEphemeralSequentialNode</code> 方法</strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">crateEphemeralSequentialNode</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String path = <span class="string">"/big-market-dcc/config/epsnode"</span>;</span><br><span class="line">    String data = <span class="string">"0"</span>;</span><br><span class="line">    curatorFramework.create()</span><br><span class="line">            .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)</span><br><span class="line">            .forPath(path, data.getBytes(StandardCharsets.UTF_8));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>功能</strong>：</p>
+<ul>
+<li>创建一个 <strong>临时有序节点</strong>，路径为 <code>/big-market-dcc/config/epsnode</code>，数据为 <code>&quot;0&quot;</code>。</li>
+<li>节点名将被自动加上一个递增的序号，如 <code>/big-market-dcc/config/epsnode0000000001</code>。</li>
+</ul>
+<p><strong>背后原理</strong>：</p>
+<ul>
+<li><strong>临时有序节点</strong>结合了 <strong>临时节点</strong>和 <strong>有序节点</strong>的特性，适用于需要按顺序创建临时节点的场景，如<strong>任务队列、排名系统</strong>等。</li>
+</ul>
+<h4 id="5-setData-方法"><a href="#5-setData-方法" class="headerlink" title="5.setData 方法"></a>5.<strong><code>setData</code> 方法</strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setData</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    curatorFramework.setData().forPath(<span class="string">"/big-market-dcc/config/downgradeSwitch"</span>, <span class="string">"111"</span>.getBytes(StandardCharsets.UTF_8));</span><br><span class="line">    curatorFramework.setData().forPath(<span class="string">"/big-market-dcc/config/userWhiteList"</span>, <span class="string">"222"</span>.getBytes(StandardCharsets.UTF_8));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>功能</strong>：</p>
+<ul>
+<li>更新两个节点的数据：<ul>
+<li><code>/big-market-dcc/config/downgradeSwitch</code> 设置为 <code>&quot;111&quot;</code>。</li>
+<li><code>/big-market-dcc/config/userWhiteList</code> 设置为 <code>&quot;222&quot;</code>。</li>
+</ul>
+</li>
+</ul>
+<p><strong>背后原理</strong>：</p>
+<ul>
+<li><strong>数据更新</strong>：通过 <code>setData</code> 方法修改节点的数据，<strong>Zookeeper</strong> 确保数据的一致性和顺序性。</li>
+</ul>
+<h4 id="6-getData-方法"><a href="#6-getData-方法" class="headerlink" title="6.getData 方法"></a>6.<strong><code>getData</code> 方法</strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getData</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String downgradeSwitch = <span class="keyword">new</span> String(curatorFramework.getData().forPath(<span class="string">"/big-market-dcc/config/downgradeSwitch"</span>), StandardCharsets.UTF_8);</span><br><span class="line">    log.info(<span class="string">"测试结果: &#123;&#125;"</span>, downgradeSwitch);</span><br><span class="line">    String userWhiteList = <span class="keyword">new</span> String(curatorFramework.getData().forPath(<span class="string">"/big-market-dcc/config/userWhiteList"</span>), StandardCharsets.UTF_8);</span><br><span class="line">    log.info(<span class="string">"测试结果: &#123;&#125;"</span>, userWhiteList);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>功能</strong>：</p>
+<ul>
+<li>获取两个节点的数据：<ul>
+<li><code>/big-market-dcc/config/downgradeSwitch</code>。</li>
+<li><code>/big-market-dcc/config/userWhiteList</code>。</li>
+</ul>
+</li>
+<li>记录日志输出获取的数据。</li>
+</ul>
+<p><strong>背后原理</strong>：</p>
+<ul>
+<li><strong>数据读取</strong>：通过 <code>getData</code> 方法获取节点的数据，<strong>Zookeeper</strong> 保证数据的线性一致性，即所有客户端看到的操作都是按照顺序执行的。</li>
+</ul>
+<h4 id="7-setDataAsync-方法"><a href="#7-setDataAsync-方法" class="headerlink" title="7.setDataAsync 方法"></a>7.<strong><code>setDataAsync</code> 方法</strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setDataAsync</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String path = <span class="string">"/big-market-dcc/config/downgradeSwitch"</span>;</span><br><span class="line">    String data = <span class="string">"0"</span>;</span><br><span class="line">    CuratorListener listener = (client, event) -&gt; &#123;</span><br><span class="line">        Stat stat = event.getStat();</span><br><span class="line">        log.info(<span class="string">"stat="</span> + JSON.toJSONString(stat));</span><br><span class="line">        CuratorEventType eventType = event.getType();</span><br><span class="line">        log.info(<span class="string">"eventType="</span> + eventType.name());</span><br><span class="line">    &#125;;</span><br><span class="line">    curatorFramework.getCuratorListenable().addListener(listener);</span><br><span class="line">    curatorFramework.setData().inBackground().forPath(path, data.getBytes(StandardCharsets.UTF_8));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>功能</strong>：</p>
+<ul>
+<li><strong>异步设置数据</strong>：在后台线程中更新 <code>/big-market-dcc/config/downgradeSwitch</code> 节点的数据为 <code>&quot;0&quot;</code>。</li>
+<li><strong>监听器</strong>：注册一个 <code>CuratorListener</code>，监听数据更新事件，记录相关信息。</li>
+</ul>
+<p><strong>背后原理</strong>：</p>
+<ul>
+<li><strong>异步操作</strong>：通过 <code>inBackground()</code> 方法，数据设置操作在后台执行，主线程不会阻塞。</li>
+<li><strong>事件监听</strong>：<code>CuratorListener</code> 用于监听 <strong>CuratorFramework</strong> 事件，捕捉并处理各种 <strong>Zookeeper</strong> 事件，如数据更改、节点创建等。</li>
+</ul>
+<h4 id="8-deleteData-方法"><a href="#8-deleteData-方法" class="headerlink" title="8.deleteData 方法"></a>8.<strong><code>deleteData</code> 方法</strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteData</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String path = <span class="string">"/big-market-dcc/config/downgradeSwitch"</span>;</span><br><span class="line">    curatorFramework.delete().deletingChildrenIfNeeded().forPath(path);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>功能</strong>：</p>
+<ul>
+<li>删除 <code>/big-market-dcc/config/downgradeSwitch</code> 节点及其所有子节点。</li>
+</ul>
+<p><strong>背后原理</strong>：</p>
+<ul>
+<li><strong>节点删除</strong>：通过 <code>delete</code> 方法删除指定路径的节点。</li>
+<li><strong><code>deletingChildrenIfNeeded()</code></strong>：如果目标节点有子节点，则递归删除所有子节点。这对于删除非叶子节点非常有用。</li>
+</ul>
+<h4 id="9-guaranteedDeleteData-方法"><a href="#9-guaranteedDeleteData-方法" class="headerlink" title="9.guaranteedDeleteData 方法"></a>9.<strong><code>guaranteedDeleteData</code> 方法</strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">guaranteedDeleteData</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String path = <span class="string">"/big-market-dcc/config/downgradeSwitch"</span>;</span><br><span class="line">    curatorFramework.delete().guaranteed().forPath(path);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>功能</strong>：</p>
+<ul>
+<li><strong>安全删除</strong>：删除 <code>/big-market-dcc/config/downgradeSwitch</code> 节点，即使第一次删除失败，也会在后台继续尝试删除，直到成功为止。</li>
+</ul>
+<p><strong>背后原理</strong>：</p>
+<ul>
+<li><strong><code>guaranteed()</code></strong>：确保删除操作最终成功，即使发生中间失败，Curator 会在后台持续重试，直到节点被成功删除。</li>
+</ul>
+<h4 id="10-watchedGetChildren-方法"><a href="#10-watchedGetChildren-方法" class="headerlink" title="10.watchedGetChildren 方法"></a>10.<strong><code>watchedGetChildren</code> 方法</strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">watchedGetChildren</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String path = <span class="string">"/big-market-dcc"</span>;</span><br><span class="line">    List&lt;String&gt; children = curatorFramework.getChildren().watched().forPath(path);</span><br><span class="line">    log.info(<span class="string">"测试结果：&#123;&#125;"</span>, JSON.toJSONString(children));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>功能</strong>：</p>
+<ul>
+<li>获取 <code>/big-market-dcc</code> 节点的所有子节点，并为该路径注册一个 <strong>Watcher</strong>。</li>
+</ul>
+<p><strong>背后原理</strong>：</p>
+<ul>
+<li><strong><code>watched()</code></strong>：在读取子节点列表的同时，为该路径注册一个 <strong>Watcher</strong>，当子节点发生变化时（如新增、删除），<strong>Watcher</strong> 会被触发。</li>
+<li><strong>数据变化监听</strong>：通过 <strong>Watcher</strong> 机制，客户端可以实时感知 <strong>Zookeeper</strong> 节点的变化，适用于动态配置、服务发现等场景。</li>
+</ul>
+<h4 id="11-getDataByPath-方法"><a href="#11-getDataByPath-方法" class="headerlink" title="11. getDataByPath 方法"></a><strong>11. <code>getDataByPath</code> 方法</strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getDataByPath</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String path = <span class="string">"/big-market-dcc/config/downgradeSwitch"</span>;</span><br><span class="line">    String fullClassName = <span class="string">""</span>;</span><br><span class="line">    String jsonStr = <span class="keyword">new</span> String(curatorFramework.getData().forPath(path), StandardCharsets.UTF_8);</span><br><span class="line">    Class clazz = Class.forName(fullClassName);</span><br><span class="line">    log.info(<span class="string">"测试结果：&#123;&#125;"</span>, JSON.parseObject(jsonStr, clazz));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>功能</strong>：</p>
+<ul>
+<li>从指定路径 <code>/big-market-dcc/config/downgradeSwitch</code> 获取数据，并将其反序列化为指定的类实例。</li>
+</ul>
+<p><strong>背后原理</strong>：</p>
+<ul>
+<li><strong>数据读取与反序列化</strong>：通过 <code>getData</code> 方法获取节点数据后，使用 <strong>FastJSON</strong> 将 JSON 字符串转换为相应的类对象。</li>
+<li><strong>动态类型加载</strong>：使用 <code>Class.forName(fullClassName)</code> 动态加载类，这里 <code>fullClassName</code> 需要替换为实际的类名。</li>
+</ul>
+<h3 id="可视化页面"><a href="#可视化页面" class="headerlink" title="可视化页面"></a>可视化页面</h3><p>我们可以在docker-compose中配置<code>zoonavigator</code>来管理zookeeper</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zoonavigator:</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">elkozmon/zoonavigator:latest</span></span><br><span class="line">  <span class="attr">container_name:</span> <span class="string">zoonavigator</span></span><br><span class="line">  <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="number">9020</span><span class="string">:9000</span></span><br><span class="line">  <span class="attr">networks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">my-network</span></span><br><span class="line">  <span class="attr">depends_on:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">zookeeper</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/1.png" style="zoom:67%;"></p>
+<ol>
+<li><p><strong>访问界面</strong>： 打开浏览器，访问 <code>http://localhost:9000</code>。</p>
+</li>
+<li><p><strong>连接 ZooKeeper</strong>： 在界面中输入 ZooKeeper 的服务地址（如 <code>zookeeper:2181</code>），即可查看和管理节点数据。</p>
+</li>
+</ol>
+<h2 id="基于注解的动态配置管理机制"><a href="#基于注解的动态配置管理机制" class="headerlink" title="基于注解的动态配置管理机制"></a>基于注解的动态配置管理机制</h2><p><code>DCCValueBeanFactory</code> 和 <code>DCCValue</code> 构成了一个基于注解的动态配置管理机制，主要用于将 Zookeeper（通过 Apache Curator 客户端）中的配置<strong>动态注入</strong>到 Spring 管理的 Bean 中，并在配置变化时<strong>实时更新</strong>这些 Bean 的属性值。以下是对这两个类的详细解析及其实现效果的说明：</p>
+<h3 id="DCCValue注解"><a href="#DCCValue注解" class="headerlink" title="@DCCValue注解"></a><code>@DCCValue</code>注解</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(ElementType.FIELD)</span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> DCCValue &#123;</span><br><span class="line">    <span class="function">String <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> ""</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong><code>@Retention(RetentionPolicy.RUNTIME)</code></strong>: 该注解在运行时保留，允许反射访问。</li>
+<li><strong><code>@Target(ElementType.FIELD)</code></strong>: 该注解只能应用于类的字段（成员变量）。</li>
+<li><strong><code>@Documented</code></strong>: 该注解包含在 Javadoc 中</li>
+</ul>
+<h4 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h4><p><code>@DCCValue</code> 注解用于标注需要从配置中心（Zookeeper）中动态注入值的 Bean 字段。注解的 <code>value</code> 属性用于指定配置的键值，格式为 <code>&quot;key:defaultValue&quot;</code>，其中 <code>key</code> 是在 Zookeeper 中的配置路径，<code>defaultValue</code> 是当 Zookeeper 中没有对应配置时的默认值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SomeService</span> </span>&#123;</span><br><span class="line">    <span class="meta">@DCCValue</span>(<span class="string">"isSwitch:1"</span>)</span><br><span class="line">    <span class="keyword">private</span> String isSwitch;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 其他业务逻辑</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在上述示例中，<code>isSwitch</code> 字段将从 Zookeeper 的路径 <code>/big-market-dcc/conig/isSwitch</code> 中获取配置值。如果该路径下没有配置值，则 <code>isSwitch</code> 将被赋予默认值 <code>&quot;1&quot;</code>。</p>
+<h3 id="DCCValueBeanFactory-类"><a href="#DCCValueBeanFactory-类" class="headerlink" title="DCCValueBeanFactory 类"></a><code>DCCValueBeanFactory</code> 类</h3><h4 id="DCCValueBeanFactory-函数"><a href="#DCCValueBeanFactory-函数" class="headerlink" title="DCCValueBeanFactory 函数"></a>DCCValueBeanFactory 函数</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DCCValueBeanFactory</span> <span class="keyword">implements</span> <span class="title">BeanPostProcessor</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String BASE_CONFIG_PATH = <span class="string">"/big-market-dcc"</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String BASE_CONFIG_PATH_CONIG = BASE_CONFIG_PATH + <span class="string">"/conig"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CuratorFramework client;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String,Object&gt; dccObjGroup = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DCCValueBeanFactory</span><span class="params">(CuratorFramework client)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.client = client;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == client.checkExists().forPath(BASE_CONFIG_PATH_CONIG)) &#123;</span><br><span class="line">            client.create().creatingParentsIfNeeded().forPath(BASE_CONFIG_PATH_CONIG);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        CuratorCache curatorCache = CuratorCache.build(client, BASE_CONFIG_PATH_CONIG);</span><br><span class="line">      <span class="comment">//通过 CuratorCache 启动对 BASE_CONFIG_PATH_CONIG 路径的监听。</span></span><br><span class="line">        curatorCache.start();</span><br><span class="line"></span><br><span class="line">        curatorCache.listenable().addListener(((type, oldData, data) -&gt; &#123;</span><br><span class="line">            <span class="keyword">switch</span> (type)&#123;</span><br><span class="line">                <span class="keyword">case</span> NODE_CHANGED:</span><br><span class="line">                    String dccValuePath = data.getPath();</span><br><span class="line">                    Object objBean = dccObjGroup.get(dccValuePath);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="keyword">null</span> == objBean) <span class="keyword">return</span>;</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        <span class="comment">// 1. getDeclaredField 方法用于获取指定类中声明的所有字段</span></span><br><span class="line">												<span class="comment">//    包括私有字段、受保护字段和公共字段。</span></span><br><span class="line">                        <span class="comment">// 2. getField 方法用于获取指定类中的公共字段</span></span><br><span class="line">                      	<span class="comment">//		即只能获取到公共访问修饰符（public）的字段。</span></span><br><span class="line">                        Field field = objBean.getClass().getDeclaredField(dccValuePath.substring(dccValuePath.lastIndexOf(<span class="string">"/"</span>) + <span class="number">1</span>));</span><br><span class="line">                        field.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">                        field.set(objBean, <span class="keyword">new</span> String(data.getData()));</span><br><span class="line">                        field.setAccessible(<span class="keyword">false</span>);</span><br><span class="line">                    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">default</span>:</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;));</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@SneakyThrows</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessAfterInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">       <span class="comment">/**/</span></span><br><span class="line"><span class="comment">    &#125;</span></span><br><span class="line"><span class="comment">&#125;</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li><strong>初始化 Zookeeper 配置路径</strong>:<ul>
+<li>确保 Zookeeper 中的基础配置路径 <code>/big-market-dcc/conig</code> 存在，如果不存在则创建。</li>
+</ul>
+</li>
+<li><strong>监听配置变化（<code>NODE_CHANGED</code>）时</strong>:<ul>
+<li>使用 <code>CuratorCache</code> 监听 <code>/big-market-dcc/conig</code> 路径下的节点变化。</li>
+<li>当监听到节点变化（如 <code>NODE_CHANGED</code>）时，找到对应的 Bean 和字段，动态更新字段的值。</li>
+</ul>
+</li>
+</ol>
+<h4 id="postProcessAfterInitialization函数"><a href="#postProcessAfterInitialization函数" class="headerlink" title="postProcessAfterInitialization函数"></a>postProcessAfterInitialization函数</h4><h5 id="为什么要重写-postProcessAfterInitialization？"><a href="#为什么要重写-postProcessAfterInitialization？" class="headerlink" title="为什么要重写 postProcessAfterInitialization？"></a><strong>为什么要重写 <code>postProcessAfterInitialization</code>？</strong></h5><p><code>postProcessAfterInitialization</code> 是 Spring <code>BeanPostProcessor</code> 接口的方法之一，允许我们在 Spring 容器初始化 Bean 后<strong>对其进行额外的处理</strong>。通过重写该方法，可以实现对所有 Bean 的统一扫描和处理。</p>
+<p>在这里，重写 <code>postProcessAfterInitialization</code> 的目的是 <strong>对 Spring 容器中所有 Bean 的字段进行扫描和注入动态配置</strong>，实现与 ZooKeeper 配置中心的集成。</p>
+<h5 id="函数介绍"><a href="#函数介绍" class="headerlink" title="函数介绍"></a>函数介绍</h5><p>这个函数的核心作用是 <strong>扫描 Spring Bean 中标注了 <code>@DCCValue</code> 注解的字段</strong>，将其与 ZooKeeper 中的节点绑定，完成以下功能：</p>
+<ol>
+<li><strong>根据注解配置值从 ZooKeeper 中获取数据，并注入到字段中。</strong></li>
+<li><strong>如果 ZooKeeper 节点不存在，则自动创建，并设置默认值（如果有默认值）。</strong></li>
+<li><strong>将字段与 ZooKeeper 节点动态绑定，当节点数据发生变化时能够更新字段的值</strong></li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DCCValueBeanFactory</span> <span class="keyword">implements</span> <span class="title">BeanPostProcessor</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String BASE_CONFIG_PATH = <span class="string">"/big-market-dcc"</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String BASE_CONFIG_PATH_CONIG = BASE_CONFIG_PATH + <span class="string">"/conig"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CuratorFramework client;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String,Object&gt; dccObjGroup = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DCCValueBeanFactory</span><span class="params">(CuratorFramework client)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">       <span class="comment">/**/</span></span><br><span class="line"><span class="comment">    &#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    <span class="doctag">@Override</span></span></span><br><span class="line"><span class="comment">    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException &#123;</span></span><br><span class="line"><span class="comment">      /*</span></span><br><span class="line"><span class="comment">      扫描 Bean 的字段</span></span><br><span class="line"><span class="comment">        获取当前 Bean 的所有字段。</span></span><br><span class="line"><span class="comment">        准备遍历这些字段，检查是否包含 <span class="doctag">@DCCValue</span> 注解。</span></span><br><span class="line"><span class="comment">      */</span></span><br><span class="line">        Class&lt;?&gt; beanClass = bean.getClass();</span><br><span class="line">        Field[] declaredFields = beanClass.getDeclaredFields();</span><br><span class="line">        <span class="keyword">for</span> (Field declaredField : declaredFields) &#123;</span><br><span class="line">          <span class="comment">/*</span></span><br><span class="line"><span class="comment">          处理包含 @DCCValue 注解的字段</span></span><br><span class="line"><span class="comment">            条件判断：如果字段没有标注 @DCCValue，跳过处理。</span></span><br><span class="line"><span class="comment">            获取注解信息：提取 @DCCValue 注解的内容。</span></span><br><span class="line"><span class="comment">          */</span></span><br><span class="line">            <span class="keyword">if</span>(!declaredField.isAnnotationPresent(DCCValue<span class="class">.<span class="keyword">class</span>)) <span class="title">continue</span></span>;</span><br><span class="line">            DCCValue dccValue = declaredField.getAnnotation(DCCValue<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">          <span class="comment">/*</span></span><br><span class="line"><span class="comment">          解析注解值</span></span><br><span class="line"><span class="comment">            注解的 value 定义了与 ZooKeeper 节点的映射关系，</span></span><br><span class="line"><span class="comment">						格式为 "key:defaultValue"。</span></span><br><span class="line"><span class="comment">            key 是 ZooKeeper 节点的名称。</span></span><br><span class="line"><span class="comment">            defaultValue 是默认值（如果未指定默认值，则为 null）。</span></span><br><span class="line"><span class="comment">            通过 split 将注解值拆分成节点路径和默认值</span></span><br><span class="line"><span class="comment">          */</span></span><br><span class="line">            String value = dccValue.value();</span><br><span class="line">            <span class="keyword">if</span> (StringUtils.isBlank(value)) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(declaredField.getName() + <span class="string">" @DCCValue is not config value config case 「isSwitch/isSwitch:1」"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            String[] split = value.split(<span class="string">":"</span>);</span><br><span class="line">            String key = split[<span class="number">0</span>];</span><br><span class="line">            String defaultValue = split.length == <span class="number">2</span> ? split[<span class="number">1</span>] : <span class="keyword">null</span>;</span><br><span class="line">						</span><br><span class="line">          	<span class="comment">/*</span></span><br><span class="line"><span class="comment">          	检查并创建 ZooKeeper 节点</span></span><br><span class="line"><span class="comment">              节点存在检查：通过 client.checkExists() </span></span><br><span class="line"><span class="comment">              判断 ZooKeeper 中是否存在对应的节点。</span></span><br><span class="line"><span class="comment">              1. 如果节点不存在，则自动创建节点，并设置默认值（如果有）。</span></span><br><span class="line"><span class="comment">              2. 如果节点已经存在，从 ZooKeeper 中读取节点数据，将节点数据设置到字段中</span></span><br><span class="line"><span class="comment">          	*/</span></span><br><span class="line">            String keyPath = BASE_CONFIG_PATH.concat(<span class="string">"/"</span>).concat(key);</span><br><span class="line">            <span class="keyword">try</span>&#123;</span><br><span class="line">                <span class="keyword">if</span>(<span class="keyword">null</span> == client.checkExists().forPath(keyPath)) &#123;</span><br><span class="line">                    client.create().creatingParentsIfNeeded().forPath(keyPath);</span><br><span class="line">                    <span class="keyword">if</span>(StringUtils.isBlank(defaultValue)) &#123;</span><br><span class="line">                        declaredField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">                        declaredField.set(bean,defaultValue);</span><br><span class="line">                        declaredField.setAccessible(<span class="keyword">false</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                    log.info(<span class="string">"DCC 节点监听 创建节点 &#123;&#125;"</span>, keyPath);</span><br><span class="line">                &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                    String configValue = <span class="keyword">new</span> String(client.getData().forPath(keyPath));</span><br><span class="line">                    <span class="keyword">if</span> (StringUtils.isNotBlank(configValue)) &#123;</span><br><span class="line">                        declaredField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">                        declaredField.set(bean,configValue);</span><br><span class="line">                        declaredField.setAccessible(<span class="keyword">false</span>);</span><br><span class="line">                        log.info(<span class="string">"DCC 节点监听 设置配置 &#123;&#125; &#123;&#125; &#123;&#125;"</span>, keyPath, declaredField.getName(), configValue);</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;<span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</span><br><span class="line">            &#125;</span><br><span class="line">          <span class="comment">//注册字段与 Bean 的映射,将字段所在的 Bean 和节点路径绑定</span></span><br><span class="line">          <span class="comment">//便于后续监听时能够快速找到对应的 Bean 和字段。</span></span><br><span class="line">            dccObjGroup.put(keyPath,bean);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="实现效果"><a href="#实现效果" class="headerlink" title="实现效果"></a>实现效果</h3><ul>
+<li><strong>动态配置注入</strong>:<ul>
+<li>通过在 Bean 的字段上使用 <code>@DCCValue</code> 注解，开发者可以轻松地将 Zookeeper 中的配置值注入到 Spring Bean 中，无需手动编写配置加载逻辑。</li>
+</ul>
+</li>
+<li><strong>实时配置更新</strong>:<ul>
+<li>由于 <code>DCCValueBeanFactory</code> 使用 <code>CuratorCache</code> 监听配置路径下的节点变化，当 Zookeeper 中的配置发生变化时，相关 Bean 的字段值会被实时更新，保证应用程序始终使用最新的配置。</li>
+</ul>
+</li>
+<li><strong>默认值支持</strong>:<ul>
+<li>如果 Zookeeper 中没有对应的配置值，可以在注解中指定默认值，确保应用程序在缺失配置时仍能正常运行。</li>
+</ul>
+</li>
+</ul>
+<h3 id="示例流程"><a href="#示例流程" class="headerlink" title="示例流程"></a>示例流程</h3><ol>
+<li><strong>启动时</strong>:<ul>
+<li>Spring 容器初始化 <code>DCCValueBeanFactory</code>。</li>
+<li><code>DCCValueBeanFactory</code> 检查并创建基础配置路径 <code>/big-market-dcc/conig</code>。</li>
+<li>遍历所有 Bean，查找被 <code>@DCCValue</code> 注解标注的字段，加载对应的配置值到字段中。如果配置不存在，则使用默认值。</li>
+</ul>
+</li>
+<li><strong>运行时</strong>:<ul>
+<li>当 Zookeeper 中某个配置节点（如 <code>/big-market-dcc/conig/isSwitch</code>）的值发生变化时，<code>CuratorCache</code> 监听到 <code>NODE_CHANGED</code> 事件。</li>
+<li><code>DCCValueBeanFactory</code> 根据变化的节点路径找到对应的 Bean 和字段，动态更新字段的值。</li>
+</ul>
+</li>
+</ol>
+<h3 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h3><ul>
+<li><strong>动态配置管理</strong>:<ul>
+<li>在分布式系统中，配置管理往往需要集中化和动态化。通过这种方式，可以在不重启应用的情况下，实时更新配置，提高系统的灵活性和可维护性。</li>
+</ul>
+</li>
+<li><strong>特性开关（Feature Toggle）</strong>:<ul>
+<li>可以通过动态配置来控制应用程序的特性开关，快速启用或禁用某些功能，便于灰度发布和 A/B 测试。</li>
+</ul>
+</li>
+<li><strong>环境配置隔离</strong>:<ul>
+<li>在不同的运行环境（如开发、测试、生产）中，通过 Zookeeper 管理不同的配置，简化配置管理和部署流程。</li>
+</ul>
+</li>
+</ul>
+<h3 id="答疑1"><a href="#答疑1" class="headerlink" title="答疑1"></a>答疑1</h3><p><strong>修改zookeeper的节点值时，是否必须连接到Leader节点？</strong></p>
+<p><strong>应用节点无需直接连接到 Leader 节点</strong>，可以连接到 Zookeeper 集群中的任意一个节点（Leader 或 Followers）。当应用节点连接到 Followers 并尝试执行写操作时，Zookeeper 的客户端库（如 Curator）会自动将写请求重定向到当前的 Leader。具体过程如下：</p>
+<ol>
+<li><strong>连接到任意节点</strong>：应用程序通过 CuratorFramework 客户端连接到 Zookeeper 集群中的任意一个节点。</li>
+<li><strong>执行写操作</strong>：<ul>
+<li>如果客户端连接的是 Leader 节点，写请求将直接由 Leader 处理。Leader会更新事务日志，并通过 ZAB 协议将变更同步到 Followers。</li>
+<li>如果客户端连接的是 Followers 节点，Followers 会将写请求转发给 Leader 节点。</li>
+</ul>
+</li>
+<li><strong>自动重定向</strong>：CuratorFramework 客户端会自动处理重定向，无需应用程序显式管理。这确保了写操作总是由 Leader 处理，保持数据一致性。</li>
+</ol>
+<h4 id="优势"><a href="#优势" class="headerlink" title="优势"></a><strong>优势</strong></h4><ul>
+<li><strong>透明性</strong>：应用程序无需关心当前 Leader 是哪个节点，简化了客户端实现。</li>
+<li><strong>高可用性</strong>：即使 Leader 发生故障，客户端可以自动切换到新的 Leader，保持写操作的连续性。</li>
+<li><strong>负载均衡</strong>：读请求可以由任意节点处理，分散了负载压力。</li>
+</ul>
+<h3 id="大营销项目中使用动态配置管理"><a href="#大营销项目中使用动态配置管理" class="headerlink" title="大营销项目中使用动态配置管理"></a>大营销项目中使用动态配置管理</h3><p>在这里，我们用DCCValue注解标识了degradSwitch，并将其默认值设置成了open</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RaffleActivityController</span> <span class="keyword">implements</span> <span class="title">IRaffleActivityService</span> </span>&#123;</span><br><span class="line">    <span class="meta">@DCCValue</span>(<span class="string">"degradeSwitch:open"</span>)</span><br><span class="line">    <span class="keyword">private</span> String degradeSwitch;</span><br><span class="line"></span><br><span class="line">		<span class="comment">/*省略*/</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping</span>(value = <span class="string">"draw"</span>, method = RequestMethod.POST)</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Response&lt;ActivityDrawResponseDTO&gt; <span class="title">draw</span><span class="params">(@RequestBody ActivityDrawRequestDTO requestDTO)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            log.info(<span class="string">"活动抽奖开始 userId:&#123;&#125; activityId:&#123;&#125;"</span>, requestDTO.getUserId(), requestDTO.getActivityId());</span><br><span class="line">            <span class="keyword">if</span> (!<span class="string">"open"</span>.equals(degradeSwitch)) &#123;</span><br><span class="line">                log.info(<span class="string">"当前degradeSwitch配置降级: &#123;&#125;"</span>,degradeSwitch);</span><br><span class="line">                <span class="keyword">return</span> Response.&lt;ActivityDrawResponseDTO&gt;builder()</span><br><span class="line">                        .code(ResponseCode.DEGRADE_SWITCH.getCode())</span><br><span class="line">                        .info(ResponseCode.DEGRADE_SWITCH.getInfo())</span><br><span class="line">                        .build();</span><br><span class="line">            &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">                log.info(<span class="string">"当前degradeSwitch配置: &#123;&#125;"</span>,degradeSwitch);</span><br><span class="line">            &#125;</span><br><span class="line">          <span class="comment">/*省略*/</span></span><br><span class="line"></span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>项目运行启动之后，会自动扫描带有@DCCValue注解的Bean，并在zookeeper中注册一个节点，存储其默认的值。如下所示：<br><img src="/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/4.png" style="zoom:67%;"></p>
+<p>而且，我们发现切换zookeeper实例的时候，发现每个实例中都有这个degradeSwitch节点，并且节点的值都是open。</p>
+<p>如果我们通过一些方法改变zookeeper上的degradeSwitch节点值，那么这个变化就会被监听到，从而对应的Bean对象的值就会被修改。</p>
+<p>如果活动降级、熔断了，那么就会进入这个if判断，返回一个null值。</p>
+<h4 id="结合-Zookeeper-与-Redis-的最佳实践"><a href="#结合-Zookeeper-与-Redis-的最佳实践" class="headerlink" title="结合 Zookeeper 与 Redis 的最佳实践"></a><strong>结合 Zookeeper 与 Redis 的最佳实践</strong></h4><p>鉴于 Zookeeper 和 Redis 各自的优势和局限性，在某些场景下，结合使用这两者可以更好地满足分布式系统的需求。以下是一些最佳实践：</p>
+<ul>
+<li><strong>配置管理</strong>：继续使用 Zookeeper 进行集中式配置管理，确保强一致性。使用 Redis 作为配置的缓存层，提高读取性能。</li>
+<li><strong>分布式锁</strong>：在需要高性能和快速锁定的场景下，使用 Redis 实现分布式锁；在需要强一致性和复杂锁定机制的场景下，使用 Zookeeper。</li>
+<li><strong>服务发现</strong>：使用 Zookeeper/Nacos 进行服务发现和注册，确保服务实例的动态变化能够被客户端实时感知。</li>
+<li><strong>消息传递和通知</strong>：使用 Redis 的 Pub/Sub 或 Keyspace Notifications 进行实时消息传递和事件通知。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag"># 分布式系统</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/12/23/dubbo%E5%92%8Cnacos%E5%9C%A8%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" rel="prev" title="dubbo和nacos在大营销项目中的应用">
+      <i class="fa fa-chevron-left"></i> dubbo和nacos在大营销项目中的应用
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/01/02/%E9%99%90%E6%B5%81%E7%BB%84%E4%BB%B6%E5%BC%80%E5%8F%91%E4%B8%8E%E5%AD%A6%E4%B9%A0/" rel="next" title="限流组件开发与学习">
+      限流组件开发与学习 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#zookeeper学习"><span class="nav-number">1.</span> <span class="nav-text">zookeeper学习</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ZooKeeper-概述"><span class="nav-number">1.1.</span> <span class="nav-text">ZooKeeper 概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#a-Znode（节点）"><span class="nav-number">1.1.1.</span> <span class="nav-text">a. Znode（节点）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#b-Watcher（观察者）"><span class="nav-number">1.1.2.</span> <span class="nav-text">b. Watcher（观察者）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#c-会话与节点生命周期"><span class="nav-number">1.1.3.</span> <span class="nav-text">c. 会话与节点生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#d-ACL权限控制"><span class="nav-number">1.1.4.</span> <span class="nav-text">d. ACL权限控制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Zookeeper-树形结构的设计原因"><span class="nav-number">1.2.</span> <span class="nav-text">Zookeeper 树形结构的设计原因</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#a-组织与管理"><span class="nav-number">1.2.1.</span> <span class="nav-text">a. 组织与管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#b-简化访问与导航"><span class="nav-number">1.2.2.</span> <span class="nav-text">b. 简化访问与导航</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#c-支持-Watcher-机制"><span class="nav-number">1.2.3.</span> <span class="nav-text">c. 支持 Watcher 机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#d-继承与权限管理"><span class="nav-number">1.2.4.</span> <span class="nav-text">d. 继承与权限管理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实际应用中的树形结构优势"><span class="nav-number">1.3.</span> <span class="nav-text">实际应用中的树形结构优势</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#a-分布式配置管理"><span class="nav-number">1.3.1.</span> <span class="nav-text">a. 分布式配置管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#b-服务发现与注册"><span class="nav-number">1.3.2.</span> <span class="nav-text">b. 服务发现与注册</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#c-分布式锁"><span class="nav-number">1.3.3.</span> <span class="nav-text">c. 分布式锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#d-Leader-选举"><span class="nav-number">1.3.4.</span> <span class="nav-text">d. Leader 选举</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Zookeeper选主过程"><span class="nav-number">1.4.</span> <span class="nav-text">Zookeeper选主过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-选主的必要性"><span class="nav-number">1.4.1.</span> <span class="nav-text">1.1 选主的必要性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-选主的算法"><span class="nav-number">1.4.2.</span> <span class="nav-text">1.2 选主的算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-1-选举阶段"><span class="nav-number">1.4.2.1.</span> <span class="nav-text">1.2.1 选举阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-2-广播阶段"><span class="nav-number">1.4.2.2.</span> <span class="nav-text">1.2.2 广播阶段</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-选主过程中的一致性保证"><span class="nav-number">1.4.3.</span> <span class="nav-text">1.3 选主过程中的一致性保证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一致性协议对比-ZAB-Raft-PBFT"><span class="nav-number">1.5.</span> <span class="nav-text">一致性协议对比(ZAB,Raft,PBFT)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Zookeeper-Leader的职责"><span class="nav-number">1.6.</span> <span class="nav-text">Zookeeper Leader的职责</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Zookeeper-的负载均衡机制"><span class="nav-number">1.7.</span> <span class="nav-text">Zookeeper 的负载均衡机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-客户端连接的均衡"><span class="nav-number">1.7.1.</span> <span class="nav-text">3.1 客户端连接的均衡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-读写负载的分离"><span class="nav-number">1.7.2.</span> <span class="nav-text">3.2 读写负载的分离</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-数据同步和压缩优化"><span class="nav-number">1.7.3.</span> <span class="nav-text">3.3 数据同步和压缩优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-集群规模和节点数量的优化"><span class="nav-number">1.7.4.</span> <span class="nav-text">3.4 集群规模和节点数量的优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Leader-的高可用性"><span class="nav-number">1.7.5.</span> <span class="nav-text">2.2 Leader 的高可用性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-Leader-的负载"><span class="nav-number">1.7.6.</span> <span class="nav-text">2.3 Leader 的负载</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#"><span class="nav-number">1.8.</span> <span class="nav-text"> </span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZooKeeper-部署方案"><span class="nav-number">1.9.</span> <span class="nav-text">ZooKeeper 部署方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#部署一个集中式的-Zookeeper-集群"><span class="nav-number">1.9.1.</span> <span class="nav-text">部署一个集中式的 Zookeeper 集群</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Zookeeper-集群中的配置变化通知机制"><span class="nav-number">1.9.2.</span> <span class="nav-text">Zookeeper 集群中的配置变化通知机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现步骤总结"><span class="nav-number">1.9.3.</span> <span class="nav-text">实现步骤总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在项目中使用Zookeeper"><span class="nav-number">1.10.</span> <span class="nav-text">在项目中使用Zookeeper</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#引入zookeeper"><span class="nav-number">1.10.1.</span> <span class="nav-text">引入zookeeper</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#单实例部署"><span class="nav-number">1.10.2.</span> <span class="nav-text">单实例部署</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多实例部署"><span class="nav-number">1.10.3.</span> <span class="nav-text">多实例部署</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ZookeeperClientConfigProperties-类"><span class="nav-number">1.10.4.</span> <span class="nav-text">ZookeeperClientConfigProperties 类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ZooKeeperClientConfig-类"><span class="nav-number">1.10.5.</span> <span class="nav-text">ZooKeeperClientConfig 类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#功能与作用"><span class="nav-number">1.10.5.1.</span> <span class="nav-text">功能与作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#方法详解"><span class="nav-number">1.10.5.2.</span> <span class="nav-text">方法详解</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试类"><span class="nav-number">1.10.6.</span> <span class="nav-text">测试类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-test-all-方法"><span class="nav-number">1.10.6.1.</span> <span class="nav-text">1.test_all 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-createNode-方法"><span class="nav-number">1.10.6.2.</span> <span class="nav-text">2.createNode 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-createEphemeralNode-方法"><span class="nav-number">1.10.6.3.</span> <span class="nav-text">3.createEphemeralNode 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-crateEphemeralSequentialNode-方法"><span class="nav-number">1.10.6.4.</span> <span class="nav-text">4.crateEphemeralSequentialNode 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-setData-方法"><span class="nav-number">1.10.6.5.</span> <span class="nav-text">5.setData 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-getData-方法"><span class="nav-number">1.10.6.6.</span> <span class="nav-text">6.getData 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-setDataAsync-方法"><span class="nav-number">1.10.6.7.</span> <span class="nav-text">7.setDataAsync 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-deleteData-方法"><span class="nav-number">1.10.6.8.</span> <span class="nav-text">8.deleteData 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-guaranteedDeleteData-方法"><span class="nav-number">1.10.6.9.</span> <span class="nav-text">9.guaranteedDeleteData 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10-watchedGetChildren-方法"><span class="nav-number">1.10.6.10.</span> <span class="nav-text">10.watchedGetChildren 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#11-getDataByPath-方法"><span class="nav-number">1.10.6.11.</span> <span class="nav-text">11. getDataByPath 方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可视化页面"><span class="nav-number">1.10.7.</span> <span class="nav-text">可视化页面</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于注解的动态配置管理机制"><span class="nav-number">1.11.</span> <span class="nav-text">基于注解的动态配置管理机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DCCValue注解"><span class="nav-number">1.11.1.</span> <span class="nav-text">@DCCValue注解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#功能"><span class="nav-number">1.11.1.1.</span> <span class="nav-text">功能</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DCCValueBeanFactory-类"><span class="nav-number">1.11.2.</span> <span class="nav-text">DCCValueBeanFactory 类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#DCCValueBeanFactory-函数"><span class="nav-number">1.11.2.1.</span> <span class="nav-text">DCCValueBeanFactory 函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#postProcessAfterInitialization函数"><span class="nav-number">1.11.2.2.</span> <span class="nav-text">postProcessAfterInitialization函数</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#为什么要重写-postProcessAfterInitialization？"><span class="nav-number">1.11.2.2.1.</span> <span class="nav-text">为什么要重写 postProcessAfterInitialization？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#函数介绍"><span class="nav-number">1.11.2.2.2.</span> <span class="nav-text">函数介绍</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现效果"><span class="nav-number">1.11.3.</span> <span class="nav-text">实现效果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例流程"><span class="nav-number">1.11.4.</span> <span class="nav-text">示例流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用场景"><span class="nav-number">1.11.5.</span> <span class="nav-text">使用场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#答疑1"><span class="nav-number">1.11.6.</span> <span class="nav-text">答疑1</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#优势"><span class="nav-number">1.11.6.1.</span> <span class="nav-text">优势</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#大营销项目中使用动态配置管理"><span class="nav-number">1.11.7.</span> <span class="nav-text">大营销项目中使用动态配置管理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#结合-Zookeeper-与-Redis-的最佳实践"><span class="nav-number">1.11.7.1.</span> <span class="nav-text">结合 Zookeeper 与 Redis 的最佳实践</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

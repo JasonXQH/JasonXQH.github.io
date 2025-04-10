@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="奇异值分解与主成分分析在机器学习中，随着数据维度的升高，分类器的性能会先增加后降低。这可能是因为维度过高会导致过拟合问题。为了缓解过拟合，我们可以用数据降维。因此现在我们来学习两种常用的数据降维方法：奇异值分解(SVD) 和 主成分分析(PCA) 对于是方阵的数据，我们可以用特征值分解，但如果数据不是方阵，只是普通的方阵，那么就可以使用奇异值分解和主成分分析 对角化与特征值分解 相似矩阵  对于矩">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据科学算法ch9-奇异值分解与主成分分析">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/11/09/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch9-%E5%A5%87%E5%BC%82%E5%80%BC%E5%88%86%E8%A7%A3%E4%B8%8E%E4%B8%BB%E6%88%90%E5%88%86%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="奇异值分解与主成分分析在机器学习中，随着数据维度的升高，分类器的性能会先增加后降低。这可能是因为维度过高会导致过拟合问题。为了缓解过拟合，我们可以用数据降维。因此现在我们来学习两种常用的数据降维方法：奇异值分解(SVD) 和 主成分分析(PCA) 对于是方阵的数据，我们可以用特征值分解，但如果数据不是方阵，只是普通的方阵，那么就可以使用奇异值分解和主成分分析 对角化与特征值分解 相似矩阵  对于矩">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-11-09T11:04:26.000Z">
+<meta property="article:modified_time" content="2022-01-06T15:48:34.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据科学算法">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/11/09/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch9-%E5%A5%87%E5%BC%82%E5%80%BC%E5%88%86%E8%A7%A3%E4%B8%8E%E4%B8%BB%E6%88%90%E5%88%86%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>数据科学算法ch9-奇异值分解与主成分分析 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/11/09/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch9-%E5%A5%87%E5%BC%82%E5%80%BC%E5%88%86%E8%A7%A3%E4%B8%8E%E4%B8%BB%E6%88%90%E5%88%86%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据科学算法ch9-奇异值分解与主成分分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-11-09 19:04:26" itemprop="dateCreated datePublished" datetime="2021-11-09T19:04:26+08:00">2021-11-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-06 23:48:34" itemprop="dateModified" datetime="2022-01-06T23:48:34+08:00">2022-01-06</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="奇异值分解与主成分分析"><a href="#奇异值分解与主成分分析" class="headerlink" title="奇异值分解与主成分分析"></a>奇异值分解与主成分分析</h1><p>在机器学习中，随着数据维度的升高，分类器的性能会先增加后降低。这可能是因为维度过高会导致过拟合问题。为了缓解过拟合，我们可以用数据降维。因此现在我们来学习两种常用的数据降维方法：<strong>奇异值分解</strong>(SVD) 和 <strong>主成分分析</strong>(PCA)</p>
+<p>对于是方阵的数据，我们可以用特征值分解，但如果数据不是方阵，只是普通的方阵，那么就可以使用奇异值分解和主成分分析</p>
+<h2 id="对角化与特征值分解"><a href="#对角化与特征值分解" class="headerlink" title="对角化与特征值分解"></a>对角化与特征值分解</h2><blockquote>
+<p>相似矩阵</p>
+</blockquote>
+<p>对于矩阵 $\boldsymbol {A,B}\in\boldsymbol R^{n\times n}$ ，若存在$n\times n$ 的可逆矩阵$\boldsymbol P$，使得 $\boldsymbol A=\boldsymbol {PBP}^{-1}$,则称矩阵$\boldsymbol {A}$和$\boldsymbol B$ 是相似的</p>
+<blockquote>
+<p>正交矩阵</p>
+</blockquote>
+<p>对于矩阵$\boldsymbol P$ ,若$\boldsymbol P^{-1} = \boldsymbol P^T$ 则称$ \boldsymbol P$ 为正交矩阵。</p>
+<p>由于$\boldsymbol {PP}^T = \boldsymbol I$​ ，因此正交矩阵是一类特殊的线性变换，它是保持原点不动，长度不变的旋转变换 </p>
+<blockquote>
+<p>对角化</p>
+</blockquote>
+<p>若方阵$\boldsymbol A$ 相似于一个对角阵，即存在一个可逆矩阵P和对角矩阵 $\Sigma$ ，使得 $\boldsymbol A=\boldsymbol {P\Sigma P}^{-1}$ ，则称$\boldsymbol  A$是可对角化的</p>
+<p>矩阵对角化的重要性在于，若矩阵 $\boldsymbol A$ 是可对角化的，那么会满足以下两条性质：</p>
+<script type="math/tex; mode=display">
+\boldsymbol A^k = \boldsymbol {P\Sigma}^k\boldsymbol P^{-1}\\
+\boldsymbol A^{-1} = \boldsymbol {P\Sigma}^{-1}\boldsymbol P^{-1}</script><p>接下来给出对角化的相关定理</p>
+<ul>
+<li><p>矩阵 $\boldsymbol A \in \boldsymbol {R}^{n\times n}$ 可对角化的充分必要条件是$\boldsymbol A$ 有 n 个线性无关的特征向量</p>
+</li>
+<li><p>矩阵 $\boldsymbol A \in \boldsymbol {R}^{n\times n}$ 可对角化的充分必要条件是，该矩阵每一个特征值的<strong>几何重数</strong> 等于其 <strong>代数重数</strong> </p>
+</li>
+</ul>
+<blockquote>
+<p>正交对角化</p>
+</blockquote>
+<p>若存在对角阵 $\boldsymbol \Sigma $ 、正交矩阵 $\boldsymbol P$ ，使得$\boldsymbol A = \boldsymbol P\boldsymbol \Sigma\boldsymbol P^{T}$​ 则称A是可正交对角化的</p>
+<p>正交对角化也是一种矩阵分解方法，该方法又被称为特征值分解。若矩阵$\boldsymbol A$ 是可正交对角化的，意味着矩阵 $\boldsymbol A$ 对应的线性变换可以分解成三步：</p>
+<ol>
+<li>将空间向量经过正交矩阵$\boldsymbol P^T$ 进行旋转变换</li>
+<li>通过对角矩阵$\boldsymbol \Sigma$​ 进行伸缩变换</li>
+<li>经过正交矩阵$\boldsymbol P$ 进行旋转变换，其中 $\boldsymbol P$ 和 $\boldsymbol P^T$ 互为逆变换</li>
+</ol>
+<p>接下来给出对角化的相关定理：<strong>若$\boldsymbol A$是实对称矩阵</strong>，那么$\boldsymbol A$具有一下性质</p>
+<ol>
+<li>不同特征值对应的特征向量之间是正交的</li>
+<li>$\boldsymbol A$ 有n个实特征值(如果包含重数)</li>
+<li>对于任一特征值，其对应的特征向量的集合重数等于特征值的代数重数</li>
+<li>特征空间是相互正交的</li>
+<li>$\boldsymbol A$​是可正交对角化的</li>
+</ol>
+<h3 id="特征值分解"><a href="#特征值分解" class="headerlink" title="特征值分解"></a>特征值分解</h3><p>求解对称方程 $A\in \mathbb R^{n\times n}$ 的特征分解步骤</p>
+<ul>
+<li><p>计算矩阵A的特征值$\lambda_1\cdots,\lambda_n$ 即 求特征方程 $|A-\lambda I| = 0$  的n个根</p>
+</li>
+<li><p>求特征值对应的n个相互正交的特征向量 $q_1,\cdots,q_n$即求解方程组并单位化</p>
+<script type="math/tex; mode=display">
+Aq_i = \lambda_iq_i,i=1,\cdots,n</script></li>
+<li><p>记矩阵 $Q=(q_1,\cdots,q_n)$ </p>
+</li>
+<li><p>最终得到矩阵A的特征分解为 </p>
+<script type="math/tex; mode=display">
+A = Q\begin{pmatrix} \lambda_1 &  &  \\  & \cdots &  \\ & & \lambda_n \end{pmatrix}Q^T</script></li>
+</ul>
+<p>例：求实对称矩阵的特征分解</p>
+<script type="math/tex; mode=display">
+A =\begin{bmatrix} 2& 1\\ 1 & 2 \end{bmatrix}</script><ol>
+<li>首先我们计算特征向量</li>
+</ol>
+<script type="math/tex; mode=display">
+|\lambda I-A| =\begin{bmatrix}\lambda-2& -1\\ -1 & \lambda-2 \end{bmatrix}=0\\</script><p>特征值：$\lambda_1=3,\lambda_2=1$</p>
+<p>带入求解并单位化： $q_1 = (\frac{1}{\sqrt 2},\frac{1}{\sqrt 2})^T,q_2 = (-\frac{1}{\sqrt2},\frac{1}{\sqrt2})^T$ </p>
+<ol>
+<li>写出特征向量方阵Q和特征值方阵 $\Lambda$ </li>
+</ol>
+<script type="math/tex; mode=display">
+Q =[q_1,q_2] =\begin{bmatrix} \frac{1}{\sqrt2}& -\frac{1}{\sqrt 2}\\ \frac{1}{\sqrt 2} & \frac{1}{\sqrt2} \end{bmatrix},\Lambda =\begin{bmatrix} \lambda_1 & \\  & \lambda_2 \end{bmatrix} = \begin{bmatrix} 3 &\\ & 1 \end{bmatrix}</script><ol>
+<li>$p=(\alpha_1,\alpha_2,\alpha_3),(p^{-1})^T=(\beta_1,\beta_2,\beta_3)$ </li>
+</ol>
+<script type="math/tex; mode=display">
+G_1 = \alpha_1\beta_1^T+\alpha_2\beta_2^T\\~\\
+G_2 = \alpha_3\beta_3^T</script><p>A和$G_1,G_2$的关系就是特征分解</p>
+<h2 id="奇异值分解"><a href="#奇异值分解" class="headerlink" title="奇异值分解"></a>奇异值分解</h2><p>给定矩阵 $\boldsymbol A\in \boldsymbol R^{m\times n}$ ,则矩阵 $\boldsymbol A$ 的奇异值分解为：</p>
+<script type="math/tex; mode=display">
+\boldsymbol A = \boldsymbol U\boldsymbol\Sigma\boldsymbol V^T</script><h3 id="分解过程"><a href="#分解过程" class="headerlink" title="分解过程"></a>分解过程</h3><ol>
+<li>计算矩阵 $\boldsymbol {AA}^T$ 和 $\boldsymbol A^T\boldsymbol A$ </li>
+<li>分别计算矩阵  $\boldsymbol {AA}^T$ 和 $\boldsymbol A^T\boldsymbol A$ 的特征值和对应的特征向量</li>
+<li>用矩阵  $\boldsymbol {AA}^T$ 的特征向量组成矩阵 $\boldsymbol U$;用 $\boldsymbol A^T\boldsymbol A$  的特征向量组成$\boldsymbol V$</li>
+<li>对矩阵 $\boldsymbol {AA}^T$ 和 $\boldsymbol A^T\boldsymbol A$ 的非零特征值求算术平方根，并对应特征向量的位置填入$\boldsymbol \Sigma$ 的<strong>对角元</strong></li>
+</ol>
+<h2 id="主成分分析"><a href="#主成分分析" class="headerlink" title="主成分分析"></a>主成分分析</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95/" rel="tag"># 数据科学算法</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/11/09/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch8-%E7%89%B9%E5%BE%81%E5%80%BC%E8%AE%A1%E7%AE%97/" rel="prev" title="数据科学算法ch8-特征值计算">
+      <i class="fa fa-chevron-left"></i> 数据科学算法ch8-特征值计算
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/11/09/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch10-%E7%9F%A9%E9%98%B5%E5%88%86%E8%A7%A3/" rel="next" title="数据科学算法ch10-矩阵分解">
+      数据科学算法ch10-矩阵分解 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#奇异值分解与主成分分析"><span class="nav-number">1.</span> <span class="nav-text">奇异值分解与主成分分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#对角化与特征值分解"><span class="nav-number">1.1.</span> <span class="nav-text">对角化与特征值分解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#特征值分解"><span class="nav-number">1.1.1.</span> <span class="nav-text">特征值分解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#奇异值分解"><span class="nav-number">1.2.</span> <span class="nav-text">奇异值分解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#分解过程"><span class="nav-number">1.2.1.</span> <span class="nav-text">分解过程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主成分分析"><span class="nav-number">1.3.</span> <span class="nav-text">主成分分析</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

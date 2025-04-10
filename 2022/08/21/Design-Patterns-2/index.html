@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="设计模式2-结构型模式Composite Pattern组合模式（Composite Pattern），又叫部分整体模式，是用于把一组相似的对象当作一个单一的对象。 The Problem比如说，在PPT中我创建了两个长方形，两个圆形，那么我们可以选中两个长方形将它们同时移动或者缩放；同样的，我们甚至可以选中四个物体同时移动缩放  除此之外，最经典的例子是文件夹与文件的表示，一个文件夹（容器对象）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Design-Patterns-2">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/08/21/Design-Patterns-2/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="设计模式2-结构型模式Composite Pattern组合模式（Composite Pattern），又叫部分整体模式，是用于把一组相似的对象当作一个单一的对象。 The Problem比如说，在PPT中我创建了两个长方形，两个圆形，那么我们可以选中两个长方形将它们同时移动或者缩放；同样的，我们甚至可以选中四个物体同时移动缩放  除此之外，最经典的例子是文件夹与文件的表示，一个文件夹（容器对象）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/08/21/Design-Patterns-2/1.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/08/21/Design-Patterns-2/2.png">
+<meta property="article:published_time" content="2022-08-21T13:37:51.000Z">
+<meta property="article:modified_time" content="2022-08-21T17:01:36.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="设计模式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/08/21/Design-Patterns-2/1.gif">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/08/21/Design-Patterns-2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Design-Patterns-2 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/08/21/Design-Patterns-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Design-Patterns-2
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-08-21 21:37:51" itemprop="dateCreated datePublished" datetime="2022-08-21T21:37:51+08:00">2022-08-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-08-22 01:01:36" itemprop="dateModified" datetime="2022-08-22T01:01:36+08:00">2022-08-22</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="设计模式2-结构型模式"><a href="#设计模式2-结构型模式" class="headerlink" title="设计模式2-结构型模式"></a>设计模式2-结构型模式</h1><h2 id="Composite-Pattern"><a href="#Composite-Pattern" class="headerlink" title="Composite Pattern"></a>Composite Pattern</h2><p>组合模式（Composite Pattern），又叫部分整体模式，是用于把一组相似的对象当作一个单一的对象。</p>
+<h3 id="The-Problem"><a href="#The-Problem" class="headerlink" title="The Problem"></a>The Problem</h3><p>比如说，在PPT中我创建了两个长方形，两个圆形，那么我们可以选中两个长方形将它们同时移动或者缩放；同样的，我们甚至可以选中四个物体同时移动缩放</p>
+<p><img src="/2022/08/21/Design-Patterns-2/1.gif" style="zoom:67%;"></p>
+<p>除此之外，最经典的例子是文件夹与文件的表示，一个文件夹（容器对象）既可以存放文件夹（容器对象），也可以存放文件（叶子对象）。如果把树的每个节点摊平，那就是<code>List</code>。而树结构，则是更能直观的体现每个节点与整体的关系。</p>
+<p><strong>为什么需要这个模式呢？它的目的是什么？</strong></p>
+<p>可以体现出类与类之间的层级结构</p>
+<p>主要是想要对外提供一致性的使用方式，即使容器对象与叶子对象之间属性差别可能非常大，我们希望抽象出相同的地方，一致的处理。</p>
+<h3 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h3><p>组合模式中一般有以下三种角色：</p>
+<ul>
+<li>抽象构件（<code>Component</code>）：一般是接口或者抽象类，是叶子构件和容器构件对象声明接口，抽象出访问以及管理子构件的方法。</li>
+<li>叶子节点（<code>Leaf</code>）：在组合中表示叶子节点对象，叶子节点没有子节点，也就没有子构件。</li>
+<li>容器构件（<code>Composite</code>）：容器节点可以包含子节点，子节点可以是叶子节点，也可以是容器节点。</li>
+</ul>
+<p><img src="/2022/08/21/Design-Patterns-2/2.png" style="zoom:67%;"></p>
+<h3 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Component</span> </span>&#123; <span class="comment">// Component接口，容器和叶子都需要实现它</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">render</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Shape</span> <span class="keyword">implements</span> <span class="title">Component</span></span>&#123; <span class="comment">//实现component接口</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//重写render方法，因为是叶子类，因此只需要实现单个逻辑即可</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">render</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Render Shape"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Group</span> <span class="keyword">implements</span> <span class="title">Component</span></span>&#123; <span class="comment">// 实现接口</span></span><br><span class="line">    <span class="comment">// Group中可以有多个component组成，这个角度看Group和Shape是相等的</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;Component&gt; components = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//可以往components中添加shape/group</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(Component shape)</span></span>&#123;</span><br><span class="line">        components.add(shape);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//重写render方法，对列表中的每一个Component都调用render</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">render</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(Component component:components)&#123;</span><br><span class="line">            component.render();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">       Group group1 = <span class="keyword">new</span> Group();</span><br><span class="line">       group1.add(<span class="keyword">new</span> Shape());</span><br><span class="line">       group1.add(<span class="keyword">new</span> Shape());</span><br><span class="line"></span><br><span class="line">       Group group2 = <span class="keyword">new</span> Group();</span><br><span class="line">       group2.add(<span class="keyword">new</span> Shape());</span><br><span class="line">       group2.add(<span class="keyword">new</span> Shape());</span><br><span class="line"></span><br><span class="line">       Group group = <span class="keyword">new</span> Group();</span><br><span class="line">       group.add(group1);</span><br><span class="line">       group.add(group2);</span><br><span class="line">      <span class="comment">//层次结构如下：</span></span><br><span class="line">      <span class="comment">/*</span></span><br><span class="line"><span class="comment">      - group</span></span><br><span class="line"><span class="comment">      -	-	group1</span></span><br><span class="line"><span class="comment">      -	-	- shape</span></span><br><span class="line"><span class="comment">      -	-	-	shape</span></span><br><span class="line"><span class="comment">      -	-	group2</span></span><br><span class="line"><span class="comment">      -	-	-	shape</span></span><br><span class="line"><span class="comment">      -	-	- shape</span></span><br><span class="line"><span class="comment">      */</span></span><br><span class="line">       group.render();<span class="comment">//一共是四个叶子结点，执行四次render</span></span><br><span class="line">       <span class="comment">//Render Shape</span></span><br><span class="line">        <span class="comment">//Render Shape</span></span><br><span class="line">        <span class="comment">//Render Shape</span></span><br><span class="line">        <span class="comment">//Render Shape</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>组合模式的优点：</p>
+<ul>
+<li>可以分层次定义复杂对象，表示局部和全部，客户端可以忽略不同的节点的差异。</li>
+<li>从高层次调用，可以很顺畅的调用到每一个局部，一致性比较强。</li>
+<li>节点自由搭配，灵活度比较高。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>在使用组合模式时，其叶子和组合节点的声明都是实现类，而不是接口，违反了依赖倒置原则。</li>
+</ul>
+<p>使用场景：</p>
+<ul>
+<li>希望忽略每个部分的差异，客户端一致使用</li>
+<li>需要表现为树形结构，以表示“整体-部分”的结构层次。</li>
+</ul>
+<h3 id="Exercise"><a href="#Exercise" class="headerlink" title="Exercise"></a>Exercise</h3><p>We’re building an application for an incident management organization. When an incident (eg fire) occurs, one or more teams may be deployed to attack the incident. </p>
+<p>A team often includes a truck and one or more human resources. It can also include a sub team. For example, for a medium-sized incident, we may need to deploy two teams and each team may contain a truck and two persons. </p>
+<ul>
+<li><p>Team </p>
+<ul>
+<li><p>Sub Team 1 </p>
+<ul>
+<li>Truck </li>
+<li>Human Resource </li>
+<li>Human Resource </li>
+</ul>
+</li>
+<li><p>Sub Team 2 </p>
+<ul>
+<li>Truck </li>
+<li>Human Resource </li>
+<li>Human Resource </li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Look at the current implementation of our application in the composite package. </p>
+<p>What are the problems with this implementation? Refactor the code using the composite pattern. </p>
+<h2 id="Adapter-Pattern"><a href="#Adapter-Pattern" class="headerlink" title="Adapter Pattern"></a>Adapter Pattern</h2><h3 id="The-Problem-1"><a href="#The-Problem-1" class="headerlink" title="The Problem"></a>The Problem</h3><h3 id="Solution-1"><a href="#Solution-1" class="headerlink" title="Solution"></a>Solution</h3><h3 id="Implementation-1"><a href="#Implementation-1" class="headerlink" title="Implementation"></a>Implementation</h3><h3 id="Exercise-1"><a href="#Exercise-1" class="headerlink" title="Exercise"></a>Exercise</h3><h2 id="Decorator-Pattern"><a href="#Decorator-Pattern" class="headerlink" title="Decorator Pattern"></a>Decorator Pattern</h2><h3 id="The-Problem-2"><a href="#The-Problem-2" class="headerlink" title="The Problem"></a>The Problem</h3><h3 id="Solution-2"><a href="#Solution-2" class="headerlink" title="Solution"></a>Solution</h3><h3 id="Implementation-2"><a href="#Implementation-2" class="headerlink" title="Implementation"></a>Implementation</h3><h3 id="Exercise-2"><a href="#Exercise-2" class="headerlink" title="Exercise"></a>Exercise</h3><h2 id="Facade-Pattern"><a href="#Facade-Pattern" class="headerlink" title="Facade Pattern"></a>Facade Pattern</h2><h3 id="The-Problem-3"><a href="#The-Problem-3" class="headerlink" title="The Problem"></a>The Problem</h3><h3 id="Solution-3"><a href="#Solution-3" class="headerlink" title="Solution"></a>Solution</h3><h3 id="Implementation-3"><a href="#Implementation-3" class="headerlink" title="Implementation"></a>Implementation</h3><h3 id="Exercise-3"><a href="#Exercise-3" class="headerlink" title="Exercise"></a>Exercise</h3><h2 id="Flyweight-Pattern"><a href="#Flyweight-Pattern" class="headerlink" title="Flyweight Pattern"></a>Flyweight Pattern</h2><h3 id="The-Problem-4"><a href="#The-Problem-4" class="headerlink" title="The Problem"></a>The Problem</h3><h3 id="Solution-4"><a href="#Solution-4" class="headerlink" title="Solution"></a>Solution</h3><h3 id="Implementation-4"><a href="#Implementation-4" class="headerlink" title="Implementation"></a>Implementation</h3><h3 id="Exercise-4"><a href="#Exercise-4" class="headerlink" title="Exercise"></a>Exercise</h3><h2 id="Bridge-Pattern"><a href="#Bridge-Pattern" class="headerlink" title="Bridge Pattern"></a>Bridge Pattern</h2><h3 id="The-Problem-5"><a href="#The-Problem-5" class="headerlink" title="The Problem"></a>The Problem</h3><h3 id="Solution-5"><a href="#Solution-5" class="headerlink" title="Solution"></a>Solution</h3><h3 id="Implementation-5"><a href="#Implementation-5" class="headerlink" title="Implementation"></a>Implementation</h3><h2 id="Proxy-Pattern"><a href="#Proxy-Pattern" class="headerlink" title="Proxy Pattern"></a>Proxy Pattern</h2><h3 id="The-Problem-6"><a href="#The-Problem-6" class="headerlink" title="The Problem"></a>The Problem</h3><h3 id="Solution-6"><a href="#Solution-6" class="headerlink" title="Solution"></a>Solution</h3><h3 id="Implementation-6"><a href="#Implementation-6" class="headerlink" title="Implementation"></a>Implementation</h3><h3 id="Exercise-5"><a href="#Exercise-5" class="headerlink" title="Exercise"></a>Exercise</h3>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag"># 设计模式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/08/19/Design-Patterns-1/" rel="prev" title="Design-Patterns-1">
+      <i class="fa fa-chevron-left"></i> Design-Patterns-1
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/08/21/Design-Patterns-3/" rel="next" title="Design-Patterns-3">
+      Design-Patterns-3 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#设计模式2-结构型模式"><span class="nav-number">1.</span> <span class="nav-text">设计模式2-结构型模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Composite-Pattern"><span class="nav-number">1.1.</span> <span class="nav-text">Composite Pattern</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Problem"><span class="nav-number">1.1.1.</span> <span class="nav-text">The Problem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Solution"><span class="nav-number">1.1.2.</span> <span class="nav-text">Solution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implementation"><span class="nav-number">1.1.3.</span> <span class="nav-text">Implementation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">1.1.4.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exercise"><span class="nav-number">1.1.5.</span> <span class="nav-text">Exercise</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Adapter-Pattern"><span class="nav-number">1.2.</span> <span class="nav-text">Adapter Pattern</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Problem-1"><span class="nav-number">1.2.1.</span> <span class="nav-text">The Problem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Solution-1"><span class="nav-number">1.2.2.</span> <span class="nav-text">Solution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implementation-1"><span class="nav-number">1.2.3.</span> <span class="nav-text">Implementation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exercise-1"><span class="nav-number">1.2.4.</span> <span class="nav-text">Exercise</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Decorator-Pattern"><span class="nav-number">1.3.</span> <span class="nav-text">Decorator Pattern</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Problem-2"><span class="nav-number">1.3.1.</span> <span class="nav-text">The Problem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Solution-2"><span class="nav-number">1.3.2.</span> <span class="nav-text">Solution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implementation-2"><span class="nav-number">1.3.3.</span> <span class="nav-text">Implementation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exercise-2"><span class="nav-number">1.3.4.</span> <span class="nav-text">Exercise</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Facade-Pattern"><span class="nav-number">1.4.</span> <span class="nav-text">Facade Pattern</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Problem-3"><span class="nav-number">1.4.1.</span> <span class="nav-text">The Problem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Solution-3"><span class="nav-number">1.4.2.</span> <span class="nav-text">Solution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implementation-3"><span class="nav-number">1.4.3.</span> <span class="nav-text">Implementation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exercise-3"><span class="nav-number">1.4.4.</span> <span class="nav-text">Exercise</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flyweight-Pattern"><span class="nav-number">1.5.</span> <span class="nav-text">Flyweight Pattern</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Problem-4"><span class="nav-number">1.5.1.</span> <span class="nav-text">The Problem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Solution-4"><span class="nav-number">1.5.2.</span> <span class="nav-text">Solution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implementation-4"><span class="nav-number">1.5.3.</span> <span class="nav-text">Implementation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exercise-4"><span class="nav-number">1.5.4.</span> <span class="nav-text">Exercise</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bridge-Pattern"><span class="nav-number">1.6.</span> <span class="nav-text">Bridge Pattern</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Problem-5"><span class="nav-number">1.6.1.</span> <span class="nav-text">The Problem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Solution-5"><span class="nav-number">1.6.2.</span> <span class="nav-text">Solution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implementation-5"><span class="nav-number">1.6.3.</span> <span class="nav-text">Implementation</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Proxy-Pattern"><span class="nav-number">1.7.</span> <span class="nav-text">Proxy Pattern</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Problem-6"><span class="nav-number">1.7.1.</span> <span class="nav-text">The Problem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Solution-6"><span class="nav-number">1.7.2.</span> <span class="nav-text">Solution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implementation-6"><span class="nav-number">1.7.3.</span> <span class="nav-text">Implementation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exercise-5"><span class="nav-number">1.7.4.</span> <span class="nav-text">Exercise</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

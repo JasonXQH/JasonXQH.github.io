@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="隐马尔可夫模型基本概念首先，我们要了解，什么是隐马尔科夫模型？ 隐马尔科夫模型，是关于时序的概率模型 它描述一个隐藏的马尔科夫链随机生成不可观测的状态随机序列(state sequence)，再由各个状态随机生成一个观测而产生观测随机序列的过程，序列的每一个位置又可以看做是一个时刻 三要素隐马尔科夫模型由初始概率分布，状态转移概率分布，以及观测概率分布确定，隐马尔科夫模型的形式定义如下：  $Q$">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机器学习-隐马尔可夫模型">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="隐马尔可夫模型基本概念首先，我们要了解，什么是隐马尔科夫模型？ 隐马尔科夫模型，是关于时序的概率模型 它描述一个隐藏的马尔科夫链随机生成不可观测的状态随机序列(state sequence)，再由各个状态随机生成一个观测而产生观测随机序列的过程，序列的每一个位置又可以看做是一个时刻 三要素隐马尔科夫模型由初始概率分布，状态转移概率分布，以及观测概率分布确定，隐马尔科夫模型的形式定义如下：  $Q$">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/3.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/5.jpeg">
+<meta property="article:published_time" content="2022-01-04T11:49:15.000Z">
+<meta property="article:modified_time" content="2022-03-03T02:19:42.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>机器学习-隐马尔可夫模型 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          机器学习-隐马尔可夫模型
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-01-04 19:49:15" itemprop="dateCreated datePublished" datetime="2022-01-04T19:49:15+08:00">2022-01-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-03-03 10:19:42" itemprop="dateModified" datetime="2022-03-03T10:19:42+08:00">2022-03-03</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="隐马尔可夫模型"><a href="#隐马尔可夫模型" class="headerlink" title="隐马尔可夫模型"></a>隐马尔可夫模型</h1><h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>首先，我们要了解，什么是隐马尔科夫模型？</p>
+<p>隐马尔科夫模型，是关于时序的概率模型</p>
+<p>它描述一个<strong>隐藏</strong>的马尔科夫链随机生成<strong>不可观测的状态随机序列(state sequence)</strong>，再由各个状态随机生成一个观测而产生<strong>观测随机序列</strong>的过程，序列的每一个位置又可以看做是一个<strong>时刻</strong></p>
+<h3 id="三要素"><a href="#三要素" class="headerlink" title="三要素"></a>三要素</h3><p>隐马尔科夫模型由<strong>初始概率分布</strong>，<strong>状态转移概率分布</strong>，以及<strong>观测概率分布</strong>确定，隐马尔科夫模型的形式定义如下：</p>
+<ul>
+<li><p>$Q$ 所有可能的状态的集合 ，记为 $Q = {q_1,    q_2\cdots,q_N}$， $N$ 是可能的状态数</p>
+</li>
+<li><p>$V$ 所有可能观测的集合，记为 $V= {v_1,v_2\cdots,v_m}$ ,  $M$ 是可能的观测数</p>
+</li>
+<li><p>$I$ 长度为$T$ 的状态序列 ，记为 $I = (i_1,i_2\cdots,i_T)$</p>
+</li>
+<li><p>$O$ 对应的观测序列，记为 $O= (o_1,o_2,\cdots,o_T)$</p>
+</li>
+<li><p>$A$ 是状态转移概率矩阵，记为 $A = [a<em>{ij}]</em>{N\times N}$</p>
+<p>其中， $a<em>{ij} = P(i</em>{i+1}=q_j|i_i=q_i),i=1,2\cdots,N;j=1,2\cdots,N$ 。这代表着，在时刻t，处于状态$q_i$  的条件下，在时刻 $t+1$ 转移到状态 $q_j$ 的概率</p>
+</li>
+<li><p>$B$ 是观测概率矩阵，记为 $B = [b<em>j(k)]</em>{N\times M}$ </p>
+<p>其中，$b_{j}(k) = P(o_t=v_k|i_t=q_j),k=1,2\cdots M;j=1,2\cdots,N$</p>
+<p>这代表着，在时刻 t， 处于状态$q_j$ 的条件下，生成观测 $v_k$ 的概率</p>
+</li>
+<li><p>$\pi$ 是初始状态概率向量，记为 $\pi = (\pi_i)$ </p>
+<p>其中，$\pi_i = P(i_i=q_i),i=1,2\cdots,N$ ,这代表着，时刻$t=1$ 时，处于状态$q_i$ 的概率</p>
+<p>它们的关系是：</p>
+</li>
+</ul>
+<p>$\pi,A$ 确定了隐藏的马尔科夫链，生成不可观测的状态序列，$B$确定了如何从状态生成观测，与状态序列总和确定了如何产生观测序列。因此，隐马尔科夫模型$\lambda$可以由三元符号来表示：$\lambda = (A,B,\pi)$</p>
+<p>$A,B,\pi$ 也被称为是马尔科夫模型三要素。</p>
+<h3 id="两个基本假设"><a href="#两个基本假设" class="headerlink" title="两个基本假设"></a>两个基本假设</h3><p>从定义可知，隐马尔科夫模型做出了两个基本假设</p>
+<ol>
+<li><p>齐次马尔科夫性假设。即设 隐藏的马尔科夫链<strong>在任意时刻 t  的状态只依赖于前一时刻的状态</strong>，与其他时刻的状态及观测无关，也与时刻t 是无关的。(可以理解为无记忆性)</p>
+<script type="math/tex; mode=display">
+P(i_i|i_{i-1},o_{t-1},\cdots,i_1,o_1) = P(i_i|i_{i-1}) ,t=1,2\cdots,T</script></li>
+<li><p>观测独立性假设。即假设<strong>任意时刻的观测</strong>只依赖于<strong>该时刻的马尔科夫链的状态</strong>，与其他观测及状态无关</p>
+<script type="math/tex; mode=display">
+P(o_t|i_T,o_T,\cdots,i_1,o_1) = P(o_i|i_i)</script></li>
+</ol>
+<p>隐马尔科夫模型可以用于标注，这时状态对应着标记。标注问题是给定观测序列预测期对应的标记序列. 我们可以假设，标注问题的数据是由隐马尔科夫模型生成的，这样，我们可以利用隐马尔科夫的学习与预测算法进行标注</p>
+<h4 id="盒球模型"><a href="#盒球模型" class="headerlink" title="盒球模型"></a>盒球模型</h4><p>假设有四个盒子，每个盒子都有红白两种颜色共10颗球，如下</p>
+<p><img src="/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/1.png" style="zoom:100%;"></p>
+<p>转移的规则是：</p>
+<ul>
+<li>盒子1 那么下一个一定是盒子2</li>
+<li>盒子2或者盒子3，那么下一个0.4 是左边那个盒子，0.6是右边那个盒子</li>
+<li>盒子4 下一个0.5是自己，0.5是盒子3</li>
+</ul>
+<p>我们可以通过观测每次去除球的颜色来得到观测序列，但是观测不到球是从哪个盒子取出来的，也就是说，我们观测不到盒子的序列。</p>
+<p>在这个例子中，盒子的序列就是<strong>状态序列 I</strong>，球颜色的观测序列就是<strong>观测序列O</strong> </p>
+<p>已知： </p>
+<ul>
+<li><p>状态集合 $Q =$ {盒子1，盒子2，盒子3，盒子4}，$N=4$ </p>
+</li>
+<li><p>观测集合 $V  =$ {红，白} $M=2$</p>
+</li>
+<li><p>观测序列和状态序列的长度 $T=5$</p>
+</li>
+<li><p>现在抽取五次，得到观测序列$O = ${红，红，白，白，红}</p>
+</li>
+<li><p>我们的初始概率分布为： $\pi = (0.25,0.25,0.25,0.25)$ 也就是抽到每个盒子的概率都是相同的</p>
+</li>
+<li><p>状态概率转移矩阵 $A$: </p>
+<script type="math/tex; mode=display">
+A = \begin{bmatrix}0&1&0&0\\0.4&0&0.6&0\\0&0.4&0&0.6\\0&0&0.5&0.5\end{bmatrix}</script><p>我们看到，这个矩阵记录的，就是上面说的三条转移规则</p>
+</li>
+<li><p>观测概率举证$B$:</p>
+<script type="math/tex; mode=display">
+A = \begin{bmatrix}0.5&0.5\\0.3&0.7\\0.6&0.4\\0.8&0.2\end{bmatrix}</script><p>我们看到，这个矩阵记录的，就是每个状态下，观测到红球或者是白球的概率</p>
+</li>
+</ul>
+<h4 id="观测序列如何生成"><a href="#观测序列如何生成" class="headerlink" title="观测序列如何生成"></a>观测序列如何生成</h4><p>从盒球模型中，观测序列时直接给我们的，那么，它是怎么生成的呢？</p>
+<p>通过 给定隐马尔科夫模型三要素 $\lambda = {A,B,\pi}$，以及观测序列长度 T(理解为要观测几次)，我们输出观测序列$O$</p>
+<ol>
+<li>安装初始状态分布$\pi$ 来产生 状态i</li>
+<li>令$t = 1$</li>
+<li>按照状态 $i<em>t$ 的观测概率分布 $b</em>{i_t}(k)$ 来生成$o_t$</li>
+<li>按照状态 $i<em>t$ 的状态转移概率分布 ${a</em>{i<em>ti</em>{t+1}}}$ 来产生状态 $i_{t+1}$ </li>
+<li>令 $t=t+1$ ,若 $t&lt;T$ ，跳转至(3), 否则终止</li>
+</ol>
+<h3 id="三个基本问题"><a href="#三个基本问题" class="headerlink" title="三个基本问题"></a>三个基本问题</h3><ul>
+<li><p>概率计算问题。给定模型 $\lambda = (A,B,\pi)$ 和观测序列 $O=(o_1,\cdots,o_T)$ ,计算在模型$\lambda$ 下，观测序列$O$ 出现的概率$P(O|\lambda)$</p>
+</li>
+<li><p>学习问题。已知观测序列$O=(o_1,\cdots,o_T)$, 估计模型 $\lambda = (A,B,\pi)$ 参数，使得在该模型下观测序列概率$P(O|\lambda)$ 最大. 即用极大似然估计的方法估计参数</p>
+</li>
+<li>预测问题．已知模型$\lambda = (A,B,\pi)$ 和观测序列$O=(o_1,o_2,\cdots,o_T)$，求对给定观测序列条件概率$P(I|O)$ 最大的状态序列$I=(i_1,\cdots,i_T)$。 维特比算法应用动态规划高效地求解最优路径，即概率最大的状态序列</li>
+</ul>
+<h2 id="概率计算算法"><a href="#概率计算算法" class="headerlink" title="概率计算算法"></a>概率计算算法</h2><p>概率计算问题。给定模型 $\lambda = (A,B,\pi)$ 和观测序列 $O=(o_1,\cdots,o_T)$ ,计算在模型$\lambda$ 下，观测序列$O$ 出现的概率$P(O|\lambda)$</p>
+<h3 id="前向算法"><a href="#前向算法" class="headerlink" title="前向算法"></a>前向算法</h3><p>首先，我们给出前向概率的定义：</p>
+<p>给定隐马尔科夫模型$\lambda$ , 定义到时刻 t 部分观测序列为 $o_1,\cdots,o_t$ 且状态为$q_i$ 的概率为<strong>前向概率 $\alpha_t(i)$</strong>。记作：</p>
+<script type="math/tex; mode=display">
+\alpha_t(i) = P(o_1,\cdots,o_t,i_t = q_i|\lambda)</script><p>由此，我们可以递推地求得前向概率$\alpha_t(i)$ 以及观测序列概率$P(O|\lambda)$ </p>
+<h4 id="算法步骤"><a href="#算法步骤" class="headerlink" title="算法步骤"></a>算法步骤</h4><p>输入：隐马尔科夫模型 $\lambda$, 观测序列 $O$:</p>
+<p>输出 ：观测序列概率 $P(O|\lambda)$</p>
+<ol>
+<li>初值</li>
+</ol>
+<script type="math/tex; mode=display">
+\alpha_1(i) = \pi_ib_i(o_1),i=1,2\cdots,N</script><p>这个步骤是初始化前向概率，是初始时刻的状态$i_t = q_i$ 和观测 $o_1$ 的联合概率</p>
+<ol>
+<li>递推，对于$t=1,2\cdots,T-1$</li>
+</ol>
+<script type="math/tex; mode=display">
+\alpha_{t+1}(i)=\bigg[\sum_{j=1}^N\alpha_t(j)a_{ji}\bigg]b_i(o_{t+1}),i=1,2\cdots,N</script><ol>
+<li>终止</li>
+</ol>
+<script type="math/tex; mode=display">
+P(O|\lambda) = \sum_{i=1}^N \alpha_T(i)</script><h4 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h4><p><img src="/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/2.png" style="zoom:100%;"></p>
+<ul>
+<li>步骤1，计算初值</li>
+</ul>
+<script type="math/tex; mode=display">
+\alpha_1(1) = \pi_1\cdot b_1(o_1) = 0.10\\
+\alpha_1(2) = \pi_2\cdot b_2(o_1) = 0.16\\
+\alpha_1(3) = \pi_3\cdot b_3(o_1) = 0.28</script><ul>
+<li>步骤2，递推</li>
+</ul>
+<p>我们要递推得到$\alpha_2$ 这一层的N个值(N=3)</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\alpha_2(1) = \bigg[\sum_{j=1}^3\alpha_1(j)\cdot a_{j1} \bigg]b_1(o_2)=[\alpha_1(1)\cdot a_{11}+\alpha_1(2)\cdot a_{21}+\alpha_1(3)\cdot a_{31}]\cdot b_1(o_2) = 0.154\times 0.5 = 0.077\\
+\alpha_2(2) = \bigg[\sum_{j=1}^3\alpha_1(j)\cdot a_{j2} \bigg]b_2(o_2)=[\alpha_1(1)\cdot a_{12}+\alpha_1(2)\cdot a_{22}+\alpha_1(3)\cdot a_{32}]\cdot b_2(o_2) = 0.184\times 0.6 = 0.1104\\
+\alpha_2(3) = \bigg[\sum_{j=1}^3\alpha_1(j)\cdot a_{j3} \bigg]b_3(o_2)=[\alpha_1(1)\cdot a_{13}+\alpha_1(2)\cdot a_{23}+\alpha_1(3)\cdot a_{33}]\cdot b_3(o_2) = 0.202\times 0.3 = 0.0606\\
+\end{align}</script><p>因为 $T=3$,所以我们还要再推一层 $\alpha_3(i)$</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\alpha_3(1) = \bigg[\sum_{j=1}^3\alpha_2(j)\cdot a_{j1} \bigg]b_1(o_3)=[\alpha_3(1)\cdot a_{11}+\alpha_2(2)\cdot a_{21}+\alpha_2(3)\cdot a_{31}]\cdot b_1(o_3) = 0.154\times 0.5 = 0.04187\\
+\alpha_3(2) = \bigg[\sum_{j=1}^3\alpha_2(j)\cdot a_{j2} \bigg]b_2(o_3)=[\alpha_3(1)\cdot a_{12}+\alpha_2(2)\cdot a_{22}+\alpha_2(3)\cdot a_{32}]\cdot b_2(o_3) = 0.184\times 0.6 = 0.03551\\
+\alpha_3(3) = \bigg[\sum_{j=1}^3\alpha_2(j)\cdot a_{j3} \bigg]b_3(o_3)=[\alpha_3(1)\cdot a_{13}+\alpha_2(2)\cdot a_{23}+\alpha_2(3)\cdot a_{33}]\cdot b_3(o_3) = 0.202\times 0.3 = 0.05284\\
+\end{align}</script><ul>
+<li>步骤3，终止</li>
+</ul>
+<script type="math/tex; mode=display">
+P(O|\lambda) = \sum_{i=1}^N\alpha_T(i) = 0.04187+0.03551+0.05284</script><h3 id="后向算法"><a href="#后向算法" class="headerlink" title="后向算法"></a>后向算法</h3><p>首先我们来定义后向概率：</p>
+<p>给定隐马尔科夫模型$\lambda$ ,  定义在时刻t，状态为$q<em>i$ 的条件下，从$t+1$到$T$ 的部分观测序列为 $o</em>{t+1},\cdots,o_T$ 的概率为<strong>后向概率</strong>，记作</p>
+<script type="math/tex; mode=display">
+\beta_t(i) = P(o_{t+1},\cdots,o_{T}|i_t = q_i,\lambda)</script><p>由此，我们可以递推地求得后向概率$\beta_t(i)$ 以及观测序列概率$P(O|\lambda)$ </p>
+<h4 id="算法步骤-1"><a href="#算法步骤-1" class="headerlink" title="算法步骤"></a>算法步骤</h4><ol>
+<li>初值</li>
+</ol>
+<script type="math/tex; mode=display">
+\beta_T(i) = 1,i=1,\cdots,N</script><ol>
+<li>递推</li>
+</ol>
+<p>对于 $t=T-1,T-2,\cdots,1$， 有：</p>
+<script type="math/tex; mode=display">
+\beta_t(i) = \sum_{j=1}^Na_{ij}\cdot b_j(o_{t+1})\beta_{t+1}(j)&i=1,\cdots,N\\</script><ol>
+<li><script type="math/tex; mode=display">
+P(O|\lambda) = \sum_{i=1}^N\pi_ib_i(o_1)\beta_1(i)</script></li>
+</ol>
+<h3 id="一些概率与期望值的计算"><a href="#一些概率与期望值的计算" class="headerlink" title="一些概率与期望值的计算"></a>一些概率与期望值的计算</h3><p>利用前向和后向概率，我们可以得到关于单个状态和两个状态概率的计算公式</p>
+<h4 id="单个状态"><a href="#单个状态" class="headerlink" title="单个状态"></a>单个状态</h4><p>给定模型$\lambda$和观测$O$, 我们可以通过前向后向概率计算求得 在时刻t 处于状态 $q_i$ 的概率：</p>
+<script type="math/tex; mode=display">
+\gamma_t(i) = P(i_t=q_i |O,\lambda)</script><p>由前向概率 $\alpha_t(i)$和 后向概率 $\beta_t(i)$ 的定义可知：</p>
+<script type="math/tex; mode=display">
+\alpha_t(i)\beta_t(i) = P(i_t=q_i,O|\lambda)</script><p>于是，我们得到</p>
+<script type="math/tex; mode=display">
+\gamma_t(i) = \frac{\alpha_t(i)\beta_t(i)}{P(O|\lambda)} = \frac{\alpha_t(i)\beta_t(i)}{\sum_{j=1}^N\alpha_t(j)\beta_t(j)}</script><h4 id="例题-1"><a href="#例题-1" class="headerlink" title="例题"></a>例题</h4><p><img src="/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/3.jpg" style="zoom:100%;"></p>
+<p>这就是上面所说的，求单个状态的概率值</p>
+<ul>
+<li>第一步，列出 $P(i_4 = q_3 |O,\lambda)$ 的式子：</li>
+</ul>
+<script type="math/tex; mode=display">
+P(i_4=q_3|O,\lambda) = \frac{\alpha_4(3)\cdot\beta_4(3)}{\sum_{i=1}^N\alpha_4(i)\beta_4(i)} = \frac{\alpha_4(3)\cdot\beta_4(3)}{\alpha_4(1)\beta_4(1)+\alpha_4(2)\beta_4(2)+\alpha_4(3)\beta_4(3)}</script><ul>
+<li>第二步，我们要求那些？</li>
+</ul>
+<p>首先，我们前向概率要从 $\alpha_1(i)$ 求到 $\alpha_4(i)$ 递推4次 ； 后向概率要从 $\beta_8(i)$求到 $\beta_4(i)$ ,递推5次</p>
+<ul>
+<li><p>第三步，前向计算</p>
+<ul>
+<li><p>初值: $\alpha_1(i) = \pi_ib_i(o_1)$</p>
+<script type="math/tex; mode=display">
+\alpha_1(1) = \pi_1\cdot b_1(o_1)=0.2\cdot0.5 = 0.10\\
+\alpha_1(2) = \pi_2\cdot b_2(o_1)=0.3\cdot 0.4 = 0.12\\
+\alpha_1(3) = \pi_3\cdot b_3(o_1)=0.5\cdot 0.7 = 0.35</script></li>
+<li><p>递推: $\alpha<em>{t+1}(i) = \bigg[\sum</em>{j =1}^N a<em>{ji}\cdot \alpha_t(i)\bigg]\cdot b_i(o</em>{t+1})$</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\alpha_2(1) = [\sum_{j=1}^3 a_{j1}\cdot\alpha_1(1)]\cdot b_1(o_{2}) = 0.078\\
+&\alpha_2(2) = [\sum_{j=1}^3 a_{j2}\cdot\alpha_1(2)]\cdot b_2(o_{2})=0.084\\
+&\alpha_2(3) = [\sum_{j=1}^3 a_{j3}\cdot\alpha_1(3)]\cdot b_3(o_{2})=0.0822\\
+
+&\alpha_3(1) = [\sum_{j=1}^3 a_{j1}\cdot\alpha_2(1)]\cdot b_1(o_{3})=0.04032\\
+&\alpha_3(2) = [\sum_{j=1}^3 a_{j2}\cdot\alpha_2(2)]\cdot b_2(o_{3})=0.026496\\
+&\alpha_3(3) = [\sum_{j=1}^3 a_{j3}\cdot\alpha_2(3)]\cdot b_3(o_{3})=0.068124\\
+
+&\alpha_4(1) = [\sum_{j=1}^3 a_{j1}\cdot\alpha_3(1)]\cdot b_1(o_{4})=0.00208668\\
+&\alpha_4(2) = [\sum_{j=1}^3 a_{j2}\cdot\alpha_3(2)]\cdot b_2(o_{4})=0.01236192\\
+&\alpha_4(3) = [\sum_{j=1}^3 a_{j3}\cdot\alpha_3(3)]\cdot b_3(o_{5})=0.004361112\\
+\end{align}</script></li>
+</ul>
+</li>
+<li><p>第四步，后向计算</p>
+<ul>
+<li><p>初值： $\beta_8(1)=\beta_8(2)=\beta_8(3) = 1$</p>
+</li>
+<li><p>递推 ： $\beta<em>t(i) = \sum</em>{j=1}^N a<em>{ij}\cdot b_j(o</em>{t+1})\cdot\beta_{t+1}(j) $</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\beta_7(1) = \sum_{j=1}^3 a_{1j}\cdot b_j(o_8)\cdot\beta_8(j)=0.43\\
+&\beta_7(2) = \sum_{j=1}^3 a_{2j}\cdot b_j(o_8)\cdot\beta_8(j)=0.51\\
+&\beta_7(3) = \sum_{j=1}^3 a_{3j}\cdot b_j(o_8)\cdot\beta_8(j)=0.4\\
+&\beta_6(1) = \sum_{j=1}^3 a_{1j}\cdot b_j(o_7)\cdot\beta_7(j)=0.1861\\
+&\beta_6(2) = \sum_{j=1}^3 a_{2j}\cdot b_j(o_7)\cdot\beta_7(j)=0.2415\\
+&\beta_6(3) = \sum_{j=1}^3 a_{3j}\cdot b_j(o_7)\cdot\beta_7(j)=0.1762\\
+&\beta_5(1) = \sum_{j=1}^3 a_{1j}\cdot b_j(o_6)\cdot\beta_6(j)=0.105521\\
+&\beta_5(2) = \sum_{j=1}^3 a_{2j}\cdot b_j(o_6)\cdot\beta_6(j)=0.100883\\
+&\beta_5(3) = \sum_{j=1}^3 a_{3j}\cdot b_j(o_6)\cdot\beta_6(j)=0.111934\\
+&\beta_4(1) = \sum_{j=1}^3 a_{1j}\cdot b_j(o_5)\cdot\beta_5(j)=0.04586531\\
+&\beta_4(2) = \sum_{j=1}^3 a_{2j}\cdot b_j(o_5)\cdot\beta_5(j)=0.05280909\\
+&\beta_4(3) = \sum_{j=1}^3 a_{3j}\cdot b_j(o_5)\cdot\beta_5(j)=0.4280618\\
+\end{align}</script></li>
+</ul>
+<p><img src="/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/3.png" style="zoom:100%;"></p>
+<h2 id="预测算法"><a href="#预测算法" class="headerlink" title="预测算法"></a>预测算法</h2></li>
+</ul>
+<p>预测问题．已知模型$\lambda = (A,B,\pi)$ 和观测序列$O=(o_1,o_2,\cdots,o_T)$，求对给定观测序列条件概率$P(I|O)$ 最大的状态序列$I=(i_1,\cdots,i_T)$。 维特比算法应用动态规划高效地求解最优路径，即概率最大的状态序列</p>
+<h3 id="维特比算法"><a href="#维特比算法" class="headerlink" title="维特比算法"></a>维特比算法</h3><p>维特比算法，是用动态规划来解决隐马尔科夫模型预测问题，即用动态规划求<strong>概率最大路径</strong>(最优路径)，这时一条路劲对应着一个状态序列。</p>
+<p>根据动态规划原理，最优路径具有这样的特性：如果最优路径在时刻 $t$ 通过结点 $i_t^<em>$，那么这一路径从结点$i_t^</em>$ 到终点$i_T^<em>$ 的部分路径，对于从结点$i_t^</em>$ 到终点$i_T^*$ 的所有可能的部分路径来说，必须是最优的。</p>
+<p>根据这一原理，我们只需要</p>
+<ul>
+<li>从时刻 $t=1$ 开始，递推地计算<strong>在时刻t</strong>、<strong>状态为i</strong>的各条部分路径的最大概率，直至得到时刻$t=T$ 、状态为i 的各条路径的最大概率。</li>
+<li>时刻 $t=T$ 的最大概率即为最优路径的概率 $P^<em>$ ,最优路径的终结点 $i^</em>_T$ 也会同时得到。</li>
+<li>之后，为了找到最优路径的各个结点，从终结点 $i^<em><em>T$ 开始，右后向前逐步求得点 $i</em>{T-1}^</em>,\cdots,i<em>{1}^<em>$ ， 得到最优路径 $I^</em> = (i_1^*,\cdots,i</em>{T}^*)$ </li>
+</ul>
+<p>输入：模型 $\lambda = (A,B,\pi)$ 和观测 $O=(o_1,o_2\cdots,o_T)$</p>
+<p>输出：最优路径 $I^<em> = (i_1^</em> ,i^<em>_2\cdots,i_T^</em>)$</p>
+<ol>
+<li>初始化</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&\delta_1(i) = \pi_ib_i(O_1)&i=1,\cdots,N\\
+&\varPsi_1(i) = 0&i=1,\cdots,N\\
+\end{align}</script><ol>
+<li>递推</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&\delta_t(i) = \max_{1\leq j\leq N}[\delta_{t-1}(j)a_{ji}]b_i(o_t)\\
+&\varPsi_t(i) = \arg\max_{i\leq j\leq N}[\delta_{t-1}(j)a_{ji}]
+\end{align}</script><ol>
+<li>终止</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&P^* = \max_{1\leq i\leq N}\delta_T(i)\\
+&i_T^* = \arg\max_{1\leq i\leq N} [\delta_T(i)]
+\end{align}</script><ol>
+<li>最优路径回溯：对于 $t=T-1,T-2,\cdots ,1$ <script type="math/tex; mode=display">
+i_t^* = \varPsi_{t+1}(i^*_{t+1})</script>求得最优路径 $I^<em> = (i_1^</em>,i_2^<em>,\cdots,i_T^</em>)$</li>
+</ol>
+<h4 id="例题-2"><a href="#例题-2" class="headerlink" title="例题"></a>例题</h4><p><img src="/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/4.jpg" style="zoom:100%;"></p>
+<ol>
+<li>初始化 , 在 $t = 1$ 时，对每一个状态$i\in{1,2,3}$   ，求 <strong>状态为 i </strong>, <strong>观测</strong>$o_1$<strong>为红 </strong>的概率，记此概率为 $\delta_1(i)$.则</li>
+</ol>
+<script type="math/tex; mode=display">
+\delta_1(i) = \pi_ib_i(o_1) =\pi_ib_i(o_1) ,~~~~ i=1,2,3</script><p>代入实际数据</p>
+<script type="math/tex; mode=display">
+\delta_1(1) = \pi_1b_1(o_1) = 0.2\times0.5 = 0.1\\
+\delta_1(2) = \pi_2b_2(o_1) = 0.4\times0.4 = 0.16\\
+\delta_1(3) = \pi_2b_2(o_1) = 0.4\times0.7 = 0.28\\
+\varPhi_1(i) = 0,i=1,2,3</script><ol>
+<li><p>递推</p>
+<ul>
+<li><p>在t = 2时</p>
+<ul>
+<li>对于每个状态$i\in{1,2,3}$,  记最大概率为  $\delta<em>2(i) = \max</em>{1\leq j\leq 3}[\delta<em>1(j)a</em>{ji}]b_i(o_2) $</li>
+</ul>
+<script type="math/tex; mode=display">
+\delta_2(1) = \max\{0.1\times 0.5, 0.16\times0.3,0.28\times 0.2\} \times 0.5 = 0.028\\
+\delta_2(2) = \max\{0.1\times 0.2, 0.16\times0.5,0.28\times 0.3\} \times 0.6 = 0.0504\\
+\delta_2(3) = \max\{0.1\times 0.3, 0.16\times0.2,0.28\times 0.5\} \times 0.3  = 0.042</script><ul>
+<li><p>同时，对于每个状态 $i\in {1,2,3}$ ，我们记录它的<strong>最大概率的前一个状态</strong> $j$. $\varPsi<em>2(i) = \arg\max</em>{1\leq j\leq 3}[\delta<em>1(j)a</em>{ji}]~~~i=1,2,3$</p>
+<script type="math/tex; mode=display">
+\varPsi_2(1) =\arg\max\{0.1\times0.5,0.16\times 0.3,0.28\times 0.2\} =3\\
+\varPsi_2(2) =\arg\max\{0.1\times0.2,0.16\times 0.5,0.28\times 0.3\} = 3\\
+\varPsi_2(3) =\arg\max\{0.1\times0.3,0.16\times 0.2,0.28\times 0.5\} = 3</script></li>
+<li><p>在t = 3时</p>
+<ul>
+<li><p>$\delta<em>3(i) = \max</em>{1\leq j\leq3}[\delta<em>2(j)a</em>{ji}]\cdot b_i(o_3)$</p>
+<script type="math/tex; mode=display">
+\delta_3(1) = \max\{0.028\times 0.5, 0.0504\times0.3,0.042\times 0.2\} \times 0.5 = 0.00756\\
+\delta_3(2) = \max\{0.028\times 0.2, 0.0504\times0.5,0.042\times 0.3\} \times 0.6 = 0.01008\\
+\delta_3(3) = \max\{0.028\times 0.3, 0.0504\times0.2,0.042\times 0.5\} \times 0.3  = 0.0147</script></li>
+<li><p>$\varPsi<em>3(i) = \arg\max</em>{1\leq j\leq 3}[\delta<em>2(j)a</em>{ji}]~~~i=1,2,3$</p>
+<script type="math/tex; mode=display">
+\varPsi_3(1) =\arg\max\{0.028\times 0.5, 0.0504\times0.3,0.042\times 0.2\}  =2\\
+\varPsi_3(2) =\arg\max\{0.028\times 0.2, 0.0504\times0.5,0.042\times 0.3\}= 2\\
+\varPsi_3(3) =\arg\max\{0.028\times 0.3, 0.0504\times0.2,0.042\times 0.5\} = 3</script></li>
+</ul>
+</li>
+<li><p>在 t = 4 时</p>
+<ul>
+<li><p>$\delta<em>4(i) = \max</em>{1\leq j\leq3}[\delta<em>3(j)a</em>{ji}]\cdot b_i(o_4)$</p>
+<script type="math/tex; mode=display">
+\delta_4(1) = \max\{0.00756\times 0.5, 0.01008\times0.3,0.0147\times 0.2\} \times 0.5 = 0.00189\\
+\delta_4(2) = \max\{0.00756\times 0.2,0.01008\times0.5,0.0147\times 0.3\} \times 0.6 = 0.003024\\
+\delta_4(3) = \max\{0.00756\times 0.3, 0.01008\times0.2,0.0147\times 0.5\} \times 0.3  = 0.002205</script></li>
+<li><p>$\varPsi<em>4(i) = \arg\max</em>{1\leq j\leq 3}[\delta<em>3(j)a</em>{ji}]~~~i=1,2,3$</p>
+<script type="math/tex; mode=display">
+\varPsi_4(1) =\arg\max\{0.00756\times 0.5, 0.01008\times0.3,0.0147\times 0.2\}  =1\\
+\varPsi_4(2) =\arg\max\{0.00756\times 0.2,0.01008\times0.5,0.0147\times 0.3\}= 2\\
+\varPsi_4(3) =\max\{0.00756\times 0.3, 0.01008\times0.2,0.0147\times 0.5\} = 3</script></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<ol>
+<li>用 $P^*$ 来表示最优路径的概率，则：</li>
+</ol>
+<script type="math/tex; mode=display">
+P^* = 3.025\times 10^{-3}</script><p>终点即 $i_4^*= \arg\max_i[\delta_4(i)] = 2$  </p>
+<ol>
+<li>由最优路径的终点 $i^<em>_4$ ,可以逆向找到 $i_3^</em>,i_2^<em>,i_1^</em>$</li>
+</ol>
+<script type="math/tex; mode=display">
+\text{在t=3时},i^*_3 = \varPsi_4(i^*_4)=2\\
+\text{在t=2时},i^*_2 =  \varPsi_3(i^*_3)=2\\
+\text{在t=1时},i^*_1 =  \varPsi_2(i^*_2)=3\\</script><p>于是求得最优路径，即最优状态序列 $I^<em> = (i^</em>_1,i_2^<em>,i_3^</em>)= (3,2,2,2)$</p>
+<p><img src="/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/5.jpeg" style="zoom:100%;"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="prev" title="机器学习-支持向量机">
+      <i class="fa fa-chevron-left"></i> 机器学习-支持向量机
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/01/05/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch1-%E7%AE%97%E6%B3%95%E8%AF%84%E4%BB%B7%E6%A0%87%E5%87%86/" rel="next" title="数据科学算法ch1-算法评价标准">
+      数据科学算法ch1-算法评价标准 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#隐马尔可夫模型"><span class="nav-number">1.</span> <span class="nav-text">隐马尔可夫模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本概念"><span class="nav-number">1.1.</span> <span class="nav-text">基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#三要素"><span class="nav-number">1.1.1.</span> <span class="nav-text">三要素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#两个基本假设"><span class="nav-number">1.1.2.</span> <span class="nav-text">两个基本假设</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#盒球模型"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">盒球模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#观测序列如何生成"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">观测序列如何生成</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三个基本问题"><span class="nav-number">1.1.3.</span> <span class="nav-text">三个基本问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#概率计算算法"><span class="nav-number">1.2.</span> <span class="nav-text">概率计算算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前向算法"><span class="nav-number">1.2.1.</span> <span class="nav-text">前向算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#算法步骤"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">算法步骤</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#例题"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">例题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#后向算法"><span class="nav-number">1.2.2.</span> <span class="nav-text">后向算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#算法步骤-1"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">算法步骤</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一些概率与期望值的计算"><span class="nav-number">1.2.3.</span> <span class="nav-text">一些概率与期望值的计算</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#单个状态"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">单个状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#例题-1"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">例题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#预测算法"><span class="nav-number">1.3.</span> <span class="nav-text">预测算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#维特比算法"><span class="nav-number">1.3.1.</span> <span class="nav-text">维特比算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例题-2"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">例题</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

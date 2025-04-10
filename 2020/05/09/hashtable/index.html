@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="哈希表概述散列表是根据关键字直接进行访问的数据结构。散列表通过散列函数将关键字映射到存储地址，建立了关键字和存储地址之间的一种直接映射关系。这里的存储地址可以实数组下标，索引，内存地址等等 例如：关键字key &#x3D; (17,24,48,25),散列函数H(key) &#x3D; key%5,散列函数将关键字映射到存储地址的下标，将关键字存储到散列表的对应位置，如图   这是理想状态，没有任何重复，这样查找时间">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hashtable">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/05/09/hashtable/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="哈希表概述散列表是根据关键字直接进行访问的数据结构。散列表通过散列函数将关键字映射到存储地址，建立了关键字和存储地址之间的一种直接映射关系。这里的存储地址可以实数组下标，索引，内存地址等等 例如：关键字key &#x3D; (17,24,48,25),散列函数H(key) &#x3D; key%5,散列函数将关键字映射到存储地址的下标，将关键字存储到散列表的对应位置，如图   这是理想状态，没有任何重复，这样查找时间">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/1.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/2.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/3.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/4.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/10.png">
+<meta property="article:published_time" content="2020-05-09T09:04:05.000Z">
+<meta property="article:modified_time" content="2022-12-09T11:39:28.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="Data_structure">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/05/09/hashtable/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/05/09/hashtable/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>hashtable | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/05/09/hashtable/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          hashtable
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-05-09 17:04:05" itemprop="dateCreated datePublished" datetime="2020-05-09T17:04:05+08:00">2020-05-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-12-09 19:39:28" itemprop="dateModified" datetime="2022-12-09T19:39:28+08:00">2022-12-09</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h1><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>散列表是根据关键字直接进行访问的数据结构。散列表通过散列函数将关键字映射到存储地址，建立了关键字和存储地址之间的一种直接映射关系。这里的存储地址可以实数组下标，索引，内存地址等等</p>
+<p>例如：关键字key = (17,24,48,25),散列函数H(key) = key%5,散列函数将关键字映射到存储地址的下标，将关键字存储到散列表的对应位置，如图</p>
+<p><img src="/2020/05/09/hashtable/1.png" style="zoom:50%;"></p>
+<ul>
+<li>这是理想状态，没有任何重复，这样查找时间就是O(1)的时间。如果冲突的话，也有很多处理方法。这种发生冲突的不同关键词（13和48）为同义词。因此，设计散列函数时应<strong>尽量减少冲突</strong>，如果冲突无法避免，则需要处理冲突的方法</li>
+</ul>
+<h3 id="散列函数"><a href="#散列函数" class="headerlink" title="散列函数"></a>散列函数</h3><p>散列函数又称为哈希函数，是将关键字映射到存储地址的函数。记为 hash(key) = Addr 设计遵循为2个原则</p>
+<ol>
+<li>散列函数尽可能简单，能够快速计算出任一关键词的散列地址</li>
+<li>散列函数映射的地址应该均匀分布整个空间，避免聚集，以减少冲突</li>
+</ol>
+<p>散列函数设计原则简化为四字箴言：简单，均匀</p>
+<h4 id="1-直接定址法"><a href="#1-直接定址法" class="headerlink" title="1.直接定址法"></a>1.直接定址法</h4><p>直接提取关键字的某个线性函数作为散列函数，散列函数形式如下：</p>
+<p><strong>hash(key) = a*key+b</strong></p>
+<p>其中a,b为常数</p>
+<p>适用于事先知道关键字，关键字集合不是很大且连续性较好。<strong>关键字如果不连续，则造成大量空位，造成空间浪费</strong></p>
+<p>例如，学生的学号{601001，601002，…..601006,….601045，…}，那么可以设计散列函数为 H(key) = key-601000</p>
+<p>这样可以将学生的学生好直接迎着到存储地址的下标。符合简单均匀的原则</p>
+<h4 id="2-除留余数法"><a href="#2-除留余数法" class="headerlink" title="2.除留余数法"></a>2.除留余数法</h4><ul>
+<li>除留余数法 是一种最简单最常用的构造散列函数的方法，并且不需要事先知道关键字的分布，假设散列表的表长为m，取一个不大于表长的最大素数p，设计散列函数为：</li>
+</ul>
+<p><strong>hash(key) = key%p</strong></p>
+<p>为什么要选择p为素数？</p>
+<ul>
+<li>为了避免冲突。因为在实际应用中，访问往往具有某种周期性，若周期与p有公共的素因子，则冲突的概率急剧上升。例如手表中的齿轮，两个交合齿轮的齿数最好是互质的，否则出现齿轮磨损绞断的概率很大，因此，发生冲突的概率随着p所含的素因子的增多而迅速增大，素因子越多，冲突也就越多</li>
+</ul>
+<h4 id="3-随机数法"><a href="#3-随机数法" class="headerlink" title="3.随机数法"></a>3.随机数法</h4><ul>
+<li>随机可以让关键字分布的更均匀一些，因此可以将关键字随机化，然后再使用除留余数法得到存储地址。散列函数为：</li>
+</ul>
+<p><strong>hash(key) = rand (key)%p</strong></p>
+<ul>
+<li>其中 rand()是C和C++中的随机函数 ，rand(n)表示求0~（n-1）的随机数。p的取值和除留余数法相同</li>
+</ul>
+<h4 id="4-数字分析法"><a href="#4-数字分析法" class="headerlink" title="4.数字分析法"></a>4.数字分析法</h4><ul>
+<li>数字分析法根据每个数字在各个位上出现的频率，选择平均分布的若干位，作为散列地址。该方法适用于已经直到关键字几何，通过观察分析得到</li>
+</ul>
+<p><img src="/2020/05/09/hashtable/2.png" style="zoom:50%;"></p>
+<h4 id="5-平方取中法"><a href="#5-平方取中法" class="headerlink" title="5.平方取中法"></a>5.平方取中法</h4><ul>
+<li>对关键字平方后，按照散列表的大小，取中间的若干位作为散列地址（平方后截取）。适用于事先不知道关键字的分布，且关键码的位数不是很大</li>
+<li>例如：散列地址为3位，则关键码10123的散列地址为475</li>
+</ul>
+<p><strong>10123^2 = 102475129</strong></p>
+<h4 id="6-折叠法"><a href="#6-折叠法" class="headerlink" title="6.折叠法"></a>6.折叠法</h4><ul>
+<li>将关键字从左到右分割成位数相等的及部分，将这几部分叠加求和，取后几位作为散列地址。适用于关键字位数很多，事先不知道关键字的分布。折叠法分为移位折叠和边界折叠两种。<ul>
+<li>移位折叠是将分割后的每一个部分的最低为对齐，然后相加求和</li>
+<li>边界折叠如同折纸，将相邻部分沿着边界来回折叠，然后对齐相加</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2020/05/09/hashtable/3.png" style="zoom:50%;"></p>
+<h4 id="7-基数转换法"><a href="#7-基数转换法" class="headerlink" title="7.基数转换法"></a>7.基数转换法</h4><p>例如，将十进制数转为其他的进制表示，例如345转换成九进制表示为423。另外散列函数大多是基于整数的，如果关键字是浮点数，可以将关键字乘以M并四舍五入得到函数，再使用散列函数活着将关键字表示为二进制数然后再使用散列函数,如果关键字是字符，可以将字符串换成R进制的整数，然后再使用散列函数</p>
+<p><img src="/2020/05/09/hashtable/4.png" style="zoom:50%;"></p>
+<p><img src="/2020/05/09/hashtable/5.png" style="zoom:50%;"></p>
+<h4 id="8-全域散列法"><a href="#8-全域散列法" class="headerlink" title="8.全域散列法"></a>8.全域散列法</h4><ul>
+<li>如果对关键字了解不多，可以使用全域散列法。即将多种备选的散列函数放在一个集合H中，在实际应用中，随机选择其中一个作为散列函数。如果任意两个不同的关键字key1!=key2,hash(key1) = hash(key2)的散列函数个数最多是 |H|/m,|H|为集合中散列函数的个数，m为表长，则称H是全域的</li>
+<li>一般不常写</li>
+</ul>
+<h3 id="冲突处理方式"><a href="#冲突处理方式" class="headerlink" title="冲突处理方式"></a>冲突处理方式</h3><p>无论如何设计散列函数，都无法避免冲突问题。如果发生冲突，就需要进行冲突处理。 冲突处理的方法为3种，开放地址法、链地址法、建立公共溢出区</p>
+<h4 id="1-开放地址法"><a href="#1-开放地址法" class="headerlink" title="1.开放地址法"></a>1.开放地址法</h4><p>开放地址法是在线性存储空间上的解决方案，也称为闭散列。当发生冲突时，采用冲突处理方法在线性存储空间上探测其他的位置</p>
+<p><code>hash&#39;(key) = (hash(key)+d)%m</code></p>
+<p>其中 <code>hash(key)</code>是原散列函数，<code>hash&#39;(key)</code>是探测函数，di是增量序列，m为表长</p>
+<p>根据增量序列不同，开放地址法又分为 线性探测，二次探测，随机探测，双倍散列 </p>
+<h5 id="线性探测法"><a href="#线性探测法" class="headerlink" title="线性探测法"></a>线性探测法</h5><p>线性探测法是最简单的开放地址法，线性探测的增量序列为：</p>
+<p>$ d_i = 1,2,….m-1 $</p>
+<p>例如 ，一组关键字（14,36,42,38,40,15,19,12,51,65,34,25）放到一个长为15的哈希表中，通过visualgo网站的动画我们可以看出线性探测是如何运行的</p>
+<p><img src="/2020/05/09/hashtable/1.gif"></p>
+<p>注意：线性探测法很简单，只要有空间，就一定能探测到位置，但<strong>是在处理冲突过程中会出现非同义词之间对同一个散列地址争夺的现象</strong>，被称为”堆积“ 。向上面的34一项，探测了6次才找到合适的位置。堆积大大降低了查找效率。因此，<strong>要选择好的处理冲突的方法来避免堆积</strong></p>
+<p><strong>性能分析：</strong></p>
+<p><strong>查找成功的平均查找长度</strong></p>
+<p>假设查找的概率均等，(12个关键字，每个关键字查找概率为1/12),查找成功的平均长度等于所有关键字查找成功的比较次数ci乘以查找概率pi的和</p>
+<script type="math/tex; mode=display">
+ASL_{succ}=\sum_{i=1}^{n}p_ic_i</script><p>当<code>hash(key)=0</code>的时候，如果该空间为空，则比较1次即可确定查找失败。如果该空间非空，关键字又不相等，则继续按照线性探测向后查找。<strong>直到遇到空时，才确定查找失败</strong>，计算比较次数。类似的，hash(key)=1,….,12也是这样计算的</p>
+<p>现在这个哈希表如下：</p>
+<p><img src="/2020/05/09/hashtable/11.png"></p>
+<p><img src="/2020/05/09/hashtable/6.png"></p>
+<p>在最坏的情况下那么平均查找长度就是 （1x3+2x3+3+4+5+6+7+8+11)/13=53/13</p>
+<h5 id="二次探测法"><a href="#二次探测法" class="headerlink" title="二次探测法"></a>二次探测法</h5><p>二次探测法采用前后跳跃式探测的方法。发生冲突的时候，向前1位探测，向后1位探测，向后 $2^2$ 位探测，向前 $2^2$ 位探测，…..,跳跃式探测来避免堆积。</p>
+<p>二次探测的增量序列是：$d_i=1^2,-1^2,2^2,-2^2…k^2,-k^2 $ </p>
+<p>虽然可以避免出现“堆积”问题，但是缺点是不能探测到散列表上的所有单元，但至少能探测道一半单元</p>
+<p>关于二次探测，visualgo上的增量序列是$di=1^2,2^2,3^2..$ 用相同的数据测试时候，会出现探测15次后任然找不到的情况，这时候会报错。可见对于二次探测法也需要科学的增量序列，但是visualgo上的操作也值得借鉴，至少帮我们发现了了一个bug，所以我也展示一下</p>
+<p><img src="/2020/05/09/hashtable/2.gif"></p>
+<h5 id="随机探测法"><a href="#随机探测法" class="headerlink" title="随机探测法"></a>随机探测法</h5><p>随即探测法采用伪随机数组进行探测，利用随机化避免堆积，随即探测的增量序列为：</p>
+<p>$d_i=伪随机数列$</p>
+<h5 id="double-hashing"><a href="#double-hashing" class="headerlink" title="double hashing"></a>double hashing</h5><p>我们来考察最后一个冲突解决方法，双散列（double hashing）。常用的方法是让F（i）= i * hash2( x )，这意思是用第二个散列函数算出x的散列值，然后在距离hash2( x )，2hash2( x )的地方探测。hash2( x )作为关键，必须要合理选取，否则会引起灾难性的后果——各种撞车。这个策略暂时不做过多分析了。</p>
+<p>在visualgo上我们也可以看一下模拟情况。这里sec = prime-key%prime</p>
+<p><img src="/2020/05/09/hashtable/3.gif"></p>
+<h4 id="2-链地址法"><a href="#2-链地址法" class="headerlink" title="2.链地址法"></a>2.链地址法</h4><p>链地址法又被称为是拉链法。如果不同关键词通过散列函数映射到同一个地址，这些关键字为同义词，将所有的同义词存储在一个线性链表当中，查找，插入，删除操作主要在这个链表中进行，拉链法适用于经常进行插入，删除的情况。</p>
+<p><img src="/2020/05/09/hashtable/7.png" style="zoom:50%;"></p>
+<p>visualgo模拟如下</p>
+<p><img src="/2020/05/09/hashtable/4.gif"></p>
+<p>链地址法求查找失败也非常容易。</p>
+<p><img src="/2020/05/09/hashtable/8.png" style="zoom:50%;"></p>
+<h4 id="3-建立公共溢出区"><a href="#3-建立公共溢出区" class="headerlink" title="3.建立公共溢出区"></a>3.建立公共溢出区</h4><p>除了以上处理冲突方法之外，也可以建立一个公共溢出区，发生冲突的时候，将关键字放入公共溢出区。查找的时候，先根据待查找关键字的散列地址在散列表中查找，如果为空，则查找失败；如果非空且关键字不相等，则到公共溢出区查找，如仍然未找到，则查找失败</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><img src="/2020/05/09/hashtable/9.png" style="zoom:50%;"></p>
+<h3 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cmath&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> m 15<span class="comment">//哈希表的表长</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NULLKEY 0<span class="comment">//单元为空的标记</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> HT[m],HC[m];</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">H</span><span class="params">(<span class="keyword">int</span> key)</span><span class="comment">//哈希函数</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> key%<span class="number">13</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//线性探测</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Linedetect</span><span class="params">(<span class="keyword">int</span> HT[],<span class="keyword">int</span> H0,<span class="keyword">int</span> key,<span class="keyword">int</span> &amp;cnt)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> Hi;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;m;++i)</span><br><span class="line">    &#123;</span><br><span class="line">        cnt++;</span><br><span class="line">        Hi=(H0+i)%m; <span class="comment">//按照线性探测法计算下一个哈希地址Hi</span></span><br><span class="line">        <span class="keyword">if</span>(HT[Hi]==NULLKEY)</span><br><span class="line">            <span class="keyword">return</span> Hi;	<span class="comment">//若单元Hi为空，则所查元素不存在</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(HT[Hi]==key)</span><br><span class="line">            <span class="keyword">return</span> Hi; <span class="comment">//若单元Hi中元素的关键字为key</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//二次探测</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Seconddetect</span><span class="params">(<span class="keyword">int</span> HT[],<span class="keyword">int</span> H0,<span class="keyword">int</span> key,<span class="keyword">int</span> &amp;cnt)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> Hi;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=m/<span class="number">2</span>;++i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">int</span> i1=i*i;</span><br><span class="line">        <span class="keyword">int</span> i2=-i1;</span><br><span class="line">        cnt++;</span><br><span class="line">        Hi=(H0+i1)%m; <span class="comment">//按照线性探测法计算下一个哈希地址Hi</span></span><br><span class="line">        <span class="keyword">if</span>(HT[Hi]==NULLKEY)<span class="comment">//若单元Hi为空，则所查元素不存在</span></span><br><span class="line">            <span class="keyword">return</span> Hi;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(HT[Hi]==key)<span class="comment">//若单元Hi中元素的关键字为key</span></span><br><span class="line">            <span class="keyword">return</span> Hi;</span><br><span class="line">        cnt++;</span><br><span class="line">        Hi=(H0+i2)%m; <span class="comment">//按照线性探测法计算下一个哈希地址Hi</span></span><br><span class="line">        <span class="keyword">if</span>(Hi&lt;<span class="number">0</span>)</span><br><span class="line">            Hi+=m;</span><br><span class="line">        <span class="keyword">if</span>(HT[Hi]==NULLKEY)<span class="comment">//若单元Hi为空，则所查元素不存在</span></span><br><span class="line">            <span class="keyword">return</span> Hi;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(HT[Hi]==key)<span class="comment">//若单元Hi中元素的关键字为key</span></span><br><span class="line">            <span class="keyword">return</span> Hi;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">SearchHash</span><span class="params">(<span class="keyword">int</span> HT[],<span class="keyword">int</span> key)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//在哈希表HT中查找关键字为key的元素，若查找成功，返回哈希表的单元标号，否则返回-1</span></span><br><span class="line">    <span class="keyword">int</span> H0=H(key); <span class="comment">//根据哈希函数H（key）计算哈希地址</span></span><br><span class="line">    <span class="keyword">int</span> Hi,cnt=<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span>(HT[H0]==NULLKEY)<span class="comment">//若单元H0为空，则所查元素不存在</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(HT[H0]==key)<span class="comment">//若单元H0中元素的关键字为key，则查找成功</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">cout</span>&lt;&lt;<span class="string">"查找成功，比较次数："</span>&lt;&lt;cnt&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">            <span class="keyword">return</span> H0;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            Hi=Linedetect(HT,H0,key,cnt);</span><br><span class="line">            <span class="keyword">if</span>(HT[Hi]==key)<span class="comment">//若单元Hi中元素的关键字为key，则查找成功</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">cout</span>&lt;&lt;<span class="string">"查找成功，比较次数: "</span>&lt;&lt;cnt&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">                <span class="keyword">return</span> Hi;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;	<span class="comment">//若单元Hi为空，则所查元素不存在</span></span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">InsertHash</span><span class="params">(<span class="keyword">int</span> HT[],<span class="keyword">int</span> key)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> H0=H(key); <span class="comment">//根据哈希函数H（key）计算哈希地址</span></span><br><span class="line">    <span class="keyword">int</span> Hi=<span class="number">-1</span>,cnt=<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span>(HT[H0]==NULLKEY)</span><br><span class="line">    &#123;</span><br><span class="line">        HC[H0]=<span class="number">1</span>;<span class="comment">//统计比较次数</span></span><br><span class="line">        HT[H0]=key;	<span class="comment">//若单元H0为空，放入</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        Hi=Linedetect(HT,H0,key,cnt);<span class="comment">//线性探测</span></span><br><span class="line">        <span class="comment">//Hi=Seconddetect(HT,H0,key,cnt);//二次探测</span></span><br><span class="line">        <span class="keyword">if</span>((Hi!=<span class="number">-1</span>)&amp;&amp;(HT[Hi]==NULLKEY))</span><br><span class="line">        &#123;</span><br><span class="line">            HC[Hi]=cnt;</span><br><span class="line">            HT[Hi]=key;<span class="comment">//若单元Hi为空，放入</span></span><br><span class="line">            <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">int</span> HT[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;m;i++)</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;HT[i]&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> x;</span><br><span class="line">	<span class="built_in">memset</span>(HT,<span class="number">0</span>,<span class="keyword">sizeof</span>(HT));</span><br><span class="line">	<span class="built_in">memset</span>(HC,<span class="number">0</span>,<span class="keyword">sizeof</span>(HC));</span><br><span class="line">	<span class="built_in">print</span>(HT);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"输入12个关键字，存入哈希表中："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">12</span>;i++)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">cin</span>&gt;&gt;x;</span><br><span class="line">		<span class="keyword">if</span>(!InsertHash(HT,x))</span><br><span class="line">		&#123;</span><br><span class="line">		    <span class="built_in">cout</span>&lt;&lt;<span class="string">"创建哈希表失败！"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">		    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"输出哈希表："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="built_in">print</span>(HT);</span><br><span class="line">	<span class="built_in">print</span>(HC);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"输入要查找的关键字"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="built_in">cin</span>&gt;&gt;x;</span><br><span class="line">	<span class="keyword">int</span> result=SearchHash(HT,x);</span><br><span class="line">	<span class="keyword">if</span>(result!=<span class="number">-1</span>)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;<span class="string">"在第"</span>&lt;&lt;result+<span class="number">1</span>&lt;&lt;<span class="string">"位置找到"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;<span class="string">"未找到"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//14 36 42 38 40 15 19 12 51 65 34 25</span></span><br></pre></td></tr></table></figure>
+<h3 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h3><p><img src="/2020/05/09/hashtable/10.png" style="zoom:67%;"></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;bits/stdc++.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;hash_map&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> __gnu_cxx;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> hash_size = <span class="number">10</span>;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">hash_funcion</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">size_t</span> <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span> &amp;key)</span> <span class="keyword">const</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">size_t</span>(key%hash_size);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">key_compare</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span> &amp;key1, <span class="keyword">const</span> <span class="keyword">int</span> &amp;key2)</span><span class="keyword">const</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span>  key1==key2;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   hash_map&lt;<span class="keyword">int</span> ,<span class="keyword">int</span>,hash_funcion,key_compare&gt;myhash;</span><br><span class="line">   <span class="keyword">int</span> k;</span><br><span class="line">   <span class="built_in">cin</span>&gt;&gt;k;</span><br><span class="line">   <span class="keyword">int</span> numbers[k];</span><br><span class="line">   <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span> ;i&lt;k;i++)</span><br><span class="line">    &#123;</span><br><span class="line">       <span class="built_in">cin</span>&gt;&gt;numbers[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">int</span> target = <span class="number">0</span>;</span><br><span class="line">   <span class="built_in">cin</span>&gt;&gt; target;</span><br><span class="line">   <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;k;i++)</span><br><span class="line">    &#123;</span><br><span class="line">      myhash[numbers[i]] = i+<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">   <span class="keyword">int</span> num = <span class="number">0</span>;</span><br><span class="line">   <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;k;i++)</span><br><span class="line">    &#123;</span><br><span class="line">       <span class="keyword">int</span> current_num = numbers[i];</span><br><span class="line">       <span class="keyword">int</span> current_pos = i+<span class="number">1</span>;</span><br><span class="line">       hash_map&lt;<span class="keyword">int</span>,<span class="keyword">int</span>,hash_funcion,key_compare&gt;::iterator it = myhash.<span class="built_in">find</span>(target-current_num);</span><br><span class="line">       <span class="keyword">if</span>( it!= myhash.<span class="built_in">end</span>())</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(it-&gt;second&gt;current_pos)&#123;</span><br><span class="line">                num++;</span><br><span class="line">                <span class="built_in">cout</span>&lt;&lt;<span class="string">"["</span>&lt;&lt;current_pos&lt;&lt;<span class="string">","</span>&lt;&lt;it-&gt;second&lt;&lt;<span class="string">"]"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(num==<span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="string">"None"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    &#125;</span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>自己实现</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;bits/stdc++.h&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">enum</span> Error_code&#123;not_present,<span class="built_in">overflow</span>,duplicate_error,success&#125;;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> hash_size =<span class="number">10</span>;</span><br><span class="line"><span class="comment">//key 这个类来保存关键字</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Key</span>&#123;</span></span><br><span class="line">    <span class="keyword">int</span> key;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    Key (<span class="keyword">int</span> x = <span class="number">0</span>)&#123;</span><br><span class="line">        <span class="keyword">this</span>-&gt;key = x;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">the_key</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Key::the_key</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> key;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//record 就是下标</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Record</span>&#123;</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> key;</span><br><span class="line">    <span class="keyword">int</span> other;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">operator</span> <span class="title">Key</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Key(<span class="keyword">this</span>-&gt;key);</span><br><span class="line">    &#125;</span><br><span class="line">    Record (<span class="keyword">int</span> x= <span class="number">0</span>,<span class="keyword">int</span> y = <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">this</span>-&gt;key = x;</span><br><span class="line">        <span class="keyword">this</span>-&gt;other = y;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">the_key</span><span class="params">()</span> <span class="keyword">const</span> </span>;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">the_other</span><span class="params">()</span> <span class="keyword">const</span> </span>;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Record::the_key</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> key;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Record::the_other</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> other;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//重载两个运算符</span></span><br><span class="line"><span class="keyword">bool</span> <span class="keyword">operator</span> !=(<span class="keyword">const</span> Record &amp;x, <span class="keyword">const</span> Record &amp;y)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> x.the_key() != y.the_key();</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">bool</span> <span class="keyword">operator</span> ==(<span class="keyword">const</span> Record &amp;x, <span class="keyword">const</span> Record &amp;y)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> x.the_key() == y.the_key();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">hash_fun</span><span class="params">(<span class="keyword">const</span> Record &amp;new_entry)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> new_entry.the_key() %hash_size;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">hash_fun</span><span class="params">(<span class="keyword">const</span> Key &amp;new_entry)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> new_entry.the_key() %hash_size;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Hash_table</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function">Error_code <span class="title">insert</span><span class="params">(<span class="keyword">const</span> Record &amp;new_entry)</span></span>;</span><br><span class="line">    <span class="function">Error_code <span class="title">retrieve</span><span class="params">(<span class="keyword">const</span> Key &amp;target, Record &amp;found)</span> <span class="keyword">const</span> </span>;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    Record table[hash_size];</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function">Error_code <span class="title">Hash_table::retrieve</span><span class="params">(<span class="keyword">const</span> Key &amp;target,Record &amp;found)</span> <span class="keyword">const</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> probe_count,increment,probe;</span><br><span class="line">    probe = hash_fun(target);</span><br><span class="line">    probe_count = <span class="number">0</span>;</span><br><span class="line">    increment = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span>(table[probe]!=<span class="number">0</span>&amp;&amp;table[probe].the_key()!=target.the_key()&amp;&amp;probe_count&lt;(hash_size+<span class="number">1</span>)/<span class="number">2</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        probe_count++;</span><br><span class="line">        probe = (probe+increment)%hash_size;</span><br><span class="line">        increment+=<span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(table[probe].the_key() == target.the_key())&#123;</span><br><span class="line">        found = table[probe];</span><br><span class="line">        <span class="keyword">return</span>  success;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">return</span> not_present;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Error_code <span class="title">Hash_table::insert</span><span class="params">(<span class="keyword">const</span> Record &amp;new_entry)</span> </span>&#123;</span><br><span class="line">    Error_code result = success;</span><br><span class="line">    <span class="keyword">int</span> probe_count,increment,probe;</span><br><span class="line">    probe = hash_fun(new_entry);</span><br><span class="line">    probe_count = <span class="number">0</span>;increment = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span>(table[probe]!= <span class="number">0</span>&amp;&amp;table[probe]!=<span class="number">-1</span>&amp;&amp;probe_count&lt;(hash_size+<span class="number">1</span>)/<span class="number">2</span>)&#123;</span><br><span class="line">        probe_count++;</span><br><span class="line">        probe = (probe+increment)%hash_size;</span><br><span class="line">        increment+=<span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(table[probe]==<span class="number">0</span>) table[probe] = new_entry;</span><br><span class="line">    <span class="keyword">if</span>(table[probe]== <span class="number">-1</span>) table[probe] = new_entry;</span><br><span class="line">    <span class="keyword">else</span> result = <span class="built_in">overflow</span>;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> k;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;k;</span><br><span class="line">    <span class="keyword">int</span> numbers[k];</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span> ;i&lt;k;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cin</span>&gt;&gt;numbers[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">int</span> target = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt; target;</span><br><span class="line">    Hash_table myhash;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;k;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        myhash.insert(Record(numbers[i],i+<span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">int</span> num = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;k;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">int</span> current_num = numbers[i];</span><br><span class="line">        <span class="keyword">int</span> current_pos = i+<span class="number">1</span>;</span><br><span class="line">        Record record;</span><br><span class="line">        Error_code result = myhash.retrieve(Key(target-current_num),record);</span><br><span class="line">            <span class="keyword">if</span>( result==success&amp;&amp;record.the_other()&gt;current_pos)</span><br><span class="line">            &#123;</span><br><span class="line">                    num++;</span><br><span class="line">                    <span class="built_in">cout</span>&lt;&lt;<span class="string">"["</span>&lt;&lt;current_pos&lt;&lt;<span class="string">","</span>&lt;&lt;record.the_other()&lt;&lt;<span class="string">"]"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">            &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(num==<span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="string">"None"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="练习"><a href="#练习" class="headerlink" title="练习"></a>练习</h2><p>计算查找成功的平均比较次数和查找失败的平均比较次数</p>
+<ol>
+<li>现有长度为7，初始为空的散列表 HT，散列函数$H(k) = k%7$ ，用线性探测再散列法解决冲突，将关键字22、43、15依次插入HT之后，查找成功的平均查找长度是：</li>
+</ol>
+<p>注意，查找成功的平均查找长度，是只要算到找到为止(包含最后找到的那次) 的对比次数，这里，22%7=43%7=15%7 = 1，因此，在查找时</p>
+<script type="math/tex; mode=display">
+ASL = (1+2+3)/3 = 2</script><ol>
+<li>现有长度为11且初始为空的散列表HT，散列函数是$H(key) = key\%7$   ，用线性探查法解决冲突，将关键字序列：87、40、30、6、11、22、98、20依次插入HT之后，HT查找<strong>失败</strong> 的平均查找长度为：</li>
+</ol>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>98</td>
+<td>22</td>
+<td>30</td>
+<td>87</td>
+<td>11</td>
+<td>40</td>
+<td>6</td>
+<td>20</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>由于$H(key) = 0 \sim 6$ 查找失败可能对应的地址有7个，对于计算地址为0的关键字 key0， 只有比较完<strong>0~8</strong> 号地址之后，才能确定该关键字不在表中，比较次数为9.</p>
+<p>以此类推， key1比较次数为8，….. ， key6比较次数为3</p>
+<p>因此 $ASL = (9+8+7+6+5+4+3)/7=6$</p>
+<p>对于散列表也是这样，查找失败的ASL的计算方法 = $\sum_{i=0}^{n-1} \text{[num(i)+1]}$  n为散列函数%的值，$num(i)$ 即余数为i的列表中的关键字个数</p>
+<h4 id="一些结论"><a href="#一些结论" class="headerlink" title="一些结论"></a>一些结论</h4><ul>
+<li>散列表中，查找的平均查找长度与表长无关</li>
+<li>在开放定址的情形下，不能随便删除散列表中的某个元素，否则可能会导致搜索路径被中断。因此，通常的做法是在要删除的地方做删除标记，而不是直接删除</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Data-structure/" rel="tag"># Data_structure</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/" rel="prev" title="分治算法和主定理">
+      <i class="fa fa-chevron-left"></i> 分治算法和主定理
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/09/%E9%82%BB%E6%8E%A5%E7%9F%A9%E9%98%B5%E4%B8%8E%E9%82%BB%E6%8E%A5%E8%A1%A8/" rel="next" title="邻接矩阵与邻接表">
+      邻接矩阵与邻接表 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#哈希表"><span class="nav-number">1.</span> <span class="nav-text">哈希表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">1.0.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#散列函数"><span class="nav-number">1.0.2.</span> <span class="nav-text">散列函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-直接定址法"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">1.直接定址法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-除留余数法"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">2.除留余数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-随机数法"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">3.随机数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-数字分析法"><span class="nav-number">1.0.2.4.</span> <span class="nav-text">4.数字分析法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-平方取中法"><span class="nav-number">1.0.2.5.</span> <span class="nav-text">5.平方取中法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-折叠法"><span class="nav-number">1.0.2.6.</span> <span class="nav-text">6.折叠法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-基数转换法"><span class="nav-number">1.0.2.7.</span> <span class="nav-text">7.基数转换法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-全域散列法"><span class="nav-number">1.0.2.8.</span> <span class="nav-text">8.全域散列法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#冲突处理方式"><span class="nav-number">1.0.3.</span> <span class="nav-text">冲突处理方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-开放地址法"><span class="nav-number">1.0.3.1.</span> <span class="nav-text">1.开放地址法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#线性探测法"><span class="nav-number">1.0.3.1.1.</span> <span class="nav-text">线性探测法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#二次探测法"><span class="nav-number">1.0.3.1.2.</span> <span class="nav-text">二次探测法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#随机探测法"><span class="nav-number">1.0.3.1.3.</span> <span class="nav-text">随机探测法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#double-hashing"><span class="nav-number">1.0.3.1.4.</span> <span class="nav-text">double hashing</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-链地址法"><span class="nav-number">1.0.3.2.</span> <span class="nav-text">2.链地址法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-建立公共溢出区"><span class="nav-number">1.0.3.3.</span> <span class="nav-text">3.建立公共溢出区</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">1.1.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#代码实现"><span class="nav-number">1.1.1.</span> <span class="nav-text">代码实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例题"><span class="nav-number">1.1.2.</span> <span class="nav-text">例题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#练习"><span class="nav-number">1.2.</span> <span class="nav-text">练习</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#一些结论"><span class="nav-number">1.2.0.1.</span> <span class="nav-text">一些结论</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

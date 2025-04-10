@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="假设检验假设检验的基本思想与概念我们先举一个女士品茶的例子：有一个女士称她可以鉴别奶茶是先加奶后加茶(MT)还是先加茶后加奶(MT). 那么，我们怎么来检验她是否有这种能力呢？ 我们给出一个假设H：该女子没有这种鉴别能力。那么，如果H是正确的，她在10杯奶茶中只能猜，10次都猜对的概率为 $2^{-10}&lt;0.001$ ， 这是一个很小的概率，在一次试验中几乎不会发生，但如果这件事情真的发生">
+<meta property="og:type" content="article">
+<meta property="og:title" content="概率论-假设检验">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/06/28/%E6%A6%82%E7%8E%87%E8%AE%BA-%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="假设检验假设检验的基本思想与概念我们先举一个女士品茶的例子：有一个女士称她可以鉴别奶茶是先加奶后加茶(MT)还是先加茶后加奶(MT). 那么，我们怎么来检验她是否有这种能力呢？ 我们给出一个假设H：该女子没有这种鉴别能力。那么，如果H是正确的，她在10杯奶茶中只能猜，10次都猜对的概率为 $2^{-10}&lt;0.001$ ， 这是一个很小的概率，在一次试验中几乎不会发生，但如果这件事情真的发生">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/28/%E6%A6%82%E7%8E%87%E8%AE%BA-%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/28/%E6%A6%82%E7%8E%87%E8%AE%BA-%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C/2.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/28/%E6%A6%82%E7%8E%87%E8%AE%BA-%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C/3.jpg">
+<meta property="article:published_time" content="2021-06-28T12:37:42.000Z">
+<meta property="article:modified_time" content="2021-09-10T00:38:06.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="概率论">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/06/28/%E6%A6%82%E7%8E%87%E8%AE%BA-%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C/1.jpg">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/06/28/%E6%A6%82%E7%8E%87%E8%AE%BA-%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>概率论-假设检验 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/06/28/%E6%A6%82%E7%8E%87%E8%AE%BA-%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          概率论-假设检验
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-06-28 20:37:42" itemprop="dateCreated datePublished" datetime="2021-06-28T20:37:42+08:00">2021-06-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-10 08:38:06" itemprop="dateModified" datetime="2021-09-10T08:38:06+08:00">2021-09-10</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="假设检验"><a href="#假设检验" class="headerlink" title="假设检验"></a>假设检验</h1><h2 id="假设检验的基本思想与概念"><a href="#假设检验的基本思想与概念" class="headerlink" title="假设检验的基本思想与概念"></a>假设检验的基本思想与概念</h2><p>我们先举一个女士品茶的例子：有一个女士称她可以鉴别奶茶是先加奶后加茶(MT)还是先加茶后加奶(MT). 那么，我们怎么来检验她是否有这种能力呢？</p>
+<p>我们给出一个假设H：该女子没有这种鉴别能力。那么，如果H是正确的，她在10杯奶茶中只能猜，10次都猜对的概率为 $2^{-10}&lt;0.001$ ， 这是一个很小的概率，在一次试验中几乎不会发生，但如果这件事情真的发生的话，我们不能否决假设成立，但是更倾向于拒绝假设，从而认为该女士的确有辨别奶茶中 TM还是MT 的能力。</p>
+<p>费舍尔用实验结果对假设H的对错进行判断的思维方式如下：</p>
+<p><strong>加入试验结果与假设H发生锚段就拒绝原假设H，否则就接收原假设</strong> </p>
+<p>我们记女士判断正确的杯数为 X, $x_i\sim b(1,p)$ ， 那么<strong>原假设H_0</strong>是无能力：$p=0.5$, <strong>备择假设H_1</strong>有能力：$p&gt;0.5,p\neq 1$</p>
+<p>我们可以给出一张表：</p>
+<p><img src="/2021/06/28/%E6%A6%82%E7%8E%87%E8%AE%BA-%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C/1.jpg" style="zoom:67%;"></p>
+<p>第一类错误的含义是：实际上她是没有这种能力的，但是呢，我们判定的结果是她有这种能力。也就是错判</p>
+<p>第二类错误的含义是：实际上她是有这种能力的，但是我们却认为它没有这种能力。就像是漏掉了，也就是漏判。</p>
+<p>在假设检验中，我们是无法让错判概率和漏判概率同时取很低的，因为它们两者是矛盾的，如下面这个例子</p>
+<p>$x\sim N(\mu,\sigma_0^2)$, $\sigma_0^2$ 是已知的，$x_1,\cdots,x_n$ 是样本。</p>
+<p>第一步是给出假设. 检验样本均值是否恰好等于$\mu_0$ 还是 大于 $\mu_0$(一个已知量) </p>
+<script type="math/tex; mode=display">
+H_0: \mu = \mu_0 ~~~vs~~~ H_1: \mu>\mu_0</script><p>那么，如果我算出来的均值是$\overline x\geq c$的话，就很倾向于拒绝原假设。</p>
+<p>那么怎么确定这个 c 值呢？我们先来看看<strong>错判概率$\alpha$</strong><br>在 $H_0$ 成立的情况下，$\mu = \mu_0$, 此时 $\overline x\sim N(\mu_0,\sigma_0^2/n)$ , 那么我们判断其不为真的概率为： </p>
+<script type="math/tex; mode=display">
+\alpha = P_u(\overline x>c)=P(\frac{\overline x-\mu_0}{\sqrt{\sigma_0^2/n}}>\frac{c-\mu_0}{\sqrt{\sigma_0^2/n}}) = 1-\Phi(\frac{c-\mu_0}{\sqrt{\sigma^2/n}})</script><p>现在我们看看<strong>漏判概率</strong><br>在 $H_1$ 成立的情况下，$\mu&gt; \mu_0$ ，$\overline x\sim N(\mu,\sigma_0^2/n)$ .</p>
+<p>在楼盘情况下，我判断$H_0$ 为真，则：</p>
+<script type="math/tex; mode=display">
+\beta = P_\mu(\overline x< c) = P(\frac{\overline x-\mu }{\sqrt{\sigma_0^2/n}}<\frac{c-\mu }{\sqrt{\sigma_0^2/n}}) = \Phi(\frac{c-\mu }{\sqrt{\sigma^2/n}})</script><p>要时刻记住，这时候的$\mu$ 是大于$\mu_0$ 的，不能用$\mu_0$ 带入</p>
+<p>我希望$\alpha$ 越小，那么我们希望 c越大，而 c越大则必然导致 $\beta$ 越大。因此 $\alpha$和 $\beta$ 之间是冲突的。</p>
+<p>说完了这个例子，我们可以顺理成章得给出<strong>显著性水平</strong>的定义：</p>
+<blockquote>
+<p>对检验问题 $H_0:\theta\in\Theta_0 <del>~vs</del>~ H_1\in \Theta_1$ ，如果一个检验满足对任意的$\theta\in \Theta_0$ 其<strong>犯第一类错误的概率$\leq \alpha$</strong><br>则称该检验是<strong>显著性水平为$\alpha$的显著性检验</strong>， 简称<strong>水平为$\alpha$</strong>的检验 </p>
+<p>提出显著性检验的概念就是要控制犯第一类错误的概率$\alpha$ ，不能让其过大与过小。在适当控制$\alpha$ 中制约$\beta$。 最长使用的选择是 $\alpha=0.05$,  又是也会选择 $\alpha = 0.1$ 或者 $\alpha = 0.01$</p>
+</blockquote>
+<p>那么，既然整个 $1-\Phi(\frac{c-\mu_0}{\sqrt{\sigma^2/n}})$ 要等于 $\alpha$ ，那么 $\Phi(\frac{c-\mu_0}{\sqrt{\sigma^2/n}})$ 就是要等于 $1-\alpha$ 。 也就是说， 我们可以反解出c值</p>
+<script type="math/tex; mode=display">
+\frac{c-\mu_0}{\sqrt{\sigma^2/n}} = u_{1-\alpha}\\~\\
+c = u_{1-\alpha}\cdot\sqrt{\sigma^2/n} ~+\mu_0</script><p>解得c之后，我们发现，c把样本空间切割成了两部分。据此我们又引出了<strong>拒绝域</strong> 的概念</p>
+<blockquote>
+<p>如果满足 样本均值大于 $u_{1-\alpha}\cdot\sqrt{\sigma^2/n} ~+\mu_0$ 我们就拒绝原假设，这个域也被称为<strong>拒绝域</strong> </p>
+<script type="math/tex; mode=display">
+W= \{(x_1,\cdots,x_n):\overline x>u_{1-\alpha}\cdot\sqrt{\sigma^2/n} ~+\mu_0\}</script><p>而拒绝域的补集就是<strong>接受域</strong></p>
+</blockquote>
+<p>在一个二维平面中，拒绝域和接受域可表示如下：</p>
+<p><img src="/2021/06/28/%E6%A6%82%E7%8E%87%E8%AE%BA-%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C/2.jpg" style="zoom:67%;"></p>
+<p>现在再来一个例题：$x\sim N(\mu,\sigma^2)$, $\sigma^2$ 是未知的，$x_1,\cdots,x_n$ 是样本，同样是检验 $\mu$，计算拒绝域</p>
+<p><strong>第一步：</strong> 给出点估计，$\hat\mu = \overline x\sim N(\mu,\frac{\sigma^2}{n})$</p>
+<p><strong>第二步：</strong> 标准化：</p>
+<script type="math/tex; mode=display">
+\frac{\overline x-\mu_0}{\sqrt{\sigma^2/n}}</script><p>这时候由于$\sigma^2$ 未知，我们要用$s^2$ 去替代，替代完成后符合 t分布，即：</p>
+<script type="math/tex; mode=display">
+t = \frac{\overline x-\mu_0}{\sqrt{s^2/n}} \sim t(n-1)</script><p><strong>第三步：</strong> 计算显著性水平</p>
+<script type="math/tex; mode=display">
+\alpha = P(\frac{\overline x-\mu_0}{\sqrt{s^2/n}}>\frac{c-\mu_0}{\sqrt{s^2/n}})</script><p>要把显著性水平用足，因此这里要等于$\alpha$ 不能 $p\geq \alpha$</p>
+<p>我们知道$\frac{\overline x-\mu_0}{\sqrt{s^2/n}}\sim t(n-1)$ 说明 </p>
+<h5 id="例4"><a href="#例4" class="headerlink" title="例4"></a>例4</h5><p>上面说的都是单边的假设检验问题，现在来看看双边假设。现在拒绝的标准就要变了。如下图所示,阴影部分都是需要拒绝的：</p>
+<p><img src="/2021/06/28/%E6%A6%82%E7%8E%87%E8%AE%BA-%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C/3.jpg" style="zoom:67%;"></p>
+<script type="math/tex; mode=display">
+\alpha = P(\frac{\overline x-\mu_0}{\sqrt{s^2/n}}\leq d_1)+P(\frac{\overline x-\mu_0}{\sqrt{s^2/n}}\geq d_2)</script>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" rel="tag"># 概率论</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" rel="prev" title="文件系统">
+      <i class="fa fa-chevron-left"></i> 文件系统
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/07/05/Django%E5%AD%A6%E4%B9%A01/" rel="next" title="Django学习1">
+      Django学习1 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#假设检验"><span class="nav-number">1.</span> <span class="nav-text">假设检验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#假设检验的基本思想与概念"><span class="nav-number">1.1.</span> <span class="nav-text">假设检验的基本思想与概念</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#例4"><span class="nav-number">1.1.0.0.1.</span> <span class="nav-text">例4</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

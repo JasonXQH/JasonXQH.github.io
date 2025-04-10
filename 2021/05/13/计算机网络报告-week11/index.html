@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="计算机网络报告-week11实验目的 深入掌握RPC编程 深入理解运输层协议  实验任务 利用gRPC实现跨语言调用 完成课本195页编程作业：实现一个可靠传输协议  任务1：利用gRPC实现跨语言调用利用gRPC框架，采用两种不同语言（比如C++和Java或Go和Java）实现客户端和服务端。 服务端提供getStuNo（）函数，该函数以自己的姓名为参数，返回自己的学号。客户端以自己的姓名为参数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络报告-week11">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="计算机网络报告-week11实验目的 深入掌握RPC编程 深入理解运输层协议  实验任务 利用gRPC实现跨语言调用 完成课本195页编程作业：实现一个可靠传输协议  任务1：利用gRPC实现跨语言调用利用gRPC框架，采用两种不同语言（比如C++和Java或Go和Java）实现客户端和服务端。 服务端提供getStuNo（）函数，该函数以自己的姓名为参数，返回自己的学号。客户端以自己的姓名为参数">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/3.png">
+<meta property="article:published_time" content="2021-05-13T15:44:57.000Z">
+<meta property="article:modified_time" content="2022-08-23T14:25:20.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/4.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>计算机网络报告-week11 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机网络报告-week11
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-05-13 23:44:57" itemprop="dateCreated datePublished" datetime="2021-05-13T23:44:57+08:00">2021-05-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-08-23 22:25:20" itemprop="dateModified" datetime="2022-08-23T22:25:20+08:00">2022-08-23</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="计算机网络报告-week11"><a href="#计算机网络报告-week11" class="headerlink" title="计算机网络报告-week11"></a>计算机网络报告-week11</h1><h2 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h2><ul>
+<li>深入掌握RPC编程</li>
+<li>深入理解运输层协议</li>
+</ul>
+<h2 id="实验任务"><a href="#实验任务" class="headerlink" title="实验任务"></a>实验任务</h2><ul>
+<li>利用gRPC实现跨语言调用</li>
+<li>完成课本195页编程作业：实现一个可靠传输协议</li>
+</ul>
+<h2 id="任务1：利用gRPC实现跨语言调用"><a href="#任务1：利用gRPC实现跨语言调用" class="headerlink" title="任务1：利用gRPC实现跨语言调用"></a>任务1：利用gRPC实现跨语言调用</h2><p>利用gRPC框架，采用两种不同语言（比如C++和Java或Go和Java）实现客户端和服务端。</p>
+<p>服务端提供getStuNo（）函数，该函数以自己的姓名为参数，返回自己的学号。客户端以自己的姓名为参数远程调用该函数，返回拿到自己的学号。</p>
+<p><strong>将实现思路和关键代码以及实验截图写到实验报告中。</strong></p>
+<p>这里，我使用Java和Python 两种语言来实现 grpc 的客户端与服务端。既可以是 Java client + Python server也可以是Java server + Python client</p>
+<h3 id="Java客户端-python服务端"><a href="#Java客户端-python服务端" class="headerlink" title="Java客户端+python服务端:"></a>Java客户端+python服务端:</h3><h4 id="Java客户端"><a href="#Java客户端" class="headerlink" title="Java客户端"></a>Java客户端</h4><p>这次Java实现grpc，我是在week10的task2的基础上修改得来的,因此环境的搭建这里按下不表：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> helloworld;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> io.grpc.ManagedChannel;</span><br><span class="line"><span class="keyword">import</span> io.grpc.ManagedChannelBuilder;</span><br><span class="line"><span class="keyword">import</span> io.grpc.StatusRuntimeException;</span><br><span class="line"><span class="keyword">import</span> io.grpc.examples.helloworld.GreeterGrpc;</span><br><span class="line"><span class="keyword">import</span> io.grpc.examples.helloworld.HelloReply;</span><br><span class="line"><span class="keyword">import</span> io.grpc.examples.helloworld.HelloRequest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</span><br><span class="line"><span class="keyword">import</span> java.util.logging.Level;</span><br><span class="line"><span class="keyword">import</span> java.util.logging.Logger;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloWorldClient</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 首先创建一个final类型的不能被改变的参数用来获取类名</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = Logger.getLogger(HelloWorldClient<span class="class">.<span class="keyword">class</span>.<span class="title">getName</span>())</span>;</span><br><span class="line">	<span class="comment">// 这边也同时定义两个</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ManagedChannel channel;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> GreeterGrpc.GreeterBlockingStub blockingStub;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Construct client connecting to HelloWorld server at &#123;<span class="doctag">@code</span> host:port&#125;.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">//接下来是定义一个方法，用来</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HelloWorldClient</span><span class="params">(String host, <span class="keyword">int</span> port)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        channel = ManagedChannelBuilder.forAddress(host, port)</span><br><span class="line">                .usePlaintext(<span class="keyword">true</span>)</span><br><span class="line">                .build();</span><br><span class="line">        blockingStub = GreeterGrpc.newBlockingStub(channel);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">shutdown</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        channel.shutdown().awaitTermination(<span class="number">5</span>, TimeUnit.SECONDS);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     greet函数是建立连接之后客户端的一些操作，比如说先模拟一个logger在尝试访问服务端。</span></span><br><span class="line"><span class="comment">     然后向服务端发送请求，调用sayHello()</span></span><br><span class="line"><span class="comment">     最后打印返回信息</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">greet</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        logger.info(<span class="string">"Will try to greet "</span> + name + <span class="string">" ..."</span>);</span><br><span class="line">        HelloRequest request = HelloRequest.newBuilder().setName(name).build();</span><br><span class="line">        HelloReply response;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            response = blockingStub.sayHello(request);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (StatusRuntimeException e) &#123;</span><br><span class="line">            logger.log(Level.WARNING, <span class="string">"RPC failed: &#123;0&#125;"</span>, e.getStatus());</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        logger.info(<span class="string">"Greeting: "</span> + response.getMessage());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    启动client的main函数，首先建立一个和端口50051的连接，然后开启greet()函数。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        HelloWorldClient client = <span class="keyword">new</span> HelloWorldClient(<span class="string">"localhost"</span>, <span class="number">50051</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line">            String user = <span class="string">"徐啟航"</span>;</span><br><span class="line">            <span class="keyword">if</span> (args.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                user = args[<span class="number">0</span>];</span><br><span class="line">            &#125;</span><br><span class="line">            client.greet(user);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            client.shutdown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="python服务端："><a href="#python服务端：" class="headerlink" title="python服务端："></a>python服务端：</h4><p>在讲解python服务端之前，我们首先来搭建python的grpc环境：</p>
+<p>首先我们要下载几个包：</p>
+<p>安装grpc：<code>pip install grcpio</code></p>
+<p>安装编译工具：<code>pip install grpcio-tools</code></p>
+<p>然后在项目中新建helloworld 文件夹用于存放proto文件：</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line"><span class="keyword">package</span> helloworld;</span><br><span class="line"><span class="comment">// The greeting service definition.</span></span><br><span class="line"><span class="class"><span class="keyword">service</span> <span class="title">Greeter</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Sends a greeting</span></span><br><span class="line">    <span class="function"><span class="keyword">rpc</span> SayHello (HelloRequest) <span class="keyword">returns</span> (HelloReply) &#123;&#125;</span></span><br><span class="line"><span class="function">&#125;</span></span><br><span class="line"><span class="function">// The request message containing the user's name.</span></span><br><span class="line"><span class="function">message HelloRequest &#123;</span></span><br><span class="line"><span class="function">    string name = 1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// The response message containing the greetings</span></span><br><span class="line"><span class="class"><span class="keyword">message</span> <span class="title">HelloReply</span> </span>&#123;</span><br><span class="line">    <span class="built_in">string</span> <span class="class"><span class="keyword">message</span> = 1;</span></span><br><span class="line"><span class="class">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>注意，这里写的package helloworld要和java中的proto文件一致。</p>
+<p>接下来我们要在helloworld文件夹中编译proto文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m grpc_tools.protoc -I. --python_out&#x3D;. --grpc_python_out&#x3D;. .&#x2F;helloworld.proto</span><br></pre></td></tr></table></figure>
+<p>编译完成后，helloworld文件夹下会出现<code>helloworld_pb2.py</code>以及<code>helloworld_pb2_grpc.py</code>两个文件.我们要修改一下<code>helloworld_pb2_grpc.py</code>中的依赖，否则在运行时会出错：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> grpc</span><br><span class="line"><span class="comment">#原来是 import helloworld_pb2 as helloworld__pb2</span></span><br><span class="line"><span class="keyword">from</span> helloworld <span class="keyword">import</span> helloworld_pb2 <span class="keyword">as</span> helloworld__pb2</span><br></pre></td></tr></table></figure>
+<p>接下来开始写服务端的代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#! /usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> grpc</span><br><span class="line"><span class="keyword">from</span> concurrent <span class="keyword">import</span> futures</span><br><span class="line"><span class="keyword">from</span> helloworld <span class="keyword">import</span> helloworld_pb2, helloworld_pb2_grpc</span><br><span class="line"></span><br><span class="line">_ONE_DAY_IN_SECONDS = <span class="number">60</span> * <span class="number">60</span> * <span class="number">24</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#首先定义处理请求的函数，打印请求者信息之后，返回他想要的信息</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Greeter</span><span class="params">(helloworld_pb2_grpc.GreeterServicer)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">SayHello</span><span class="params">(self, request, context)</span>:</span></span><br><span class="line">        print(<span class="string">"%s 发来请求~"</span> % request.name)</span><br><span class="line">        <span class="keyword">return</span> helloworld_pb2.HelloReply(message=<span class="string">'Your ID is 10195501423, %s!'</span> % request.name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 这是启动服务器的代码，规定了在那个端口开启服务以及错误处理等，这里使用了一个线程池来处理并发任务</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">serve</span><span class="params">()</span>:</span></span><br><span class="line">    server = grpc.server(futures.ThreadPoolExecutor(max_workers=<span class="number">10</span>))</span><br><span class="line">    helloworld_pb2_grpc.add_GreeterServicer_to_server(Greeter(), server)</span><br><span class="line">    server.add_insecure_port(<span class="string">'[::]:50051'</span>)</span><br><span class="line">    server.start()</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">            time.sleep(_ONE_DAY_IN_SECONDS)</span><br><span class="line">    <span class="keyword">except</span> KeyboardInterrupt:</span><br><span class="line">        server.stop(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    serve()</span><br></pre></td></tr></table></figure>
+<p>运行结果如下图所示：</p>
+<p><img src="/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/4.png"></p>
+<h3 id="Java-服务端和-python客户端"><a href="#Java-服务端和-python客户端" class="headerlink" title="Java 服务端和 python客户端"></a>Java 服务端和 python客户端</h3><h4 id="python客户端"><a href="#python客户端" class="headerlink" title="python客户端"></a>python客户端</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> grpc</span><br><span class="line"><span class="keyword">from</span> helloworld <span class="keyword">import</span> helloworld_pb2, helloworld_pb2_grpc</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">run</span><span class="params">()</span>:</span></span><br><span class="line"><span class="comment"># 客户端向50051端口发送请求，并打印返回结果</span></span><br><span class="line">    <span class="keyword">with</span> grpc.insecure_channel(<span class="string">'localhost:50051'</span>) <span class="keyword">as</span> channel:</span><br><span class="line">        stub = helloworld_pb2_grpc.GreeterStub(channel)</span><br><span class="line">        response = stub.SayHello(helloworld_pb2.HelloRequest(name=<span class="string">'徐啟航'</span>))</span><br><span class="line">    print(<span class="string">"Greeter client received: "</span> + response.message)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    run()</span><br></pre></td></tr></table></figure>
+<h4 id="Java服务端"><a href="#Java服务端" class="headerlink" title="Java服务端"></a>Java服务端</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> helloworld;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> io.grpc.Server;</span><br><span class="line"><span class="keyword">import</span> io.grpc.ServerBuilder;</span><br><span class="line"><span class="keyword">import</span> io.grpc.examples.helloworld.GreeterGrpc;</span><br><span class="line"><span class="keyword">import</span> io.grpc.examples.helloworld.HelloReply;</span><br><span class="line"><span class="keyword">import</span> io.grpc.examples.helloworld.HelloRequest;</span><br><span class="line"><span class="keyword">import</span> io.grpc.stub.StreamObserver;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.logging.Logger;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Server that manages startup/shutdown of a &#123;<span class="doctag">@code</span> Greeter&#125; server.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloWorldServer</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = Logger.getLogger(HelloWorldServer<span class="class">.<span class="keyword">class</span>.<span class="title">getName</span>())</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* The port on which the server should run */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> port = <span class="number">50051</span>;</span><br><span class="line">    <span class="keyword">private</span> Server server;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        server = ServerBuilder.forPort(port)</span><br><span class="line">                .addService( <span class="keyword">new</span> GreeterImpl())</span><br><span class="line">                .build()</span><br><span class="line">                .start();</span><br><span class="line">        logger.info(<span class="string">"Server started, listening on "</span> + port);</span><br><span class="line">        Runtime.getRuntime().addShutdownHook(<span class="keyword">new</span> Thread() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="comment">// Use stderr here since the logger may have been reset by its JVM shutdown hook.</span></span><br><span class="line">                System.err.println(<span class="string">"*** shutting down gRPC server since JVM is shutting down"</span>);</span><br><span class="line">                HelloWorldServer.<span class="keyword">this</span>.stop();</span><br><span class="line">                System.err.println(<span class="string">"*** server shut down"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">stop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (server != <span class="keyword">null</span>) &#123;</span><br><span class="line">            server.shutdown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *这个函数是用来阻止java server自动终止的</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">blockUntilShutdown</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (server != <span class="keyword">null</span>) &#123;</span><br><span class="line">            server.awaitTermination();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  	<span class="comment">//启动sever的main函数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> HelloWorldServer server = <span class="keyword">new</span> HelloWorldServer();</span><br><span class="line">        server.start();</span><br><span class="line">        server.blockUntilShutdown();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">GreeterImpl</span> <span class="keyword">extends</span> <span class="title">GreeterGrpc</span>.<span class="title">GreeterImplBase</span> </span>&#123;</span><br><span class="line">        <span class="comment">/** 原子Integer */</span></span><br><span class="line">        <span class="comment">//    public AtomicInteger count = new AtomicInteger(0);</span></span><br><span class="line">		<span class="comment">// 处理请求的函数，返回学号</span></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">(HelloRequest req, StreamObserver&lt;HelloReply&gt; responseObserver)</span> </span>&#123;</span><br><span class="line">            HelloReply reply = HelloReply.newBuilder().setMessage(<span class="string">"Hello "</span> + req.getName()+<span class="string">"Your ID is 10195501423"</span>).build();</span><br><span class="line">            responseObserver.onNext(reply);</span><br><span class="line">            responseObserver.onCompleted();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果如下图所示，虽然python客户端收到了来自java服务端的反馈信息，但是服务端却报错退出了。还没有找到原因。</p>
+<p><img src="/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/5.png"></p>
+<h2 id="任务2：实现一个可靠传输协议"><a href="#任务2：实现一个可靠传输协议" class="headerlink" title="任务2：实现一个可靠传输协议"></a>任务2：实现一个可靠传输协议</h2><p>在这个编程作业实验中，你将要编写发送和接收运输层的代码，以实现一个简单的可靠数据运输协议。这个实验有两个版本，即比特交替协议版本和GBN版本。</p>
+<p><strong>任务：基于比特交替协议以及GBN实现模拟实现客户端和服务端的可靠的数据传输协议。</strong></p>
+<h3 id="实现要求"><a href="#实现要求" class="headerlink" title="实现要求"></a>实现要求</h3><p><img src="/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/1.png"></p>
+<ul>
+<li>应用层消息（message）数据结构：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">msg</span> &#123;</span></span><br><span class="line">		<span class="keyword">char</span> data[<span class="number">20</span>];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>传输层消息（packet）数据结构：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pkt</span> &#123;</span></span><br><span class="line">          <span class="keyword">int</span> seqnum;</span><br><span class="line">          <span class="keyword">int</span> acknum;</span><br><span class="line">          <span class="keyword">int</span> checksum;</span><br><span class="line">          <span class="keyword">char</span> payload[<span class="number">20</span>];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>Hint：</strong>传输层消息中的payload字段即为应用层消息中的data字段，传输层消息中的其他字段为辅助字段（用于实现可靠传输，其中checksum部分自己选取合适的算法实现）。</p>
+<p>1）. 需要实现的部分关键方法：</p>
+<p>A_output(message)：A处理应用层发送的message，参数是要发送给B的数据。你要实现的协议就是要保证message的可靠传输；</p>
+<p>A_input(packet)：A处理B发送过来的传输层packet；</p>
+<p>A_timeinterrupt()：A的定时器，用于超时重传；</p>
+<p>A_init()：用于A的一些初始化工作；</p>
+<p>B_input(packet)：B处理A发送过来的传输层packet；</p>
+<p>B_init()：用于B的一些初始化工作。</p>
+<p><strong>2）. 部分需要实现的软件接口：</strong></p>
+<p>starttimer(calling_entity,increment)：开始计时，calling_entity代表调用实体，这里为A或B；</p>
+<p>stoptimer(calling_entity)：停止calling_entity计时；</p>
+<p>tolayer3(calling_entity,packet)：calling_entity将消息转发到传输层；</p>
+<p>tolayer5(calling_entity,message)：calling_entity将消息转发到应用层。</p>
+<p><strong>3) 模拟的网络环境</strong></p>
+<ul>
+<li>消息有序接收：有多条message乱序发送，接收端需要保证按序接收；</li>
+<li>消息丢失：设置消息丢失率，即消息有一定的概率会被丢失，但要保证接收端能够完整接收；</li>
+<li>应用层平均延时：记录应用层从发出message请求到接收响应的平均延时。</li>
+</ul>
+<h3 id="基于Alternating-Bit-Protocol（ABP，rdt3-0）实现"><a href="#基于Alternating-Bit-Protocol（ABP，rdt3-0）实现" class="headerlink" title="基于Alternating-Bit-Protocol（ABP，rdt3.0）实现"></a>基于Alternating-Bit-Protocol（ABP，rdt3.0）实现</h3><p>ABP协议具体内容可参照课本P140-P142</p>
+<p><img src="/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/2.png"></p>
+<p>图 2 ABP协议流程</p>
+<h2 id="基于Go-Back-N实现"><a href="#基于Go-Back-N实现" class="headerlink" title="基于Go-Back-N实现"></a>基于Go-Back-N实现</h2><p><img src="/2021/05/13/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-week11/3.png"></p>
+<p>图 3 窗口长度为4个分组的GBN协议运行流程</p>
+<p> 要求:窗口大小固定为8，如果A从应用层接受的包在窗口外面，直接简单的舍弃；不用太过考虑缓冲区溢出的问题</p>
+<p>Hint：先实现ABP协议，在ABP协议的基础上实现GBN协议。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"># 计算机网络</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/11/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80-%E5%BA%A6%E9%87%8F%E4%B8%8E%E6%8A%95%E5%BD%B1/" rel="prev" title="数学基础-度量与投影">
+      <i class="fa fa-chevron-left"></i> 数学基础-度量与投影
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/05/16/%E7%BB%9F%E8%AE%A1%E9%87%8F%E5%8F%8A%E5%85%B6%E5%88%86%E5%B8%835-1-5-3/" rel="next" title="统计量及其分布5.1-5.3">
+      统计量及其分布5.1-5.3 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#计算机网络报告-week11"><span class="nav-number">1.</span> <span class="nav-text">计算机网络报告-week11</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#实验目的"><span class="nav-number">1.1.</span> <span class="nav-text">实验目的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验任务"><span class="nav-number">1.2.</span> <span class="nav-text">实验任务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#任务1：利用gRPC实现跨语言调用"><span class="nav-number">1.3.</span> <span class="nav-text">任务1：利用gRPC实现跨语言调用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Java客户端-python服务端"><span class="nav-number">1.3.1.</span> <span class="nav-text">Java客户端+python服务端:</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Java客户端"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">Java客户端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#python服务端："><span class="nav-number">1.3.1.2.</span> <span class="nav-text">python服务端：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java-服务端和-python客户端"><span class="nav-number">1.3.2.</span> <span class="nav-text">Java 服务端和 python客户端</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#python客户端"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">python客户端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java服务端"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">Java服务端</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#任务2：实现一个可靠传输协议"><span class="nav-number">1.4.</span> <span class="nav-text">任务2：实现一个可靠传输协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实现要求"><span class="nav-number">1.4.1.</span> <span class="nav-text">实现要求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于Alternating-Bit-Protocol（ABP，rdt3-0）实现"><span class="nav-number">1.4.2.</span> <span class="nav-text">基于Alternating-Bit-Protocol（ABP，rdt3.0）实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于Go-Back-N实现"><span class="nav-number">1.5.</span> <span class="nav-text">基于Go-Back-N实现</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

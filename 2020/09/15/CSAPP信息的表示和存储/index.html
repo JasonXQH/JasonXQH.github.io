@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="CSAPP信息的表示和存储怎么阅读CSAPP？  首先看一下标题和插图  看懂示意图之后做一些 practice problem，有不懂的再去看书本内容 用例子来帮助我们理解  上课笔记main(arg c ,arg v)argc和argv参数在用命令行编译程序时有用 第一个参数，int型的argc，为整型，用来统计程序运行时发送给main函数的命令行参数的个数 第二个参数，char*型的argv">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CSAPP信息的表示和存储">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="CSAPP信息的表示和存储怎么阅读CSAPP？  首先看一下标题和插图  看懂示意图之后做一些 practice problem，有不懂的再去看书本内容 用例子来帮助我们理解  上课笔记main(arg c ,arg v)argc和argv参数在用命令行编译程序时有用 第一个参数，int型的argc，为整型，用来统计程序运行时发送给main函数的命令行参数的个数 第二个参数，char*型的argv">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/18.png">
+<meta property="article:published_time" content="2020-09-15T07:50:21.000Z">
+<meta property="article:modified_time" content="2020-10-08T05:38:10.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="CSAPP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/13.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>CSAPP信息的表示和存储 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CSAPP信息的表示和存储
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-09-15 15:50:21" itemprop="dateCreated datePublished" datetime="2020-09-15T15:50:21+08:00">2020-09-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-08 13:38:10" itemprop="dateModified" datetime="2020-10-08T13:38:10+08:00">2020-10-08</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="CSAPP信息的表示和存储"><a href="#CSAPP信息的表示和存储" class="headerlink" title="CSAPP信息的表示和存储"></a>CSAPP信息的表示和存储</h1><p>怎么阅读CSAPP？</p>
+<ol>
+<li>首先看一下标题和<strong>插图</strong> </li>
+<li>看懂示意图之后做一些 practice problem，有不懂的再去看书本内容</li>
+<li>用例子来帮助我们理解</li>
+</ol>
+<h2 id="上课笔记"><a href="#上课笔记" class="headerlink" title="上课笔记"></a>上课笔记</h2><h3 id="main-arg-c-arg-v"><a href="#main-arg-c-arg-v" class="headerlink" title="main(arg c ,arg v)"></a>main(arg c ,arg v)</h3><p>argc和argv参数在用命令行编译程序时有用</p>
+<p>第一个参数，int型的argc，为整型，用来统计程序运行时发送给main函数的命令行参数的<strong>个数</strong></p>
+<p>第二个参数，char*型的argv[]，为字符串数组，用来存放指向的字符串参数的指针数组，每一个元素指向一个参数。各成员含义如下：argv[0]指向程序运行的全路径名<br>    argv[1]指向在DOS命令行中执行程序名后的第一个字符串<br>    argv[2]指向执行程序名后的第二个字符串<br>    argv[3]指向执行程序名后的第三个字符串<br>    argv[argc]为NULL</p>
+<h3 id="shell-中的命令时怎么去运行的"><a href="#shell-中的命令时怎么去运行的" class="headerlink" title="shell 中的命令时怎么去运行的"></a>shell 中的命令时怎么去运行的</h3><p><a href="https://www.cnblogs.com/chaoguo1234/p/5724321.html" target="_blank" rel="noopener">https://www.cnblogs.com/chaoguo1234/p/5724321.html</a></p>
+<h3 id="C中的内存管理"><a href="#C中的内存管理" class="headerlink" title="C中的内存管理"></a>C中的内存管理</h3><h4 id="存储时候的三个区域："><a href="#存储时候的三个区域：" class="headerlink" title="存储时候的三个区域："></a>存储时候的三个区域：</h4><p><strong>代码区</strong></p>
+<p>存放CPU执行的机器指令（machine instructions）。通常，代码区是可共享的（即另外的执行程序可以调用它），因为对于频繁被执行的程序，只需要在内存中有一份代码即可。代码区通常是只读的，使其只读的原因是防止程序意外地修改它的指令。另外，代码区还规划了局部变量的相关信息。</p>
+<p><strong>数据区</strong></p>
+<p>该区包含了在程序中<strong>明确被初始化</strong>的全局变量、静态变量（包括全局静态变量和局部静态变量）和常量数据（如字符串常量）。</p>
+<p><strong>未初始化数据区（BSS）</strong></p>
+<p>存入的是全局未初始化变量。BSS区的数据在程序开始执行之前被内核初始化为0或者空指针（NULL）。</p>
+<h4 id="运行时的几个区域"><a href="#运行时的几个区域" class="headerlink" title="运行时的几个区域"></a>运行时的几个区域</h4><p><strong>代码区</strong></p>
+<p>代码区指令根据程序设计流程依次执行，对于顺序指令，则只会执行一次（每个进程），如果反复，则需要使用跳转指令，如果进行递归，则需要借助栈来实现。</p>
+<p>代码区的指令中包括操作码和要操作的对象（或对象地址引用）。如果是立即数（即具体的数值），将直接包含在代码中；如果是局部数据，将在栈区分配空间，然后引用该数据地址；如果是BSS区和数据区，在代码中同样将引用该数据地址。</p>
+<p><strong>全局初始化数据区</strong></p>
+<p>同上</p>
+<p><strong>未初始化数据区</strong></p>
+<p>同上</p>
+<p><strong>栈区</strong></p>
+<p>由编译器自动分配释放，存放函数的参数值、局部变量的值等。其操作方式类似于数据结构中的栈。每当一个函数被调用，该函数返回地址和一些关于调用的信息，比如某些寄存器的内容，被存储到栈区。然后这个被调用的函数再为它的自动变量和临时变量在栈区上分配空间，这就是C实现函数递归调用的方法。每执行一次递归函数调用，一个新的栈框架就会被使用，这样这个新实例栈里的变量就不会和该函数的另一个实例栈里面的变量混淆。</p>
+<p><strong>堆区</strong></p>
+<p>用于动态内存分配。堆在内存中位于BSS区和栈区之间。一般 <strong>由程序员分配和释放</strong>，若程序员不释放，程序结束时有可能由OS回收。</p>
+<p>之所以分成这么多个区域，主要基于以下考虑：</p>
+<p>一个进程在运行过程中，代码是根据流程依次执行的，只需要访问一次，当然跳转和递归有可能使代码执行多次，而数据一般都需要访问多次，因此单独开辟空间以方便访问和节约空间。</p>
+<p>临时数据及需要再次使用的代码在运行时放入栈区中，生命周期短。</p>
+<p>全局数据和静态数据有可能在整个程序执行过程中都需要访问，因此单独存储管理。</p>
+<p>堆区由用户自由分配，以便管理。</p>
+<p>栈与堆的区别：</p>
+<p>1、申请方式不同</p>
+<p>2、管理方式不同。堆容易产生内存泄露。（这个就看程序员啦）</p>
+<p>3、空间大小不同。</p>
+<p>栈是<strong>向低地址扩展</strong>的数据结构，是一块连续的内存区域。这句话的意思是栈顶的地址和栈的最大容量是系统预先规定好的，当申请的空间超过栈的剩余空间时，将提示溢出。因此，用户能从栈获得的空间较小。</p>
+<p>堆是<strong>向高地址扩展</strong>的数据结构（它的生长方向与内存的生长方向相同），是不连续的内存区域。因为系统是用链表来存储空闲内存地址的，且链表的遍历方向是由低地址向高地址。由此可见，堆获得的空间较灵活，也较大。</p>
+<p>4、系统响应：</p>
+<p>栈：只要栈的空间大于所申请空间，系统将为程序提供内存，否则将报异常提示栈溢出。</p>
+<p>堆：操作系统有一个记录空闲内存地址的链表，当系统收到程序的申请时，会遍历该链表，寻找第一个空间大于所申请空间的堆结点，然后将该结点从空闲链表中删除，并将该结点的空间分配给程序，另外，对于大多数系统，会在这块内存空间中的首地址处记录本次分配的大小，这样，代码中的free语句才能正确的释放本内存空间。另外，找到的堆结点的大小不一定正好等于申请的大小，系统会自动的将多余的那部分重新放入空闲链表中。</p>
+<p>对于堆来讲，频繁的malloc/free势必会造成内存空间的不连续，从而造成大量的碎片，使程序效率降低。对于栈就不会存在这个问题。</p>
+<p>5、增长方向不同</p>
+<p>6、申请效率不同</p>
+<p>堆的效率要低于栈。</p>
+<h3 id="通讯录模型"><a href="#通讯录模型" class="headerlink" title="通讯录模型"></a>通讯录模型</h3><p>可以把内存理解为一片广袤的大地，那么， 操作系统就会交给我们一本通讯录，里面有0到$2^{64}-1$ 的地址，每一行地址对应着大地上的某处。我们能拿到的只有地址，但是这个数据具体存在哪里，我们是不清楚也不知道的，只有Kernel才可知道。</p>
+<h3 id="多道程序、多线程"><a href="#多道程序、多线程" class="headerlink" title="多道程序、多线程"></a>多道程序、多线程</h3><p><a href="https://www.cnblogs.com/liao13160678112/p/6603381.html" target="_blank" rel="noopener">https://www.cnblogs.com/liao13160678112/p/6603381.html</a></p>
+<h3 id="Kernel"><a href="#Kernel" class="headerlink" title="Kernel"></a>Kernel</h3><p>kernel是一个软硬件之间的连接器</p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/13.png"></p>
+<h3 id="objdump-d-hello"><a href="#objdump-d-hello" class="headerlink" title="objdump -d hello"></a>objdump -d hello</h3><p>cat cpuinfo 显示cpu信息</p>
+<p>cat meminfo 显示内存信息</p>
+<h3 id="内存"><a href="#内存" class="headerlink" title="内存"></a>内存</h3><p>内存是一个很大的数组空间。</p>
+<h3 id="地址空间"><a href="#地址空间" class="headerlink" title="地址空间"></a>地址空间</h3><p>地址空间也是一个很大的数组空间，由计算机的字长来决定，比如32位字长机器的内存理论上有4个GB，64位则有$2^{64}$ kb</p>
+<h2 id="2-1-信息存储"><a href="#2-1-信息存储" class="headerlink" title="2.1 信息存储"></a>2.1 信息存储</h2><h3 id="十六进制表示法"><a href="#十六进制表示法" class="headerlink" title="十六进制表示法"></a>十六进制表示法</h3><p>记住十六进制、十进制、二进制的互相转换。记住下面几个表格，主要记牢 十进制的2，4，8,对应的二进制</p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/1.png"></p>
+<ul>
+<li>十六进制转换成二进制的时候，可以通过展开每个十六进制的数字来实现。</li>
+</ul>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/2.png"></p>
+<ul>
+<li>反过来如果给定一个二进制数字，可以通过首先将其从左到右每4位一组来转换为十六进制。如果位总数不是4的倍数，最左边的一组可以少于4位，前面用0补足。然后再将每个4位组转换为相应的十六进制数字</li>
+</ul>
+<ul>
+<li><p>十进制和十六进制之间转换比较简单，使用乘法和除法就可以了。</p>
+</li>
+<li><p>值得注意的是当值工是2 的非负整数 $n$ 次幂时，也就是$x=2^n$ 我们可以很容易地将x 写成十六进<br>制形式，只要记住x的二进制表示就是1 后面跟n个0。十六进制数字0 代表4 个二进制 0。所以，当n表示成$i+4j$ 的形式，其中 $0\leq i\leq 3$, 我们可以把x 写成开头的十六进制数字为$1(i=0),2(i=1),4(i=2),8(i=3) $ 后面跟随着个十六进制的0。比如，$x=2048=2^{11}$ 我们有$n=11=3+4*2$ 从而得到十六进制表示 0x800</p>
+</li>
+</ul>
+<h3 id="Data-sizes"><a href="#Data-sizes" class="headerlink" title="Data sizes"></a>Data sizes</h3><p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/3.png"></p>
+<h3 id="Address-and-Byte-Ordering"><a href="#Address-and-Byte-Ordering" class="headerlink" title="Address and Byte Ordering"></a>Address and Byte Ordering</h3><h3 id="Representing-Strings"><a href="#Representing-Strings" class="headerlink" title="Representing Strings"></a>Representing Strings</h3><p>C 语言中字符串被编码为一个以null(其值为0)字符结尾的字符数组。每个字符都由某个标准编码来表示，最常见的是ASCII 字符码。因此，如果我们以参数“12345” 和6(包括终止符)来运行例show_bytes我们得到结果31 32 33 34 35 00。请注意，十进制数字x 的ASCII 码正好是0x3x, 而终止字节的十六进制表示为0x00。在使用ASCII 码作为字符码的任何系统上都将得到相同的结果，与字节顺序和字大小规则无关。因而，文本数据比二进制数据具有更强的平台独立性</p>
+<p>下面对show_bytes 的调用将输出什么结果？</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> *byte_pointer;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">show_bytes</span><span class="params">(byte_pointer start, <span class="keyword">size_t</span> len)</span></span>&#123;</span><br><span class="line"><span class="built_in">size</span>.t i;</span><br><span class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++)</span><br><span class="line">printfC %<span class="number">.2</span>xn, start[i]);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">show_int</span><span class="params">(<span class="keyword">int</span> x)</span></span>&#123;</span><br><span class="line">	show_bytes((byte_pointer) &amp;x, <span class="keyword">sizeof</span>(<span class="keyword">int</span>));</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">show_float</span><span class="params">(<span class="keyword">float</span> x)</span></span>&#123;</span><br><span class="line">	show_bytes((byte_pointer) &amp;xf <span class="keyword">sizeof</span>(<span class="keyword">float</span>));</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">show_pointer</span><span class="params">(<span class="keyword">void</span> *x)</span></span>&#123;</span><br><span class="line">	show_bytes((<span class="keyword">byte</span>.pointer) &amp;x, <span class="keyword">sizeof</span>(<span class="keyword">void</span> *));</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>要注意，strlen(s) 是不会计算结束符的！所以答案是61, 62，63，64，65</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">char</span> *s = <span class="string">"abcdef"</span>;</span><br><span class="line">show_bytes((byte_pointer) s, <span class="built_in">strlen</span>(s));</span><br></pre></td></tr></table></figure>
+<h3 id="Representing-Code"><a href="#Representing-Code" class="headerlink" title="Representing Code"></a>Representing Code</h3><p>考虑下面的C函数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sum</span><span class="params">(<span class="keyword">int</span> x,<span class="keyword">int</span> y)</span></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> x+y;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当我们在机器上编译时，生成如下字节表示的机器代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Linux 32 55 89 e5 8b 45 Oc 03 45 08 c9 c3</span><br><span class="line">Windows 55 89 e5 8b 45 0c 03 45 08 5d c3</span><br><span class="line">Sun 81 c3 eO 08 90 02 00 09</span><br><span class="line">Linux 64 55 48 89 e5 89 7d f c 89 75 f 8 03 45 f c c9 c3</span><br></pre></td></tr></table></figure>
+<p>我们发现指令编码是不同的。不同的机器类型使用不同的且不兼容的指令和编码方式。即使是完全一样的进程，运行在不同的操作系统上也会有不同的编码规则，因此二进制代码是不兼容的。二进制代码很少能在不同机器和操作系统组合之间移植。<br>计算机系统的一个基本概念就是，从机器的角度来看，程序仅仅只是字节序列。机器没有关于原始源程序的任何信息，除了可能有些用来帮助调试的辅助表以外。</p>
+<h3 id="Boolean-Algebra"><a href="#Boolean-Algebra" class="headerlink" title="Boolean Algebra"></a>Boolean Algebra</h3><p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/4.png" style="zoom:120%;"></p>
+<p>以上4个布尔运算可以扩展到bit vectors上的运算，也就是固定长度为$w$，由0，1组成的串。比如说$w = 4,a =[0110],b=[1100]$ 那么4种运算 $a\&amp;b,a|b,$ a^ b 和 ~b 会得到这样的结果。</p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/5.png" style="zoom:120%;"></p>
+<p>使用bit vectors 一个很有用的应用就是表示有限的集合。我们可以用bit vector $[a_{w-1},\cdots,a_1,a_0]$ 来编码任何子集 $A\subseteq{0,1,\cdots,w-1}$ ,其中$a_i=1$ 当且仅当 $i\in A$ 比如说</p>
+<p>$a=[01101001]$ 可以对应 $A={0,3,5,6}$ 因为对76543210 这个数来说，从右往左数第1，第4，第6、7 位都是1，其他位都是0。</p>
+<p>同理，$b=[01010101]$ 可以表示 $B={0,2,4,6}$ </p>
+<p>我们于是可以把位运算用到集合当中：</p>
+<p>$A\&amp;B  = 01000001 ={0,6}$ </p>
+<p>$A|B = 01111101 = {0,2,3,4,5,6}$ </p>
+<p>A^B $= 00111100={2,3,4,5}$ </p>
+<p>A~B $=10101010={1,3,5,7}$ </p>
+<h3 id="Bit-Level-Operations-in-C"><a href="#Bit-Level-Operations-in-C" class="headerlink" title="Bit-Level Operations in C"></a>Bit-Level Operations in C</h3><h3 id="Logical-Operations-in-C"><a href="#Logical-Operations-in-C" class="headerlink" title="Logical Operations in C"></a>Logical Operations in C</h3><p>C语言种还提供了一组逻辑运算符 $||,\&amp;\&amp;,!$   分别对应OR，AND，NOT，千万不要把逻辑运算和位运算混淆，逻辑运算只有TRUE和FALSE，只返回1或者0。比如：</p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/6.png" style="zoom:150%;"></p>
+<h3 id="Shift-Operations-in-C-移位运算"><a href="#Shift-Operations-in-C-移位运算" class="headerlink" title="Shift Operations in C  移位运算"></a>Shift Operations in C  移位运算</h3><h4 id="左移"><a href="#左移" class="headerlink" title="左移"></a>左移</h4><p>左移这种移位运算非常简单，x向左移动k位，丢弃最高的 $k$ 位，并在右端补上k个0。移位量应该是一个 0~w-1 之间的值。移位运算是从左到右可结合的 $x&lt;&lt;j&lt;&lt;k = (x&lt;&lt;j)&lt;&lt;k$ </p>
+<h4 id="逻辑右移"><a href="#逻辑右移" class="headerlink" title="逻辑右移"></a>逻辑右移</h4><p>逻辑右移和左移刚好相反，x向右移k位，左边补上k个0</p>
+<h4 id="算术右移"><a href="#算术右移" class="headerlink" title="算术右移"></a>算术右移</h4><p>为什么会有算数右移？</p>
+<p>算术右移比较微妙，是在移动之后在左端补上k个最高有效位的值，得到的结果是 $[x<em>{w-1},\cdots,x</em>{w-1},x_{w-2},\cdots,x_k]$ </p>
+<p>比如下面这个例子</p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/7.png" style="zoom:150%;"></p>
+<p>斜体的数字表示的是最右端(左移）或最左端(右移)填充的值。可以看到除了一个条目之外，其他的都包含填充0。唯一的例外是算术右移[10010101]的情况。因为操作数的最高位是1，填充的值就是1。</p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/8.png" style="zoom:120%;"></p>
+<p>对于 x&lt;<y 和 x>&gt;y 如果 $y<0$ 或者 $y>$字长，则行为无意义</0$></y></p>
+<h2 id="2-2整数表示"><a href="#2-2整数表示" class="headerlink" title="2.2整数表示"></a>2.2整数表示</h2><h3 id="Integral-Data-Types"><a href="#Integral-Data-Types" class="headerlink" title="Integral Data Types"></a>Integral Data Types</h3><p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/10.png" style="zoom:100%;"></p>
+<h3 id="Unsigned-Encodings-无符号数"><a href="#Unsigned-Encodings-无符号数" class="headerlink" title="Unsigned Encodings(无符号数)"></a>Unsigned Encodings(无符号数)</h3><p>假设有一个整数数据类型有w位。我们可以将其写成 $[x<em>{w-1},x</em>{w-2},…,x_0]$  ,表示向量中的每一位。然乎我们用一个 $B2U_w$(Binary to Unsigned 的缩写，长度位w) 来表示：</p>
+<p>对向量 $\overrightarrow{x} = [x<em>{w-1},x</em>{w-2},\cdots,x_0]$  </p>
+<p>$B2U<em>w(\overrightarrow{x}) = \Sigma</em>{i=0}^{w-1}x_i2^i$ </p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/11.png" style="zoom:100%;"></p>
+<h3 id="Two’s-Complement-Encodings-补码"><a href="#Two’s-Complement-Encodings-补码" class="headerlink" title="Two’s-Complement Encodings(补码)"></a>Two’s-Complement Encodings(补码)</h3><p>基为2的补码的定义</p>
+<p>仍然把最高位当成符号位，但是最高位还是带权重的</p>
+<p>对向量 $\overrightarrow{x} = [x<em>{w-1},x</em>{w-2},\cdots,x_0]$: </p>
+<p>$B2T<em>w(\overrightarrow{x}) = -x</em>{w-1}2^{w-1}+\Sigma_{i=0}^{w-2}x_i2^i$ </p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/12.png" style="zoom:100%;"></p>
+<p>让我们来考虑一下w 位补码所能表示的值的范围。它能表示的最小值是位向量<a href="也就是设置这个位为负权，但是清除其他所有的位）其整数值为 $TMin_w=-2^{w-1}$ . 而最大值是为[01...1] (清除具有负权的位，而设置其他所有的位">10…0</a> ，其整数值为 $TMax<em>w = \Sigma</em>{i=0}^{w-2} 2^i = 2^{w-1}-1$  . 以4为例，我们有 $TMin_4 = B2T_4([1000]) = -2^3 = 8$,而 $TMax_4 = B2T_4([0111]) = 7$ </p>
+<p>C语言标准不要求一定使用补码表示有符号的整数，但是几乎所有的机器上的实现都用补码</p>
+<p>补码的最高位是1，那么这个补码就是负的</p>
+<p>补码的好处就是只有一个零，而原码则有两个0</p>
+<p>做一个小练习：</p>
+<p>B2T (10) = 1010<br>B2T (−10) = 10110<br>B2T (15213) =<br>B2T (−15213) =</p>
+<p>我们发现对于两个相反数的补码，我们第一眼是看不出相反数之间是有联系的。不像源码，第一位只代表符号位。对于负数的补码，就是把正数的补码取反码再+1</p>
+<h3 id="Conversions-between-Signed-and-Unsigned"><a href="#Conversions-between-Signed-and-Unsigned" class="headerlink" title="Conversions between Signed and Unsigned"></a>Conversions between Signed and <strong>Unsigned</strong></h3><p>有符号数和无符号数之间的转换。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">short <span class="keyword">int</span> v = <span class="number">-12345</span>;</span><br><span class="line"><span class="keyword">unsigned</span> short uv = (<span class="keyword">unsigned</span> short) v;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"v=%d,uv = %u\n"</span>,v,uv);</span><br></pre></td></tr></table></figure>
+<p>结果是 v=-12345, uv = 53191</p>
+<p>对C来说强制类型转换的结果保持位值不变，只是<strong>改变了解释这些位的方式</strong>。 因为十六进制表示写作0xCFC7 的16 位二进制码既是-12345的补码表示，又是53191 的无符号表示</p>
+<p>也就是说 $T2U_{16}(-12345) = 53191,U2T_16(53191) = 12345$ </p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/14.png" style="zoom:100%;"></p>
+<p>通过上述这些例子，我们可以总结出T2U的公式:对满足 $TMin_w\leq x\leq TMax_w$ </p>
+<p>$T2U_w(x)=\begin{cases}x+2^w,x&lt;0\ x,x\geq 0\end{cases}$ </p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/15.png" style="zoom:100%;"></p>
+<p>对 $0\leq u\leq UMax_x$ 的u 有</p>
+<p>$U2T_w(x)=\begin{cases}u,u\leq TMax_w\ u-2^w,u\geq TMax_w\end{cases}$ </p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/16.png" style="zoom:100%;"></p>
+<h3 id="Signed-versus-Unsigned-in-C"><a href="#Signed-versus-Unsigned-in-C" class="headerlink" title="Signed versus Unsigned in C"></a>Signed versus Unsigned in C</h3><p>C语言中，要创建一个无符号常量，必须加上后缀字符’U‘ 或者‘u‘例如，12345U 或者0x1A2Bu.</p>
+<p>C 语言允许无符号数和有符号数之间的转换。在一台采用补码的机器上，当从无符号数转换为有符号数时，效果就是应用函数$U2T_w$，而从有符号数转换为无符号数时，就是应用函数$T2U_w$ 其中切表示数据类型的位数。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Constant1</th>
+<th>Constant2</th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>位串保持不变，位串重复解读。可能会导致各种溢出：$$</p>
+<h3 id="Expanding-the-Bit-Representation-of-a-Number"><a href="#Expanding-the-Bit-Representation-of-a-Number" class="headerlink" title="Expanding the Bit Representation of a Number"></a>Expanding the Bit Representation of a Number</h3><h4 id="零扩展"><a href="#零扩展" class="headerlink" title="零扩展"></a>零扩展</h4><p>要将一个无符号的数转换为一个更大的数据类型，我们只需要简单地在表示的开头添加0. 表示：</p>
+<p>定义宽度为w的位向量 $\overrightarrow{u} = [u<em>{w-1},u</em>{w-2},…,u<em>0]$ 和宽度为 $w’$ 的位向量 $\overrightarrow{u}’ = [0,…,0,u</em>{w-1},u<em>{w-2},…,u_0]$ , 其中 $w’&gt;w$, 则 $B2U_w(\overrightarrow{u}) =B2U</em>{w’}(\overrightarrow{u’})$ </p>
+<h4 id="符号扩展"><a href="#符号扩展" class="headerlink" title="符号扩展"></a>符号扩展</h4><p>要将一个<strong>补码数字</strong>转换成一个<strong>更大的</strong>数据类型，可以执行一个符号扩展，在表示中添加最高有效位的值。表示为如下原理。</p>
+<p>定义宽度为 w的位向量 $\overrightarrow{x} = [x<em>{w-1},x</em>{w-2},…,x<em>0]$ 和宽度为 w的位向量 $\overrightarrow{x}’ = [x</em>{w-1},…,x<em>{w-1},x</em>{w-1},x<em>{w-2},…,x_0]$ ,其中 $w’&gt;w$ 。 则 $B2T_w(\overrightarrow{x}) =B2T</em>{w’}(\overrightarrow{x’})$</p>
+<p>比如下面这个例子</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">short sx = <span class="number">-12345</span>; <span class="comment">/* -12345 */</span></span><br><span class="line"><span class="keyword">unsigned</span> short usx = sx; <span class="comment">/* 53191 */</span></span><br><span class="line"><span class="keyword">int</span> x = sx; <span class="comment">/* -12345 */</span></span><br><span class="line"><span class="keyword">unsigned</span> ux = usx; <span class="comment">/* 53191 */</span></span><br></pre></td></tr></table></figure>
+<p>打印如下：</p>
+<p>sx = -12345: cf c7<br>usx = 53191: cf c7<br>x = -12345: ff ff cf c7<br>ux = 53191: 00 00 cf c7</p>
+<p>我们可以观察到，-12345的补码和53191的无符号表示在16位字长时是相同的，但是在32位字长时却不同的。因为前者用的是符号扩展，后者用的是零扩展</p>
+<h3 id="Truncating-Numbers"><a href="#Truncating-Numbers" class="headerlink" title="Truncating Numbers"></a>Truncating Numbers</h3><p>刚才我们讲了怎么从位数较少的拓展成位数较多的数，现在来看看高位数怎么截断成较少位数</p>
+<p>当我们将一个w位的数$ \overrightarrow{x} = [x<em>{w-1},x</em>{w-2},\cdots,x<em>0]$ 截断位一个k位数字时，我们会丢弃高 $w-k$ 位，得到一个位向量 $\overrightarrow{x’} =[x</em>{k-1},x_{k-2},\cdots,x_0]$  阶段一个数字很可能会改变它的值。</p>
+<h4 id="截断无符号数"><a href="#截断无符号数" class="headerlink" title="截断无符号数"></a>截断无符号数</h4><p>对一个无符号数，我们可以很容易得出其数值结果</p>
+<p>令$\overrightarrow{x} $ 等于位向量 $ \overrightarrow{x} = [x<em>{w-1},x</em>{w-2},\cdots,x<em>0]$ ,而 $\overrightarrow{x’}$  是将其截断为k位的结果：$\overrightarrow{x’} =[x</em>{k-1},x_{k-2},\cdots,x_0]$ 。 令 $x=B2U_w(\overrightarrow {x}),x’ = B2U_k(\overrightarrow{x’})$ 则 $x’ = x <del>mod</del> 2^k$</p>
+<h4 id="截断补码数值"><a href="#截断补码数值" class="headerlink" title="截断补码数值"></a>截断补码数值</h4><p>截断补码也具有相似的属性，只不过要<strong>将最高位转换为符号位</strong>。</p>
+<p>令 $\overrightarrow{x}$ 等于位向量 $[x<em>{w-1},x</em>{w-2},\cdots,x<em>0]$ ,而 $\overrightarrow{x’} $ 是将其截断为k位的结果： $\overrightarrow{x’} =[x</em>{k-1},x_{k-2},…,x_0]$ 令 $x=B2U_w(\overrightarrow{x})$, $x’ = B2T_k(\overrightarrow{x’})$ 则 $x’ = U2T_k(x <del>mod</del> 2^k)$ </p>
+<p>在这个公式中， $x ~~ mod ~~2^k$ 将是一个 0 到 $2^k-1$ 之间的一个数。对其应用函数 $U2T<em>k$ 产生的效果就是把最高的有效位 $x</em>{k-1}$  的权重从 $2^{k-1}$ 转变为 $-2^{k-1}$ 。 举例来看，将数值 $x=53191$ 从int 转换为short。 由于 $2^{16} =66536 \geq x$ 我们有  $x ~~ mod ~~ 2^{16} =x$ 但是，当我们把这个数转换为16位的补码时，我们得到了 $x’ = 53191-65536 = -12345$ </p>
+<h3 id="扩展和截断小结"><a href="#扩展和截断小结" class="headerlink" title="扩展和截断小结"></a>扩展和截断小结</h3><p>扩展：</p>
+<p>⽆符号：加 0<br>有符号：最⾼位扩展<br>结果可靠（可预期）</p>
+<p>截断：</p>
+<p>⽆论有⽆符号：去掉⾼位，结果重新解释<br>⽆符号：等同于取模运算<br>有符号：类似于取模运算(先取模再重新解释)<br>对于不太⼤的数，结果可靠（可预期）</p>
+<h3 id="Advice-on-Signed-versus-Unsigned"><a href="#Advice-on-Signed-versus-Unsigned" class="headerlink" title="Advice on Signed versus Unsigned"></a>Advice on Signed versus Unsigned</h3><p>就像我们看到的那样，有符号数到无符号数的隐式强制类型转换导致了某些非直观的行为。而这些非直观的特性经常导致程序错误，并且这种包含隐式强制类型转换的细微差别的错误很难被发现。因为这种强制类型转换是在代码中没有明确指示的情况下发生的，程序员经常忽视了它的影响。<br>下面两个练习题说明了某些由于隐式强制类型转换和无符号数据类型造成的细微的错误</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* WARNING: This is buggy code */</span></span><br><span class="line"><span class="function"><span class="keyword">float</span> <span class="title">sum_elements</span><span class="params">(<span class="keyword">float</span> a[], <span class="keyword">unsigned</span> length)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">int</span> i;</span><br><span class="line"><span class="keyword">float</span> result = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (i = <span class="number">0</span>; i &lt;= length<span class="number">-1</span>; i++)</span><br><span class="line">		result += a[i];</span><br><span class="line">	<span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当参数length 等于0 时，运行这段代码应该返回0.0。 但实际上，运行时会遇到一个内存错误。请解释为什么会发生这样的情况，并且说明如何修改代码.</p>
+<p>因为length是unsigned 的，那么0-1 就会变成了Umax也就是4294967295，但是 $&lt;=$ 这个符号同样使用无符号数比较，而因为任何书都是小于等于UMax的，所以这个比较总是为真。因此代码将试图访问数组a的非法元素。</p>
+<p>我们可以将length修改为int类型</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Prototype for library function strlen */</span></span><br><span class="line"><span class="function"><span class="keyword">size_t</span> <span class="title">strlen</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *s)</span></span>;</span><br><span class="line">	<span class="comment">//Here is your first attempt at the function:</span></span><br><span class="line"><span class="comment">/* Determine whether string s is longer than string t */</span></span><br><span class="line"><span class="comment">/* WARNING: This function is buggy */</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">strlonger</span><span class="params">(<span class="keyword">char</span> *s, <span class="keyword">char</span> *t)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">strlen</span>(s) - <span class="built_in">strlen</span>(t) &gt; <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当你在一些示例数据上测试这个函数时，一切似乎都是正确的。进一步研究发现在头文件stdio.h 中数据类型size_t 是定义成unsigned int 的。并解释为什么会出现这样不正确的结果。</p>
+<p>当s比t更短的时候，因为strlen(s)和strlen(t) 都是unsigned的，所以不会出现负数而是一个很大的正数，任然会返回1<br>C. 说明如何修改这段代码好让它能可靠地工作 将代码修改为：return strlen(s) &gt; strlen(t);</p>
+<h2 id="解题要点："><a href="#解题要点：" class="headerlink" title="解题要点："></a>解题要点：</h2><h3 id="Unsigned和补码之间的比较"><a href="#Unsigned和补码之间的比较" class="headerlink" title="Unsigned和补码之间的比较"></a>Unsigned和补码之间的比较</h3><p>如果左边的数是Unsigned，那么<strong>右边的数也会自动转换成Unsigned</strong>(最后一题有点坑)</p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/17.png" style="zoom:100%;"></p>
+<p>最后一题，-2147483647-1U 会变成0，同时右边的-2147483647 会转换成1，0&lt;1 所以正确</p>
+<p><img src="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/18.png" style="zoom:100%;"></p>
+<p>对于fun1 来说，是unsigned类型移位之后再转换为int，所以进行的操作是左移或者逻辑右移</p>
+<p>对于fun2 来说，左移后先转换成int再进行算术右移。</p>
+<p>所以fun1就是不用变化，而对于fun2，我们要看哪些数在左移后以1开头，我们发现是0xC9000000 和 0x87000000,那么算数右移后，fun2(w) = 0xFFFFFFC9 和 0xFFFFFF87 </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CSAPP/" rel="tag"># CSAPP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/" rel="prev" title="深入了解计算机系统简介">
+      <i class="fa fa-chevron-left"></i> 深入了解计算机系统简介
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/17/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A82/" rel="next" title="CSAPP信息的表示和存储2">
+      CSAPP信息的表示和存储2 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP信息的表示和存储"><span class="nav-number">1.</span> <span class="nav-text">CSAPP信息的表示和存储</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#上课笔记"><span class="nav-number">1.1.</span> <span class="nav-text">上课笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#main-arg-c-arg-v"><span class="nav-number">1.1.1.</span> <span class="nav-text">main(arg c ,arg v)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#shell-中的命令时怎么去运行的"><span class="nav-number">1.1.2.</span> <span class="nav-text">shell 中的命令时怎么去运行的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C中的内存管理"><span class="nav-number">1.1.3.</span> <span class="nav-text">C中的内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#存储时候的三个区域："><span class="nav-number">1.1.3.1.</span> <span class="nav-text">存储时候的三个区域：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#运行时的几个区域"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">运行时的几个区域</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通讯录模型"><span class="nav-number">1.1.4.</span> <span class="nav-text">通讯录模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多道程序、多线程"><span class="nav-number">1.1.5.</span> <span class="nav-text">多道程序、多线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Kernel"><span class="nav-number">1.1.6.</span> <span class="nav-text">Kernel</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#objdump-d-hello"><span class="nav-number">1.1.7.</span> <span class="nav-text">objdump -d hello</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存"><span class="nav-number">1.1.8.</span> <span class="nav-text">内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#地址空间"><span class="nav-number">1.1.9.</span> <span class="nav-text">地址空间</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-信息存储"><span class="nav-number">1.2.</span> <span class="nav-text">2.1 信息存储</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#十六进制表示法"><span class="nav-number">1.2.1.</span> <span class="nav-text">十六进制表示法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Data-sizes"><span class="nav-number">1.2.2.</span> <span class="nav-text">Data sizes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Address-and-Byte-Ordering"><span class="nav-number">1.2.3.</span> <span class="nav-text">Address and Byte Ordering</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Representing-Strings"><span class="nav-number">1.2.4.</span> <span class="nav-text">Representing Strings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Representing-Code"><span class="nav-number">1.2.5.</span> <span class="nav-text">Representing Code</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Boolean-Algebra"><span class="nav-number">1.2.6.</span> <span class="nav-text">Boolean Algebra</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Bit-Level-Operations-in-C"><span class="nav-number">1.2.7.</span> <span class="nav-text">Bit-Level Operations in C</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logical-Operations-in-C"><span class="nav-number">1.2.8.</span> <span class="nav-text">Logical Operations in C</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shift-Operations-in-C-移位运算"><span class="nav-number">1.2.9.</span> <span class="nav-text">Shift Operations in C  移位运算</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#左移"><span class="nav-number">1.2.9.1.</span> <span class="nav-text">左移</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#逻辑右移"><span class="nav-number">1.2.9.2.</span> <span class="nav-text">逻辑右移</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#算术右移"><span class="nav-number">1.2.9.3.</span> <span class="nav-text">算术右移</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2整数表示"><span class="nav-number">1.3.</span> <span class="nav-text">2.2整数表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Integral-Data-Types"><span class="nav-number">1.3.1.</span> <span class="nav-text">Integral Data Types</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Unsigned-Encodings-无符号数"><span class="nav-number">1.3.2.</span> <span class="nav-text">Unsigned Encodings(无符号数)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Two’s-Complement-Encodings-补码"><span class="nav-number">1.3.3.</span> <span class="nav-text">Two’s-Complement Encodings(补码)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Conversions-between-Signed-and-Unsigned"><span class="nav-number">1.3.4.</span> <span class="nav-text">Conversions between Signed and Unsigned</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Signed-versus-Unsigned-in-C"><span class="nav-number">1.3.5.</span> <span class="nav-text">Signed versus Unsigned in C</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Expanding-the-Bit-Representation-of-a-Number"><span class="nav-number">1.3.6.</span> <span class="nav-text">Expanding the Bit Representation of a Number</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#零扩展"><span class="nav-number">1.3.6.1.</span> <span class="nav-text">零扩展</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#符号扩展"><span class="nav-number">1.3.6.2.</span> <span class="nav-text">符号扩展</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Truncating-Numbers"><span class="nav-number">1.3.7.</span> <span class="nav-text">Truncating Numbers</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#截断无符号数"><span class="nav-number">1.3.7.1.</span> <span class="nav-text">截断无符号数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#截断补码数值"><span class="nav-number">1.3.7.2.</span> <span class="nav-text">截断补码数值</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#扩展和截断小结"><span class="nav-number">1.3.8.</span> <span class="nav-text">扩展和截断小结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Advice-on-Signed-versus-Unsigned"><span class="nav-number">1.3.9.</span> <span class="nav-text">Advice on Signed versus Unsigned</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解题要点："><span class="nav-number">1.4.</span> <span class="nav-text">解题要点：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Unsigned和补码之间的比较"><span class="nav-number">1.4.1.</span> <span class="nav-text">Unsigned和补码之间的比较</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

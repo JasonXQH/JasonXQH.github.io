@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="损失函数和优化损失函数对于线性分类器，常常需要定义一个衡量输出分数好坏的函数——损失函数。然后，我们可以通过这个损失函数，去反推参数，最终让损失函数达到最小值，这就是优化的过程。 我们来举一个例子： 我们令训练集为 ${(xi,y_i )}{i&#x3D;1}^N$ , $x_i$ 为第i个图片，$y_i\in Z$ 为它的类别标签；$f(\boldsymbol W,\boldsymbol x_i)$ 为第">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机视觉-损失函数和优化">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="损失函数和优化损失函数对于线性分类器，常常需要定义一个衡量输出分数好坏的函数——损失函数。然后，我们可以通过这个损失函数，去反推参数，最终让损失函数达到最小值，这就是优化的过程。 我们来举一个例子： 我们令训练集为 ${(xi,y_i )}{i&#x3D;1}^N$ , $x_i$ 为第i个图片，$y_i\in Z$ 为它的类别标签；$f(\boldsymbol W,\boldsymbol x_i)$ 为第">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/11.png">
+<meta property="article:published_time" content="2021-12-20T13:05:51.000Z">
+<meta property="article:modified_time" content="2021-12-27T04:24:44.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="cv">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/5.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>计算机视觉-损失函数和优化 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机视觉-损失函数和优化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-12-20 21:05:51" itemprop="dateCreated datePublished" datetime="2021-12-20T21:05:51+08:00">2021-12-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-12-27 12:24:44" itemprop="dateModified" datetime="2021-12-27T12:24:44+08:00">2021-12-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="损失函数和优化"><a href="#损失函数和优化" class="headerlink" title="损失函数和优化"></a>损失函数和优化</h1><h2 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h2><p>对于线性分类器，常常需要定义一个衡量输出分数好坏的函数——<strong>损失函数</strong>。然后，我们可以通过这个损失函数，去反推参数，最终让损失函数达到最小值，这就是<strong>优化</strong>的过程。</p>
+<p>我们来举一个例子：</p>
+<p>我们令训练集为 ${(x<em>i,y_i )}</em>{i=1}^N$ , $x_i$ 为第i个图片，$y_i\in Z$ 为它的类别标签；$f(\boldsymbol W,\boldsymbol x_i)$ 为第i个图片的输出分数, $\boldsymbol W$ 是权重矩阵，计算公式如下所示：</p>
+<p><img src="/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/5.png"></p>
+<p>由此，我们可以计算损失函数</p>
+<ul>
+<li>第 i 条数据的损失函数 $L_i = l(f(\boldsymbol W,\boldsymbol x_i),y_i)$</li>
+<li>训练样本总体损失 $L = \frac{1}{N}\sum_{i=1}^N L_i$ </li>
+</ul>
+<p>接下来我们来介绍两种线性分类器常用的损失函数 </p>
+<h3 id="SVM-Loss"><a href="#SVM-Loss" class="headerlink" title="SVM Loss"></a>SVM Loss</h3><p>SVM loss 也叫做 multiclass SVM loss, 首先我们给出定义：</p>
+<ol>
+<li><p>训练集为 ${(x<em>i,y_i )}</em>{i=1}^N$ , $x_i$ 为第i个图片，$y_i\in Z$ 为它的类别标签</p>
+</li>
+<li><p>我们令 $\boldsymbol s = f(\boldsymbol W,\boldsymbol x_i)$, 即图片i的所有类别分数</p>
+</li>
+<li><p>然后，我们令 SVM loss为： $L<em>i = \sum</em>{j\neq y<em>i}\max(0,s_j-s</em>{y_i}+1)$ </p>
+<ul>
+<li>$s_j$ 代表第 $i$ 张图片在第 $j$ 个分类上的分数</li>
+<li>$s_{y_i}$ 代表这张图片原来类别的分数 </li>
+</ul>
+</li>
+</ol>
+<p>为什么要加上1这个常数呢？</p>
+<p>答：如果不加上1，想得到0损失的话，那么只要正确类别的分数比其他所有错误类别的分数大就可以了，具体大多少不用管。因此可能出现两个类的分数很接近，正确的类别并不突出。如果加上1以后，至少要让正确类别的分数比其他类别的分数大1。也就是<strong>进一步拉大正确类别与错误类别的差距</strong>，让模型更加高效。</p>
+<p>如果全部正确得对图片进行分类，此时对所有的 $s<em>j$ 肯定是远小于 $s</em>{y<em>i}$ 的。因此此时$L_i = \sum</em>{j\neq y_i}0= 0$ </p>
+<p>画出图像后我们发现，SVM loss的函数形状就像一个铰链一样，因此也被称为 Hinge Loss</p>
+<p><img src="/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/2.png" style="zoom:67%;"></p>
+<h4 id="实例计算"><a href="#实例计算" class="headerlink" title="实例计算"></a>实例计算</h4><p>现在，我们可以通过一个具体的例子来计算svm loss</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>狗图片1</th>
+<th>猫图片1</th>
+<th>狼图片1</th>
+<th>狗图片1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>狗</td>
+<td><strong>7.9</strong></td>
+<td>3.3</td>
+<td>-1.1</td>
+<td><strong>2.3</strong></td>
+</tr>
+<tr>
+<td>猫</td>
+<td>5.8</td>
+<td><strong>-0.8</strong></td>
+<td>3.4</td>
+<td>1.5</td>
+</tr>
+<tr>
+<td>狼</td>
+<td>-1.9</td>
+<td>6.5</td>
+<td><strong>2.5</strong></td>
+<td>4.4</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>图片1-4的loss:</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&L_1 = \max(0,5.8-7.9+1)+\max(0,-1.9-7.9+1)=0\\
+&L_2 = \max(0,3.3-(-0.8)+1)+\max(0,6.5-(-0.8)+1)=13.4\\
+&L_3 = \max(0,-1.1-2.5+1)+\max(0,3.4-2.5+1)=1.9\\
+&L_4 = \max(0,1.5-2.3+1)+\max(0,4.4-2.3+1)=3.3\\
+\end{align}</script><p>总的loss:</p>
+<script type="math/tex; mode=display">
+L = \frac{1}{N}\sum_{i=1}^N L_i = \frac{1}{4}(0+13.4+1.9+3.3) = 4.65</script><h5 id="QA"><a href="#QA" class="headerlink" title="QA"></a>QA</h5><p>Q : 如果输出分数发生微小改变(比如$\pm0.001$)，对SVM loss的计算会造成什么影响</p>
+<p>A : $s<em>j-s</em>{y_i}&lt;-1$ 时，没有影响。反之，会略为改变损失函数的值</p>
+<hr>
+<p>Q: SVM 损失函数的最大值和最小值分别为多少</p>
+<p>A: 最小值为0(全分对)，最大值为正无穷(理论上)，可用于代码 正确性检查</p>
+<hr>
+<p>Q: 加入初始化 $\boldsymbol W$ 接近0，导致所有输出分数都$\approx 0$,那么$L_i$ 约等于多少？</p>
+<p>A: 由公式可得：$L<em>i = \sum</em>{j\neq y_i}\max(0-0+1)$ 。 因此此时 $L_i$ 的分数为 $C-1$， $C$ 为类别数，这里为 $3-1=2$ 。此问题也可以用于代码检测</p>
+<hr>
+<p>Q: 加入去掉$j\neq y_i$ 的限制，损失函数该如何变化？</p>
+<p>A: 损失函数会增加1</p>
+<hr>
+<p>Q: 加入在$L<em>i$中使用$\max(s_j-s</em>{y<em>i}+2)$ 代替 $\max(s_j-s</em>{y_i}+1)$ ，有什么影响？</p>
+<p>A: 不会改变分类的结果，SVM loss 只关注输出分数之间的差异，这里的常数只起到scale参数的作用，会导致权重矩阵的变化。</p>
+<hr>
+<p>Q: 加入 $\boldsymbol W$ 使得 $L=0$ (完美)，轻微 $\boldsymbol W$ 是否唯一？</p>
+<p>A: 不唯一，因为$\boldsymbol W\times c $ 也可以使得$L=0$, $c$ 为任意正整数。因为权重矩阵的整体放大是不会影响到结果的。我们可以通过添加正则项来选取更好的 $\boldsymbol W $ ,增强模型的泛化能力</p>
+<h3 id="Softmax-Loss"><a href="#Softmax-Loss" class="headerlink" title="Softmax Loss"></a>Softmax Loss</h3><p>第二个常用的损失函数是 softmax loss(cross-entropy loss). 用这个损失函数构造的分类器也被称为是Softmax分类器(多类别逻辑回归)</p>
+<p>我们同样给出定义：</p>
+<ol>
+<li><p>训练集为 ${(x<em>i,y_i )}</em>{i=1}^N$ , $x_i$ 为第i个图片，$y_i\in Z$ 为它的类别标签</p>
+</li>
+<li><p>我们令 $\boldsymbol s = f(\boldsymbol W,\boldsymbol x_i)$, 即图片i的所有类别分数</p>
+</li>
+<li><p>softmax loss ：</p>
+<script type="math/tex; mode=display">
+L_i = -\log (\frac{e^{s_{y_i}}}{\sum_j e^{s_j}})</script><ul>
+<li>同样的，$s_{y_i}$ 代表这张图片原来类别的分数 </li>
+<li>$s_j$ 代表第 $i$ 张图片在第 $j$ 个分类上的分数</li>
+</ul>
+</li>
+</ol>
+<p>如果是正确分类的话，$s<em>{y_i}$是特别大的，因此 $(\frac{e^{s</em>{y_i}}}{\sum_j e^{s_j}})$ 接近于1，$L_i$ 就接近于0</p>
+<h4 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h4><h5 id="交叉熵"><a href="#交叉熵" class="headerlink" title="交叉熵"></a>交叉熵</h5><p>首先我们要了解交叉熵的概念</p>
+<p>我们知道熵(entropy) 是用来衡量概率<strong>分布Q</strong>的不确定性的:</p>
+<script type="math/tex; mode=display">
+H(Q) = -\sum_i q_i \log q_i</script><p>那么交叉熵(Cross-entropy) 则是用来衡量概率<strong>分布P</strong>服从概率<strong>分布Q</strong>的不确定性,就是把对数后面的q改为p：</p>
+<script type="math/tex; mode=display">
+H(Q,P) = -\sum_{i}q_i\log p_i</script><p>比如说这里有个例子：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>晴天</th>
+<th>多云</th>
+<th>下雨</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>真实天气</td>
+<td>50%</td>
+<td>30%</td>
+<td>20%</td>
+</tr>
+<tr>
+<td>天气预报</td>
+<td>40%</td>
+<td>30%</td>
+<td>30%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>可以计算真实天气的不确定性：</p>
+<script type="math/tex; mode=display">
+H(\text{真实}) = -(0.5\log(0.5)+0.3\log(0.3)+0.2\log(0.2))=0.45</script><p>当只有一种天气的时候，可知： $H(真实) = -(1\log 1) = 0$ </p>
+<p>利用交叉熵，可以计算天气预报服从真是天气的不确定性：</p>
+<script type="math/tex; mode=display">
+H(真实,预报) = -(0.5\log(0.4)+0.3\log(0.3)+0.2\log(0.3)) = 0.46</script><p>正常情况下，我们是利用 KL 散度(相对熵)来衡量两者分布的差异性：</p>
+<script type="math/tex; mode=display">
+D_{KL} (Q||P) = H(Q,P)-H(Q) = -\sum q_i\log p_i-(-\sum_i q_i\log q_i) =\sum_i q_i\log\frac{q_i}{p_i}</script><p>但在计算softmax loss时，我们只考虑交叉熵的计算即可。因为在图像分类场景下，真实的分类是确定的, $H(\text{真实})=0$ , 所以说交叉熵和KL散度在图像分类情况下是等价的</p>
+<h5 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h5><p>首先，我们可以将分数通过 softmax 函数转换为概率，即：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\text{分数}: \boldsymbol s = f(\boldsymbol W,\boldsymbol x_i)\\
+&\text{概率}: P(y=k|x_i) = \frac{e^{s_k}}{\sum_j e^{s_j}}
+\end{align}</script><p><img src="/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/3.png"></p>
+<p>接着，我们利用交叉熵，计算第i个图片的损失：</p>
+<script type="math/tex; mode=display">
+L_i = -\log P(y=y_i|x_i) = -\log (\frac{e^{s_{y_1}}}{\sum_j e^{s_j}})</script><ul>
+<li>其中，$y_i$ 代表正确的标签</li>
+</ul>
+<h4 id="实例计算-1"><a href="#实例计算-1" class="headerlink" title="实例计算"></a>实例计算</h4><p>我们还是那 SVM loss的那个例子来计算，得到了分数以后我们先计算预测的每个类别的概率，得到蓝色框框。</p>
+<p>然后通过计算cross entropy 来得到 $L_1$ </p>
+<p><img src="/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/7.png"></p>
+<h5 id="QA-1"><a href="#QA-1" class="headerlink" title="QA"></a>QA</h5><p>Q: 如果有输出分数发生微小改变(比如 $\pm 0.1$)，损失函数是否发生改变？</p>
+<p>A: 使得，正确类别和错误类别输出分数差距越大，损失函数就越小</p>
+<hr>
+<p>Q: 损失函数$L_i$ 的最大值和最小值分别是多少？</p>
+<p>A: 最小值为0(理论上)，最大值为正无穷(理论上)</p>
+<hr>
+<p>Q: 加入初始化 $\boldsymbol W$ 接近0，导致所有输出分数都$\approx 0$ ，那么$L$ 约等于多少？</p>
+<p>A: $L<em>i = -\log (\frac{e^{s</em>{y_1}}}{\sum_j e^{s_j}})$ , 当输出分数都约等于0的时候，$L_i = -\log(1/C)=\log C$, 其中$C$为类别数，这里为 $\log 3$</p>
+<hr>
+<h4 id="两类分类器的对比"><a href="#两类分类器的对比" class="headerlink" title="两类分类器的对比"></a>两类分类器的对比</h4><p><img src="/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/4.png"></p>
+<p>为什么左边的是SVM分类器，右边的是Softmax分类器？</p>
+<p>因为SVM有一个boundary，而且并不关注所有类别到这个分类器的距离。他只要求其他类别比正确类别的分数小于1(boundary)即可。因此我们看到，左边的分类器目标是最大化 margin即可，并不需要计算每张图片到中心的距离。</p>
+<p>而Softmax分类器，每个图片都参与了关于loss的计算。我们看到右边的分类器，需要一一计算每张图片到超平面的距离。</p>
+<h3 id="正则化"><a href="#正则化" class="headerlink" title="正则化"></a>正则化</h3><p>正则项的意义：1. 缩小参数空间 2. 调整参数偏好的分布 3. 提高模型泛化能力。我们希望的分类器是下面这张图中的绿色线条。因为蓝色曲线已经过拟合了 ，在其他数据集上的表现会比较糟糕。</p>
+<p><img src="/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/6.png"></p>
+<p>怎么正则化呢？我们可以修改 loss 函数</p>
+<script type="math/tex; mode=display">
+L(\boldsymbol W) = \frac{1}{N}\sum_{i=1}^N l(f(\boldsymbol W,x_i),y_i) +\lambda R(\boldsymbol W)</script><p>前一部分是数据损失，后一部分是正则项，用来防止模型过拟合训练集。其中$\lambda$是超参数，代表正则化的强度；正则项 $R(\boldsymbol W)$ 有 L1正则，L2正则以及两种混合起来的正则。</p>
+<h4 id="L1正则化"><a href="#L1正则化" class="headerlink" title="L1正则化"></a>L1正则化</h4><p>L1正则就是将每个权重的绝对值累加。</p>
+<script type="math/tex; mode=display">
+L1: \sum_k\sum_l|w_{k,l}|</script><h4 id="L2正则化"><a href="#L2正则化" class="headerlink" title="L2正则化"></a>L2正则化</h4><p>L2正则是将每个权重求平方之后累加：</p>
+<script type="math/tex; mode=display">
+L2: \sum_k\sum_l|w_{k,l}^2|</script><p>此外还有Dropout, Batch normalization, Stochastic depth 和 Fractional pooling 等方法</p>
+<h4 id="L1-vs-L2"><a href="#L1-vs-L2" class="headerlink" title="L1 vs L2"></a>L1 vs L2</h4><p>我们给个例子：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&x= [1,1,1]\\
+&\boldsymbol W_1 = [1,0,0]\\
+&\boldsymbol W_2 = [0.3,-0.1,0.8]\\
+&\boldsymbol W_1^T x = \boldsymbol W_2^T x = 1\\
+\end{align}</script><p>使用$L1$ 正则化，对于$\boldsymbol {W_1,W_2}$， 可得：</p>
+<script type="math/tex; mode=display">
+\boldsymbol W_1 : \sum_{k}\sum_l|\boldsymbol W_1| = 1\\
+\boldsymbol W_2 : \sum_{k}\sum_l|\boldsymbol W_2| = 1.2</script><p>使用$L_2$ 正则化，可得：</p>
+<script type="math/tex; mode=display">
+\boldsymbol W_1 : \sum_{k}\sum_l|\boldsymbol W^2_1| = 1\\
+\boldsymbol W_2 : \sum_{k}\sum_l|\boldsymbol W^2_2| = 0.74</script><p>我们看到，$L_1$ 偏向于是参数集中在少数输入像素上</p>
+<p>$L_2$ 偏向于是参数分布在所有像素上</p>
+<h3 id="损失函数计算流程"><a href="#损失函数计算流程" class="headerlink" title="损失函数计算流程"></a>损失函数计算流程</h3><ol>
+<li>初始化$\boldsymbol W$</li>
+<li>计算 $s= f(\boldsymbol W,x_i)$</li>
+<li>选择损失函数，计算 $L<em>总 = \frac{1}{N}\sum</em>{i=1}^N L_i+\lambda R(\boldsymbol W)$ 得到 Total Loss</li>
+<li>通过优化算法，修改原来的参数矩阵 $\boldsymbol W$ </li>
+<li>重复2-4, 直到收敛</li>
+</ol>
+<h2 id="图像特征抽取"><a href="#图像特征抽取" class="headerlink" title="图像特征抽取"></a>图像特征抽取</h2><p>线性分类器是可以应用于图像的，如果直接用像素点来计算，效果其实是很差的。因此往往需要对原始像素做特征抽取，利用抽取的特征来训练模型，以提高预测性能。如下所示：</p>
+<p><img src="/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/8.png"></p>
+<p>在深度神经网络(DNN)中的前几层，其实就是一个提取图像特征的过程。那么在线性分类器中，我们有什么方法呢？</p>
+<h3 id="Hue-Histogram"><a href="#Hue-Histogram" class="headerlink" title="Hue Histogram"></a>Hue Histogram</h3><ol>
+<li>建立色相哈希表</li>
+<li>哈希每个像素值，并计算每个key中像素的个数</li>
+<li>将哈希结果作为模型输入</li>
+</ol>
+<h3 id="HoG"><a href="#HoG" class="headerlink" title="HoG"></a>HoG</h3><p>HoG 的全称是：Histogram of Oriented Gradients(方向梯度直方图)</p>
+<p><img src="/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/9.png"></p>
+<h2 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h2><p>我们的目标是最小化损失函数 $L(\boldsymbol W)$ ，因为这时候预测的最接近于真实值。</p>
+<p>假设只有一个参数$w$：</p>
+<ul>
+<li>导数 $\frac{dL(w)}{dw} = \lim\limits_{h\rightarrow 0}\frac{L(w+h)-L(w)}{h}$ 代表$L$ 在$w$ 的切线斜率，即 $L(w)$ 在该店的变化速率及方向</li>
+<li>因此沿导数反方向微调w即可减小$L(w)$</li>
+</ul>
+<p>如下图所示：</p>
+<p><img src="/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/10.png"></p>
+<p>在多维情况下，即$\boldsymbol W$ 为向量</p>
+<ul>
+<li><p>偏导数$[\frac{\partial L(\boldsymbol W)}{\partial w<em>1},\frac{L(\boldsymbol W)}{\partial w_2},\cdots,\frac{L(\boldsymbol W)}{\partial w_n}]$ 代表L 在 $\boldsymbol W$ 处沿每个维度的变化速率和方向，称为梯度(gradient).记为 $\nabla</em>{\boldsymbol W}L$ 或者 $grad(L(\boldsymbol W))$</p>
+</li>
+<li><p>$\nabla_{\boldsymbol W}L$ 和方向向量$\boldsymbol v$ 的点积记为该方向的斜率(方向导数) ,公式如下：</p>
+<script type="math/tex; mode=display">
+\nabla_{\boldsymbol W}L\cdot v = |\nabla_{\boldsymbol W}L ||v|\cos\theta</script><p>那么，当$\cos\theta =1$ 的时候，达到最大值，即$\boldsymbol v$ 和 $\nabla<em>{\boldsymbol W}L$ 同方向，所以负梯度 $-\nabla</em>{\boldsymbol W}L$ 代表 $L$ 下降最快的方向(最陡峭)。</p>
+</li>
+<li><p>沿 $-\nabla_{\boldsymbol W}L$ 方向微调$\boldsymbol W$ 即可快速减小 $L(\boldsymbol W)$ </p>
+<script type="math/tex; mode=display">
+\boldsymbol W_{new} = \boldsymbol W -\lambda\nabla_{\boldsymbol W}L</script><p>超参数$\lambda $ 为 step size 或 learning rate， 代表梯度下降的快慢，如果太小会导致梯度下降过慢，算法效率低下；太大会导致找不到梯度最优点。在<a href="https://jasonxqh.github.io/2021/12/02/计算机视觉-神经网络的训练/">计算机视觉-神经网络的训练</a>中，我们还会仔细探讨这个问题。</p>
+</li>
+</ul>
+<h3 id="数值梯度"><a href="#数值梯度" class="headerlink" title="数值梯度"></a>数值梯度</h3><p>数值梯度就是根据导数的定义去求得梯度。比如说关于权重向量$\boldsymbol W$，手动计算梯度：</p>
+<p><img src="/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/11.png"></p>
+<p>但这样计算开销太大，需要遍历所有参数，并计算损失函数和梯度。显然，当参数过多时采用这种方法是不可行的</p>
+<h3 id="解析梯度"><a href="#解析梯度" class="headerlink" title="解析梯度"></a>解析梯度</h3><p>我们可以对损失函数求偏导，编写梯度公式，以此来直接计算梯度.即：</p>
+<script type="math/tex; mode=display">
+\nabla_{\boldsymbol W}L = [\frac{\partial L(\boldsymbol W)}{\partial w_1},\frac{L(\boldsymbol W)}{\partial w_2},\cdots,\frac{L(\boldsymbol W)}{\partial w_n}]</script><h4 id="Hinge-Loss"><a href="#Hinge-Loss" class="headerlink" title="Hinge Loss"></a>Hinge Loss</h4><p><a href="http://ningyuwhut.github.io/cn/2018/01/gradient-of-svm-loss/" target="_blank" rel="noopener">http://ningyuwhut.github.io/cn/2018/01/gradient-of-svm-loss/</a></p>
+<p>实现非向量化的svm还是比较简单的，其实只要两层训练即可，</p>
+<p>第一层循环遍历每个样本,第二层循环遍历每个类;</p>
+<p>在第二层循环中需要完成两件事: 1.计算当前类的loss， 2.同时计算对<strong>当前类</strong>和<strong>样本正确类</strong>的梯度。</p>
+<p>当$i\neq y_j$ 的时候，我们需要对当前类的梯度进行修改</p>
+<script type="math/tex; mode=display">
+\frac{d L_i}{d w_j} = \mathbb 1(w_j^Tx_i-w^T_{y_i}x_i+\Delta>0)\begin{bmatrix}x_{i1}\\x_{i2}\\\vdots\\ x_{iD} \end{bmatrix} \\
+=\mathbb 1(w_j^Tx_i-w^T_{y_i}x_i+\Delta>0) x_i^T</script><p>类似的，对于正确类的样本，我们这么更新：</p>
+<script type="math/tex; mode=display">
+\frac{d L_i}{d w_{y_j}} = -\sum_{j\neq y_i}\mathbb 1(w_j^Tx_i-w^T_{y_i}x_i+\Delta>0)\begin{bmatrix}x_{i1}\\x_{i2}\\\vdots\\ x_{iD} \end{bmatrix} \\
+=-\sum_{j\neq y_i}\mathbb 1(w_j^Tx_i-w^T_{y_i}x_i+\Delta>0) x_i^T</script><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">svm_loss_naive</span><span class="params">(W, X, y, reg)</span>:</span></span><br><span class="line">		dW = np.zeros(W.shape)  <span class="comment"># initialize the gradient as zero</span></span><br><span class="line">                            <span class="comment"># compute the loss and the gradient</span></span><br><span class="line">    num_classes = W.shape[<span class="number">1</span>]</span><br><span class="line">    num_train = X.shape[<span class="number">0</span>]</span><br><span class="line">    loss = <span class="number">0.0</span></span><br><span class="line">    final_result = []</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(num_train):<span class="comment"># 循环每个样本</span></span><br><span class="line">        scores = X[i].dot(W)</span><br><span class="line">        correct_class_score = scores[y[i]]</span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> range(num_classes): <span class="comment"># 循环每个类别</span></span><br><span class="line">            <span class="keyword">if</span> j == y[i]: <span class="comment"># 如果该样本属于当前类，continue</span></span><br><span class="line">                <span class="keyword">continue</span></span><br><span class="line">            margin = scores[j] - correct_class_score + <span class="number">1</span>  <span class="comment"># 计算svm loss</span></span><br><span class="line">            <span class="keyword">if</span> margin &gt; <span class="number">0</span>:</span><br><span class="line">                loss += margin <span class="comment"># loss是累加</span></span><br><span class="line">                dW[:, j] += X[i].T  <span class="comment"># 更新当前类的梯度</span></span><br><span class="line">                dW[:, y[i]] += -X[i].T  <span class="comment"># 更新正确类的梯度</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># Right now the loss is a sum over all training examples, but we want it</span></span><br><span class="line">    <span class="comment"># to be an average instead so we divide by num_train.</span></span><br><span class="line">    loss /= num_train <span class="comment">#需要除以样本数量</span></span><br><span class="line">    dW /= num_train</span><br><span class="line">    <span class="comment"># Add regularization to the loss.</span></span><br><span class="line">    loss += reg * np.sum(W * W) <span class="comment"># 需要加上正则项</span></span><br><span class="line">    dW += reg * W</span><br><span class="line">    <span class="keyword">return</span> loss, dW</span><br></pre></td></tr></table></figure>
+<h4 id="Cross-entropy-Loss"><a href="#Cross-entropy-Loss" class="headerlink" title="Cross entropy Loss"></a>Cross entropy Loss</h4><p><a href="https://www.cnblogs.com/makefile/p/softmax.html" target="_blank" rel="noopener">https://www.cnblogs.com/makefile/p/softmax.html</a></p>
+<p>和SVM loss一样，我们同时要有两个循环，第一层循环遍历每个样本,第二层循环遍历每个类;我们要分两种情况进行讨论，当当前样本属于当前类的时候，当当前样本不属于当前类的时候。</p>
+<p>首先，我们知道每个样本的softmax loss是这么计算的：</p>
+<script type="math/tex; mode=display">
+L_i = -\log(\frac{e^{f_{y_i}}}{\sum_j e^{f_j}})</script><p>其中，f 即计算来的分数：</p>
+<script type="math/tex; mode=display">
+f_{y_i} = w_{y_i}^T x\\
+f_j = w_j^Tx</script><p>所以，如果我们要计算损失函数关于参数矩阵$w$ 的导数，需要用到高链式法则：</p>
+<script type="math/tex; mode=display">
+\frac{dL}{dw} = \frac{dL}{df}\cdot\frac{df}{dw}</script><p>其中，$\frac{df}{dw} = x$, 我们主要来看 $\frac{dL}{df}$</p>
+<h5 id="当-j-neq-y-i-时"><a href="#当-j-neq-y-i-时" class="headerlink" title="当 $j\neq y_i$ 时"></a>当 $j\neq y_i$ 时</h5><p>我们就不需要计算正确分类时的损失，只需要针对<strong>分母中的错误项</strong>求偏导,因为分母中也包含正确项系数，因此在求导的时候需将其提出，以此计算错误分类时的损失</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\frac{dL_i}{df} &= \Bigg(-\log(\frac{e^{f_{y_i}}}{\sum_je^{f_j}}) \Bigg)' = -\frac{\sum_je^{f_j}}{e^{f_{y_j}}} \cdot e^{f_{y_j}}(\frac{1}{\sum_j e^{f_j}})'\\
+&=-\frac{\sum_je^{f_j}}{e^{f_{y_j}}} \cdot e^{f_{y_j}}\cdot(-e^{f_{y_j}})\cdot\frac{1}{(\sum_j e^{f_j})^2}\\
+&=\frac{e^{f_{y_i}}}{\sum_je^{f_j}}\\
+\end{align}</script><h5 id="当-j-y-i-时"><a href="#当-j-y-i-时" class="headerlink" title="当 $j == y_i$时"></a>当 $j == y_i$时</h5><p>此时，我们需要对分子求偏导，来计算正确类的损失</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\frac{dL_i}{df} &= \Bigg(-\log(\frac{e^{f_{y_i}}}{\sum_je^{f_j}}) \Bigg)' = -\frac{\sum_je^{f_j}}{e^{f_{y_j}}} \cdot (e^{f_{y_j}}\frac{1}{\sum_j e^{f_j}})'\\
+&=-\frac{\sum_je^{f_j}}{e^{f_{y_j}}} \cdot [{e^{f_{y_i}}(\sum_j e^{f_j})^{-1}+e^{f_{y_i}}\cdot\frac{(-1\cdot e^{f_{y_i}})}{(\sum_je^{f_j})^2}}]\\
+&=\frac{e^{f_{y_j}}}{\sum_j e^{f_j}}-1 \\
+
+\end{align}</script><p>现在，我们已经计算了两种情况下的梯度，我们可以用示性函数将其统一起来：</p>
+<script type="math/tex; mode=display">
+\frac{dL_i}{df} = \frac{e^{f_{y_j}}}{\sum_j e^{f_j}}- \mathbb 1(j==y_i)</script><p>因此，</p>
+<script type="math/tex; mode=display">
+\frac{dL}{dW_i} = (\frac{e^{f_{y_j}}}{\sum_j e^{f_j}}- \mathbb 1(j==y_i))x</script><p>Softmax_loss_naive方法代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 第一层循环，遍历样本</span></span><br><span class="line"><span class="keyword">for</span> ii <span class="keyword">in</span> range(num_train):</span><br><span class="line">  current_scores = scores[ii, :]</span><br><span class="line"> </span><br><span class="line">  <span class="comment"># Fix for numerical stability by subtracting max from score vector.</span></span><br><span class="line">  <span class="comment"># important! make them range between infinity to zero</span></span><br><span class="line">  shift_scores = current_scores - np.max(current_scores)</span><br><span class="line"> </span><br><span class="line">  <span class="comment"># Calculate loss for this example.</span></span><br><span class="line">  loss_ii = -shift_scores[y[ii]] + np.log(np.sum(np.exp(shift_scores)))</span><br><span class="line">  loss += loss_ii</span><br><span class="line"><span class="comment"># 第二层循环，遍历类 		</span></span><br><span class="line">  <span class="keyword">for</span> jj <span class="keyword">in</span> range(num_classes):</span><br><span class="line">    softmax_score = np.exp(shift_scores[jj]) / np.sum(np.exp(shift_scores))</span><br><span class="line">		<span class="comment"># 分两类进行权重矩阵的更新</span></span><br><span class="line">    <span class="keyword">if</span> jj == y[ii]:</span><br><span class="line">      dW[:, jj] += (<span class="number">-1</span> + softmax_score) * X[ii]</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">      dW[:, jj] += softmax_score * X[ii]</span><br><span class="line">      </span><br><span class="line">   <span class="comment"># Average over the batch and add our regularization term.</span></span><br><span class="line">loss /= num_train</span><br><span class="line">loss += reg * np.sum(W*W)</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Average over the batch and add derivative of regularization term.</span></span><br><span class="line">dW /= num_train</span><br><span class="line">dW += <span class="number">2</span>*reg*W</span><br></pre></td></tr></table></figure>
+<h3 id="梯度下降"><a href="#梯度下降" class="headerlink" title="梯度下降"></a>梯度下降</h3><p>其实梯度下降也有很多种方法，除了正常的梯度下降(GD) 之外，还有批量梯度下降法(Batch Gradiant Descent, BGD) 和 随机梯度下降(Stochastic Gradiant Descent, SGD)</p>
+<p>这里主要拿 GD和SGD做一个比较</p>
+<h4 id="GD"><a href="#GD" class="headerlink" title="GD"></a>GD</h4><ul>
+<li>优势： 每次迭代 loss 下降很快</li>
+<li>劣势: 一次迭代需要遍历所有数据，并容易陷入局部最小值，导致梯度无法更新</li>
+</ul>
+<h4 id="SGD"><a href="#SGD" class="headerlink" title="SGD"></a>SGD</h4><p>随机梯度下降是说，每次选取一个sample集(minibatch，一般大小为32/64/128/256). 然后，利用sample集上的损失来计算近似梯度，进行梯度下降。</p>
+<ul>
+<li>优势: 迭代更新速度快，并且往往因为 mini-batch含有噪声而避开 local minima</li>
+<li>劣势: 每次迭代的 loss 下降很漫</li>
+</ul>
+<p>由于数据量较大，训练深度神经网络(DNN) 的时候基本使用SGD，以及其他性能更佳的优化方法。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cv/" rel="tag"># cv</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/" rel="prev" title="注意力机制">
+      <i class="fa fa-chevron-left"></i> 注意力机制
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/12/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E5%9B%BE%E5%83%8F%E5%88%86%E7%B1%BB/" rel="next" title="计算机视觉-图像分类">
+      计算机视觉-图像分类 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#损失函数和优化"><span class="nav-number">1.</span> <span class="nav-text">损失函数和优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#损失函数"><span class="nav-number">1.1.</span> <span class="nav-text">损失函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SVM-Loss"><span class="nav-number">1.1.1.</span> <span class="nav-text">SVM Loss</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#实例计算"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">实例计算</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#QA"><span class="nav-number">1.1.1.1.1.</span> <span class="nav-text">QA</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Softmax-Loss"><span class="nav-number">1.1.2.</span> <span class="nav-text">Softmax Loss</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#原理"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">原理</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#交叉熵"><span class="nav-number">1.1.2.1.1.</span> <span class="nav-text">交叉熵</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#定义"><span class="nav-number">1.1.2.1.2.</span> <span class="nav-text">定义</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#实例计算-1"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">实例计算</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#QA-1"><span class="nav-number">1.1.2.2.1.</span> <span class="nav-text">QA</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#两类分类器的对比"><span class="nav-number">1.1.2.3.</span> <span class="nav-text">两类分类器的对比</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#正则化"><span class="nav-number">1.1.3.</span> <span class="nav-text">正则化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#L1正则化"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">L1正则化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#L2正则化"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">L2正则化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#L1-vs-L2"><span class="nav-number">1.1.3.3.</span> <span class="nav-text">L1 vs L2</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#损失函数计算流程"><span class="nav-number">1.1.4.</span> <span class="nav-text">损失函数计算流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#图像特征抽取"><span class="nav-number">1.2.</span> <span class="nav-text">图像特征抽取</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hue-Histogram"><span class="nav-number">1.2.1.</span> <span class="nav-text">Hue Histogram</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HoG"><span class="nav-number">1.2.2.</span> <span class="nav-text">HoG</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优化"><span class="nav-number">1.3.</span> <span class="nav-text">优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数值梯度"><span class="nav-number">1.3.1.</span> <span class="nav-text">数值梯度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解析梯度"><span class="nav-number">1.3.2.</span> <span class="nav-text">解析梯度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Hinge-Loss"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Hinge Loss</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Cross-entropy-Loss"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">Cross entropy Loss</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#当-j-neq-y-i-时"><span class="nav-number">1.3.2.2.1.</span> <span class="nav-text">当 $j\neq y_i$ 时</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#当-j-y-i-时"><span class="nav-number">1.3.2.2.2.</span> <span class="nav-text">当 $j &#x3D;&#x3D; y_i$时</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#梯度下降"><span class="nav-number">1.3.3.</span> <span class="nav-text">梯度下降</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#GD"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">GD</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SGD"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">SGD</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

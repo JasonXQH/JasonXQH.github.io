@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="流算法补充Queries over a sliding window在第五章流算法中，我们讲了一些数据挖掘算法：Basic Count Sketch，Count Sketch 和 Count-min Sketch。当时我们提了一嘴滑动窗口模型，但没有细讲。现在我们来对这个数据流模型做一个补充 比如说举一个Amazon的例子，数据流是亚马逊上的订单，数据流的值是0-1，其中，0代表数据流不包含某个商">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据科学与算法-流算法补充">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="流算法补充Queries over a sliding window在第五章流算法中，我们讲了一些数据挖掘算法：Basic Count Sketch，Count Sketch 和 Count-min Sketch。当时我们提了一嘴滑动窗口模型，但没有细讲。现在我们来对这个数据流模型做一个补充 比如说举一个Amazon的例子，数据流是亚马逊上的订单，数据流的值是0-1，其中，0代表数据流不包含某个商">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/8.png">
+<meta property="article:published_time" content="2022-01-01T02:59:07.000Z">
+<meta property="article:modified_time" content="2022-01-07T03:51:38.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据科学算法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>数据科学与算法-流算法补充 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据科学与算法-流算法补充
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-01-01 10:59:07" itemprop="dateCreated datePublished" datetime="2022-01-01T10:59:07+08:00">2022-01-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-07 11:51:38" itemprop="dateModified" datetime="2022-01-07T11:51:38+08:00">2022-01-07</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="流算法补充"><a href="#流算法补充" class="headerlink" title="流算法补充"></a>流算法补充</h1><h2 id="Queries-over-a-sliding-window"><a href="#Queries-over-a-sliding-window" class="headerlink" title="Queries over a sliding window"></a>Queries over a sliding window</h2><p>在第五章流算法中，我们讲了一些数据挖掘算法：Basic Count Sketch，Count Sketch 和 Count-min Sketch。当时我们提了一嘴滑动窗口模型，但没有细讲。现在我们来对这个数据流模型做一个补充</p>
+<p>比如说举一个Amazon的例子，数据流是亚马逊上的订单，数据流的值是0-1，其中，0代表数据流不包含某个商品，1代表数据流包含某个商品，我们希望统计在过去的n笔订单中，有多少订单包含商品 X(统计1的个数)</p>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/1.png" style="zoom:67%;"></p>
+<h3 id="朴素方法"><a href="#朴素方法" class="headerlink" title="朴素方法"></a>朴素方法</h3><p>要计算数据流中过去 k 个bits 有多少个1(k&lt;窗口大小N)，一个朴素的想法是：<strong>维持一个计数器</strong></p>
+<p>每当有一个新的bit进来，就需要抛弃一个bit</p>
+<ul>
+<li>如果进来或抛弃的bit 是 0，那么什么都不用做</li>
+<li>如果进来的bit 是1，那么计数器+1</li>
+<li>如果进来的bit 是0，那么计数器-1</li>
+</ul>
+<p>这个算法的空间复杂度是$O(n)$,因为我们要时刻保持窗口中的数据；时间复杂度为$(O1)$ </p>
+<p>那么，如果N 等于 1 billion 会怎么样？我们肯定不能将其全部保存下来，因此我们可以采用一个近似算法。</p>
+<h4 id="尝试1"><a href="#尝试1" class="headerlink" title="尝试1"></a>尝试1</h4><p>我们尝试维护两个计数器：</p>
+<p>S: 维护数据流中的1的个数</p>
+<p>Z: 维护数据流中的0的个数</p>
+<p>因此我们可以用这两个计数器的值，结合窗口大小去估算窗口内1的数值:$ = N\cdot \frac{S}{S+Z} $</p>
+<p>但是这样又不对，因为采用这种方法，随便你窗口化到哪，对1的个数的估算都是不会变的。也就是说，加入之前数据流 1和0的比值为0.8：0.2，那么相当于假设之后来的数字也是0.8:0.2，但现实生活中事件发生的概率是不停变化的，因此是不可行的。</p>
+<h3 id="DGIM-算法"><a href="#DGIM-算法" class="headerlink" title="DGIM 算法"></a>DGIM 算法</h3><p>因此我们提出了一种更高效的解决方法：DGIM算法</p>
+<p>在DGIM算法中，我们对于一个长度为N的数据流，我们存储 $O(\log^2 N)$ 个 bits, $O(\log_2(N))$个桶 ，相当于一个亚线性的算法，而且我们要得目标的估计偏差不能超过 50%，也就是说，假设1的出现次数是100，那么我们的估计必须落在 50~150之间</p>
+<p>首先假设对于二进制流，其中每个位可以用一个时间戳（timestamp）标志该位进入流的时间（对于大小为N的滑动窗口，该时间戳可以用O(logN)位表示）。</p>
+<p>DGIM算法利用桶（bucket）对滑动窗口进行划分，每个桶保存以下信息：</p>
+<ul>
+<li>桶的最右边位即<strong>最后进入流的位的时间戳</strong>；</li>
+<li><p>桶的大小，即桶中1的个数，该数目位2的幂。 </p>
+<p>对于以上信息，保存时间戳需要logN的空间，保存桶的大小需要 logN 的空间。</p>
+</li>
+</ul>
+<p>使用桶对滑动窗口进行划分时遵循以下5条规则：</p>
+<ul>
+<li>桶最右边的位必须是1；</li>
+<li>1个位最多属于1个桶；</li>
+<li>每种大小的桶有1个或者两个（从1到最大的桶的大小）；</li>
+<li>每个桶的大小是2的幂；</li>
+<li>桶的大小从右到左非降序排列；</li>
+</ul>
+<p>DGIM算法中数据结构的更新：</p>
+<ul>
+<li>每一个新的位进入滑动窗口后，最左边一个位从窗口中移出（同时从桶中移出）；如果最左边的桶的时间戳是当前时间戳减去N（也就是说桶里已经没有处于窗口中的位），则放弃这个桶；</li>
+<li>对于新加入的位，如果其为0，则无操作；否则建立一个包含新加入位的大小为1的桶；</li>
+<li>由于新增一个大小为1的桶而出现3个桶大小为1，则合并最左边的两个桶为一个大小为2的桶；合并之后可能出现3个大小为2的桶，则合并最左边两个大小为2的桶得到一个大小为4的桶……依次类推直到到达最左边的桶。</li>
+</ul>
+<p>我们用一个直观的例子来展现：</p>
+<ul>
+<li>这是我们的初始数据流：</li>
+</ul>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/2.png"></p>
+<p>我们看到现在一共有长度为1的桶2个；长度为2的桶1个；长度为4的桶2个；长度为8的桶2个; 长度为16的桶1个，但是一部分在滑动窗口外，因此显示不出</p>
+<ul>
+<li>当到达了一个新的 1 ，如下图</li>
+</ul>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/3.png"></p>
+<p>我们发现现在长度为1的桶有3个，超出了2个，因此要向上合并</p>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/4.png"></p>
+<ul>
+<li>当到达了三个数据 101</li>
+</ul>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/5.png"></p>
+<p>这时候，我们发现，合并了两个长度为1的桶，有3个长度为2的桶；合并了两个长度为2的桶，就有3个长度为4的桶；合并了两个长度为4的桶，有三个长度为8的桶。</p>
+<p>最终，我们得到下图：</p>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/7.png"></p>
+<h4 id="估计"><a href="#估计" class="headerlink" title="估计"></a>估计</h4><p>最后，我们该怎么利用计数桶去怎么去估计1的个数？</p>
+<ol>
+<li>我们可以叠加滑动窗口中的桶的大小，除了最后一个桶，因为最后一个桶有一部分已经滑出窗口外了</li>
+<li>因此，我们可以近似地认为最后这个桶(也是最大的桶)的大小变为原来的$\frac{1}{2}$ ,并加到结果中去</li>
+</ol>
+<p>用上面那个例子来估计，滑动窗口中，对1的个数的估计为：1+2+4+8+16+16/2 = 39个</p>
+<p>因为一共有 $O(logn)$ 个桶，因此算法的时间复杂度也是 $O(\log n)$</p>
+<h4 id="精度证明"><a href="#精度证明" class="headerlink" title="精度证明"></a>精度证明</h4><p>那么为什么DIGM算法，它的估算误差一定是小于50%的呢？</p>
+<p>我们假设最后的桶的大小是 $2^r$ ，那么我们在加完前面的桶之后，最后要加上的size = $2^{r-1}$</p>
+<p>如果这个桶没滑出去，刚好在窗口末尾停下了，那么我们就相当于少了了 $2^{r-1}$  </p>
+<p>如果这个桶基本全滑出去了，在窗口内可能只留了1个数字，那么我们就相当于多了$2^{r-1}$  </p>
+<p>但是，我们把之前的窗口全加起来： $1+2+4\cdots+2^{r-1} = 2^{r}-1$ ，他肯定是大于 等于$2^{r-1}$ 的，因此这个误差$2^{r-1}$ 肯定是小于50%的。</p>
+<h4 id="Extension"><a href="#Extension" class="headerlink" title="Extension"></a>Extension</h4><p>现在，给出一个可以进一步削弱误差的方法。</p>
+<p>除了第一个和最后一个桶之外，其余的桶，可以将数量维持在：r-1 个或者 r 个, (r &gt; 2)</p>
+<p>这时候，这个算法的空间复杂度会变成 $O(r\log n)$ 但是误差率会从 50% 变成 $O(\frac{1}{r})$</p>
+<p>此外，除了用来技术0.1，还可以用来维持一个平均值：</p>
+<p><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/8.png"></p>
+<p>但是，这个算法只能进行一些简单的功能计算，要求桶内的值必须有可加性，因此推广性比较差</p>
+<h2 id="Counting-Distinct-Elements"><a href="#Counting-Distinct-Elements" class="headerlink" title="Counting Distinct Elements"></a>Counting Distinct Elements</h2><p>给定一个数据流，我们来统计这个数据流中一共出现过多少不同的元素。</p>
+<p>比如说，现在有一个集合，然后过来一个数据流，我们要统计多少这个集合的元素在这个数据流中出现了，多少没有出现。</p>
+<p>还有其他应用场景：</p>
+<ul>
+<li>一个网页中出现了多少个不一样的词，词典是固定的，但词的分布是不一样的</li>
+<li>一周之内，用户总共访问了多少个不同的网站</li>
+</ul>
+<p>一个很简单的方法就是：维护一个哈希表，然后过来一个数据我们映射一个数据，最后看哈希表中有哪些数据。但问题也是类似的，哈希表的大小事$O(n)$ 级别的，当数据流非常大的时候，这个哈希表是很难维护的。</p>
+<p>因此，我们要考虑一种新的数据流算法</p>
+<h3 id="Flajolet-Martin-Approach"><a href="#Flajolet-Martin-Approach" class="headerlink" title="Flajolet-Martin Approach"></a>Flajolet-Martin Approach</h3><p>FM 算法设计了一种空间复杂度为$O(\log_2(N))$  的算法</p>
+<p>在这个算法中，对于长度为N的数据流，我们将其映射到 长度为$\log_2(N)$ 的哈希表中。</p>
+<p>举例来说，给定序列{e1, e2, e3, e2}，独立元素数目N = 3。这里哈希数组的长度为$\log_2(4) = 2$ </p>
+<p>假设给定哈希函数H(e)，有：</p>
+<p>H(e1) = 00，TailZero(H(e1)) = 0</p>
+<p>H(e2) = 01，TailZero(H(e2)) = 0</p>
+<p>H(e3) = 10 ，TailZero(H(e3)) =1</p>
+<p>第1步，将Max初始化为0；</p>
+<p>第2步，对于序列中第1项e1，计算TailZero(H(e1)) = 0 </p>
+<p>第3步，对于序列中第2项e2，计算TailZero(H(e2)) = 0  </p>
+<p>第4步，对于序列中第3项e3，计算TailZero(H(e3)) = 1&gt; Max, 更新Max；</p>
+<p>第5步，对于序列中第4项e2，计算TailZero(H(e2)) =0</p>
+<p>第6步，估计独立元素数目为 $\hat N = 2^{\max} = 2^1 = 2$。</p>
+<p>在这个简单例子中，实际值 $N = 3$，估计值$ \hat N =2$ </p>
+<p>在实际应用中，为了减小误差，提高精度，我们通常采用一系列的哈希函数$H_1(e), H_2(e), H_3(e)$，计算一系列的Max值$\max_1,\max_2,\max_3$，从而估算一系列的估计值$2^{\max_1}, 2^{\max_2}, 2^{\max_3}$，最后进行综合得到最终的估计值。具体做法是：首先设计A*B个互不相同的哈希函数，分成A组，每组B个哈希函数；然后利用每组中的B个哈希函数计算出B个估计值;接着求出B个估计值的算术平均数为该组的估计值；最后选取各组的估计值的中位数作为最终的估计值。</p>
+<p>举例来说，对于序列S，使用3*4 = 12个互不相同的哈希函数H(e)，分成3组，每组4个哈希函数，使用12个H(e)估算出12个估计值： </p>
+<h2 id="Computing-Moments"><a href="#Computing-Moments" class="headerlink" title="Computing Moments"></a>Computing Moments</h2><p>首先给出Moments 的概念</p>
+<p>假设数据流是由一些数字构成的，$m_i$ 代表元素i 在流中出现的次数，那么</p>
+<p>$k^{th}$ Moment 就是：</p>
+<script type="math/tex; mode=display">
+\sum_{i\in A} (m_i)^k</script><p>刚才我们做的 FM 算法，就是$k^0$ moment</p>
+<p>$k^0$ moment:  不同元素的数量</p>
+<p>$k^1$ moment: 元素数量的计算，也就是数据流的长度N</p>
+<p>$k^2$ moment = suprise number S : 衡量分布的不均匀程度</p>
+<p>这里重点考虑 $k^2$ moment</p>
+<p>比如说数据流A、B的长度为100，一共出现了11个不同的元素</p>
+<p>数据流A各个元素的计数：10,9,9,9 ,9,9,9, 9,9,9,9 那么  $k^2 $ moment = 910</p>
+<p>数据流B各个元素的计数：90,1,1,1,1,1,1,1,1,1,1 那么  $k^2 $ moment = 8110</p>
+<h3 id="AMS-Method"><a href="#AMS-Method" class="headerlink" title="AMS Method"></a>AMS Method</h3><p>AMS 方法可以对所有moment的值进行一个无偏估计，这里就只针对 $k^2$ moment</p>
+<p>我们对于一个变量 $X$</p>
+<ul>
+<li>用 $X.{el}$ </li>
+<li>用 $X.val$ </li>
+</ul>
+<h2 id="Counting-Itemsets"><a href="#Counting-Itemsets" class="headerlink" title="Counting Itemsets"></a>Counting Itemsets</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95/" rel="tag"># 数据科学算法</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/01/01/OLAP/" rel="prev" title="OLAP">
+      <i class="fa fa-chevron-left"></i> OLAP
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="next" title="机器学习-感知机">
+      机器学习-感知机 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#流算法补充"><span class="nav-number">1.</span> <span class="nav-text">流算法补充</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Queries-over-a-sliding-window"><span class="nav-number">1.1.</span> <span class="nav-text">Queries over a sliding window</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#朴素方法"><span class="nav-number">1.1.1.</span> <span class="nav-text">朴素方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#尝试1"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">尝试1</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DGIM-算法"><span class="nav-number">1.1.2.</span> <span class="nav-text">DGIM 算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#估计"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">估计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#精度证明"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">精度证明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Extension"><span class="nav-number">1.1.2.3.</span> <span class="nav-text">Extension</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Counting-Distinct-Elements"><span class="nav-number">1.2.</span> <span class="nav-text">Counting Distinct Elements</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flajolet-Martin-Approach"><span class="nav-number">1.2.1.</span> <span class="nav-text">Flajolet-Martin Approach</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Computing-Moments"><span class="nav-number">1.3.</span> <span class="nav-text">Computing Moments</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AMS-Method"><span class="nav-number">1.3.1.</span> <span class="nav-text">AMS Method</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Counting-Itemsets"><span class="nav-number">1.4.</span> <span class="nav-text">Counting Itemsets</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

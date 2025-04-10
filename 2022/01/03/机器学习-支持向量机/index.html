@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="机器学习-支持向量机学习支持向量机的时候，我们要一步一步来，从线性可分到线性不可分，一共有三种支持向量机。  线性可分支持向量机和线性支持向量机：输入空间和特征空间的元素一一对应，并将输入空间中的输入映射为特征空间中特特征向量 非线性支持向量机：利用一个从输入控件到特征空间的非线性映射将输入映射为特征向量  支持向量机的学习是在特征空间进行的 概要线性可分支持向量机支持向量机最简单的情况是线性可分">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机器学习-支持向量机">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="机器学习-支持向量机学习支持向量机的时候，我们要一步一步来，从线性可分到线性不可分，一共有三种支持向量机。  线性可分支持向量机和线性支持向量机：输入空间和特征空间的元素一一对应，并将输入空间中的输入映射为特征空间中特特征向量 非线性支持向量机：利用一个从输入控件到特征空间的非线性映射将输入映射为特征向量  支持向量机的学习是在特征空间进行的 概要线性可分支持向量机支持向量机最简单的情况是线性可分">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/5.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/6.jpeg">
+<meta property="article:published_time" content="2022-01-03T07:06:24.000Z">
+<meta property="article:modified_time" content="2022-01-04T11:49:50.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>机器学习-支持向量机 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          机器学习-支持向量机
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-01-03 15:06:24" itemprop="dateCreated datePublished" datetime="2022-01-03T15:06:24+08:00">2022-01-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-04 19:49:50" itemprop="dateModified" datetime="2022-01-04T19:49:50+08:00">2022-01-04</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="机器学习-支持向量机"><a href="#机器学习-支持向量机" class="headerlink" title="机器学习-支持向量机"></a>机器学习-支持向量机</h1><p>学习支持向量机的时候，我们要一步一步来，从线性可分到线性不可分，一共有三种支持向量机。</p>
+<ul>
+<li><strong>线性可分支持向量机</strong>和<strong>线性支持向量机</strong>：输入空间和特征空间的元素一一对应，并将输入空间中的输入映射为特征空间中特特征向量</li>
+<li>非线性支持向量机：利用一个从输入控件到特征空间的非线性映射将输入映射为特征向量</li>
+</ul>
+<p>支持向量机的学习是在<strong>特征空间</strong>进行的</p>
+<h2 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h2><h3 id="线性可分支持向量机"><a href="#线性可分支持向量机" class="headerlink" title="线性可分支持向量机"></a>线性可分支持向量机</h3><p>支持向量机最简单的情况是<strong>线性可分支持向量机</strong>，或<strong>硬间隔支持向量机</strong> , 构建它的条件是训练数据线性可分。其学习策略是<strong>最大间隔法</strong>， 可以表示为凸二次规划问题，其原始最优化问题为</p>
+<script type="math/tex; mode=display">
+\min_{w,b}& \frac{1}{2}||w||^2\\
+s.t. & y_i(w\cdot x_i+b)-1 \geq 0,i=1,2\cdots,N</script><p>求得最优化问题的解为 $w^<em>,b^</em>$ ，得到线性可分支持向量机，分离超平面是：</p>
+<script type="math/tex; mode=display">
+w^*\cdot x+b^* = 0</script><p>分类决策函数是</p>
+<script type="math/tex; mode=display">
+f(x) = sign(w^*\cdot x+b^*)</script><h3 id="线性支持向量机-软间隔支持向量机"><a href="#线性支持向量机-软间隔支持向量机" class="headerlink" title="线性支持向量机(软间隔支持向量机 )"></a>线性支持向量机(软间隔支持向量机 )</h3><h2 id="线性可分支持向量机-1"><a href="#线性可分支持向量机-1" class="headerlink" title="线性可分支持向量机"></a>线性可分支持向量机</h2><p>现在摆在我们面前的仍然是一个二分类问题。</p>
+<ul>
+<li>训练数据集：</li>
+</ul>
+<p>假设特征空间上的数据集</p>
+<script type="math/tex; mode=display">
+T = \{(x_1,y_1),\cdots,(x_N,y_N) \}</script><p>输入为特征向量 $x\in\mathcal X\subseteq \boldsymbol R^n$ ，$y_i\in\mathcal Y = {+1,-1},i=1,2\cdots,N$， $x_i$ 为第i个特征向量，也称为实例。$y_i$ 为 $x_i$ 的类标记，当$y_i=+1$ 时，称x为正例；当 $ y =-1 $时，称$x_i$为负例$(x_i,y_i)$称为样本点。 再假设训练数据集是线性可分的</p>
+<ul>
+<li><p>学习目标: 找到分离超平面 $w\cdot x+b=0$  。分离超平面将特征空间划分为两部分， 一部分是正类，一部分是负类。法向量指向的一侧为正类，另一侧为负类</p>
+</li>
+<li><p>学习策略：间隔最大化。</p>
+</li>
+</ul>
+<p>如下图，感知机可能会得到多个不同(w,b)的超平面，但是svm最终只会选择间隔最大的超平面</p>
+<p><img src="/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/1.png" style="zoom:67%;"></p>
+<blockquote>
+<p>注意：</p>
+<p>感知机利用误分类最小的策略，求得分离超平面。但是这个解是由无穷多个的，只要分对了就好</p>
+<p>但是线性可分支持向量机利用<strong>间隔最大化</strong>来求最优分离超平面，这时候解就变成唯一的了</p>
+</blockquote>
+<ul>
+<li>决策函数：<script type="math/tex; mode=display">
+f(x) = sign(w^*\cdot x+b^*)</script></li>
+</ul>
+<h3 id="间隔"><a href="#间隔" class="headerlink" title="间隔"></a>间隔</h3><p>既然支持向量机要求间隔最大化，那么，间隔如何定义呢？</p>
+<h4 id="函数间隔"><a href="#函数间隔" class="headerlink" title="函数间隔"></a>函数间隔</h4><p>首先，我们要定义函数间隔.</p>
+<p>对于给定的训练数据集T和超平面$(w,b)$，定义超平面关于<strong>样本点</strong> $(x_i,y_i)$ 的函数间隔为：</p>
+<script type="math/tex; mode=display">
+\hat{\mathcal Y_{i} }= y_i(w\cdot x_i+b)</script><p>然后，我们定义超平面(w,b)关于<strong>训练数据集</strong>T的函数间隔为 : 超平面$(w,b)$ 关于T中所有样本点$(x_i,y_i)$  的函数间隔中的最小值。也就是</p>
+<script type="math/tex; mode=display">
+\hat { \mathcal {Y }} = \min_{i=1\cdots N} \hat{\mathcal Y_i}</script><p>这相当于”感性“认识间隔，因为当成比例得改变w和b的话，超平面并没有改变，但是函数间隔却变成了原来的两倍。因此我们还需要给出几何间隔的定义</p>
+<h4 id="集合间隔"><a href="#集合间隔" class="headerlink" title="集合间隔"></a>集合间隔</h4><p>对于给定的训练数据集 T 和超平面$(w,b)$ ,定义超平面 $(w,b)$ 关于样本点$(x_i,y_i)$的几何间隔为：</p>
+<script type="math/tex; mode=display">
+\hat{\mathcal Y_{i} }= y_i(\frac{w}{||w||}\cdot x_i+\frac{b}{||w||})</script><p>然后，我们定义超平面(w,b)关于<strong>训练数据集</strong>T的几何间隔为 : 超平面$(w,b)$ 关于T中所有样本点$(x_i,y_i)$  的几何间隔中的最小值。也就是</p>
+<script type="math/tex; mode=display">
+\hat { \mathcal {Y }} = \min_{i=1\cdots N} \hat{\mathcal Y_i}</script><p>函数间隔和几何间隔有如下关系：</p>
+<script type="math/tex; mode=display">
+{\mathcal Y_i}=\frac{\hat{\mathcal Y_i}}{||w||}\\
+\mathcal Y = \frac{\hat{\mathcal Y}}{||w||}\\</script><p>如果 $||w||=1$ ,那么函数间隔和几何间隔相等。</p>
+<h3 id="间隔最大化"><a href="#间隔最大化" class="headerlink" title="间隔最大化"></a>间隔最大化</h3><p>学完了间隔，我们就要学习，怎么让间隔最大化(在线性可分中又叫硬间隔最大化) </p>
+<p>一个感性又直观的解释是：对训练数据集找到几何间隔最大的超平面，意味着以<strong>充分大的确信度</strong>对训练数据进行分类。也就是说，我们不仅要将正负实例点分开，而且对最难分的实例点(距离超平面最近的点)也有足够大的确信度将它们分开。这样的超平面应该对未知的新实例有很好的分类预测能力。</p>
+<p>因此我们可以这样来写一个<strong>约束最优化</strong>问题：</p>
+<script type="math/tex; mode=display">
+\max_{w,b} & \mathcal Y\\
+s.t.& y_i(\frac{w}{||w||}x_i+\frac{b}{||w||})\geq \mathcal Y,i=1,2\cdots,N</script><p>用通俗的话来说，我们希望最大化超平面关于训练数据集的几何间隔 $\mathcal Y$ 。约束条件表示的是，超平面关于每个训练样本点的几何间隔<strong>至少是</strong>$\mathcal Y$ </p>
+<p>上面这个式子比较麻烦，我们运用<strong>几何间隔和函数间隔</strong> 的关系，可以将上式改写为：</p>
+<script type="math/tex; mode=display">
+\max_{w,b} & \frac{\hat{\mathcal Y}}{||w||}\\
+s.t.& y_i({w}x_i+{b})\geq \hat{\mathcal Y},i=1,2\cdots,N</script><p>然后， 我们还是不满意，还是觉得有点复杂。因此我们可以将$\hat {\mathcal Y}=1$ ,函数间隔的这一改变对优化问题的不等式没有影响。而且我们也不喜欢分数，因为最大化 $\frac{1}{||w||}$  和最小化 $\frac{1}{2}||w||^2$ 是等价的，因此可以得到最终版本的优化问题：</p>
+<script type="math/tex; mode=display">
+\max_{w,b} & \frac{1}{2}{||w||}^2 \\
+s.t.& y_i({w}x_i+{b})-1\geq 0,i=1,2\cdots,N</script><h4 id="算法—最大间隔法"><a href="#算法—最大间隔法" class="headerlink" title="算法—最大间隔法"></a>算法—最大间隔法</h4><ul>
+<li>输入： 线性可分训练数据集 $T = {(x_1,y_1),\cdots,(x_N,y_N) }$ ,其中，$x_i\in \mathcal X = \boldsymbol R^n,y_i\in\mathcal Y = {-1,+1},i=1,2\cdots,N$ </li>
+<li>输出： 最大间隔分离超平面和决策函数</li>
+</ul>
+<ol>
+<li>构造并<strong>求解</strong> 约束最优化问题：</li>
+</ol>
+<script type="math/tex; mode=display">
+\max_{w,b} & \frac{1}{2}{||w||}^2 \\
+s.t.& y_i({w}x_i+{b})-1\geq 0,i=1,2\cdots,N</script><p>求得最优解$w^<em>,b^</em> $</p>
+<ol>
+<li>得到分离超平面</li>
+</ol>
+<script type="math/tex; mode=display">
+w^*\cdot x+b^* = 0</script><p>分类决策函数：</p>
+<script type="math/tex; mode=display">
+f(x) = sign(w^*\cdot x+b^* )</script><h4 id="支持向量和间隔边界"><a href="#支持向量和间隔边界" class="headerlink" title="支持向量和间隔边界"></a>支持向量和间隔边界</h4><p>在线性可分的情况下，训练数据集的样本点中与分离超平面距离最近的样本点的实例，我们称其为<strong>支持向量</strong>，支持向量是使得约束条件式等号成立的点，即：</p>
+<script type="math/tex; mode=display">
+y_i(w\cdot x_i+b)-1 = 0</script><p>对于 $y_i = +1$ 的正例点，支持向量在超平面 $w\cdot x+b=1$上</p>
+<p>对于 $y_i = -1$ 的正例点，支持向量在超平面 $w\cdot x+b= -1$上</p>
+<p>如下图，$H_1,H_2$ 上的点，就是支持向量</p>
+<p><img src="/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/3.png"></p>
+<p>注意到 $H_1$和$H_2$ 平行，它们中间形成一条没有点的长带。长带的宽度等于 $\frac{2}{||w||}$,称$H_1$和$H_2$ 为<strong>间隔边界</strong></p>
+<h3 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h3><p><img src="/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/4.jpg"></p>
+<p>第一步：列出优化问题。 这里有x是二维的，因此我们 $\boldsymbol w = (w_1,w_2)$</p>
+<script type="math/tex; mode=display">
+\max_{w,b} & \frac{1}{2}{||w_1+w_2||}^2 \\
+s.t.& y_i({w_1}x_{1i}+w_2x_{2i}+{b})-1\geq 0,i=1,2\cdots,N</script><p>带入正例点和负例点，可得：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&w_1+2w_2+b\geq1 &(1)\\
+&2w_1+3w_2+b\geq1&(2)\\
+&3w_1+3w_2+b\geq 1&(3)\\
+&2w_1+w_2+b\leq -1\Leftrightarrow-2w_1-w_2-b\geq -1&(4)\\
+&3w_1+2w_2+b\leq -1\Leftrightarrow-3w_1-2w_2-b\geq -1&(5)\\
+\end{align}</script><p>第二步： 线性规划</p>
+<p>我们要做的是尽量消去 b，然后再一个二维平面上做线性优化：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+(4)+(1)\Rightarrow&-w_1+w_2\geq 2\\
+(5)+(1)\Rightarrow&-2w_1\geq 2\Rightarrow w_1\leq 1\\
+(4)+(2) \Rightarrow&2w_2\geq 2\Rightarrow w_2\leq1\\
+(5)+(2) \Rightarrow& -w_1+w_2\geq2\\
+(4)+(3) \Rightarrow&w_1+2w_2\geq 2\\
+(5)+(3) \Rightarrow&w_2\geq2\\
+\end{align}</script><p>我们对上面式子做线性规划，可得：</p>
+<p><img src="/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/5.jpeg"></p>
+<p>将 $(w_1,w_2)=(-1,2)$ 带入原方程，可得 $b=-2$</p>
+<p>第三步：画出分离超平面，得到支持向量</p>
+<p><img src="/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/6.jpeg" style="zoom:50%;"></p>
+<p>最终得到分离超平面为：</p>
+<script type="math/tex; mode=display">
+-x_1+2x_2-2 = 0</script><p>分类决策函数为 </p>
+<script type="math/tex; mode=display">
+f(x) = sign(-x_1+2x_2-2)</script><p>支持向量为：$(3,2),(1,2),(3,3)$</p>
+<p>#</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF/" rel="prev" title="机器学习-朴素贝叶斯">
+      <i class="fa fa-chevron-left"></i> 机器学习-朴素贝叶斯
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/01/04/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E9%9A%90%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E6%A8%A1%E5%9E%8B/" rel="next" title="机器学习-隐马尔可夫模型">
+      机器学习-隐马尔可夫模型 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#机器学习-支持向量机"><span class="nav-number">1.</span> <span class="nav-text">机器学习-支持向量机</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概要"><span class="nav-number">1.1.</span> <span class="nav-text">概要</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#线性可分支持向量机"><span class="nav-number">1.1.1.</span> <span class="nav-text">线性可分支持向量机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线性支持向量机-软间隔支持向量机"><span class="nav-number">1.1.2.</span> <span class="nav-text">线性支持向量机(软间隔支持向量机 )</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线性可分支持向量机-1"><span class="nav-number">1.2.</span> <span class="nav-text">线性可分支持向量机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#间隔"><span class="nav-number">1.2.1.</span> <span class="nav-text">间隔</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#函数间隔"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">函数间隔</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#集合间隔"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">集合间隔</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#间隔最大化"><span class="nav-number">1.2.2.</span> <span class="nav-text">间隔最大化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#算法—最大间隔法"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">算法—最大间隔法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#支持向量和间隔边界"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">支持向量和间隔边界</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例题"><span class="nav-number">1.2.3.</span> <span class="nav-text">例题</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

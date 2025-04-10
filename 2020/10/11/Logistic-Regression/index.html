@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Logistic Regression学习自：https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;3254560624b7 我们之前谈论的都是线性回归问题，线性回归问题一般解决的时自变量和应变量存在线性关系的数据。比如说下面这张图。  但是对于这种数据，是一些关于年龄信息和客户是否购买产品的数据 线性回归就很难满意的完成我们的任务，因为因变量只有0和1：  这时候如果强制线性回归，就会出现这样的结">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Logistic_Regression">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Logistic Regression学习自：https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;3254560624b7 我们之前谈论的都是线性回归问题，线性回归问题一般解决的时自变量和应变量存在线性关系的数据。比如说下面这张图。  但是对于这种数据，是一些关于年龄信息和客户是否购买产品的数据 线性回归就很难满意的完成我们的任务，因为因变量只有0和1：  这时候如果强制线性回归，就会出现这样的结">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/9.png">
+<meta property="article:published_time" content="2020-10-11T07:49:37.000Z">
+<meta property="article:modified_time" content="2020-10-13T06:51:30.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Logistic_Regression | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/10/11/Logistic-Regression/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Logistic_Regression
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-10-11 15:49:37" itemprop="dateCreated datePublished" datetime="2020-10-11T15:49:37+08:00">2020-10-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 14:51:30" itemprop="dateModified" datetime="2020-10-13T14:51:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Logistic-Regression"><a href="#Logistic-Regression" class="headerlink" title="Logistic Regression"></a>Logistic Regression</h1><p>学习自：<a href="https://www.jianshu.com/p/3254560624b7" target="_blank" rel="noopener">https://www.jianshu.com/p/3254560624b7</a></p>
+<p>我们之前谈论的都是线性回归问题，线性回归问题一般解决的时自变量和应变量存在线性关系的数据。比如说下面这张图。</p>
+<p><img src="/2020/10/11/Logistic-Regression/1.png" style="zoom:80%;"></p>
+<p>但是对于这种数据，是一些关于年龄信息和客户是否购买产品的数据 线性回归就很难满意的完成我们的任务，因为因变量只有0和1：</p>
+<p><img src="/2020/10/11/Logistic-Regression/2.png" style="zoom:80%;"></p>
+<p>这时候如果强制线性回归，就会出现这样的结果。</p>
+<p><img src="/2020/10/11/Logistic-Regression/3.png" style="zoom:80%;"></p>
+<p>这显然不是我们想要的，年龄低于某个值的时候Action变成了负数而高于某个值得时候竟然大于1. 于是，我们要引入分类器的概念，我们现在就来看看第一个分类算法：逻辑回归</p>
+<p>逻辑回归可以参考高中生物的逻辑斯蒂增长曲线，公式为 $\ln(\frac{p}{1-p}) = b_0+b_1*x$ (p 代表了是否会发生的概率)</p>
+<p>将其应用于上面的数据，我们就会得到一个新的图像，其中y轴的单位是 $\hat p (Probability)$ ,我们可以用这条曲线来预测中间年龄段的人是否会购买产品</p>
+<p><img src="/2020/10/11/Logistic-Regression/4.png" style="zoom:150%;"></p>
+<p>我们可以看看具体数据，假设当前有几个数据分别是年龄20、30、40、50。那么其在纵坐标上对应的结果也可以标记出来，得到不同的概率。</p>
+<p><img src="/2020/10/11/Logistic-Regression/5.png" style="zoom:150%;"></p>
+<p>关于年龄和是否会购买的预测，我们可以在 0.5 处画一条直线，在直线下的用户我们可以将其y值设置为0，直线以上的就可以预测用户会购买。</p>
+<p><img src="/2020/10/11/Logistic-Regression/6.png" style="zoom:150%;"></p>
+<h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><p>我们下面就对一个比较真实的数据集进行逻辑回归的分类. 其中 Feature是 Age和EstimatedSalary，需要被预测的值是 Purchased。一共有400行数据，没有缺失值，不需要进行数据清洗。</p>
+<p>假设你是一家车厂的销售经理，我们拿到了一些之前顾客的年龄和预期薪资和他们的购车情况，我的任务就是去选择什么人群有更多的可能会购买我们车厂新出的车型。</p>
+<p><img src="/2020/10/11/Logistic-Regression/7.png" style="zoom:150%;"></p>
+<p>接下来我们会一步步进行逻辑回归。以后对于其他数据集，也可以使用这个模板：</p>
+<p>首先我们进行导库、训练集测试集切割</p>
+<h3 id="Importing-the-Libraries"><a href="#Importing-the-Libraries" class="headerlink" title="Importing the Libraries"></a>Importing the Libraries</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br></pre></td></tr></table></figure>
+<h3 id="Importing-the-dataset"><a href="#Importing-the-dataset" class="headerlink" title="Importing the dataset"></a>Importing the dataset</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dataset = pd.read_csv(<span class="string">'Social_Network_Ads.csv'</span>)</span><br><span class="line">X = dataset.iloc[:, :<span class="number">-1</span>].values</span><br><span class="line">y = dataset.iloc[:, <span class="number">-1</span>].values</span><br></pre></td></tr></table></figure>
+<h3 id="Splitting-the-dataset"><a href="#Splitting-the-dataset" class="headerlink" title="Splitting the dataset"></a>Splitting the dataset</h3><p>我们将测试集设为整个数据集的25%，将训练集设为数据集的75%</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> train_test_split</span><br><span class="line">X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = <span class="number">0.25</span>, random_state = <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="Feature-Scaling"><a href="#Feature-Scaling" class="headerlink" title="Feature Scaling"></a>Feature Scaling</h3><p>然后我们现在要判断是否需要 Feature Scaling</p>
+<p>首先我们要知道<strong>逻辑回归模型不一定都要进行特征放缩</strong>(不同于一定要进行放缩的SVM)，但是对一些特征进行放缩可能会提升整个模型的性能。我们就要看看这个数据集的特征是否需要被放缩。</p>
+<p>我们这个数据集，有两个Features：年龄和收入，这两者的均值相差很大，肯定不是一个维度下的，于是需要对其进行特征放缩。而预测的是他们是否会购买，值为0或者1，所以不用对预测值进行特征放缩</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.preprocessing <span class="keyword">import</span> StandardScaler</span><br><span class="line">sc = StandardScaler()</span><br><span class="line">X_train = sc.fit_transform(X_train)</span><br><span class="line">X_test = sc.transform(X_test)</span><br></pre></td></tr></table></figure>
+<p>我们需要对测试集和训练集都进行特征放缩。</p>
+<h3 id="Training-the-Logistic-Regression-model"><a href="#Training-the-Logistic-Regression-model" class="headerlink" title="Training the Logistic Regression model"></a>Training the Logistic Regression model</h3><p>接下来我们来训练逻辑回归模型。很简单，从 sklearn.linear_model 模块中导入LogisticRegression类。</p>
+<p>因为现在我们做的是分类而不是回归，所以我们从回归器(regressor) 变成了分类器(classifier).</p>
+<p>现在我们知识初步学习一下逻辑回归模型，所以对其中的参数并没有很多的要求，只要将 random_state 设置为0即可。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.linear_model <span class="keyword">import</span> LogisticRegression</span><br><span class="line">classifier = LogisticRegression(random_state = <span class="number">0</span>)</span><br><span class="line">classifier.fit(X_train, y_train)</span><br></pre></td></tr></table></figure>
+<h3 id="Predicting"><a href="#Predicting" class="headerlink" title="Predicting"></a>Predicting</h3><h4 id="Predicting-a-new-result"><a href="#Predicting-a-new-result" class="headerlink" title="Predicting a new result"></a>Predicting a new result</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">print(classifier.predict(sc.transform([[<span class="number">30</span>,<span class="number">87000</span>]])))</span><br></pre></td></tr></table></figure>
+<p>打印得到 [0]，说明对于30岁，年入87000美元的人来说，他大概率不会购买这辆车。</p>
+<h4 id="Predicting-the-Test-set-results"><a href="#Predicting-the-Test-set-results" class="headerlink" title="Predicting the Test set results"></a>Predicting the Test set results</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">y_pred = classifier.predict(X_test)</span><br><span class="line">print(np.concatenate((y_pred.reshape(len(y_pred),<span class="number">1</span>),</span><br><span class="line">                      y_test.reshape(len(y_test),<span class="number">1</span>)),<span class="number">1</span>))</span><br></pre></td></tr></table></figure>
+<p>然后我们对测试集进行一个预测，并将预测出来的结果和原来的结果进行一个比对。注意，这里要做一个形状转换，将他们都变成竖着排列的。</p>
+<p>打印得到：</p>
+<p>肉眼可见大多数情况都预测成功了，只有少数几组数据没有预测成功</p>
+<p><img src="/2020/10/11/Logistic-Regression/10.png" style="zoom:120%;"></p>
+<h3 id="Making-the-Confusion-Matrix"><a href="#Making-the-Confusion-Matrix" class="headerlink" title="Making the Confusion Matrix"></a>Making the Confusion Matrix</h3><p>Confusion Matrix 是混淆矩阵，是表示精度评价的一种标准格式，用n行n列的矩阵形式来表示。具体评价指标有总体精度等。</p>
+<p>混淆矩阵的每一列代表了预测类别，每一列的总数表示预测为该类别的数据的数目；每一行代表了数据的真实归属类别，每一行的数据总数表示该类别的数据实例的数目。每一列中的数值表示真实数据被预测为该类的数目</p>
+<p>如下图，第一行第一列中的43表示有43个实际归属第一类的实例被预测为第一类，同理，第一行第二列的2表示有2个实际归属为第一类的实例被错误预测为第二类。</p>
+<p><img src="/2020/10/11/Logistic-Regression/11.png" style="zoom:120%;"></p>
+<p>我们用python的confusion_matrix也可以来做这个模型的混淆矩阵，只要将y_test,y_pred传入即可</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> confusion_matrix, accuracy_score</span><br><span class="line">cm = confusion_matrix(y_test, y_pred)</span><br><span class="line">print(cm)</span><br><span class="line">accuracy_score(y_test, y_pred)</span><br></pre></td></tr></table></figure>
+<p>打印得到下面的数据：说明第一类(0)有65组数据预测成功，3组数据预测失败；第二类(1)有24组数据预测成功，8组数据预测失败</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[[65  3]</span><br><span class="line"> [ 8 24]]</span><br></pre></td></tr></table></figure>
+<p>accuracy_score: </p>
+<p>一共有100组数据，11组预测失败，成功的概率为89%，于是accuracy_score = 0.89</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0.89</span><br></pre></td></tr></table></figure>
+<h3 id="Visualising"><a href="#Visualising" class="headerlink" title="Visualising"></a>Visualising</h3><p>现在我们做一个可视化操作，可以很直观地展现整个模型的效果。我们的图像将达到三个效果</p>
+<ul>
+<li>我们将用一个2维图展现，其中x轴、y轴分别是年龄和薪资两个特征。</li>
+<li>我们将用每一个点表示一个顾客的信息，并用不同的颜色将他们的购买情况区分开来</li>
+<li>我们将用颜色区分开两个不同的预测区域，并在中间画出分界线。</li>
+</ul>
+<h4 id="Visualising-the-Training-set-results"><a href="#Visualising-the-Training-set-results" class="headerlink" title="Visualising the Training set results"></a>Visualising the Training set results</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> matplotlib.colors <span class="keyword">import</span> ListedColormap</span><br><span class="line">X_set, y_set = sc.inverse_transform(X_train), y_train</span><br><span class="line">X1, X2 = np.meshgrid(np.arange(start = X_set[:, <span class="number">0</span>].min() - <span class="number">10</span>, </span><br><span class="line">                               stop = X_set[:, <span class="number">0</span>].max() + <span class="number">10</span>, </span><br><span class="line">                               step = <span class="number">0.25</span>),</span><br><span class="line">                     np.arange(start = X_set[:, <span class="number">1</span>].min() - <span class="number">1000</span>, </span><br><span class="line">                               stop = X_set[:, <span class="number">1</span>].max() + <span class="number">1000</span>, </span><br><span class="line">                               step = <span class="number">0.25</span>)</span><br><span class="line">                    )</span><br><span class="line">plt.contourf(X1, </span><br><span class="line">             X2,</span><br><span class="line">             classifier.predict(sc.transform(np.array([X1.ravel(), X2.ravel()]).T)).reshape(X1.shape),</span><br><span class="line">             alpha = <span class="number">0.75</span>,</span><br><span class="line">             cmap = ListedColormap((<span class="string">'red'</span>, <span class="string">'green'</span>)))</span><br><span class="line"></span><br><span class="line">plt.xlim(X1.min(),X1.max())</span><br><span class="line">plt.ylim(X2.min(),X2.max())</span><br><span class="line"><span class="keyword">for</span> i, j <span class="keyword">in</span> enumerate(np.unique(y_set)):</span><br><span class="line">    plt.scatter(X_set[y_set == j, <span class="number">0</span>],</span><br><span class="line">                X_set[y_set == j, <span class="number">1</span>],</span><br><span class="line">                c = ListedColormap((<span class="string">'red'</span>, <span class="string">'green'</span>))(i),</span><br><span class="line">                label = j)</span><br><span class="line">plt.title(<span class="string">'Logistic Regression (Training set)'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Age'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Estimated Salary'</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/10/11/Logistic-Regression/8.png" style="zoom:120%;"></p>
+<h4 id="Visualising-the-Test-set-results"><a href="#Visualising-the-Test-set-results" class="headerlink" title="Visualising the Test set results"></a>Visualising the Test set results</h4><p><img src="/2020/10/11/Logistic-Regression/9.png" style="zoom:120%;"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/" rel="prev" title="CSAPP程序的机器即表示2（6~11节）">
+      <i class="fa fa-chevron-left"></i> CSAPP程序的机器即表示2（6~11节）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/13/K-NN%E7%AE%97%E6%B3%95/" rel="next" title="K-NN算法">
+      K-NN算法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Logistic-Regression"><span class="nav-number">1.</span> <span class="nav-text">Logistic Regression</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#代码"><span class="nav-number">1.1.</span> <span class="nav-text">代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Importing-the-Libraries"><span class="nav-number">1.1.1.</span> <span class="nav-text">Importing the Libraries</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Importing-the-dataset"><span class="nav-number">1.1.2.</span> <span class="nav-text">Importing the dataset</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Splitting-the-dataset"><span class="nav-number">1.1.3.</span> <span class="nav-text">Splitting the dataset</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Feature-Scaling"><span class="nav-number">1.1.4.</span> <span class="nav-text">Feature Scaling</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Training-the-Logistic-Regression-model"><span class="nav-number">1.1.5.</span> <span class="nav-text">Training the Logistic Regression model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Predicting"><span class="nav-number">1.1.6.</span> <span class="nav-text">Predicting</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Predicting-a-new-result"><span class="nav-number">1.1.6.1.</span> <span class="nav-text">Predicting a new result</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Predicting-the-Test-set-results"><span class="nav-number">1.1.6.2.</span> <span class="nav-text">Predicting the Test set results</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Making-the-Confusion-Matrix"><span class="nav-number">1.1.7.</span> <span class="nav-text">Making the Confusion Matrix</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Visualising"><span class="nav-number">1.1.8.</span> <span class="nav-text">Visualising</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Visualising-the-Training-set-results"><span class="nav-number">1.1.8.1.</span> <span class="nav-text">Visualising the Training set results</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Visualising-the-Test-set-results"><span class="nav-number">1.1.8.2.</span> <span class="nav-text">Visualising the Test set results</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

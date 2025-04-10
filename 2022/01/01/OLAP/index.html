@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="OLAP参考 ：https:&#x2F;&#x2F;www.zhihu.com&#x2F;question&#x2F;24110442&#x2F;answer&#x2F;851671343 OLTP（on-line transaction processing）翻译为联机事务处理， OLAP（On-Line Analytical Processing）翻译为联机分析处理，从字面上来看OLTP是做事务处理，OLAP是做分析处理。从对数据库操作来看，OLTP主">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OLAP">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/01/01/OLAP/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="OLAP参考 ：https:&#x2F;&#x2F;www.zhihu.com&#x2F;question&#x2F;24110442&#x2F;answer&#x2F;851671343 OLTP（on-line transaction processing）翻译为联机事务处理， OLAP（On-Line Analytical Processing）翻译为联机分析处理，从字面上来看OLTP是做事务处理，OLAP是做分析处理。从对数据库操作来看，OLTP主">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/OLAP/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/OLAP/2.png">
+<meta property="article:published_time" content="2022-01-01T02:48:36.000Z">
+<meta property="article:modified_time" content="2022-01-02T08:17:28.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据管理系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/01/01/OLAP/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/01/01/OLAP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>OLAP | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/01/01/OLAP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OLAP
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-01-01 10:48:36" itemprop="dateCreated datePublished" datetime="2022-01-01T10:48:36+08:00">2022-01-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-02 16:17:28" itemprop="dateModified" datetime="2022-01-02T16:17:28+08:00">2022-01-02</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="OLAP"><a href="#OLAP" class="headerlink" title="OLAP"></a>OLAP</h1><p>参考 ：<a href="https://www.zhihu.com/question/24110442/answer/851671343" target="_blank" rel="noopener">https://www.zhihu.com/question/24110442/answer/851671343</a></p>
+<p>OLTP（on-line transaction processing）翻译为联机事务处理， OLAP（On-Line Analytical Processing）翻译为联机分析处理，从字面上来看OLTP是做事务处理，OLAP是做分析处理。从对数据库操作来看，OLTP主要是对数据的增删改，OLAP是对数据的查询。 </p>
+<p>这里我们在多介绍一下OLAP</p>
+<h2 id="数据仓库系统"><a href="#数据仓库系统" class="headerlink" title="数据仓库系统"></a>数据仓库系统</h2><p><strong>OLAP分析的分类：ROLAP与MOLAP</strong><br>OLAP分析 分为关系型联机分析处理（<strong>ROLAP</strong>）、多维联机分析处理（<strong>MOLAP</strong>）两种，他们的设计理念以及解决场景不一样，各有优劣。</p>
+<h3 id="ROLAP"><a href="#ROLAP" class="headerlink" title="ROLAP"></a>ROLAP</h3><p>以ROLAP为代表的有<strong>传统关系型数据库</strong>、<strong>MPP分布式数据库</strong>以及<strong>基于Hadoop的Spark/Impala</strong>，它们是将数据块存储在关系型数据库当中的。</p>
+<ul>
+<li>优点<ul>
+<li>是能<strong>同时连接明细数据和汇总数据</strong>，实时根据用户提出的需求对数据进行计算后返回给用户，所以用户使用相对比较灵活，可以随意选择维度组合来进行实时计算。</li>
+<li>对高维数据、超大数据集有很好的扩展性</li>
+<li>技术成熟</li>
+</ul>
+</li>
+<li>正因为采用的实时计算技术，所以ROLAP的缺点也比较明显<ul>
+<li>当计算的数据量达到一定级别或并发数达到一定级别的时候，<strong>一定会出现性能问题</strong>(就好比如果领导一次性给你安排非常多的工作，你一个人是无法马上将所有事情做完答复领导的)。</li>
+<li>需要构建明确的索引</li>
+</ul>
+</li>
+</ul>
+<p>以传统关系型数据库为代表的如Teradata、Oracle等，由于传统架构可扩展性较差，所以<strong>对硬件的要求非常高</strong>，当计算的数据量达到千万，亿级别时，数据库的计算就会出现延时，使得用户不能及时得到响应，更别提高并发了。</p>
+<p>MPP 分布式数据库则解决了一部分可扩展性问题，对硬件设备的要求也稍稍下降了（还是有一定的硬件要求)，在支持的数据体量（GB，TB级别）上有了很大的提升。当集群有几百、上千节点时，会出现性能瓶颈(增加再多节点，性能提升也不会很明显)，扩容成本同样不菲。</p>
+<p>基于Hadoop的Spark/Impala，则对部署硬件的要求很低(常见服务器即可，只是其主要依靠内存计算来缩短响应时间，所以对内存要求较高)，在节点扩容上成本上相对较低，但当计算量达到一定级别或并发达到一定级别后，<strong>无法秒级响应</strong>，且<strong>容易出现内存溢出</strong>等问题。</p>
+<h3 id="MOLAP"><a href="#MOLAP" class="headerlink" title="MOLAP"></a>MOLAP</h3><p>以MOLAP分析为代表的有Cognos，SSAS，Kylin等，设计理念<strong>是预先将客户的需求计算好以结果的形式存下来</strong>（比如一张表分为10个维度，5个度量，那客户提出的需求会有2的10次方种可能，然后将这么多种可能提前计算好存储下来)，<strong>当客户提出需求后，找到对应结果返回即可</strong>（好比你提前一天将领导明天会布置的任务先做好，明天领导布置对应任务后你直接告知他已做好）</p>
+<ul>
+<li>优点是当命中需求后返回非常快（所以MOLAP非常适合常见固定的分析场景），同等资源下支持的数据体量更大，支持的并发更多</li>
+<li>缺点则是当表的维度越多，越复杂，其所需的磁盘存储空间则越大，构建cube也需要一定的时间。</li>
+</ul>
+<p>Cognos和SSAS是早期比较传统的产品，Cognos限制了Cube的大小(即限制了表的复杂度大小)，而SSAS的cube则受限于单机的容量，即需要专用的服务器来进行存储。</p>
+<p>Apache Kylin则是目前技术较为先进的一款成熟产品，也是第一个由中国人贡献给Apache社区的顶级开源项目，它基于hadoop框架，Cube以分片的形式存储在不同节点上，Cube大小不受服务器配置限制，所以具备很好的可扩展性和对服务器要求很低，在扩容成本上就非常低廉。另外为了控制整体Cube的大小，Kylin给客户提供了建模的能力，即用户可以根据自身需要，对模型种的维度以及维度组合进行预先的构建，把一些不需要的维度和组合筛选掉，从而达到降低维度的目的，减少磁盘空间的占用。</p>
+<p>Kylin的企业版产品，即Kyligence的产品，除了在性能、功能上做了很多优化之外，稳定性上也做了很大提升，还提供了智能建模功能，在满足用户需求的前提下，很大程度上减小了磁盘空间的浪费。</p>
+<p>综上而言</p>
+<ul>
+<li><p>从可扩展性上看：Kylin=Impala/Spark&gt;MPP数据库&gt;传统数据库</p>
+</li>
+<li><p>从对硬件要求上看，传统数据库&gt;MPP数据库&gt;Impala/Spark&gt;=Kylin；</p>
+</li>
+<li>从响应效率上来看，不同的数据量、并发数，响应效率差别不一，但可以确定的是，要计算的数据量越大，并发的用户数越多，同等资源情况下预计算的响应效率会越发明显。</li>
+</ul>
+<h2 id="数据仓库模型"><a href="#数据仓库模型" class="headerlink" title="数据仓库模型"></a>数据仓库模型</h2><h3 id="Star-schema"><a href="#Star-schema" class="headerlink" title="Star schema"></a>Star schema</h3><p>在星型模型当中，<strong>一张事实表被若干张维度表所包围</strong>。每一个维度代表了一张表，有主键关联事实表当中的外键。</p>
+<ul>
+<li>所有的事实都必须保持同一个粒度</li>
+<li>不同的维度之间没有任何关联</li>
+</ul>
+<p><img src="/2022/01/01/OLAP/1.png"></p>
+<h3 id="雪花模型"><a href="#雪花模型" class="headerlink" title="雪花模型"></a>雪花模型</h3><p> 雪花模型是在基于星型模型之上拓展来的，<strong>每一个维度可以再扩散出更多的维度</strong>，根据维度的层级拆分成颗粒度不同的多张表。</p>
+<ul>
+<li>优点是减少维度表的数据量，在进行join查询时有效提升查询速度</li>
+<li>缺点是需要额外维护维度表的数量</li>
+</ul>
+<p><img src="/2022/01/01/OLAP/2.png"></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在规范化方面：</p>
+<ul>
+<li><strong>雪花模型</strong>比较符合数据库范式的理念设计方式比较正规，数据冗余少</li>
+<li>非规范化的数据模型可能会违反完整性和一致性</li>
+</ul>
+<p>在查询复杂度方面：</p>
+<ul>
+<li><strong>雪花模型</strong>在查询的时候可能需要join多张表从而导致查询效率下降，此外规范化操作在后期维护比较复杂。</li>
+<li><strong>星型模型</strong>能够提升查询效率，因为生成的事实表已经经过预处理，主要的数据都在事实表里面，所以只要扫描实时表就能够进行大量的查询，而不必进行大量的join。而且维表数据一般比较少，可直接放入内存进行join以提升效率，</li>
+</ul>
+<p>在可读性方面：</p>
+<ul>
+<li><strong>星型模型</strong>的事实表可读性比较好，不用关联多个表就能获取大部分核心信息，设计维护相对比较简答。</li>
+</ul>
+<p>数据仓库大多数时候是比较适合<strong>使用星型模型构建底层数据Hive表</strong>，通过大量的冗余来提升查询效率，星型模型对OLAP的分析引擎支持比较友好，这一点在Kylin中比较能体现。</p>
+<p>而雪花模型在关系型数据库中如MySQL，Oracle中非常常见，尤其像电商的数据库表。在数据仓库中雪花模型的应用场景比较少，但也不是没有，所以在具体设计的时候，可以考虑是不是能结合两者的优点参与设计，以此达到设计的最优化目的。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>星型模型</th>
+<th>雪花模型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据总量</td>
+<td>多</td>
+<td>少</td>
+</tr>
+<tr>
+<td>可读性</td>
+<td>容易</td>
+<td>差</td>
+</tr>
+<tr>
+<td>表个数</td>
+<td>少</td>
+<td>多</td>
+</tr>
+<tr>
+<td>查询速度</td>
+<td>快</td>
+<td>慢</td>
+</tr>
+<tr>
+<td>冗余度</td>
+<td>高</td>
+<td>低</td>
+</tr>
+<tr>
+<td>对实时表的情况</td>
+<td>增加宽度</td>
+<td>字段比较少，冗余低</td>
+</tr>
+<tr>
+<td>扩展性</td>
+<td>差</td>
+<td>好</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" rel="tag"># 数据管理系统</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/" rel="prev" title="数据库扩展性问题">
+      <i class="fa fa-chevron-left"></i> 数据库扩展性问题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/" rel="next" title="数据科学与算法-流算法补充">
+      数据科学与算法-流算法补充 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#OLAP"><span class="nav-number">1.</span> <span class="nav-text">OLAP</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据仓库系统"><span class="nav-number">1.1.</span> <span class="nav-text">数据仓库系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ROLAP"><span class="nav-number">1.1.1.</span> <span class="nav-text">ROLAP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MOLAP"><span class="nav-number">1.1.2.</span> <span class="nav-text">MOLAP</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据仓库模型"><span class="nav-number">1.2.</span> <span class="nav-text">数据仓库模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Star-schema"><span class="nav-number">1.2.1.</span> <span class="nav-text">Star schema</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#雪花模型"><span class="nav-number">1.2.2.</span> <span class="nav-text">雪花模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.2.3.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

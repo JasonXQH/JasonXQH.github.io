@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="决策树和随机森林回归决策树https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;fcbbd8f2acd5 首先我们来了解一下CART(Classification And Regression Tree) 的定义。它被分为两类：分类决策树(Classification Trees) 和 回归决策树 (Regression Trees). 这也是我们要用决策树解决的两类问题：分类问题和回归问题。  对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="决策树和随机森林回归">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="决策树和随机森林回归决策树https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;fcbbd8f2acd5 首先我们来了解一下CART(Classification And Regression Tree) 的定义。它被分为两类：分类决策树(Classification Trees) 和 回归决策树 (Regression Trees). 这也是我们要用决策树解决的两类问题：分类问题和回归问题。  对">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/12.png">
+<meta property="article:published_time" content="2020-10-09T15:16:25.000Z">
+<meta property="article:modified_time" content="2020-10-11T07:51:32.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>决策树和随机森林回归 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          决策树和随机森林回归
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-10-09 23:16:25" itemprop="dateCreated datePublished" datetime="2020-10-09T23:16:25+08:00">2020-10-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-11 15:51:32" itemprop="dateModified" datetime="2020-10-11T15:51:32+08:00">2020-10-11</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="决策树和随机森林回归"><a href="#决策树和随机森林回归" class="headerlink" title="决策树和随机森林回归"></a>决策树和随机森林回归</h1><h2 id="决策树"><a href="#决策树" class="headerlink" title="决策树"></a>决策树</h2><p><a href="https://www.jianshu.com/p/fcbbd8f2acd5" target="_blank" rel="noopener">https://www.jianshu.com/p/fcbbd8f2acd5</a></p>
+<p>首先我们来了解一下CART(Classification And Regression Tree) 的定义。它被分为两类：分类决策树(Classification Trees) 和 回归决策树 (Regression Trees). 这也是我们要用决策树解决的两类问题：分类问题和回归问题。</p>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/1.png" style="zoom:80%;"></p>
+<p>对于分类决策树，一般来说用于一些分类离散的数据，比如说人的性别是男或者女，水果的种类有苹果梨子等等都是离散的。反之回归决策树，那么对应的场景就是连续的数据，比如人的年龄或者室外的温度。当我们进行分类问题时，分类的组之间是无序的。这里首先介绍下什么是有序，可以举个例子比如年龄，又年龄大或者年龄小。那么对于性别问题，男或女，它是没有顺序的</p>
+<p>对于下面这幅散点图，我们要通过其来预测一个第三个维度的独立变量y，我们在二维平面中没有办法看到</p>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/2.png" style="zoom:80%;"></p>
+<p>如果将其放到一个三维空间里，那么我们就可以将这个y变量显示出来。</p>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/3.png" style="zoom:80%;"></p>
+<p>当我们运行回归树/决策树模型的时候，上面的散点图就会被分成几个部分,就向下图一样。算法会计算信息熵并决定在那里执行划分，将这些散点分组。那么怎么停止呢？比如说当算法增加一个splits，有一个组(leaves)中的数据低于所有数据的5%，那么这个splits就不会被划分。</p>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/4.png" style="zoom:80%;"></p>
+<p>现在我们还原创建决策树的过程：</p>
+<ul>
+<li>首先在 $x_1 = 20$  处画一条分割线，那么决策树的第一个分支就是判断 $x_1$ 是否小于20，并分成2类。</li>
+</ul>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/5.png" style="zoom:80%;"></p>
+<ul>
+<li>然后我们在$x_2=170,x_1&gt;20$ 处画一条分割线，那么决策树在右孩子会生成第二个分支，判断 $x_2$ 是否大于170</li>
+</ul>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/6.png" style="zoom:80%;"></p>
+<ul>
+<li>接着我们在 $x_2=200,x_1&lt;20$ 画一条 分割线</li>
+</ul>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/7.png" style="zoom:80%;"></p>
+<ul>
+<li>最后我们在$x_1=40,x_2&lt;170$ 出画一条分割线，我们可以继续拓展一个分支。</li>
+</ul>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/8.png" style="zoom:80%;"></p>
+<p>现在，我们分隔好了区域，我们怎么对一个新的数据进行预测呢？</p>
+<p>其实很简单，我们把每个区域每一个散点的y值加起来求平均后，再赋值给新的、需要被预测的值。</p>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/9.png" style="zoom:80%;"></p>
+<p>现在我们已经求出了各个区域中y的平均值，现在来一个点(30,50) ，我们可以看到这个点落在中下区域，这个区域的平均值是 -64.1 那么这个我们预测(30,50) 这一个点的y值就是 -64.1</p>
+<p>最后我们补全我们的决策树：</p>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/10.png" style="zoom:80%;"></p>
+<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><p>首先还是进行数据集导入、分割</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line">dataset = pd.read_csv(<span class="string">'Position_Salaries.csv'</span>)</span><br><span class="line">X = dataset.iloc[:, <span class="number">1</span>:<span class="number">-1</span>].values</span><br><span class="line">y = dataset.iloc[:, <span class="number">-1</span>].values</span><br></pre></td></tr></table></figure>
+<p>然后我们训练决策树模型：</p>
+<p>对于决策树模型的参数选择和设置，先不要过于纠结。对所有的机器学习模型有了一个认知和比较之后我们再来谈论参数。在这里我们设置 random_state 参数= 0。这个问题是因为，学习一个最优决策树是一个NP问题。 所以实际应用中，生成决策树是基于启发式算法的，比如贪婪算法，贪婪算法可以在每个节点进行局部最优点求解，但它无法保证返回全局最优解。不论是random forest还是decision tree，贪婪算法会随机且多次抽取<strong>部分</strong>特征和样本，这个随机抽取过程可以通过random_state来决定。让他等于零的意思是让每次建立出来的决策树都是一样的。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.tree <span class="keyword">import</span> DecisionTreeRegressor</span><br><span class="line">regressor = DecisionTreeRegressor(random_state = <span class="number">0</span>)</span><br><span class="line">regressor.fit(X, y)</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/11.png" style="zoom:80%;"></p>
+<p>我们可以用训练出来的模型预测新的数据</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">regressor.predict([[<span class="number">6.5</span>]])</span><br></pre></td></tr></table></figure>
+<p>打印得到： array([150000.])</p>
+<p>如果我们要预测两个数据，我们可以这样写：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">regressor.predict([[<span class="number">1</span>],[<span class="number">2</span>]])</span><br></pre></td></tr></table></figure>
+<p>我们可以这样理解，6.5经过了层层决策最后落到了一个区域，这个区域只有 Level=6这一个数据，那么这个数据的平均值 150000 就赋值给了6.5</p>
+<p>最后进行一个可视化操作：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">X_grid = np.arange(min(X), max(X), <span class="number">0.01</span>)</span><br><span class="line">X_grid = X_grid.reshape((len(X_grid), <span class="number">1</span>))</span><br><span class="line">plt.scatter(X, y, color = <span class="string">'red'</span>)</span><br><span class="line">plt.plot(X_grid, regressor.predict(X_grid), color = <span class="string">'blue'</span>)</span><br><span class="line">plt.title(<span class="string">'Truth or Bluff (Decision Tree Regression)'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Position level'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Salary'</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/12.png" style="zoom:100%;"></p>
+<p>我们看到这个模型被训练成随机森林之后，因为数据量不足够，所以回归曲线呈现阶梯状。也就是说在一定范围内的所有的数都会被预测成相同的值。</p>
+<h2 id="随机森林"><a href="#随机森林" class="headerlink" title="随机森林"></a>随机森林</h2><p>我们首先来了解一下 Ensemble Learning (集成学习)的概念。 Ensemble Learning 通俗的来说就是用多种算法或者一种算法运行多次来解决一个问题</p>
+<p>那么随机森林的步骤可以概括如下：</p>
+<ul>
+<li><p>STEP1: Pick at random K data points from the Training set </p>
+</li>
+<li><p>SETP2: Build the Decision Tree associated to these K data points </p>
+<ul>
+<li>和决策树不同，决策树将所有的数据拿来建树而随机森林是从中选取K个数据来建树</li>
+</ul>
+</li>
+<li><p>STEP3： Choose the number Ntree of trees you want to build and repeat STEPs 1&amp;2</p>
+<ul>
+<li>然后我们只要选择要建的树，重复步骤1和2就可以了</li>
+</ul>
+</li>
+<li>STEP4: For a new data point,make each one of your Ntree trees predict the value of Y to for the data point in question,and assign the new data point the average across all of the predicted Y values<ul>
+<li>对于预测的新数据，我们将其放到每一棵树里面去，分别对其预测，最后对这些预测值取平均，就得到了最终的预测值</li>
+</ul>
+</li>
+</ul>
+<p>这也是随机森林之所以叫做森林的原因了，因为我们创建了很多很多树。和决策树相比，随机森林模型会增加预测的准确性，因为我们对所有的预测值取了一个平均数。  </p>
+<p>此外，随机森林相对于决策树更加稳定，因为他是一个集成算法</p>
+<h3 id="代码-1"><a href="#代码-1" class="headerlink" title="代码"></a>代码</h3><p>代码和决策树的差不多，但是实际效果要比决策树更好一些</p>
+<p>前期准备是一模一样的</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line">dataset = pd.read_csv(<span class="string">'Position_Salaries.csv'</span>)</span><br><span class="line">X = dataset.iloc[:, <span class="number">1</span>:<span class="number">-1</span>].values</span><br><span class="line">y = dataset.iloc[:, <span class="number">-1</span>].values</span><br></pre></td></tr></table></figure>
+<p>然后 我们从 sklearn.ensemble 中导入 RandomForestRegressor 这个类</p>
+<p>n_estimators 就代表我要建几棵树</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.ensemble <span class="keyword">import</span> RandomForestRegressor</span><br><span class="line">regressor = RandomForestRegressor(n_estimators = <span class="number">10</span>, random_state = <span class="number">0</span>)</span><br><span class="line">regressor.fit(X, y)</span><br></pre></td></tr></table></figure>
+<p>最后我们讲建立好的模型贴出，我们可以对比一下随机森林和决策树有哪些不同</p>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/13.png" style="zoom:100%;"></p>
+<p><img src="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/12.png" style="zoom:100%;"></p>
+<p>明显可以看到随机森林相对于决策树来说更准确，阶梯更多了</p>
+<p>我们现在的重点是了解概念和初步时间，像这样一个简单的预测虽然在现实生活中是几乎不可能遇到的，但是能让我们更好的了解一些模型和对应建立模型的步骤。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/07/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E5%9B%9E%E5%BD%92%EF%BC%88SVR%EF%BC%89/" rel="prev" title="支持向量回归（SVR）">
+      <i class="fa fa-chevron-left"></i> 支持向量回归（SVR）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/10/%E8%AF%84%E4%BC%B0%E4%B8%8E%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/" rel="next" title="评估与选择合适的回归模型">
+      评估与选择合适的回归模型 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#决策树和随机森林回归"><span class="nav-number">1.</span> <span class="nav-text">决策树和随机森林回归</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#决策树"><span class="nav-number">1.1.</span> <span class="nav-text">决策树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#代码"><span class="nav-number">1.1.1.</span> <span class="nav-text">代码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#随机森林"><span class="nav-number">1.2.</span> <span class="nav-text">随机森林</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#代码-1"><span class="nav-number">1.2.1.</span> <span class="nav-text">代码</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="了解MapReduceMapReduce引入首先，我们需要了解什么是MapReduce，它是用来做什么的？ 比如说，我们有10TB的数据，放在一台机子上肯定是不现实的，因此需要存放在之前我们介绍的存储系统：HDFS中。但是，如果放在HDFS上，由于大文件被切成一个个小块，如果这时候要对这些文件建立倒排索引、统计词频的话，按照原来的逻辑，可能会出现一定的问题——如果按照原来的逻辑，我们可以写一个客户">
+<meta property="og:type" content="article">
+<meta property="og:title" content="了解MapReduce">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="了解MapReduceMapReduce引入首先，我们需要了解什么是MapReduce，它是用来做什么的？ 比如说，我们有10TB的数据，放在一台机子上肯定是不现实的，因此需要存放在之前我们介绍的存储系统：HDFS中。但是，如果放在HDFS上，由于大文件被切成一个个小块，如果这时候要对这些文件建立倒排索引、统计词频的话，按照原来的逻辑，可能会出现一定的问题——如果按照原来的逻辑，我们可以写一个客户">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/11.png">
+<meta property="article:published_time" content="2022-03-24T18:46:20.000Z">
+<meta property="article:modified_time" content="2022-03-31T06:00:20.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="bigdata">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>了解MapReduce | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          了解MapReduce
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-03-25 02:46:20" itemprop="dateCreated datePublished" datetime="2022-03-25T02:46:20+08:00">2022-03-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-03-31 14:00:20" itemprop="dateModified" datetime="2022-03-31T14:00:20+08:00">2022-03-31</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="了解MapReduce"><a href="#了解MapReduce" class="headerlink" title="了解MapReduce"></a>了解MapReduce</h1><h2 id="MapReduce引入"><a href="#MapReduce引入" class="headerlink" title="MapReduce引入"></a>MapReduce引入</h2><p>首先，我们需要了解什么是MapReduce，它是用来做什么的？</p>
+<p>比如说，我们有10TB的数据，放在一台机子上肯定是不现实的，因此需要存放在之前我们介绍的存储系统：HDFS中。但是，如果放在HDFS上，由于大文件被切成一个个小块，如果这时候要对这些文件建立倒排索引、统计词频的话，按照原来的逻辑，可能会出现一定的问题——如果按照原来的逻辑，我们可以写一个客户端，将所有DataNode上的数据读进来进行处理，但这样说到底还是一个单机程序，没有体现出分布式系统的优势。</p>
+<p>这时候一个合理的逻辑是把我的程序发送到集群的每一台DataNode上去做统计，也就是<strong>把运算往数据靠近，而不是数据往运算靠近</strong>，数据在哪里我就去那里运算，最终得到了DataNode上的局部结果。因此，我们不但需要分布式存储, 还需要分布式运算.</p>
+<p>但分布式运算的构想很丰满，显示却很“骨干”，这边有几个痛点问题需要解决：</p>
+<ol>
+<li>怎么把程序包<strong>分发</strong>到集群中的DataNode上？</li>
+</ol>
+<p>我们该用什么方法去保证每个节点上的环境都是相同的，该用什么系统去分发程序。总不可能用U盘一个一个拷贝过来。</p>
+<ol>
+<li>程序如何分发到<strong>有数据的</strong>Datanode上？</li>
+</ol>
+<p>假设有30个节点存放着我们要跑的数据，那么我希望我的程序就运行在这30个节点上，如果在其他节点上运行也不是不可以，只不过数据需要靠网络传输，又变成数据向计算靠拢的情况了。</p>
+<ol>
+<li>在DataNode上运行的结果，怎么将其汇总起来？</li>
+</ol>
+<p>如果只在一台机器上汇总，那么这台机器的负载肯定会很高。但如果在多台机器上汇总，逻辑就会变得异常复杂。比如说，如果要统计词频，应该如何设计那些单词分发到哪个节点上去统计。</p>
+<p>这些问题是很难解决的，这时候就需要MapReduce了。对于程序员来说，我们<strong>只关心如何处理数据的逻辑</strong>，并不关心数据是如何被分配，又是如何被汇总的，因为这些我们不擅长却异常复杂。MapReduce就是将这些不擅长又必须克服的痛点给解决了，它将这些东西全部封装起来。因此，对程序员来说底层的分发、计算、汇总都是透明的。 </p>
+<h3 id="MPI"><a href="#MPI" class="headerlink" title="MPI"></a>MPI</h3><p>其实在MapReduce出现以前，程序员可以使用MPI并行处理数据。但是这个接口库存在以下缺点：</p>
+<ol>
+<li>从用户编程角度快来看，程序员需要考虑到进程之间的并行问题，并且进程之间的通信需要用户在程序中<strong>显式表达</strong>，这增加了编程的复杂性，使得底层对用户不够透明。</li>
+<li>从系统实现角度来看，MPI 以多进程的方式运行。因此除非在编写程序的时候加入了故障恢复功能，否则MPI不具备容错能力，系统鲁棒性很差。</li>
+</ol>
+<p>因此，分布式计算系统本身需要具备容错能力，这也是MapReduce系统与MPI的重要区别。</p>
+<h3 id="MR数据模型"><a href="#MR数据模型" class="headerlink" title="MR数据模型"></a>MR数据模型</h3><p>上面可以看做是对MapReduce的抽象了解。其实，MR会将数据抽象为一系列键值对，这些键值对通常来自于存储在HDFS中的文件。如下图，我们看到MapReduce的输入是一组键值对，进行转换后的输出也是一组键值对</p>
+<p><img src="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/1.png" style="zoom:67%;"></p>
+<h3 id="MR计算模型"><a href="#MR计算模型" class="headerlink" title="MR计算模型"></a>MR计算模型</h3><p>我们可以用做菜来比如MapReduce的计算过程：统合来看，MapReduce就是你有很多各种各样的蔬菜水果面包（Input），有很多厨师，不同的厨师分到了不同的蔬菜水果面包，自己主动去拿过来（Split），拿到手上以后切碎（Map），切碎以后给到不同的烤箱里，冷藏机里（Shuffle），冷藏机往往需要主动去拿，拿到这些东西存放好以后会根据不同的顾客需求拿不同的素材拼装成最终的结果，这就是Reduce，产生结果以后会放到顾客那边等待付费（Ticket），这个过程是Finalize。</p>
+<p>从上图我们可以看出，Map转换前后的键值对的内容通常都会不同。MapReduce框架会将Map转换的道德键值对按照键进行分组，这就是Shuffle过程 (紫色的归为紫色，蓝色的归为蓝色)。之后，Reduce会对相同键的键值对进行计算，并可根据需要将计算结果进行一次键值对转换后输出。</p>
+<p>从用户编程角度看，程序员不再需要像MPI一样关注节点之间的通信，可以像编写集中式程序那样便携MapReduce代码。</p>
+<p>从系统角度看，系统可以并行启动一系列的进程去执行Map和Reduce操作，而且一旦这些进程出现故障，MapReduce框架可以自动进行容错处理，无需用户编写程序。</p>
+<h2 id="MR体系架构"><a href="#MR体系架构" class="headerlink" title="MR体系架构"></a>MR体系架构</h2><p><img src="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/2.png"></p>
+<p>如上图所示，MapReduce系统采用<strong>主从</strong>架构，里面有主要工作部件：</p>
+<ul>
+<li><code>JobTracker</code>： 主节点运行的后台进程，负责整个系统的<strong>资源管理</strong>和<strong>作业管理</strong>。<ul>
+<li>资源管理是指<code>JobTracker</code>通过监控<code>TaskTracker</code>来管理系统拥有的计算资源。</li>
+<li>作业管理是指<code>JobTracker</code>负责将作业(Job)拆分成任务(Task),并进行任务调度以及跟踪任务的运行进度、资源使用量等信息。</li>
+</ul>
+</li>
+<li><code>TaskTracker</code>: 从节点运行的后台进程，负责管理本节点的资源、执行<code>JobTracker</code>的命令并会报情况。<code>TaskTracker</code>使用slot等量划分本节点上的资源量(如CPU,RAM), 接收<code>JobTracker</code>发送过来的命令并执行，通过心跳将本节点上资源使用情况和任务运行进度汇报给<code>JobTracker</code></li>
+<li><code>Task</code> : 从节点在应用程序执行过程中所启动的进程，负责任务执行。<code>JobTracker</code>根据<code>TaskTracker</code>回报的信息进行调度，命令存在空闲slot 的<code>TaskTracker</code>启动<code>Task</code>进程执行map或者reduce任务，即<code>MapTask</code>和<code>ReduceTask</code>。在Hadoop MapReduce的实现中，<code>Task</code>又被称为<code>Child</code></li>
+<li>客户端：客户端所在节点为提交应用程序启动的进程，负责将用户编写的MapReduce程序提交给JobTracker。在Haddop MapReduce的实现中，客户端被称为<code>RunJar</code></li>
+</ul>
+<p>通常，MapReduce和HDFS会同时部署在一个节点，否则会导致MapReduce从远程DataNode中读入数据，而且需要通过网络将输出结果写入远程DataNode中，这样的代价是很高的。</p>
+<p>因此，JobTracker和NameNode部署在同一个物理节点，而TaskTracker和DataNode部署在同一个物理节点。在这种方式下，可以最大程度避免远程写入的网络开销。如下图所示：</p>
+<p><img src="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/3.png"></p>
+<p>这种部署方式使得MapReduce在输入输出数据的读写时，无需通过网络移动数据，体现了<strong>计算向数据靠拢</strong>的理念。</p>
+<h3 id="执行流程"><a href="#执行流程" class="headerlink" title="执行流程"></a>执行流程</h3><p><img src="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/4.jpg" style="zoom:150%;"></p>
+<p>上图是MapReduce执行应用程序的流程：</p>
+<ol>
+<li>客户端将用户编写的MapReduce作业的配置信息，jar包等上传到共享文件系统，通常是HDFS</li>
+<li>客户端提交作业给JobTracker，并告诉JobTracker作业信息的位置</li>
+<li>JobTracker读取作业的信息，生成一系列Map和Reduce任务，调度给拥有空闲slot的TaskTracker</li>
+<li>TaskTracker根据JobTracker的指令启动Child进程执行Map任务，Map任务将从共享文件系统读取输入数据。</li>
+<li>JobTracker从TaskTracker处获得Map任务进度信息</li>
+<li>一旦Map任务完成之后，JobTracker会将Reduce任务分发给TaskTracker</li>
+<li>TaskTracker根据JobTracker的指令启动Child进程执行Reduce作用，Reduce任务将从Map任务所在节点的本地磁盘中拉取Map的输出结果</li>
+<li>JobTracker从TaskTracker处获取Reduce任务进度信息</li>
+<li>当Reduce任务运行结束并将结果写入共享文件系统，则意味着整个作业执行完毕。</li>
+</ol>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><p><img src="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/5.png"></p>
+<p>MapReduce 工作原理如上图所示：每个Map任务从分布式文件系统(如HDFS)读取需要处理的数据，解析出键值对。然后新生成的键值对经过Shuffle传给Reduce任务，键相同的键值对都会发送给相同的Reduce任务，Reduce任务针对这些键值对进行计算后将结果以新的键值形式写入到分布式文件系统当中。</p>
+<p>在这个过程中主要有Map、Shuffle、Reduce三个阶段，如果加上输入和输出就是五个阶段</p>
+<h3 id="输入"><a href="#输入" class="headerlink" title="输入"></a>输入</h3><p>通常一个Map任务需要开启多个MapTask，那么我们可不就可以把存放在HDFS中的每一个Block”投喂”给一个Map任务呢？听起来这是可行的，但实际上，由于一个键值对极有可能被分在两个物理块当中，因此采用这种方法会导致Map任务读到的输入数据不完整</p>
+<p>因此，MapReduce有自己的输入格式，它提供了数据逻辑划分和键值对解析功能。我们从下图可以看出，文件实际上会被划分为一个个Split(分片)，每个分片会包含一些meta data(如数据长度、起始位置、所在节点)，而且Split不会存在夸块的键值对(因为重新划分了)。因此，Map任务读取的单位是分片而不是文件块, 而且分片的数量决定了map任务的个数。</p>
+<p><img src="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/6.png"></p>
+<p>简单来说，输入格式通过定义分片和键值对当解析的方法完成了从<strong>物理存储(HDFS物理文件块)</strong>到<strong>MapReduce程序可处理的逻辑数据</strong>之间的映射。</p>
+<h3 id="Map阶段"><a href="#Map阶段" class="headerlink" title="Map阶段"></a>Map阶段</h3><p><strong>第一步</strong>：对于一个键值对来说，Map的过程就是将其转换为一个或者多个键值对，即$[K_1,V_1]\longrightarrow \text{List}([K_2,V_2])$ . 例如，在词频统计的例子中，$[行偏移量，An,An]$ 或转变为 $[An,1],[An,1]$ </p>
+<p><strong>第二步</strong>：接着会根据partition方式，确定$[K_2,V_2]$键值对所属的分区，而总的分区数目等于Reduce任务的数量。得到$[K_2,V_2,\text{partition ID}]$ ,并将其放入缓冲区。</p>
+<p><strong>第三步</strong>：当缓冲区的数据到达阈值(如80%), Map任务将会锁定当前阈值以内的缓冲区，现将缓冲区内的$[K_2,V_2,\text{partition ID}]$ 按照partition ID进行排序，再将同一个分区内的键值对按照键进行排序。这样做的目的是让发往同一个Reduce任务的键值对聚集在一起，且拥有相同键的键值对也聚集在一起。然后，Map任务将排序后的结果写到磁盘形成文件。排序和写入的过程并不阻塞新的键值对写入缓冲区，因此同一Map任务一般会产生多个磁盘文件，属于同一分区的键值对也会分布在多个磁盘文件当中。</p>
+<p>值得指出的是，入股哦此时定义了combine方法，那么此时就会对相同的键值对进行Combine.例如WordCount示例中的合并操作将两个相同的键值对$[An,1],[An,1]$ ，合并得到 $[An,2]$ </p>
+<p><strong>第四步</strong>：随着磁盘中溢写到达阈值，Map任务会进一步归并形成一个文件，使得数以一个分区的所有键值对连续存储。这本质上是一个多路归并排序的过程，最终会形成一个连续的大文件形式存储在磁盘中。</p>
+<p>问：为什么要把结果写入到磁盘中去呢？为了<strong>容错</strong>，但为了保证容错牺牲了一定的性能。</p>
+<p><img src="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/7.png"></p>
+<h3 id="Shuffle阶段"><a href="#Shuffle阶段" class="headerlink" title="Shuffle阶段"></a>Shuffle阶段</h3><p>现在，Map阶段已经将键值对分为很多分区，但是有很多Map任务，因此在不同的DataNode上会存在相同名字的分区。SHuffle过程就是将这些位于不同DataNode但是分区相同的键值对发送给<strong>同一个Reduce任务</strong>。也就是将$List([K_2,V_2])\longrightarrow [K_2,List(V_2)]$ 。仍用$[An,1],[An,1]$ 为例，Shuffle的过程就是将两个键值对发送给同一个Reduce任务并形成 $[An,{1,1}]$ 。</p>
+<p>Map任务完成后，会通知所在节点的TaskTracker，并将Map输出文件所在的位置告知TaskTracker，之后，TaskTracker会进一步通知JobTracker。当系统中的Map任务完成率到达设定阈值的时候，系统就会启动Reduce任务。比如说，当阈值设定为60%的话，100个Map任务只需要完成60个，就可以qidongReduce任务，而不必等到100个Map任务全部完成</p>
+<p>所以说，Shuffle阶段是一个中间阶段。</p>
+<p><img src="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/8.png"></p>
+<h3 id="Reduce-阶段"><a href="#Reduce-阶段" class="headerlink" title="Reduce 阶段"></a>Reduce 阶段</h3><p>Reduce阶段启动之后，会定期想JobTracker获取各个节点已经完成的Map任务的输出位置。要记住，<strong>Reduce任务虽然不会等到所有Map任务执行结束才拉取Map任务的输出结果，但是拉取的数据必然来自于已经完成运行的Map任务</strong>。</p>
+<p>对于一键值对来说，Reduce过程是将其转换为一个或者多个键值对。即 $[K_2,\text{List}(V_2)]$键值转换为 $[K_3,V_3]$ . 例如，在词频统计的例子中，Reduce过程对$[An,{1,1,1,1,1}]$进行求和操作转变为 $[An,5]$ </p>
+<p>Reduce和Map阶段非常类似，Reduce任务从磁盘拉取的任务也会先放入<strong>内存缓冲区</strong> ，其中存储的是$[K_2,V_2]$的键值对，当内存缓存区中的数据占用空间到达阈值之后，Reduce任务将对缓存区中的键值按键进行归并排序。如果此时用户定义了conbine方法，则此时Reduce任务先执行合并操作然后将内存缓存区中的数据溢写到磁盘文件。注意，此时Reduce任务会继续拉取数据，因此随着数据的拉取将不断形成多个存在磁盘上的溢写文件</p>
+<p>因为存在多个溢写文件，因此拥有相同键的键值对可能分在在不同文件中，因而这些文件需要再次归并。注意，并不是将所有溢写文件一次性归并，而是在达到一定数量的时候就执行归并操作。与Map端不同的是，最后一次归并操作的结果无需写入磁盘，而是直接可以执行reduce方法处理，这样可以省去一次磁盘读写操作。</p>
+<p><img src="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/9.png"></p>
+<p>Reduce的结果会写入到用户指定的存储系统中，通常是HDFS</p>
+<h3 id="数据输出"><a href="#数据输出" class="headerlink" title="数据输出"></a>数据输出</h3><p>事实上，每个Reduce 任务都会输出一个文件。也就是说，MapReduce的输出结果是一组文件而不是一个文件。</p>
+<h2 id="容错"><a href="#容错" class="headerlink" title="容错"></a>容错</h2><h3 id="JobTracker故障"><a href="#JobTracker故障" class="headerlink" title="JobTracker故障"></a>JobTracker故障</h3><p>JobTracker是MapReduce框架的”首脑“，一旦它发生故障，那么正在运行的所有作业内部状态信息将会丢失。因此，重新启动JobTracker之后，所有作业需要重新执行。</p>
+<p>从而，MapReduce中JobTracker的单节点故障瓶颈是该架构设计的缺陷。</p>
+<h3 id="TaskTracker故障"><a href="#TaskTracker故障" class="headerlink" title="TaskTracker故障"></a>TaskTracker故障</h3><p>当TaskTracker进程故障时，JobTracker将接收不到TaskTracker发来的心跳。因此，在该TaskTracker所在节点运行过的任务都会被标记为失败。JobTracker会将这些任务调度到别的TaskTracker所在节点重新执行。这个过程对用户来说是<strong>透明的</strong>，只会感觉到该作业执行变慢了而已</p>
+<h3 id="Task故障"><a href="#Task故障" class="headerlink" title="Task故障"></a>Task故障</h3><p>Task进程故障比较常见，因其错误的原因通常有代码错误、磁盘损坏等。当TaskTracker检测到一个任务故障时，TaskTracker将在下一次心跳里JobTracker报告该故障，JobTracker收到报告的消息后会重新调度该任务。</p>
+<p>重新调动的额任务可以再集群的任一节点重试，但是当一个任务经过最大尝试数的尝试运行后仍然失败，那么整个作业将被标记为失败。</p>
+<p>对于Map和Reduce任务来说，重试的过程有所不同：</p>
+<ul>
+<li>对于重试的Map任务来说，将从输入路径重新读取数据。</li>
+<li>对于重试的Reduce任务来说，将重新拉取Map端的输出文件，如果读取不到该文件，那么相应的Map任务也需要重新执行。因为Reduce只会读取Map任务结束后输出的文件，因此只要磁盘不损坏，Reduce都可以重新读取。</li>
+</ul>
+<h2 id="编程实例"><a href="#编程实例" class="headerlink" title="编程实例"></a>编程实例</h2><h3 id="代码框架"><a href="#代码框架" class="headerlink" title="代码框架"></a>代码框架</h3><h4 id="map方法的框架"><a href="#map方法的框架" class="headerlink" title="map方法的框架"></a>map方法的框架</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.edu.ecnu.mapreduce.example.java.wordcount;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.IntWritable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.LongWritable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.Text;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Mapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 步骤1：确定输入键值对[K1,V1]和 输出键值对 [K2,V2]的数据类型 */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WordCountMapper</span> <span class="keyword">extends</span> <span class="title">Mapper</span>&lt;<span class="title">K1</span>数据类型, <span class="title">V1</span>数据类型, <span class="title">K2</span>数据类型, <span class="title">V2</span>数据类型&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">map</span><span class="params">(K1数据类型 key, V1数据类型 value, Context context)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">/* 步骤2：编写处理逻辑将[K1,V1]转换为[K2,V2]并输出 */</span></span><br><span class="line">        <span class="comment">//.....逻辑.....</span></span><br><span class="line">            context.write(K2, V2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="reduce方法的框架"><a href="#reduce方法的框架" class="headerlink" title="reduce方法的框架"></a>reduce方法的框架</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.edu.ecnu.mapreduce.example.java.wordcount;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.IntWritable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.Text;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Reducer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 步骤1：确定输入键值对[K2,List(V2)] 和 输出键值对[K3,V3]的数据类型 */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WordCountReducer</span> <span class="keyword">extends</span> <span class="title">Reducer</span>&lt;<span class="title">K2</span>数据类型, <span class="title">V2</span>数据类型, <span class="title">K3</span>数据类型, <span class="title">V3</span>数据类型&gt; </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">reduce</span><span class="params">(K2数据类型 key, Iterable&lt;V2数据类型&gt; values, Context context)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">/* 步骤2：编写处理逻辑将[K2,List(V2)]转换为[K3,V3]并输出 */</span></span><br><span class="line">        <span class="comment">//....逻辑.....</span></span><br><span class="line">        <span class="comment">// 输出计数结果</span></span><br><span class="line">        context.write(K3, V3);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="主方法框架"><a href="#主方法框架" class="headerlink" title="主方法框架"></a>主方法框架</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hadoop.conf.Configured;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.IntWritable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.Text;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Job;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.lib.input.FileInputFormat;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.util.Tool;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.util.ToolRunner;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WordCount</span> <span class="keyword">extends</span> <span class="title">Configured</span> <span class="keyword">implements</span> <span class="title">Tool</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">run</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">/* 步骤1：设置作业的信息 */</span></span><br><span class="line">        Job job = Job.getInstance(getConf(), getClass().getSimpleName());</span><br><span class="line">        <span class="comment">// 设置程序的类名</span></span><br><span class="line">        job.setJarByClass(getClass());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置数据的输入输出路径</span></span><br><span class="line">        FileInputFormat.addInputPath(job, <span class="keyword">new</span> Path(args[<span class="number">0</span>]));</span><br><span class="line">        FileOutputFormat.setOutputPath(job, <span class="keyword">new</span> Path(args[<span class="number">1</span>]));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置map和reduce方法</span></span><br><span class="line">        job.setMapperClass(自定义Map类);</span><br><span class="line">        job.setReducerClass(自定义Reduce类);</span><br><span class="line">        job.setCombinerClass(自定义Combine类);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置map方法的输出键值对数据类型 </span></span><br><span class="line">      	<span class="comment">// 如果不设置的话，默认为 TextInputFormat 和 TextOutputFormat</span></span><br><span class="line">        job.setMapOutputKeyClass(map方法的输出键数据类型);</span><br><span class="line">        job.setMapOutputValueClass(map方法的输出值数据类型);</span><br><span class="line">      </span><br><span class="line">        <span class="comment">// 设置reduce方法的输出键值对数据类型</span></span><br><span class="line">        job.setOutputKeyClass(reduce方法的输出键数据类型);</span><br><span class="line">        job.setOutputValueClass(reduce方法的输出值数据类型);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> job.waitForCompletion(<span class="keyword">true</span>) ? <span class="number">0</span> : <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">/* 步骤2：运行作业 */</span></span><br><span class="line">        <span class="keyword">int</span> exitCode = ToolRunner.run(<span class="keyword">new</span> WordCount(), args);</span><br><span class="line">        System.exit(exitCode);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="词频统计"><a href="#词频统计" class="headerlink" title="词频统计"></a>词频统计</h3><p>词频统计是一个很简单但很经典的MapReduce的应用案例。</p>
+<p>输入：是一个包含大量单词的文本文件</p>
+<p>输出：文件中每个单词及其出现次数(频数)，每个单词和其频数占一行，单词和频数之间有间隔。</p>
+<p>如下所示：</p>
+<p><img src="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/10.png"></p>
+<p>总体来说，词频统计的流程如下：</p>
+<p>Map过程：会把文本的每行内容转换为键值对：[单词,1]</p>
+<p>Reduce过程：</p>
+<ul>
+<li>单词相同的键值对会被发送到同一个Reduce中(shuffle)</li>
+<li>对单词相同的键值对进行计数</li>
+<li>输出计数后的结果[单词, 频数]</li>
+</ul>
+<p><img src="/2022/03/25/%E4%BA%86%E8%A7%A3MapReduce/11.png"></p>
+<p>具体的过程如下:</p>
+<ol>
+<li>每个Map任务通过map方法将 输入键值对$[\text{行偏移量,每行内容}]$ 转换为输出键值对 $[\text{单词,频数}]$ 。比如将$[\text{offset},An,An]$ 转换为$[An,1]$</li>
+<li>Map任务在缓冲区占用量达到一定阈值的时候(这里阈值为2)将键值对溢写到本地磁盘文件中。并在溢写的过程中执行归并操作。例如，把三个$[An,1]$转换为 $[An,{1,1,1}]$</li>
+<li>之后，Map任务将归并产生的键值对经过Shuffle过程发送给Reduce任务。</li>
+<li>在Reduce阶段，Reduce任务会进行归并操作。例如将$[My,1],[My,1],[My,{1,1,1}]$ 转换为 $[My,{1,1,1,1,1}]$</li>
+<li>在归并操作完成之后，Reduce任务会通过Reduce方法将归并产生的键值对$[\text{单词,List(频数)}]$ 转换为$[\text{单词,频数}]$ 并输出。例如：将$[My,{1,1,1,1,1}]$ 转化为 $[My,5]$</li>
+</ol>
+<h4 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h4><ul>
+<li>WordCountMapper</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WordCountMapper</span> <span class="keyword">extends</span> <span class="title">Mapper</span>&lt;<span class="title">LongWritable</span>, <span class="title">Text</span>, <span class="title">Text</span>, <span class="title">IntWritable</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">map</span><span class="params">(LongWritable key, Text value, Context context)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">/* 步骤2：编写处理逻辑将[K1,V1]转换为[K2,V2]并输出 */</span></span><br><span class="line">        <span class="comment">// 以空格作为分隔符拆分成单词</span></span><br><span class="line">        String[] datas = value.toString().split(<span class="string">" "</span>);</span><br><span class="line">        <span class="keyword">for</span> (String data : datas) &#123;</span><br><span class="line">            <span class="comment">// 输出分词结果</span></span><br><span class="line">            context.write(<span class="keyword">new</span> Text(data), <span class="keyword">new</span> IntWritable(<span class="number">1</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>WordCountReducer</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WordCountReducer</span> <span class="keyword">extends</span> <span class="title">Reducer</span>&lt;<span class="title">Text</span>, <span class="title">IntWritable</span>, <span class="title">Text</span>, <span class="title">IntWritable</span>&gt; </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">reduce</span><span class="params">(Text key, Iterable&lt;IntWritable&gt; values, Context context)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">/* 步骤2：编写处理逻辑将[K2,List(V2)]转换为[K3,V3]并输出 */</span></span><br><span class="line">        <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">        <span class="comment">// 遍历累加求和</span></span><br><span class="line">        <span class="keyword">for</span> (IntWritable value : values) &#123;</span><br><span class="line">            sum += value.get();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 输出计数结果</span></span><br><span class="line">        context.write(key, <span class="keyword">new</span> IntWritable(sum));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>WordCount 主方法</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WordCount</span> <span class="keyword">extends</span> <span class="title">Configured</span> <span class="keyword">implements</span> <span class="title">Tool</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">run</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">/* 步骤1：设置作业的信息 */</span></span><br><span class="line">        Job job = Job.getInstance(getConf(), getClass().getSimpleName());</span><br><span class="line">        <span class="comment">// 设置程序的类名</span></span><br><span class="line">        job.setJarByClass(getClass());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置数据的输入输出路径</span></span><br><span class="line">        FileInputFormat.addInputPath(job, <span class="keyword">new</span> Path(args[<span class="number">0</span>]));</span><br><span class="line">        FileOutputFormat.setOutputPath(job, <span class="keyword">new</span> Path(args[<span class="number">1</span>]));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置map和reduce方法</span></span><br><span class="line">        job.setMapperClass(WordCountMapper<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        job.setReducerClass(WordCountReducer<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        job.setCombinerClass(WordCountReducer<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置map方法的输出键值对数据类型</span></span><br><span class="line">        job.setMapOutputKeyClass(Text<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        job.setMapOutputValueClass(IntWritable<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        <span class="comment">// 设置reduce方法的输出键值对数据类型</span></span><br><span class="line">        job.setOutputKeyClass(Text<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        job.setOutputValueClass(IntWritable<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> job.waitForCompletion(<span class="keyword">true</span>) ? <span class="number">0</span> : <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">/* 步骤2：运行作业 */</span></span><br><span class="line">        <span class="keyword">int</span> exitCode = ToolRunner.run(<span class="keyword">new</span> WordCount(), args);</span><br><span class="line">        System.exit(exitCode);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="关系表自然连接和优化"><a href="#关系表自然连接和优化" class="headerlink" title="关系表自然连接和优化"></a>关系表自然连接和优化</h3><h3 id="网页链接排名"><a href="#网页链接排名" class="headerlink" title="网页链接排名"></a>网页链接排名</h3><h3 id="K-Means聚类"><a href="#K-Means聚类" class="headerlink" title="K-Means聚类"></a>K-Means聚类</h3><h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><h3 id="MapReduce中的Merge和Combine有什么区别"><a href="#MapReduce中的Merge和Combine有什么区别" class="headerlink" title="MapReduce中的Merge和Combine有什么区别"></a>MapReduce中的Merge和Combine有什么区别</h3><p>Combine函数需要程序员显示定义，如果定义了combine方法，那么</p>
+<p>而Merge和程序员是没有关系的</p>
+<h3 id="MapReduce中的分布式缓存机制有什么用"><a href="#MapReduce中的分布式缓存机制有什么用" class="headerlink" title="MapReduce中的分布式缓存机制有什么用"></a>MapReduce中的分布式缓存机制有什么用</h3>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/bigdata/" rel="tag"># bigdata</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/" rel="prev" title="高级数据库系统-查询">
+      <i class="fa fa-chevron-left"></i> 高级数据库系统-查询
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/03/31/%E4%BA%86%E8%A7%A3%E4%BB%A5%E5%A4%AA%E5%9D%8A/" rel="next" title="了解以太坊">
+      了解以太坊 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#了解MapReduce"><span class="nav-number">1.</span> <span class="nav-text">了解MapReduce</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MapReduce引入"><span class="nav-number">1.1.</span> <span class="nav-text">MapReduce引入</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MPI"><span class="nav-number">1.1.1.</span> <span class="nav-text">MPI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MR数据模型"><span class="nav-number">1.1.2.</span> <span class="nav-text">MR数据模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MR计算模型"><span class="nav-number">1.1.3.</span> <span class="nav-text">MR计算模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MR体系架构"><span class="nav-number">1.2.</span> <span class="nav-text">MR体系架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#执行流程"><span class="nav-number">1.2.1.</span> <span class="nav-text">执行流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工作原理"><span class="nav-number">1.3.</span> <span class="nav-text">工作原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#输入"><span class="nav-number">1.3.1.</span> <span class="nav-text">输入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Map阶段"><span class="nav-number">1.3.2.</span> <span class="nav-text">Map阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shuffle阶段"><span class="nav-number">1.3.3.</span> <span class="nav-text">Shuffle阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reduce-阶段"><span class="nav-number">1.3.4.</span> <span class="nav-text">Reduce 阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据输出"><span class="nav-number">1.3.5.</span> <span class="nav-text">数据输出</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容错"><span class="nav-number">1.4.</span> <span class="nav-text">容错</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JobTracker故障"><span class="nav-number">1.4.1.</span> <span class="nav-text">JobTracker故障</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TaskTracker故障"><span class="nav-number">1.4.2.</span> <span class="nav-text">TaskTracker故障</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Task故障"><span class="nav-number">1.4.3.</span> <span class="nav-text">Task故障</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编程实例"><span class="nav-number">1.5.</span> <span class="nav-text">编程实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#代码框架"><span class="nav-number">1.5.1.</span> <span class="nav-text">代码框架</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#map方法的框架"><span class="nav-number">1.5.1.1.</span> <span class="nav-text">map方法的框架</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#reduce方法的框架"><span class="nav-number">1.5.1.2.</span> <span class="nav-text">reduce方法的框架</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#主方法框架"><span class="nav-number">1.5.1.3.</span> <span class="nav-text">主方法框架</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#词频统计"><span class="nav-number">1.5.2.</span> <span class="nav-text">词频统计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#代码"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">代码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关系表自然连接和优化"><span class="nav-number">1.5.3.</span> <span class="nav-text">关系表自然连接和优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网页链接排名"><span class="nav-number">1.5.4.</span> <span class="nav-text">网页链接排名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#K-Means聚类"><span class="nav-number">1.5.5.</span> <span class="nav-text">K-Means聚类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题"><span class="nav-number">1.6.</span> <span class="nav-text">问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MapReduce中的Merge和Combine有什么区别"><span class="nav-number">1.6.1.</span> <span class="nav-text">MapReduce中的Merge和Combine有什么区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MapReduce中的分布式缓存机制有什么用"><span class="nav-number">1.6.2.</span> <span class="nav-text">MapReduce中的分布式缓存机制有什么用</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

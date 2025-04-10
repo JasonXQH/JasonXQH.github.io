@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="共识算法概述首先我们知道有两种故障容错类型：拜占庭容错(BFT)和崩溃容错(CFT)。  崩溃容错（CFT）是一种弹性，在这种情况下，如果组件出现故障，系统仍可以正确地达成共识。 拜占庭的容错（BFT）表示即使在存在恶意参与者的情况下也可以完成共识。   分布式系统共识算法一般在分布式系统中经常使用，而且我们这学期也在想学习MapReduce、Spark、Flink这类框架。其实，区块链系统也是一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="区块链-共识算法">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="共识算法概述首先我们知道有两种故障容错类型：拜占庭容错(BFT)和崩溃容错(CFT)。  崩溃容错（CFT）是一种弹性，在这种情况下，如果组件出现故障，系统仍可以正确地达成共识。 拜占庭的容错（BFT）表示即使在存在恶意参与者的情况下也可以完成共识。   分布式系统共识算法一般在分布式系统中经常使用，而且我们这学期也在想学习MapReduce、Spark、Flink这类框架。其实，区块链系统也是一">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/6.png">
+<meta property="article:published_time" content="2022-06-05T01:03:11.000Z">
+<meta property="article:modified_time" content="2022-12-27T02:56:34.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="block chain">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>区块链-共识算法 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          区块链-共识算法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-06-05 09:03:11" itemprop="dateCreated datePublished" datetime="2022-06-05T09:03:11+08:00">2022-06-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-12-27 10:56:34" itemprop="dateModified" datetime="2022-12-27T10:56:34+08:00">2022-12-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="共识算法"><a href="#共识算法" class="headerlink" title="共识算法"></a>共识算法</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>首先我们知道有两种故障容错类型：拜占庭容错(BFT)和崩溃容错(CFT)。</p>
+<ul>
+<li>崩溃容错（CFT）是一种弹性，在这种情况下，如果组件出现故障，系统仍可以正确地达成共识。</li>
+<li>拜占庭的容错（BFT）表示即使在存在恶意参与者的情况下也可以完成共识。 </li>
+</ul>
+<h3 id="分布式系统"><a href="#分布式系统" class="headerlink" title="分布式系统"></a>分布式系统</h3><p>共识算法一般在分布式系统中经常使用，而且我们这学期也在想学习MapReduce、Spark、Flink这类框架。其实，区块链系统也是一种分布式系统，因为在区块链中每个节点独立运行交易，不同的节点可能运行在地理上分离的区域，而有些节点可能存在恶意、可能发生故障。</p>
+<p>因此，区块链系统作为一个整体应该对外提供可靠、可用、一致性的服务，但处理结果的一致性是基础。</p>
+<p>分布式系统分为同步和异步分布式系统。</p>
+<h4 id="同步分布式系统"><a href="#同步分布式系统" class="headerlink" title="同步分布式系统"></a>同步分布式系统</h4><p>同步分布式系统需要严格满足：</p>
+<p>（1）节点运行指令的时间有严格的上限和下限；</p>
+<p>（2）消息能够在有限的时间内传输到目标节点；</p>
+<p>（3）每个节点有一个本地时钟，与实际时间的偏移率在一个已知的范围内。</p>
+<p>同步分布式网络就像两个人打电话，只要不挂断，一个人就必须等待在那边听声音</p>
+<p>对于运行在广域网上的区块链系统来说，上述约束条件很难满足(因为区块产生的速度比较慢)，而且区块链网络中的节点可能在空间上的距离不等。因此区块链系统一般采用异步分布式系统(弱同步)。</p>
+<h4 id="异步分布式系统"><a href="#异步分布式系统" class="headerlink" title="异步分布式系统"></a>异步分布式系统</h4><p>异步分布式系统具有如下性质：异构性、并发性、可靠性、可用性、缺乏全局时钟、故障独立性</p>
+<p>异步分布式系统存在一些限制：</p>
+<ol>
+<li>每一个动作在不同的节点运行时间不同，因为机器的性能不一样</li>
+<li>消息可以在任意长时间后接收到，因为网络存在延迟</li>
+<li>时钟漂移率可以使任意的</li>
+</ol>
+<p>异步模型对运行速度和消息延迟没有任何假设，这就要求区块链系统中的模型和算法不应立足于某些限制进行设计。就好比发微信，我看到了别人发来的微信，才会回复，而不是一直抱着手机等在那边</p>
+<ul>
+<li><p>一致性问题</p>
+<ul>
+<li><strong>处理结果一致</strong>（状态一致）。指分布式系统中多个节点就某一处理结果达成一致，基本方法是状态复制（State Replication）。如传统数据库的发布<strong>订阅模式</strong>，就实现了数据库的一致性。</li>
+<li><strong>输入的一致性</strong>。指从多个节点的输入值中，选取其中一个作为决策值，并作为分布式系统共同的输入。这也是区块链中通常所说的共识。</li>
+</ul>
+</li>
+<li><p>可靠性问题</p>
+<ul>
+<li><strong>可靠性（可用性）</strong>是描述系统可以提供服务能力的重要指标，通常用两个时间指标MTBF（ Mean Time Between Failures ，平均故障间隔时间）和MTTR（ Mean Time to  Repair ，平均修复时间）来衡量。一个高可用性系统应该具有尽量长的MTBF和尽量短的MTTR。</li>
+</ul>
+</li>
+</ul>
+<h3 id="共识"><a href="#共识" class="headerlink" title="共识"></a>共识</h3><p>在集中式系统中，一旦出现单点故障，就只能让系统重启，任务会被搁置。分布式系统就解决了这个问题，分布式系统需要首先保证高可靠、高可用性。由此，在分布式系统中需要有多个节点。</p>
+<p>假设系统中有n个节点，其中最多有f个节点可能崩溃，在剩下的n-f个好的节点中，从节点i提交一个区块$B_i$(输入值)开始，所有节点要遵循相同的协议，从全部提交的区块中选择一个区块(一致性结果，决策值)，并用该去快提交到区块链系统</p>
+<p>从多个节点输入值中选取一个决策之就称为共识，达成共识过程中所遵循的协议就是共识算法</p>
+<p>共识需要满足的条件</p>
+<ul>
+<li><strong>一致性</strong>： 所有好节点的决策之必定相同</li>
+<li><strong>可终止性</strong>： 所有好节点在有限的时间内结束决策过程</li>
+<li><strong>有效性</strong>: 选择出的决策之必须是某个节点的输入值</li>
+</ul>
+<h4 id="故障容错"><a href="#故障容错" class="headerlink" title="故障容错"></a>故障容错</h4><p>故障容错是指区块链系统中<strong>节点</strong>和<strong>通信信道</strong>都有可能出现故障，导致部分节点不可用或者偏离被认为正确的结果或行为。</p>
+<p>不同故障的影响：“遗漏故障”，“随机故障”，“时序故障”（时序故障主要针对同步分布式系统，对执行时间、通信时间和时钟漂移均有限制）。</p>
+<h5 id="遗漏故障"><a href="#遗漏故障" class="headerlink" title="遗漏故障"></a>遗漏故障</h5><p>遗漏故障是指节点或通信信道不能完成它应该做的动作，就是崩溃了。也称为CFT。在异步环境下，由于对节点的运行速度和消息传递延迟没有限制，因此我们无法判断消息到底是在路上，还是节点已经崩溃。这种情况被称为<strong>可变消息延迟</strong>。区块链系统中共识算法的设计应该基于可变消息延迟的模式</p>
+<ul>
+<li><strong>节点遗漏故障</strong>： 主要是崩溃，意味着节点停止并不再执行任何动作，也不再对消息进行响应。一般用一段固定时间等待故障节点对消息的应答来检测，如果其他节点能确切检测到节点已经崩溃，那么这个节点崩溃称为故障-停止。但对异步系统，超时只能表明节点没有响应，这可能是节点崩溃了，也可能是节点执行速度慢甚至是消息还没有到达</li>
+<li><strong>通信遗漏故障</strong>： 指通过通信信道，节点A不能把消息m成功传送到节点B，也叫信息丢失。在存在消息丢失的消息传递模式下，任何一条消息都不能保证可以安全地到达消息的接收者。存在两种情况，一种是消息到达节点B，但消息内容已经损坏，这种可以通过消息签名检测；另一种情况就是消息丢失。</li>
+</ul>
+<p>遗漏故障在异步分布式系统中是比较难解决的——无论是节点还是通信，都难以判断其是否发生了故障。</p>
+<h4 id="随机故障"><a href="#随机故障" class="headerlink" title="随机故障"></a>随机故障</h4><p>随机故障也称为拜占庭故障，用于描述可能发生的任何类型故障，如故意返回错误结果或者处理的结果本身就是一个错误的。</p>
+<ul>
+<li>节点的随机故障通常是指节点进程<strong>随机地省略</strong>要做的处理步骤或执行一些不需要的步骤，从而导致产生错误的执行结果。这类故障<strong>不能通过查看节点是否应答来检测</strong>，也无法通过<strong>密码学的方式</strong>来进行判断，因为它可能随机地应答或者应答错误的结果。</li>
+<li>通信通道也会出现随机故障，如消息内容可能被损坏或者传递不存在的消息，也可能多次传递同样的消息。这类故障可以通过校验、消息签名或时间戳等机制进行检测。</li>
+</ul>
+<p>因此在基于拜占庭故障的共识算法在设计时，除了考虑拜占庭节点是否返回结果，还需要考虑返回错误结果的情况，因此基于拜占庭的共识算法通常要求不超过1/3的出错节点，就是考虑到即使1/3的正常节点和1/3的故障节点对冲后，仍然有多数1/3能够使算法形成共识</p>
+<h3 id="FLP原理"><a href="#FLP原理" class="headerlink" title="FLP原理"></a>FLP原理</h3><p>FLP不可能原理：当允许存在<strong>节点失效</strong>的情况下，不存在一个确定性的共识算法总能<strong>在异步模型</strong>下达成一致。就连POW也不是确定性的，也可能存在一条链被推翻的情况</p>
+<p>但是，在同步模型下，由于其对节点处理时间、消息传递、始终都有要求，很容易判断是否失败，从而决定是否重传或者其他方式进行故障排除。</p>
+<p>FLP原理实际上说明对于允许节点失效的情况下，纯粹的异步系统无法确保一致性在有限的时间内完成。即便对于非拜占庭错误的前提下，包括Paxos、Raft等共识算法都存在无法达成共识的情况。</p>
+<p>但是，在工程实践中，在付出一些代价的情况下，获得高效的共识算法还是很有必要的。具体付出什么代价，共识算法能达到什么程度，往往通过CAP原理进行衡量。</p>
+<h3 id="CAP原理"><a href="#CAP原理" class="headerlink" title="CAP原理"></a>CAP原理</h3><p>在这篇博客<a href="https://jasonxqh.github.io/2022/01/01/数据库扩展性问题/#数据库扩展性问题">数据库扩展性问题</a>中学习过，这边再复习一下</p>
+<p>CAP 原理是指在一个分布式系统中，一致性（Consistency）、可用性（Availability）、分区容错性（Partition tolerance），三者不可兼得。</p>
+<p><img src="/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/1.png" style="zoom:67%;"></p>
+<h4 id="一致性"><a href="#一致性" class="headerlink" title="一致性"></a>一致性</h4><p><strong>用如下系统进行解释</strong></p>
+<p><img src="/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/2.png"></p>
+<ol>
+<li>客户端向G1写入数据v1，并等待响应</li>
+<li>此时，G1服务器的数据为v1，而G2服务器的数据为v0，两者不一致</li>
+<li>接着，在返回响应给客户端之前，G2服务器会自动同步G1服务器的数据，使得G2服务器的数据也是v1</li>
+<li>一致性保证了不管向哪台服务器（比如这边向G1）写入数据，其他的服务器（G2）能实时同步数据</li>
+<li>G2已经同步了G1的数据，会告诉G1，我已经同步了</li>
+<li>G1接收了所有同步服务器的已同步的报告，才将“写入成功”信息响应给client</li>
+<li>client再发起请求，读取G2的数据</li>
+<li>此时得到的响应是v1，即使client从未写入数据到G2</li>
+</ol>
+<p>一致性的要求就是，在没有达到全部同步之前，是没有办法向客户提供服务的。</p>
+<h4 id="可用性"><a href="#可用性" class="headerlink" title="可用性"></a>可用性</h4><p>系统中非故障节点收到的每个请求都必须有响应</p>
+<p>即可用性，所有的节点都保持<strong>高可用性</strong>。<strong>注意</strong>，这里的高可用还包括不能出现延迟，比如如果某节点由于等待数据同步而阻塞客户端请求，那么节点就不满足高可用性。也就是说，任何没有发生故障的服务必须在有限的时间内返回合理的结果集。</p>
+<h4 id="分区容错性"><a href="#分区容错性" class="headerlink" title="分区容错性"></a>分区容错性</h4><p><strong>允许网络丢失从一个节点发送到另一个节点的任意多条消息，即不同步 。常常会发生在分布式系统出现网络故障的时候，但由于网络是脆弱不稳定的，因此分区容错性常常必不可少</strong></p>
+<p>我们举个例子，比如A、B两个机房构成一个分布式集群，如果A和B机房之间的网络不通了，那么一个分布式集群就会拆分成A和B两个集群。如果出现了分区，那肯定保证不了数据的强一致性。</p>
+<h4 id="A与C的取舍"><a href="#A与C的取舍" class="headerlink" title="A与C的取舍"></a>A与C的取舍</h4><p>分区容忍性是在物理上进行保证的，比如说在海底铺设多条光缆，出现光缆故障的概率较小且难以完全避免。因此我们只能在AC之间做一个trade-off，这是由业务场景决定的</p>
+<ol>
+<li>保证AP, 弱化一致性(C)，允许某个时刻不一致，但是最终仍然会达到一致<ul>
+<li>适用于对结果一致性不敏感的应用，可以允许新的数据副本产生后经过一段时间后，所有节点才更新成功，期间不保证一致性。如简单分布式p2p协议Gossip</li>
+<li>不同的区块链系统采用不同的机制来确保新的交易所基于的区块链数据库是最新状态。如比特币要求6个区块确认，Fabric要求背书节点对交易背书</li>
+</ul>
+</li>
+<li>保证CP, 弱化可用性(A) 允许执行过程”慢一些“，甚至拒绝服务<ul>
+<li>适用于对结果一致性很敏感的应用，例如银行取款机，当分布式系统对处理不能达到一致结果时会拒绝服务。</li>
+<li>Mongodb、Redis这样的NoSQL数据库，也满足CP原则</li>
+<li>Paxos 、Raft 等共识算法，主要处理这种情况。在Paxos 类算法中，可能存在着无法提供可用执行结果的情形，但同时允许少数节点离线。</li>
+</ul>
+</li>
+</ol>
+<p>有人会问，就不能保证AC吗？那就需要非常严格的全体一致协议，不能容忍网络错误或者节点错误，一旦出现这样的问题，整个系统就会拒绝写请求，因为它并不知道对面的那个结点是否挂掉了。</p>
+<p><img src="/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/3.png"></p>
+<h3 id="区块链系统中的ACID原则"><a href="#区块链系统中的ACID原则" class="headerlink" title="区块链系统中的ACID原则"></a>区块链系统中的ACID原则</h3><p>事务的ACID我们已经不陌生了，那么区块链中的ACID是什么样的呢？</p>
+<ul>
+<li>原子性：每次对系统的更新操作都是原子的，要么成功，要么不执行。对于区块链系统，一个原子操作是一个 区块，因此区块的提交应满足原子性要求。</li>
+<li>一致性：上面我们说的都是一致性。一个操作开始和结束时，数据库的状态是一致的，无中间状态。对于区块链系统，不同节点在一个区块提交前后的状态应该是一致的。</li>
+<li>隔离性：并发操作时，彼此不需要知晓对方存在，执行互不影响，需要串行化执行，有时间顺序。在区块链系统中，要根据并发交易到达的顺序逐个添加到区块中，在区块提交时按照排序顺序执行。</li>
+<li>永久性： 状态的改变是持久的，不会失效，也不会无缘无故回滚。区块链系统中，一个区块一旦达成共识，会永久附加到原有的区块链中，不可篡改。</li>
+</ul>
+<h3 id="BASE理论"><a href="#BASE理论" class="headerlink" title="BASE理论"></a>BASE理论</h3><p>在计算机网络中中，还有一个很重要的理论：BASE (Basic Availability ,Soft-state, Eventual Consistency 三个短语的缩写) </p>
+<p>这个原则与ACID相对，就是说牺牲掉对一致性的约束(最终仍然实现一致性)，来换取一定的可用性。BASE理论的核心思想是：<strong>即使无法做到强一致性，但每个应用都可以根据自身业务特点，采用适当的方式来使系统达到最终一致性</strong></p>
+<ul>
+<li>Basic Availability(基本可用,总归会可用的)。分布式系统在出现不可预知故障的时候，允许损失部分可用性，如响应时间上的损失或系统功能上的损失。实际例子：12306抢票</li>
+<li>Soft-state(允许系统中的数据存在中间状态)。认为该中间状态的存在不会影响系统的整体可用性，即允许系统在不同节点的数据副本之间进行数据同步的过程存在延时。即节点之间不一致的状态</li>
+<li>Eventual Consistency(最终一致性)。所有的数据副本在经过一段时间的同步之后，最终都能够达到一个一致的状态。因此本质是需要保证最终达到一致，而不需要实时保证强一致性。</li>
+</ul>
+<p>BASE理论是对CAP中一致性和可用性权衡的结果(牺牲一致性，换取可用性)、其来源于对大规模互联网系统分布式实践的总结，是基于CAP定理逐步演化而来的。</p>
+<p>BASE理论面向的是<strong>大型高可用可扩展的分布式系统</strong>，和传统的事务ACID特性是相反的，它完全不同于ACID的强一致性模型，而是通过牺牲强一致性来获得可用性，并允许数据在一段时间内是不一致的，但最终达到一致状态。</p>
+<p>在实际的分布式场景种，由于不同业务单元和组件对数据一致性的要求是不同的，因此在具体的分布式系统架构设计过程中，ACID特性和BASE理论又往往会结合在一起</p>
+<h2 id="Paxos"><a href="#Paxos" class="headerlink" title="Paxos"></a>Paxos</h2><p>Paxos算法是基于消息传递且具有高度容错的一致性算法，是目前公认的解决分布式一致性问题最有效的算法之一。该算法能够解决分布式网络中存在遗漏故障，并且故障节点数小于总节点数的1/2的场景下的共识问题。</p>
+<h2 id="RAFT"><a href="#RAFT" class="headerlink" title="RAFT"></a>RAFT</h2><p>在我的这篇博客已经写的很详细了<a href="https://jasonxqh.github.io/2022/06/10/Raft/#Raft">Raft</a></p>
+<h2 id="PBFT算法"><a href="#PBFT算法" class="headerlink" title="PBFT算法"></a>PBFT算法</h2><p>PBFT常常运用于联盟链当中，进入联盟链需要一个CA(合法性证明)。在公链系统中，共识是通过POW实现的，但是由于POW需要消耗大量能源，因此饱受诟病。在联盟链中，由于存在一定的信任基础(CA)，使得共识可以通过PBFT算法实现，其主要原理就是CPU投票。</p>
+<h3 id="概述-1"><a href="#概述-1" class="headerlink" title="概述"></a>概述</h3><p>PBFT是Practical Byzantine Fault Tolerance的缩写，意为实用拜占庭容错算法。它解决了原始拜占庭容错算法效率不高的问题，将算法复杂度由指数级降低到多项式级，是的拜占庭容错算法在实际系统应用中变得可行。</p>
+<p>PBFT算法是基于<strong>状态机复制</strong>理念(听起来很耳熟，raft也是这个原理)设计的一个使用的并能解决拜占庭容错的算法，当存在f个失效节点时必须保证存在至少3f+1个副本，才能保证在异步分布式系统中达成共识，并且算法满足安全性和活性要求，即提供 $(n-1)/3$ 的容错性</p>
+<p>在采用PBFT算法的区块链系统中，每个节点维护服务在本节点的状态(区块链)及相关服务操作(交易)，这里的服务被称为在系统中不同节点之间复制(消息传输)的状态机，包含状态和操作。 </p>
+<p>整个系统共同维护一个状态，并在不同节点之间赋值，所有的节点采取一致的行动，从而满足分布式系统的一致性要求。状态机在每个节点的复制体称为副本，<strong>每个节点都有一个完整的副本</strong>，所有副本的集合用R表示，每个副本用$R_i~ ,R_i\in(0\sim|R|-1)$ 表示。</p>
+<p>同所有的状态机复制技术一样，PBFT对每个副本节点提出了两个限定条件：</p>
+<ol>
+<li>所有节点必须是确定性的。也就是说，在给定状态和参数相同的情况下，操作执行的结果必须相同</li>
+<li>所有节点必须从相同的状态开始执行</li>
+</ol>
+<h3 id="重要概念"><a href="#重要概念" class="headerlink" title="重要概念"></a>重要概念</h3><h4 id="视图-view"><a href="#视图-view" class="headerlink" title="视图(view)"></a>视图(view)</h4><p>视图可以理解为Raft当中的任期，其视图编号也是连续的。</p>
+<p>视图是一次成功地节点配置轮换过程。在一个视图中，会根据算法来确认一个副本作为主节点(primary),其他副本作为备份(backups)。</p>
+<p>但是与Raft算法竞争Leader不同，PBFT算法中，主节点由公式 $p=\text{v mod |R|}$ 计算得到，这里v是视图编号，p是副本编号，$|R|$ 是副本集合的个数。因此，在PBFT中，是轮流做庄的，谁当Leader是确定的。</p>
+<h4 id="主节点"><a href="#主节点" class="headerlink" title="主节点"></a>主节点</h4><p>主要用于分配基于本视图的消息序列号(全局编号)，从而对分布式系统的消息进行全局排序。进而，所有副本会按照视图编号、序列号的顺序处理消息，变更状态，使得所有副本的状态保持一致</p>
+<h4 id="消息"><a href="#消息" class="headerlink" title="消息"></a>消息</h4><p>使用加密和签名技术来防止欺骗攻击和重放攻击，以及检测被破坏的信息。但是，对消息本身的错误、消息的延迟或者不响应则要通过共识算法来防止。</p>
+<p>因此，算法中消息包含了<strong>公钥签名、消息摘要</strong>等安全信息及检测消息重复的消息验证编码(MAC)。</p>
+<p>算法中，使用m表示消息，$m_i$表示由节点i签名的消息，$D(m)$ 表示消息m的摘要。</p>
+<h3 id="客户端-消息发起者"><a href="#客户端-消息发起者" class="headerlink" title="客户端(消息发起者)"></a>客户端(消息发起者)</h3><p>客户端c向主节点发送请求 <code>&lt;REQUEST,o,t,c&gt;</code>, 请求执行状态机操作o。</p>
+<ul>
+<li>其中t是时间戳，用来保证客户端请求只会执行一次</li>
+<li>客户端c发出请求的时间戳是全序排列的，不可逆的，后续发出的请求比以前发出的请求拥有跟高的时间戳。</li>
+<li>对于客户端，请求发起的时间戳可以是本地时钟值</li>
+</ul>
+<p>客户端发起消息之后，副本会给客户端一个Reply，响应格式是：<code>&lt;REPLY,v,t,c,i,r&gt;</code> ，其中v是视图编号，t是时间戳，i是副本节点的编号，r是请求执行的结果。</p>
+<ul>
+<li>每个由副本节点发送给客户端的消息，都包含了当前的视图编号，使得客户端能够跟踪视图编号，从而进一步推算出当前主节点的编号</li>
+<li>客户端通过点对点消息向它自己认为的主节点发送请求，然后主节点自动将该请求向所有备份节点进行广播。由于系统中最多存在f个<strong>坏节点</strong>，因此，当有f+1个响应相同时，客户端把r作为正确的执行结果。所谓的响应相同，是指：签名正确；具有同样的时间戳t；执行结果r相同</li>
+<li>如果客户端在有限时间内，没有收到f+1个相同的响应，客户端应该重新讲该请求向所有副本节点进行广播。这时候，如果副本节点已经处理过该请求，则可以直接把上次发送的响应重新发送给客户端。如果没有处理过，则副本节点进行处理请求的同时，会将该请求转发给主节点。</li>
+</ul>
+<h3 id="三段提交协议"><a href="#三段提交协议" class="headerlink" title="三段提交协议"></a>三段提交协议</h3><p>主节点接收到来自客户端的请求之后，按照三阶段协议，会向全网广播该消息。主要包括<strong>预准备(pre-prepare)、准备(prepare)和确认(commit)</strong>三个阶段</p>
+<ul>
+<li>预准备和准备两个阶段用来确保同一个视图中请求发送的时序性</li>
+<li>准备和确认两个阶段用来确保在不同的视图之间的已接受的请求命令是严格排序的。</li>
+</ul>
+<p><img src="/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/4.png"></p>
+<p>我们看到，由于大家都知道主节点是谁(通过视图号v取模运算得出)，因此客户端直接向主节点发起请求。这是<strong>request</strong>阶段</p>
+<h4 id="预准备阶段"><a href="#预准备阶段" class="headerlink" title="预准备阶段"></a>预准备阶段</h4><p>由上图可知，预准备阶段主节点给予当前视图v分配一个序列号n给收到客户端请求，然后，向所有备份节点群发送预准备消息。</p>
+<p>这个消息格式为:<code>&lt;&lt;PRE-PREPARE,v,n,d&gt;,m&gt;</code> ，这里v是视图编号，m是客户端发送的请求消息，d是请求消息m的摘要。</p>
+<p>注意，客户端请求本身是不包含在预准备的消息里面的，其目的有两个：</p>
+<ul>
+<li>每个由副本节点发给客户端的消息，都包含了当前的视图编号，使得客户端能够跟踪视图编号，从而推算出主节点的编号</li>
+<li>客户端通过点对点消息向它自己认为的主节点发送请求，然后主节点自动将该请求向所有备份节点进行广播。</li>
+</ul>
+<p>备份节点收到预准备信息后，需要开始验证、检查一些内容：</p>
+<ul>
+<li>请求和预准备消息的签名正确，并且d与m的摘要需一致</li>
+<li>检查预准备消息中的视图编号是否为当前视图编号</li>
+<li>节点是否接受过视图编号为v，序号为n，但消息摘要与d不同的消息？如果有的话，现在这条消息就会失效</li>
+<li>消息的序号n必须在水线(watermark)上下限h和H之间。水线在之后会说明</li>
+</ul>
+<p>一旦某个备份节点 i 接收并验证了预准备信息，那么它就会进入准备阶段</p>
+<h4 id="准备阶段"><a href="#准备阶段" class="headerlink" title="准备阶段"></a>准备阶段</h4><p>节点i开始准备阶段之后，会向所有副本节点发送准备消息<code>&lt;PREPARE,v,n,d,i&gt;</code>，并将预准备消息和准备消息在节点i进行保存。</p>
+<p>当节点i收到来自其他节点的准备消息，那么当满足如下条件时</p>
+<ul>
+<li>条件1: 接收到超过 2f 个节点的准备消息</li>
+<li>条件2: 接收到2f个与预准备消息一致的准备消息，一致的检查内容包括：视图编号v、消息序号n、摘要d</li>
+</ul>
+<p>副本节点i将 <code>(m,v,n,i)</code> 保存到本地并标记为Prepared状态，即为<code>prepared(m,v,n,i)</code> 。其中</p>
+<ul>
+<li>m是预准备消息中的消息</li>
+<li>v是预准备消息中的视图编号</li>
+<li>n是预准备消息中的序号。</li>
+</ul>
+<p>当变更为<code>prepared(m,v,n,i)</code> 之后，节点i 向其他副本节点广播格式为 <code>&lt;COMMIT,v,n,D(m),i&gt;</code> 的确认消息，于是协议进入确认阶段。</p>
+<p>我们看到，每个节点在接收到信息之后，又会向全体节点发送消息。因此消息的复杂度到达了$O(n^2)$ </p>
+<h4 id="确认阶段"><a href="#确认阶段" class="headerlink" title="确认阶段"></a>确认阶段</h4><p>在确认阶段，每个副本节点接收确认消息并写入消息日志，具体条件为：</p>
+<ul>
+<li>签名正确</li>
+<li>消息的视图编号与节点的当前视图编号一致</li>
+<li>消息的序号n满足水线条件，在h和H之间</li>
+</ul>
+<p>当副本节点i接收到2f+1个m的确认消息、并都满足上述条件之后，消息m会变更为committed-local状态，记为 <code>committed-local(m,v,n,i)</code>。具体条件为：</p>
+<ul>
+<li>节点i的 <code>prepared(m,v,n,i)</code>为真</li>
+<li>节点i已经接收了2f+1个确认消息(包括自身在内)，与预准备消息一致。一致的检查内容包括：视图编号v，消息序号n，摘要d</li>
+</ul>
+<p>当消息m在节点i的状态为<code>committed-local(m,v,n,i)</code>时，节点执行m的请求，节点i的状态能够确保所有编号小于n的请求一次顺序执行。在完成m的请求操作之后，每个副本节点都会向客户端发送回复</p>
+<p>副本节点会把时间戳比已回复时间戳更小的请求丢弃，以保证请求只会被执行一次。</p>
+<p>当节点i的消息m变更为<code>committed-local(m,v,n,i)</code>时，对于分布式系统来说，消息m会变更为<code>commited(m,v,n)</code> 。也就是意味着，任意f+1个正常副本结点集合中的所有副本节点i ，其<code>prepared(m,v,n,i)</code>为真。这就确保了所有正常节点以同样的顺序执行所有请求，确保了节点状态的复制并保证了算法的正确性</p>
+<p>节点状态变化路线 ：</p>
+<p><img src="/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/1.jpg"></p>
+<h4 id="探讨"><a href="#探讨" class="headerlink" title="探讨"></a>探讨</h4><p>一轮投票可以不可以？ 在不换主或者主节点不作恶的情况下，是可以的，但是我们举一个极端的例子：</p>
+<p>在分布式系统下，假设现在少部分进入prepared阶段，另外一些节点还没有进入prepare阶段。此时， 若主节点是恶意节点的话，它可以改变原来的信息，将m修改为具有相同序号的m’,并获得大多数未提交的节点的同意。</p>
+<p>但是，如果有两轮投票的话，两轮就可以保证一致性。</p>
+<h3 id="检查点协议"><a href="#检查点协议" class="headerlink" title="检查点协议"></a>检查点协议</h3><p>为了节省存储，系统需要一种将日志中的无异议消息记录删除的机制：算法设置周期性的检查点协议，将系统中的服务器同步到某一个相同的状态，同时可以定期地处理日志、节约资源并及时纠正服务器状态。</p>
+<ul>
+<li><p>在PBFT算法中，会保存所有接收到的消息并记录到日志中，如果日志不能及时清理，会导致奈统资源被大量的日志占用并影响系统的性能和可用性。</p>
+</li>
+<li><p>另一方面由于拜占庭节点的存在，算法不能保证每个节点执行了相同序列的请求，因此所有节点状态可能不一致。</p>
+</li>
+</ul>
+<h4 id="执行过程："><a href="#执行过程：" class="headerlink" title="执行过程："></a>执行过程：</h4><ul>
+<li><p>当副本节点i接收到的请求消息的序号可以被某个常数（如100）整除时会周期性向其他节点广播检查点消息 <code>&lt;CHECKPOINT, n,d,i&gt;</code>, 这里n是最近一个影响状态的请求序号，d是状态的摘要。</p>
+</li>
+<li><p>每个副本节点都默默地在各自的日志中收集并记录其他节点发过来的检查点消息，直到收到来自<strong>2f+1</strong>个不同副本节点的具有相同序号n和摘要d的检查点消息。</p>
+</li>
+<li>这2f+1个消息就是这个检查点的正确性证明。</li>
+</ul>
+<p>算法将这些请求执行后得到的状态称作检查点 (checkpoint)并且将具有证明的检查点称作<strong>稳定检查点 (stable checkpoint)</strong>。每个副本节点保存了服务状态的多个逻辑版本：包括最新的稳定检查点，零个或者多个非稳定的检查点，以及个当前状态。</p>
+<h4 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h4><p>节点确认某个检查点为稳定检查点后，然后副本节点就可以将所有序号小于等于口的预准各、准备和确认消息从日志中删除。同时也可以将之前的检查点和检查点消息一并删除。</p>
+<h4 id="更新水线（watermark）的高低值-（h和H）："><a href="#更新水线（watermark）的高低值-（h和H）：" class="headerlink" title="更新水线（watermark）的高低值 （h和H）："></a>更新水线（watermark）的高低值 （h和H）：</h4><p>这两个高低值限定了可以被接受的消息。水线的低值h与最近稳定检查点的序列号相同，而水线的高值$H=h+k$，k需要足够大才能使副本不至于为了等待稳定检查点而停顿。假如检查点每100个请求产生一次，k的取值可以是200。</p>
+<h3 id="水线-watermark"><a href="#水线-watermark" class="headerlink" title="水线(watermark)"></a>水线(watermark)</h3><p><img src="/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/5.png" style="zoom:50%;"></p>
+<p>图中A节点的当前请求编号是1039, B节点的请求编号是1133</p>
+<p>当前系统的stable checkpoint 为1034，那么这个1034 就是低水位；而高水位$H=h+L$， 即1134</p>
+<p>我们看到，A和B的请求编号在高水位和低水位之间，因此这两个请求都会被应答</p>
+<p>如果B的请求编号位1135，那么说明B节点处理得很快，跑到很前面去了，这时候B就会停止应答，一直到其编号落入新的高低水位之间。</p>
+<h3 id="视图更换协议"><a href="#视图更换协议" class="headerlink" title="视图更换协议"></a>视图更换协议</h3><p>在PBFT算法中，主节点承担消息序号分配、请求转发等核心功能。因此一旦主节点发生了错误，就会导致系统无法正常运行</p>
+<p>视图更换协议就是确保主节点失效时算法的活性。</p>
+<p>视图更换的触发可以通过备份节点中一个请求的超时执行触发。当一个节点i的超时产生时，会启动视图更换，并将视图编号v变更为v+1,同时不再接受处检查点消息、视图更换消息和新视图消息以外的其他消息请求</p>
+<p>这时候，节点i 会向其他副本节点广播视图更换消息<code>&lt;VIEW-CHANGE,v+1,n,C,P,i&gt;</code></p>
+<ul>
+<li>n是节点i的最新稳定检查点s的序号</li>
+<li>C是证明s是稳定检查点的2f+1个检查点消息</li>
+<li>P是所有序号大于n的所有<code>prepared(m,v,n,i)</code> 为真的消息集合$P_m$ ,包括请求消息m的有效的预准备消息和与预准备消息一致的2f个准备消息。</li>
+</ul>
+<p>然后，会通过公式 $p = \text{v mod |R|}$ 计算得到主节点p，当主节点p收到2f个来自其他复制节点的有效的视图更换消息之后，节点p向其他复制节点广播新视图消息<code>&lt;NEW-VIEW,v+1,V,Q&gt;</code></p>
+<ul>
+<li><p>V包含主节点收到的2f+1个有效的视图更换消息(包括主节点p本身发送的视图更换消息)</p>
+</li>
+<li><p>Q包含有效的预准备消息（不包括请求消息），其范围通过以下算法获得：从集合V中获取最小的稳定检查点序号<code>min_s</code>和最大的稳定检查点<code>max_s</code>，主节点p为<code>min_s</code>到<code>max_s</code>中间的每个序号n在新的视图v+1中创建新的预准备消息。</p>
+</li>
+<li>这时序号n存在两种情况：<code>min_s</code>和<code>max_s</code>之间，是否存在于P消息集合<ul>
+<li>至少存在一个V中的视图变更消息的集合P中包含序号n，这说明存在一个预准备消息m，则主节点向其他备份节点广播新的预准备消息<code>&lt;PRE-PREPARE,v+1,n,d&gt;</code></li>
+<li>V中所有的视图变更消息的集合P中都不包含序号n，则主节点向其他备份节点广播预准备消息<code>&lt;PRE-PREPARE,v+1,n,d_null&gt;</code> ，<code>d_null</code> 是对null消息的签名，null消息执行空动作</li>
+</ul>
+</li>
+<li>最后，主节点以<code>min_s</code>为最新的稳定检查点，并更新水线h为<code>min_s</code></li>
+<li>备份节点接收到新视图消息之后，主要完成如下操作<ul>
+<li>采用主节点相同的算法校验新视图消息中的Q，校验通过后，将Q中的预准备消息写入本节点的日志</li>
+<li>为Q中的每个预准备消息创建准备消息，并向其他复制节点进行广播并将准备消息写入本节点日志。</li>
+<li>更新视图编号为 v+1</li>
+</ul>
+</li>
+<li>副本节点会对<code>min_s</code>到<code>max_s</code>中间的消息重新执行三阶段提交协议，在运行阶段，协议会通过本地存储的回复客户端的消息进行校验，已经回复的消息不会重新执行。</li>
+</ul>
+<p>示意图如下：</p>
+<p><img src="/2022/06/05/%E5%8C%BA%E5%9D%97%E9%93%BE-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/6.png"></p>
+<p> 通过视图更换协议，是的即使拜占庭节点被称为主节点，也能在视图变换后确保分布式系统的一致性</p>
+<h3 id="共识问题"><a href="#共识问题" class="headerlink" title="共识问题"></a>共识问题</h3><p>在PBFT算法中，通过一下四个方面来确保分布式系统中的共识：</p>
+<ol>
+<li>由单一主节点对来自多个客户端的请求分配序号n，从而对分布式系统的消息进行全局排序</li>
+<li>任一复制节点i 的消息m 进入状态<code>prepared(m,v,n,i)</code>,则意味着所有正常节点对同一个视图中的请求序号达成一致，即<strong>当任意两个正常节点，v和n相同时，消息m也相同</strong></li>
+<li>任意f+1个正常副本节点集合中的所有副本i其<code>prepared (m,v,n,i)</code>为真，意味着消息m已成功提交给分布式系统即<code>committed (m,v,n)</code>在三阶段提交协议的确认阶段，任一节点i上消息m满足<code>committed-local (m,v,n,i)</code>为真，则<code>committed (m,v,n)</code>，进而节点i可以执行消息并向客户端返回结果，其他节点i也会按照相同的顺序执行消息m，从而实现状态复制。</li>
+<li>当客户端收到f+1个从不同副本的同样响应时，则意味着f+1个正常节点己成功执行消息。当f+1个副本节点成功执行消息，就确保了所有正常的节点以同样的顺序执行所有请求。</li>
+</ol>
+<h3 id="RAFT和PBFT协议的比较"><a href="#RAFT和PBFT协议的比较" class="headerlink" title="RAFT和PBFT协议的比较"></a>RAFT和PBFT协议的比较</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>对比点</th>
+<th>RAFT</th>
+<th>PBFT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>适用环境</td>
+<td>私有链(不支持拜占庭容错)</td>
+<td>联盟链</td>
+</tr>
+<tr>
+<td>算法通信复杂度</td>
+<td>$O(n)$</td>
+<td>$O(n^2)$</td>
+</tr>
+<tr>
+<td>最大故障和容错节点</td>
+<td>故障节点数量f满足 $ 2f+1&lt;= N$</td>
+<td>容错节点数量f满足$ 3f+1 &lt;= N$</td>
+</tr>
+<tr>
+<td>流程对比</td>
+<td>1. 初始化Leader选举(谁快谁当)<br>2. 共识过程<br>3. 重选Leader机制</td>
+<td>1. 初始化Leader选举(轮流坐庄)<br>2. 共识过程<br>3. 重选Leader机制</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/block-chain/" rel="tag"># block chain</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/11/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BA%8B%E5%8A%A1/" rel="prev" title="高级数据库-事务">
+      <i class="fa fa-chevron-left"></i> 高级数据库-事务
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/06/06/go%E5%AD%A6%E4%B9%A01/" rel="next" title="go学习1">
+      go学习1 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#共识算法"><span class="nav-number">1.</span> <span class="nav-text">共识算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.1.</span> <span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#分布式系统"><span class="nav-number">1.1.1.</span> <span class="nav-text">分布式系统</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#同步分布式系统"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">同步分布式系统</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#异步分布式系统"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">异步分布式系统</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#共识"><span class="nav-number">1.1.2.</span> <span class="nav-text">共识</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#故障容错"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">故障容错</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#遗漏故障"><span class="nav-number">1.1.2.1.1.</span> <span class="nav-text">遗漏故障</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#随机故障"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">随机故障</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FLP原理"><span class="nav-number">1.1.3.</span> <span class="nav-text">FLP原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CAP原理"><span class="nav-number">1.1.4.</span> <span class="nav-text">CAP原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#一致性"><span class="nav-number">1.1.4.1.</span> <span class="nav-text">一致性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可用性"><span class="nav-number">1.1.4.2.</span> <span class="nav-text">可用性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分区容错性"><span class="nav-number">1.1.4.3.</span> <span class="nav-text">分区容错性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#A与C的取舍"><span class="nav-number">1.1.4.4.</span> <span class="nav-text">A与C的取舍</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#区块链系统中的ACID原则"><span class="nav-number">1.1.5.</span> <span class="nav-text">区块链系统中的ACID原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BASE理论"><span class="nav-number">1.1.6.</span> <span class="nav-text">BASE理论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Paxos"><span class="nav-number">1.2.</span> <span class="nav-text">Paxos</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RAFT"><span class="nav-number">1.3.</span> <span class="nav-text">RAFT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PBFT算法"><span class="nav-number">1.4.</span> <span class="nav-text">PBFT算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述-1"><span class="nav-number">1.4.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重要概念"><span class="nav-number">1.4.2.</span> <span class="nav-text">重要概念</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#视图-view"><span class="nav-number">1.4.2.1.</span> <span class="nav-text">视图(view)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#主节点"><span class="nav-number">1.4.2.2.</span> <span class="nav-text">主节点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息"><span class="nav-number">1.4.2.3.</span> <span class="nav-text">消息</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端-消息发起者"><span class="nav-number">1.4.3.</span> <span class="nav-text">客户端(消息发起者)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三段提交协议"><span class="nav-number">1.4.4.</span> <span class="nav-text">三段提交协议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#预准备阶段"><span class="nav-number">1.4.4.1.</span> <span class="nav-text">预准备阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#准备阶段"><span class="nav-number">1.4.4.2.</span> <span class="nav-text">准备阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#确认阶段"><span class="nav-number">1.4.4.3.</span> <span class="nav-text">确认阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#探讨"><span class="nav-number">1.4.4.4.</span> <span class="nav-text">探讨</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#检查点协议"><span class="nav-number">1.4.5.</span> <span class="nav-text">检查点协议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#执行过程："><span class="nav-number">1.4.5.1.</span> <span class="nav-text">执行过程：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#垃圾回收"><span class="nav-number">1.4.5.2.</span> <span class="nav-text">垃圾回收</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#更新水线（watermark）的高低值-（h和H）："><span class="nav-number">1.4.5.3.</span> <span class="nav-text">更新水线（watermark）的高低值 （h和H）：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#水线-watermark"><span class="nav-number">1.4.6.</span> <span class="nav-text">水线(watermark)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#视图更换协议"><span class="nav-number">1.4.7.</span> <span class="nav-text">视图更换协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#共识问题"><span class="nav-number">1.4.8.</span> <span class="nav-text">共识问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RAFT和PBFT协议的比较"><span class="nav-number">1.4.9.</span> <span class="nav-text">RAFT和PBFT协议的比较</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

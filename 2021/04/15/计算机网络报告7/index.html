@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Exp7：基于TCP的Socket编程⼀、实验⽬的学习使⽤Stream Socket（包括ServerSocket和Socket） 了解粘包概念 ⼆、实验任务使⽤Socket和ServerSocket编写代码 解决粘包问题 三、实验过程3.1 基础知识3.1.1 Socket和ServerSocket交互过程  3.1.2 建⽴服务器端 服务器建⽴通信ServerSocket 服务器建⽴Socke">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络报告7">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Exp7：基于TCP的Socket编程⼀、实验⽬的学习使⽤Stream Socket（包括ServerSocket和Socket） 了解粘包概念 ⼆、实验任务使⽤Socket和ServerSocket编写代码 解决粘包问题 三、实验过程3.1 基础知识3.1.1 Socket和ServerSocket交互过程  3.1.2 建⽴服务器端 服务器建⽴通信ServerSocket 服务器建⽴Socke">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/2.png">
+<meta property="article:published_time" content="2021-04-15T15:51:34.000Z">
+<meta property="article:modified_time" content="2022-08-24T20:32:12.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>计算机网络报告7 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机网络报告7
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-04-15 23:51:34" itemprop="dateCreated datePublished" datetime="2021-04-15T23:51:34+08:00">2021-04-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-08-25 04:32:12" itemprop="dateModified" datetime="2022-08-25T04:32:12+08:00">2022-08-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Exp7：基于TCP的Socket编程"><a href="#Exp7：基于TCP的Socket编程" class="headerlink" title="Exp7：基于TCP的Socket编程"></a>Exp7：基于TCP的Socket编程</h1><h2 id="⼀、实验⽬的"><a href="#⼀、实验⽬的" class="headerlink" title="⼀、实验⽬的"></a>⼀、实验⽬的</h2><p>学习使⽤Stream Socket（包括ServerSocket和Socket）</p>
+<p>了解粘包概念</p>
+<h2 id="⼆、实验任务"><a href="#⼆、实验任务" class="headerlink" title="⼆、实验任务"></a>⼆、实验任务</h2><p>使⽤Socket和ServerSocket编写代码</p>
+<p>解决粘包问题</p>
+<h2 id="三、实验过程"><a href="#三、实验过程" class="headerlink" title="三、实验过程"></a>三、实验过程</h2><h3 id="3-1-基础知识"><a href="#3-1-基础知识" class="headerlink" title="3.1 基础知识"></a>3.1 基础知识</h3><h4 id="3-1-1-Socket和ServerSocket交互过程"><a href="#3-1-1-Socket和ServerSocket交互过程" class="headerlink" title="3.1.1 Socket和ServerSocket交互过程"></a>3.1.1 Socket和ServerSocket交互过程</h4><p><img src="/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/1.png" style="zoom:67%;"> </p>
+<h4 id="3-1-2-建⽴服务器端"><a href="#3-1-2-建⽴服务器端" class="headerlink" title="3.1.2 建⽴服务器端"></a>3.1.2 建⽴服务器端</h4><ul>
+<li>服务器建⽴通信ServerSocket</li>
+<li>服务器建⽴Socket接收客户端连接</li>
+<li>建⽴IO输⼊流读取客户端发送的数据</li>
+<li>建⽴IO输出流向客户端发送数据消息</li>
+</ul>
+<h4 id="3-1-3-建⽴客户端"><a href="#3-1-3-建⽴客户端" class="headerlink" title="3.1.3 建⽴客户端"></a>3.1.3 建⽴客户端</h4><p>创建Socket通信，设置通信服务器的IP和Port</p>
+<p>建⽴IO输出流向服务器发送数据消息</p>
+<p>建⽴IO输⼊流读取服务器发送来的数据消息</p>
+<h3 id="3-2-⼩试⽜⼑-TCP传输案例"><a href="#3-2-⼩试⽜⼑-TCP传输案例" class="headerlink" title="3.2 ⼩试⽜⼑: TCP传输案例"></a>3.2 ⼩试⽜⼑: TCP传输案例</h3><p>在src⽂件夹下新建⼀个Package，名为exp7</p>
+<ul>
+<li>编写TCPServer类</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.OutputStream;</span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TCPServer</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> PORT = <span class="number">9090</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ServerSocket server = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            server = <span class="keyword">new</span> ServerSocket();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"><span class="comment">// 配置⼀些参数</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            server.setReuseAddress(<span class="keyword">true</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SocketException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            server.setReceiveBufferSize(<span class="number">64</span> * <span class="number">1024</span> * <span class="number">1024</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SocketException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"><span class="comment">// 绑定到本地端⼝上，backlog为50（请求在socket上的最⼤待处理连接数）</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            server.bind(<span class="keyword">new</span> InetSocketAddress(Inet4Address.getLocalHost(),</span><br><span class="line">                    PORT), <span class="number">50</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">"Server: 服务器已监听端⼝："</span>);</span><br><span class="line">        System.out.println(server.getInetAddress() + <span class="string">": "</span> +</span><br><span class="line">                server.getLocalPort());</span><br><span class="line"><span class="comment">// 等待客户端连接</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">"Server: 阻塞等待客户端连接中..."</span>);</span><br><span class="line">            Socket client = <span class="keyword">null</span>;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                client = server.accept();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(<span class="string">"Server: 捕获成功"</span>);</span><br><span class="line"><span class="comment">// 在连接后，启动⼀个线程接管与客户端的交互操作</span></span><br><span class="line">            ClientHandler clientHandler = <span class="keyword">new</span> ClientHandler(client);</span><br><span class="line">            clientHandler.start();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 处理与客户端交互</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ClientHandler</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> Socket socket;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">ClientHandler</span><span class="params">(Socket socket)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.socket = socket;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">super</span>.run();</span><br><span class="line">            System.out.println(<span class="string">"Server: 新客户端连接："</span> + socket.getInetAddress() +</span><br><span class="line">                    <span class="string">": "</span> + socket.getPort());</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line"><span class="comment">// 得到socket的输⼊输出流</span></span><br><span class="line">                InputStream inputStream = socket.getInputStream();</span><br><span class="line">                OutputStream outputStream = socket.getOutputStream();</span><br><span class="line">                <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line"><span class="comment">// todo: task2 replace</span></span><br><span class="line">                <span class="keyword">int</span> len = inputStream.read(bytes);</span><br><span class="line">                StringBuilder stringBuilder = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">                stringBuilder.append(<span class="keyword">new</span> String(bytes, <span class="number">0</span>, len));</span><br><span class="line">                <span class="comment">// todo: added for task1 to test multiple clients</span></span><br><span class="line">                 <span class="keyword">try</span> &#123;</span><br><span class="line">                 Thread.sleep(<span class="number">10000</span>);</span><br><span class="line">                 &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                 e.printStackTrace();</span><br><span class="line">                 &#125;</span><br><span class="line">                System.out.println(<span class="string">"Server: 收到客户端消息："</span> + stringBuilder);</span><br><span class="line"><span class="comment">// 消息回写</span></span><br><span class="line">                outputStream.write(stringBuilder.toString().getBytes());</span><br><span class="line">                outputStream.close();</span><br><span class="line">                inputStream.close();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                System.out.println(<span class="string">"Server: 连接异常断开"</span>);</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    socket.close();</span><br><span class="line">                &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(<span class="string">"Server: 客户端已退出："</span> + socket.getInetAddress() +</span><br><span class="line">                    <span class="string">": "</span> + socket.getPort());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>编写TCPClient类</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.OutputStream;</span><br><span class="line"><span class="keyword">import</span> java.net.Inet4Address;</span><br><span class="line"><span class="keyword">import</span> java.net.InetSocketAddress;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TCPClient</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> PORT = <span class="number">9090</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>&#123;</span><br><span class="line">        Socket socket = <span class="keyword">new</span> Socket();</span><br><span class="line"><span class="comment">// 连接本地9090端⼝，timeout为3000ms</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            socket.connect(<span class="keyword">new</span> InetSocketAddress(Inet4Address.getLocalHost(),</span><br><span class="line">                    PORT), <span class="number">3000</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">"Client: 客户端为："</span> + socket.getLocalAddress() + <span class="string">": "</span> +</span><br><span class="line">                socket.getLocalPort());</span><br><span class="line">        System.out.println(<span class="string">"Client: 服务器为："</span> + socket.getInetAddress() + <span class="string">": "</span> +</span><br><span class="line">                socket.getPort());</span><br><span class="line">        InputStream inputStream = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            inputStream = socket.getInputStream();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        OutputStream outputStream = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            outputStream = socket.getOutputStream();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        String s = <span class="string">"test client send"</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            outputStream.write(s.getBytes());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line"><span class="comment">// 接收服务器返回的消息</span></span><br><span class="line">        <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            len = (inputStream.read(bytes));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        StringBuilder stringBuilder = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        stringBuilder.append(<span class="keyword">new</span> String(bytes, <span class="number">0</span>, len));</span><br><span class="line">        System.out.println(<span class="string">"Client: 收到服务器端消息："</span> + stringBuilder);</span><br><span class="line"><span class="comment">// 资源释放</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            outputStream.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            inputStream.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            socket.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">"Client: 客户端已退出～"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="task1"><a href="#task1" class="headerlink" title="task1:"></a>task1:</h4><p>分别运⾏Server端和2个Client端，请将运⾏结果附在实验报告中。 </p>
+<p>当我们不使用while(true)时，tcpserver只接受一个客户端传来的信息，如下图所示：</p>
+<p><img src="/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/3.png" style="zoom:67%;"></p>
+<p>那么，当sever一直开启时：我们在main函数中创建多个client线程，向服务器发送连接请求：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">   <span class="comment">// write your code here</span></span><br><span class="line">        Thread server = <span class="keyword">new</span> Thread(<span class="keyword">new</span> TCPServer());</span><br><span class="line">        ArrayList&lt;Thread&gt; clients = <span class="keyword">new</span> ArrayList&lt;Thread&gt;();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt;<span class="number">6</span>;i++)&#123;</span><br><span class="line">            Thread client = <span class="keyword">new</span> Thread(<span class="keyword">new</span> TCPClient());</span><br><span class="line">            clients.add(client);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        server.start();</span><br><span class="line">        <span class="keyword">for</span> (Thread client:clients)</span><br><span class="line">            client.start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/4.png" style="zoom:67%;"></p>
+<h4 id="task2"><a href="#task2" class="headerlink" title="task2:"></a>task2:</h4><p>⽤下段代码修改TCPServer中// todo task2：replace 后的三⾏，试运⾏Server端和Client端，观察运⾏结果，并将实验结果及产⽣的原因附在实验报告中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> len;</span><br><span class="line">StringBuilder stringBuilder = <span class="keyword">new</span> StringBuilder();</span><br><span class="line"><span class="keyword">while</span> ((len = inputStream.read(bytes)) != -<span class="number">1</span>) &#123;</span><br><span class="line">    stringBuilder.append(<span class="keyword">new</span> String(bytes, <span class="number">0</span>, len));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/5.png" style="zoom:67%;"></p>
+<p>我们发现TCPServer和TCPClient已经建立了连接，但是在处理客户端信息时出现了错误，导致一直卡在哪儿不能继续运行下去。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> len = inputStream.read(bytes);</span><br><span class="line">StringBuilder stringBuilder = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">    stringBuilder.append(<span class="keyword">new</span> String(bytes, <span class="number">0</span>, len));</span><br><span class="line">System.out.println(<span class="string">"Server: 收到客户端消息："</span> + stringBuilder);</span><br></pre></td></tr></table></figure>
+<p>经过 测试，发现当 去掉While循环，便可以正常执行。</p>
+<p>但这并不是一种好方法，因为当输入的 inputStream 信息很庞大，但是我只能读取前1024个字节。</p>
+<p>其实，这里while循环不结束的原因是在client里面，当送出 outputStream之后，并没有关闭socket。因此server就会误以为后面还会有信息进来，因此一直在等待。虽然在client最后关闭了outputStream，但是那是在收到了server回传的信息之后了，这就形成了一个死锁。要解决这个问题，就要将这个socket关闭。 ：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">      outputStream.write(s.getBytes());</span><br><span class="line">      outputStream.close();</span><br><span class="line">&#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>关闭后，恢复正常：</p>
+<p><img src="/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/6.png" style="zoom:67%;"></p>
+<h4 id="task3"><a href="#task3" class="headerlink" title="task3:"></a>task3:</h4><p>使⽤Scanner修改TCPClient类，达成如下效果，请将实验结果附在实验报告中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">client reads a line of characters from its keyboard and sends data to server</span><br><span class="line">server receives the data and converts characters to uppercase</span><br><span class="line">server sends modified data to client</span><br><span class="line">client receives modified data and displays line on its screen</span><br></pre></td></tr></table></figure>
+<p>只需要修改client即可；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Scanner scanner = <span class="keyword">new</span> Scanner(System.in);</span><br><span class="line">String s = scanner.nextLine();</span><br><span class="line">outputStream.write(s.getBytes());</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/7.png" style="zoom:67%;"></p>
+<h4 id="task4"><a href="#task4" class="headerlink" title="task4:"></a>task4:</h4><p>在task3的基础上继续TCPServer类和TCPClient类，Client端能够读取多⾏从控制台输⼊的数据分别发送，Server端收到后分别回写（请测试数据为中⽂时的情况），请将实验结果附在实验报告中。</p>
+<ul>
+<li>Server</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.OutputStream;</span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> PORT = <span class="number">9090</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">      .</span><br><span class="line">        System.out.println(<span class="string">"服务器已监听端口："</span>);</span><br><span class="line">        System.out.println(server.getInetAddress() + <span class="string">": "</span> +</span><br><span class="line">                server.getLocalPort());</span><br><span class="line"><span class="comment">// 等待客户端连接</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">"阻塞等待客户端连接中..."</span>);</span><br><span class="line">            Socket client = server.accept();</span><br><span class="line">            System.out.println(<span class="string">"连接成功"</span>);</span><br><span class="line"><span class="comment">// 在连接后，启动⼀个线程接管与客户端的交互操作</span></span><br><span class="line">            ClientHandler clientHandler = <span class="keyword">new</span> ClientHandler(client);</span><br><span class="line">            clientHandler.start();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 处理与客户端交互</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ClientHandler</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> Socket socket;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">ClientHandler</span><span class="params">(Socket socket)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.socket = socket;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">super</span>.run();</span><br><span class="line">            System.out.println(<span class="string">"新客户端连接："</span> + socket.getInetAddress() +</span><br><span class="line">                    <span class="string">": "</span> + socket.getPort());</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                InputStream inputStream = socket.getInputStream();</span><br><span class="line">                OutputStream outputStream = socket.getOutputStream();</span><br><span class="line">                <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">                <span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</span><br><span class="line">                    <span class="keyword">int</span> len = inputStream.read(bytes);</span><br><span class="line">                    StringBuilder stringBuilder = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">                    stringBuilder.append(<span class="keyword">new</span> String(bytes, <span class="number">0</span>, len));</span><br><span class="line">                    System.out.println(<span class="string">"收到客户端消息："</span> + stringBuilder);</span><br><span class="line">                    outputStream.write(stringBuilder.toString().getBytes());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                System.out.println(<span class="string">"连接异常断开"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Client</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.OutputStream;</span><br><span class="line"><span class="keyword">import</span> java.net.Inet4Address;</span><br><span class="line"><span class="keyword">import</span> java.net.InetSocketAddress;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"><span class="keyword">import</span> java.util.Scanner;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> PORT = <span class="number">9090</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        Socket socket = <span class="keyword">new</span> Socket();</span><br><span class="line"><span class="comment">// 连接本地9090端⼝，timeout为3000ms</span></span><br><span class="line">        socket.connect(<span class="keyword">new</span> InetSocketAddress(Inet4Address.getLocalHost(),</span><br><span class="line">                PORT), <span class="number">3000</span>);</span><br><span class="line">        System.out.println(<span class="string">"客户端为："</span> + socket.getLocalAddress() + <span class="string">": "</span> +</span><br><span class="line">                socket.getLocalPort());</span><br><span class="line">        System.out.println(<span class="string">"服务器为："</span> + socket.getInetAddress() + <span class="string">": "</span> +</span><br><span class="line">                socket.getPort());</span><br><span class="line">        Scanner scanner = <span class="keyword">new</span> Scanner(System.in);</span><br><span class="line">        InputStream inputStream = socket.getInputStream();</span><br><span class="line">        OutputStream outputStream = socket.getOutputStream();</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            String s = scanner.nextLine();</span><br><span class="line">            outputStream.write(s.getBytes());</span><br><span class="line">            <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line"><span class="comment">// 接收服务器返回的消息</span></span><br><span class="line">            <span class="keyword">int</span> len = (inputStream.read(bytes));</span><br><span class="line">            System.out.println(<span class="string">"收到服务器端消息："</span> + <span class="keyword">new</span> String(bytes, <span class="number">0</span>, len));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/8.png" style="zoom:67%;"></p>
+<h3 id="3-3-什么是粘包"><a href="#3-3-什么是粘包" class="headerlink" title="3.3 什么是粘包"></a>3.3 什么是粘包</h3><ul>
+<li>TCP本质上并不会发⽣数据层⾯的粘包</li>
+<li>TCP的发送⽅和接收⽅⼀定会确保数据是以⼀种有序的⽅式到达的</li>
+<li>所谓的粘包是数据处理逻辑层⾯上的粘包，即应⽤层上的</li>
+</ul>
+<p><img src="/2021/04/15/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A7/2.png" style="zoom:67%;"></p>
+<h4 id="task5"><a href="#task5" class="headerlink" title="task5:"></a>task5:</h4><p>查阅资料，分析粘包可能产⽣的原因并搜索若⼲种解决⽅法（&gt;=3），并附在实验报告中。</p>
+<p>在socket网络程序中，TCP和UDP分别是面向连接和非面向连接的。因此TCP的socket编程，收发两端（客户端和服务器端）都要有成对的socket，因此，发送端为了将多个发往接收端的包，更有效的发到对方，使用了优化方法（Nagle算法），将多次间隔较小、数据量小的数据，合并成一个大的数据块，然后进行封包。这样，接收端，就难于分辨出来了，必须提供科学的拆包机制。</p>
+<p><strong>粘包出现原因</strong></p>
+<ol>
+<li>发送端需要等缓冲区满才发送出去，造成粘包</li>
+</ol>
+<p>发送方引起的粘包是由TCP协议本身造成的，TCP为提高传输效率，发送方往往要收集到足够多的数据后才发送一包数据。若连续几次发送的数据都很少，通常TCP会根据优化算法把这些数据合成一包后一次发送出去，这样接收方就收到了粘包数据。</p>
+<ol>
+<li>接收方不及时接收缓冲区的包，造成多个包接收</li>
+</ol>
+<p>接收方引起的粘包是由于接收方用户进程不及时接收数据，从而导致粘包现象。这是因为接收方先把收到的数据放在系统接收缓冲区，用户进程从该缓冲区取数据，若下一包数据到达时前一包数据尚未被用户进程取走，则下一包数据放到系统接收缓冲区时就接到前一包数据之后，而用户进程根据预先设定的缓冲区大小从系统接收缓冲区取数据，这样就一次取到了多包数据。 </p>
+<p>为了避免粘包现象，可采取以下几种措施：</p>
+<p>（1）对于发送方引起的粘包现象，用户可通过<strong>编程设置</strong>来避免，TCP提供了强制数据立即传送的操作指令push，TCP软件收到该操作指令后，就立即将本段数据发送出去，而不必等待发送缓冲区满；<strong>但是</strong>但它关闭了优化算法，降低了网络发送效率，影响应用程序的性能，一般不建议使用。</p>
+<p>（2）对于接收方引起的粘包，则可通过优化程序设计、精简接收进程工作量、提高接收进程优先级等措施，使其及时接收数据，从而尽量避免出现粘包现象；<strong>但是</strong>第二种方法只能减少出现粘包的可能性，但并不能完全避免粘包，当发送频率较高时，或由于网络突发可能使某个时间段数据包到达接收方较快，接收方还是有可能来不及接收，从而导致粘包</p>
+<p>（3）由接收方控制，将一包数据按结构字段，人为控制分多次接收，然后合并，通过这种手段来避免粘包。<strong>但是</strong>第三种方法虽然避免了粘包，但应用程序的效率较低，对实时应用的场合不适合。比如说认为确定一个消息边界。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"># 计算机网络</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/04/12/os-Project2/" rel="prev" title="os-Project2">
+      <i class="fa fa-chevron-left"></i> os-Project2
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/04/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8AExp8/" rel="next" title="计算机网络实验报告Exp8">
+      计算机网络实验报告Exp8 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Exp7：基于TCP的Socket编程"><span class="nav-number">1.</span> <span class="nav-text">Exp7：基于TCP的Socket编程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#⼀、实验⽬的"><span class="nav-number">1.1.</span> <span class="nav-text">⼀、实验⽬的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#⼆、实验任务"><span class="nav-number">1.2.</span> <span class="nav-text">⼆、实验任务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、实验过程"><span class="nav-number">1.3.</span> <span class="nav-text">三、实验过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-基础知识"><span class="nav-number">1.3.1.</span> <span class="nav-text">3.1 基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-1-Socket和ServerSocket交互过程"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">3.1.1 Socket和ServerSocket交互过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-2-建⽴服务器端"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">3.1.2 建⽴服务器端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-3-建⽴客户端"><span class="nav-number">1.3.1.3.</span> <span class="nav-text">3.1.3 建⽴客户端</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-⼩试⽜⼑-TCP传输案例"><span class="nav-number">1.3.2.</span> <span class="nav-text">3.2 ⼩试⽜⼑: TCP传输案例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#task1"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">task1:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task2"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">task2:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task3"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">task3:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task4"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">task4:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-什么是粘包"><span class="nav-number">1.3.3.</span> <span class="nav-text">3.3 什么是粘包</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#task5"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">task5:</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="计算机网络报告-rdt3.0在我的学习博客 可靠数据传输原理 rdt3.0 中，我已经详细介绍了 rdt3.0 的发送方和接收方的有限状态机，并且介绍了 GBN 和 SR 的原理。 报文类我们把packet 抽象出来单独写一个类。在这个类中，我们提供了一些方法——生成包的方法生成和检验校验和的方法，解析报文的方法，模拟包报文出错的方法 1234567891011121314151617181920">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络报告-rdt3.0">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="计算机网络报告-rdt3.0在我的学习博客 可靠数据传输原理 rdt3.0 中，我已经详细介绍了 rdt3.0 的发送方和接收方的有限状态机，并且介绍了 GBN 和 SR 的原理。 报文类我们把packet 抽象出来单独写一个类。在这个类中，我们提供了一些方法——生成包的方法生成和检验校验和的方法，解析报文的方法，模拟包报文出错的方法 1234567891011121314151617181920">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/3.png">
+<meta property="article:published_time" content="2021-05-23T02:29:14.000Z">
+<meta property="article:modified_time" content="2022-08-24T20:31:40.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>计算机网络报告-rdt3.0 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机网络报告-rdt3.0
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-05-23 10:29:14" itemprop="dateCreated datePublished" datetime="2021-05-23T10:29:14+08:00">2021-05-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-08-25 04:31:40" itemprop="dateModified" datetime="2022-08-25T04:31:40+08:00">2022-08-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="计算机网络报告-rdt3-0"><a href="#计算机网络报告-rdt3-0" class="headerlink" title="计算机网络报告-rdt3.0"></a>计算机网络报告-rdt3.0</h1><p>在我的学习博客 <a href="https://jasonxqh.github.io/2021/05/03/计算机网络-运输层总结/#rdt3-0">可靠数据传输原理 rdt3.0</a> 中，我已经详细介绍了 rdt3.0 的发送方和接收方的有限状态机，并且介绍了 GBN 和 SR 的原理。</p>
+<h2 id="报文类"><a href="#报文类" class="headerlink" title="报文类"></a>报文类</h2><p>我们把packet 抽象出来单独写一个类。在这个类中，我们提供了一些方法——生成包的方法生成和检验校验和的方法，解析报文的方法，模拟包报文出错的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company; </span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">packet</span> </span>&#123;</span><br><span class="line">   <span class="comment">// 类中必须囊括序号、以及检验和</span></span><br><span class="line">   Integer seqNo;</span><br><span class="line">   Integer checksum;</span><br><span class="line">  <span class="comment">// 发送的内容</span></span><br><span class="line">   <span class="keyword">public</span> String content;</span><br><span class="line">   </span><br><span class="line">  <span class="comment">// 初始化的packet 的seqNo=1, </span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">packet</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      seqNo = <span class="number">1</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">// 这个方法教给发送者调用，可以将读取的信息封装到 packet当中</span></span><br><span class="line">   	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createPacket</span><span class="params">(String pContent,<span class="keyword">int</span> seqNo)</span> </span>&#123;</span><br><span class="line">		content = pContent;</span><br><span class="line">   	<span class="comment">// 为内容设置校验和</span></span><br><span class="line">		checksum = generateChecksum(content);</span><br><span class="line">   	<span class="comment">// 在rdt3.0中，序号只可能是0或者1，由发送者控制序号的变化</span></span><br><span class="line">		<span class="keyword">this</span>.seqNo = seqNo;</span><br><span class="line">	&#125;</span><br><span class="line">   <span class="comment">// 帮助发送者生成统一格式的信息</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">generateMessage</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> seqNo+ <span class="string">" "</span> + checksum + <span class="string">" "</span> + content;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">// 生成检验和的函数，原本算法就是将前面3个16位相加，但是这里没有源端口和目的端口</span></span><br><span class="line">  <span class="comment">// 因此，我们对发送的信息做一个处理，将其转换为ascii码作为检验和</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> Integer <span class="title">generateChecksum</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">int</span> asciiInt;</span><br><span class="line">      <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; s.length(); i++) &#123;</span><br><span class="line">         asciiInt = (<span class="keyword">int</span>) s.charAt(i);</span><br><span class="line">         sum = sum + asciiInt;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> sum;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 这个方法是帮助接收者解析从套接字获取的data</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">parseMessage</span><span class="params">(String pcontent)</span> </span>&#123;</span><br><span class="line">       String[] splited = pcontent.split(<span class="string">"\\s+"</span>);</span><br><span class="line">       <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; splited.length; i++) &#123; </span><br><span class="line">         <span class="comment">// 依次赋值给seqNo 和 checksum</span></span><br><span class="line">          seqNo = Integer.parseInt(splited[<span class="number">0</span>]);</span><br><span class="line">          checksum = Integer.parseInt(splited[<span class="number">1</span>]);</span><br><span class="line">        <span class="comment">// 最后一个元素才是 要发送的内容</span></span><br><span class="line">          content = splited[<span class="number">2</span>];</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 模拟包出错，可以将checksum+1</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">corruptChecksum</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       checksum = checksum + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 这个方法是帮助接收者判断包裹的信息是否出错的，也就是将计算得到的checksum和发送来的checksum作比较</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">validateMessage</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    	Integer newChecksum = generateChecksum(content);</span><br><span class="line">    	<span class="keyword">if</span> (newChecksum.equals(checksum))</span><br><span class="line">    		<span class="keyword">return</span>  seqNo;</span><br><span class="line">    <span class="comment">//如果两者不相等，说明包损坏了，给发送者发送相反的ACK，这样发送者就知道出错了，需要重发</span></span><br><span class="line">    	<span class="keyword">else</span> &#123;</span><br><span class="line">        seqNo = <span class="number">1</span>-seqNo;</span><br><span class="line">        <span class="keyword">return</span> seqNo;</span><br><span class="line">    	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="网络层搭建"><a href="#网络层搭建" class="headerlink" title="网络层搭建"></a>网络层搭建</h2><p>要实现rdt 3.0 我们首先要搭建一个底层的网络层,作为传输信道。它的作用就是连接两个”主机端“，这里，发送者和接收者用同一主机上的两个进程来模拟。这样，发送者和接收者就可以通过”网络层”来相互传递消息了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company; </span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">network</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 泛型 List用来存放要发送的所有信息</span></span><br><span class="line">	<span class="keyword">static</span> List&lt;Object&gt; allMessages = <span class="keyword">new</span> ArrayList&lt;Object&gt;();</span><br><span class="line">  <span class="comment">// 用serverSocket这个类型的套接字来接入发送者和接收者</span></span><br><span class="line">	<span class="keyword">static</span> ServerSocket serverSocket;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">		<span class="keyword">int</span> portNumber;</span><br><span class="line">    </span><br><span class="line">    portNumber = <span class="number">5678</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">			serverSocket = <span class="keyword">new</span> ServerSocket(portNumber);</span><br><span class="line">			System.out.println(<span class="string">"Waiting... connect receiver"</span>);</span><br><span class="line">      <span class="comment">/*</span></span><br><span class="line"><span class="comment">      服务器需随时待命，因为不知道客户端什么时候会发来请求，此时，我们需要使用ServerSocket</span></span><br><span class="line"><span class="comment">      ServerSocket与Socket不同，ServerSocket是等待客户端的请求，一旦获得一个连接请求，就创建一个Socket示例来与客户端进行通信。 </span></span><br><span class="line"><span class="comment">      */</span></span><br><span class="line">				<span class="keyword">new</span> MessageThread(serverSocket.accept()).start();</span><br><span class="line">				<span class="keyword">new</span> MessageThread(serverSocket.accept()).start();</span><br><span class="line">		&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">			System.out.println(<span class="string">"I/O failure: "</span> + e.getMessage());</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将接收到的套接字传送给MessageThread类，为了模拟出 检验和出现错误、丢包的情况，我们这里需要分类来写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> Socket socket = <span class="keyword">null</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String ACK2 = <span class="string">"ACK2"</span>;</span><br><span class="line">	MessageThread mt = <span class="keyword">null</span>;</span><br><span class="line">	<span class="keyword">int</span> ID = <span class="number">0</span>;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">MessageThread</span><span class="params">(Socket socket)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.socket = socket;</span><br><span class="line">		allMessages.add(<span class="keyword">this</span>);</span><br><span class="line">		ID = allMessages.size() - <span class="number">1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		String input = <span class="string">""</span>;</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			PrintWriter streamOut = <span class="keyword">null</span>;</span><br><span class="line">			BufferedReader readerIn = <span class="keyword">null</span>;</span><br><span class="line">      <span class="comment">//  给接进来的socket创建一个PrintWriter，这样就可以直接通过println来向客户端或者服务端传信息</span></span><br><span class="line">			streamOut = <span class="keyword">new</span> PrintWriter(socket.getOutputStream(), <span class="keyword">true</span>);</span><br><span class="line">      <span class="comment">// 给socket的输入流创建一个 BufferedReader,作为缓冲区，</span></span><br><span class="line">			readerIn = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(socket.getInputStream()));</span><br><span class="line">	</span><br><span class="line">			System.out.println(<span class="string">"Get connection from: "</span> + socket.getRemoteSocketAddress().toString());</span><br><span class="line">			</span><br><span class="line">			<span class="keyword">while</span> ((input = readerIn.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 如果读入为空</span></span><br><span class="line">				<span class="keyword">if</span> (input.equals(<span class="string">"-1"</span>)) &#123;</span><br><span class="line">					<span class="comment">// 且这个线程为 发送者，那么就给接收者发一个-1</span></span><br><span class="line">					<span class="keyword">if</span> (ID == <span class="number">1</span>) &#123;</span><br><span class="line">						sendToOtherThread(<span class="string">"-1"</span>);</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">// 这是一个正则表达式，用来匹配任意空白字符的，也就是按照空白处分割message</span></span><br><span class="line">				String[] splitedMsg = input.split(<span class="string">"\\s+"</span>);</span><br><span class="line">				<span class="comment">//现在开始我们要模拟 顺利发送、丢包、包损坏这些情况</span></span><br><span class="line">				<span class="keyword">double</span> x = Math.random();</span><br><span class="line">				</span><br><span class="line">				<span class="comment">//这里我设置了有一半的几率会顺利通过。当receiver 回传ack时，长度只有1，这里也设为通过</span></span><br><span class="line">				<span class="keyword">if</span> (x &lt; <span class="number">0.5</span> || splitedMsg.length == <span class="number">1</span>) <span class="comment">// PASS</span></span><br><span class="line">				&#123;</span><br><span class="line">					<span class="keyword">if</span> (splitedMsg[<span class="number">0</span>].contains(<span class="string">"ACK"</span>)) &#123;</span><br><span class="line">						System.out.println(<span class="string">"Receiver: "</span> + splitedMsg[<span class="number">0</span>] + <span class="string">", to Sender"</span>);</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span>  </span><br><span class="line">						System.out.println(<span class="string">"Sender: Packet"</span> + splitedMsg[<span class="number">0</span>]  +<span class="string">", PASS"</span>);</span><br><span class="line">          <span class="comment">// 将一个端的信息发送到另外一端</span></span><br><span class="line">					sendToOtherThread(input);</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">// 如果出现了包损坏，我们的策略就是修改检验和，几率是1/4</span></span><br><span class="line">				<span class="keyword">else</span> <span class="keyword">if</span> (x &gt;= <span class="number">0.5</span> &amp;&amp; x &lt;= <span class="number">0.75</span>) <span class="comment">// CORRUPT</span></span><br><span class="line">				&#123;</span><br><span class="line">          <span class="comment">// 创建一个新的packet对象</span></span><br><span class="line">					packet p = <span class="keyword">new</span> packet();</span><br><span class="line">					p.parseMessage(input);</span><br><span class="line">					p.corruptChecksum();</span><br><span class="line">					System.out.println(<span class="string">"Sender: Packet"</span> + splitedMsg[<span class="number">0</span>]  + <span class="string">", CORRUPT"</span>);</span><br><span class="line">          <span class="comment">//将生成的数据发送给另外一端</span></span><br><span class="line">					sendToOtherThread(p.generateMessage());</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">// 有1/4 的几率会丢包，出现丢失时，不需要使用 sendToOtherThread,这里我没有用线程，因此我只能回传给Sender一个丢包信息，并等待sender重传</span></span><br><span class="line">				<span class="keyword">else</span> &#123;</span><br><span class="line">					System.out.println(<span class="string">"Sender: Packet"</span> + splitedMsg[<span class="number">0</span>] + <span class="string">", DROP"</span>);</span><br><span class="line">          streamOut.println(ACK2);</span><br><span class="line">        &#125;</span><br><span class="line">		   &#125;</span><br><span class="line">		   socket.close();</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">				e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 给套接字输出流创建一个 PrintWriter，然后通过 println 将pMessage传给对应的套接字</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">send</span><span class="params">(String pMessage)</span> </span>&#123;</span><br><span class="line">		PrintWriter streamOut = <span class="keyword">null</span>;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			streamOut = <span class="keyword">new</span> PrintWriter(socket.getOutputStream(), <span class="keyword">true</span>);</span><br><span class="line">			streamOut.println(pMessage);	</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">				e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// 这个方法是将信息从一个进程发送到另一个进程的</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendToOtherThread</span><span class="params">(String pMessage)</span> </span>&#123;</span><br><span class="line">      mt = (MessageThread)allMessages.get(<span class="number">1</span>-ID);</span><br><span class="line">      <span class="comment">// 通过上面定义的方法，将文件传送给另外一端</span></span><br><span class="line">      mt.send(pMessage);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="发送者"><a href="#发送者" class="headerlink" title="发送者"></a>发送者</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> java.lang.Thread.sleep;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">sender</span> </span>&#123;</span><br><span class="line">	<span class="keyword">static</span> String hostName;</span><br><span class="line">	<span class="keyword">static</span> <span class="keyword">int</span> portNumber;</span><br><span class="line">	<span class="keyword">static</span> String fileName;</span><br><span class="line">	<span class="keyword">int</span> SeqNo;</span><br><span class="line">  <span class="comment">// 首先设置一些必要的信息，比如端口号，主机名，需要传送的文件</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        hostName = <span class="string">"localhost"</span>;</span><br><span class="line">        portNumber = <span class="number">5678</span>;</span><br><span class="line">        fileName = <span class="string">"/Users/jasonxu/IdeaProjects/rdt3.0/src/com/company/message.txt"</span>;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 然后开启发送者</span></span><br><span class="line">			<span class="keyword">new</span> sender().startSender(hostName, portNumber, fileName);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">			System.out.println(<span class="string">"Something falied: "</span> + e.getMessage());</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startSender</span><span class="params">(String hostName, <span class="keyword">int</span> portNumber, String fileName)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line"></span><br><span class="line">		Socket socket = <span class="keyword">null</span>;</span><br><span class="line">		PrintWriter streamOut = <span class="keyword">null</span>;</span><br><span class="line">		BufferedReader streamIn = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 创建套接字</span></span><br><span class="line">			socket = <span class="keyword">new</span> Socket(hostName, portNumber);</span><br><span class="line">      <span class="comment">// 创建一个套接字的输出流</span></span><br><span class="line">			streamOut = <span class="keyword">new</span> PrintWriter(socket.getOutputStream(), <span class="keyword">true</span>);</span><br><span class="line">      <span class="comment">// 创建一个缓冲区，用来读取收到的信息</span></span><br><span class="line">			streamIn = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(socket.getInputStream()));</span><br><span class="line"></span><br><span class="line">			String ACK;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 从文件读取信息流</span></span><br><span class="line">				FileInputStream fstream = <span class="keyword">new</span> FileInputStream(fileName);</span><br><span class="line">        <span class="comment">// 将信息流转化成数据流</span></span><br><span class="line">				DataInputStream dataIn = <span class="keyword">new</span> DataInputStream(fstream);</span><br><span class="line">				BufferedReader buffReader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(dataIn));</span><br><span class="line"></span><br><span class="line">				String input;</span><br><span class="line"></span><br><span class="line">				<span class="keyword">int</span> totalSent = <span class="number">0</span>;</span><br><span class="line">				String message = <span class="string">""</span>;</span><br><span class="line">				<span class="comment">// 首先创建一个新的包</span></span><br><span class="line">				packet pak = <span class="keyword">new</span> packet();</span><br><span class="line">        <span class="comment">// 开始从 buffReader读取数据</span></span><br><span class="line">				<span class="keyword">while</span> ((input = buffReader.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">          <span class="comment">//将信息按照空隙分开</span></span><br><span class="line">					String[] splited = input.split(<span class="string">"\\s+"</span>);</span><br><span class="line">					<span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">          <span class="comment">// 对每一段文字，生成一个包，按顺序发送</span></span><br><span class="line">					<span class="keyword">while</span> (i &lt; splited.length) &#123;</span><br><span class="line">            <span class="comment">// 创建包</span></span><br><span class="line">						pak.createPacket(splited[i],<span class="keyword">this</span>.SeqNo);</span><br><span class="line">            <span class="comment">// 给包填充 data</span></span><br><span class="line">						message = pak.generateMessage();</span><br><span class="line">            <span class="comment">// 将数据推出去</span></span><br><span class="line">						streamOut.println(message);</span><br><span class="line">            <span class="comment">// 从输入缓冲区读取数据</span></span><br><span class="line">						ACK = streamIn.readLine();</span><br><span class="line">						</span><br><span class="line">						totalSent++;</span><br><span class="line">						<span class="comment">//如果ACK的数值与发送报文的序号一致，则i++,发送下一个报文</span></span><br><span class="line">						 <span class="keyword">if</span> (validateACK(ACK, pak.seqNo)) &#123;</span><br><span class="line">							i++;</span><br><span class="line">               <span class="comment">//序号0和1之间转换</span></span><br><span class="line">							<span class="keyword">this</span>.SeqNo = <span class="number">1</span>-<span class="keyword">this</span>.SeqNo;</span><br><span class="line">							System.out.println(<span class="string">"Waiting: "</span> + ACK + <span class="string">", totalsent: "</span> + totalSent + <span class="string">", "</span> + ACK + <span class="string">"Successfully sent"</span>);</span><br><span class="line">						&#125;</span><br><span class="line">						<span class="keyword">else</span> &#123;</span><br><span class="line">              <span class="comment">// 否则就说明丢失或者损坏，需要等待重传</span></span><br><span class="line">							 System.out.println(<span class="string">"Waiting: packet"</span>+ pak.seqNo + <span class="string">" CORRUPT OR LOST"</span> + <span class="string">", totalsent: "</span> + totalSent + <span class="string">", Waiting for resend"</span>);</span><br><span class="line">							 sleep(<span class="number">1000</span>);</span><br><span class="line">						 &#125;</span><br><span class="line">					&#125;</span><br><span class="line">					streamOut.println(-<span class="number">1</span>);</span><br><span class="line">				&#125;</span><br><span class="line">        <span class="comment">//全部发送完成后，关闭输入流</span></span><br><span class="line">				dataIn.close();</span><br><span class="line">			&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">				System.err.println(<span class="string">"Error: "</span> + e.getMessage());</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">catch</span> (UnknownHostException e) &#123;</span><br><span class="line">			System.err.println(<span class="string">"Cannot find the host: "</span> + hostName);</span><br><span class="line">			System.exit(<span class="number">1</span>);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">			System.err.println(<span class="string">"Couldn't read/write from the connection: "</span> + e.getMessage());</span><br><span class="line">			System.exit(<span class="number">1</span>);</span><br><span class="line">		&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">			<span class="keyword">assert</span> streamOut != <span class="keyword">null</span>;</span><br><span class="line">			streamOut.close();</span><br><span class="line">			<span class="keyword">assert</span> streamIn != <span class="keyword">null</span>;</span><br><span class="line">			streamIn.close();</span><br><span class="line">			socket.close();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">  <span class="comment">// 这个方法帮助发送者判断ACK号是否和序列号相等</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">validateACK</span><span class="params">(String ACKfromNetwork, Integer seqNo)</span> </span>&#123;</span><br><span class="line">		String ACKN = <span class="string">"ACK"</span> + seqNo.toString();</span><br><span class="line">		<span class="keyword">return</span> ACKN.equals(ACKfromNetwork);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="接收者"><a href="#接收者" class="headerlink" title="接收者"></a>接收者</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company; </span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">receiver</span> </span>&#123;</span><br><span class="line">	<span class="keyword">static</span> String hostName;</span><br><span class="line">	<span class="keyword">static</span> <span class="keyword">int</span> portNumber;</span><br><span class="line"><span class="comment">// 首先给接收者确定一些基本信息： 主机名，端口</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        hostName = <span class="string">"localhost"</span>;</span><br><span class="line">        portNumber = <span class="number">5678</span>;</span><br><span class="line">        </span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 启动一个接收者</span></span><br><span class="line">			<span class="keyword">new</span> receiver().startReceiver(hostName, portNumber);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">			System.out.println(<span class="string">"Something falied: "</span> + e.getMessage());</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startReceiver</span><span class="params">(String hostName, <span class="keyword">int</span> portNumber)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line"> </span><br><span class="line">		Socket socket = <span class="keyword">null</span>;</span><br><span class="line">		PrintWriter streamOut = <span class="keyword">null</span>;</span><br><span class="line">		BufferedReader streamIn = <span class="keyword">null</span>;</span><br><span class="line"> </span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 创建套接字、套接字输入输出流</span></span><br><span class="line">			socket = <span class="keyword">new</span> Socket(hostName, portNumber);</span><br><span class="line">			streamOut = <span class="keyword">new</span> PrintWriter(socket.getOutputStream(), <span class="keyword">true</span>);</span><br><span class="line">			streamIn = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(socket.getInputStream()));</span><br><span class="line">					</span><br><span class="line">			String input, output;</span><br><span class="line">			<span class="keyword">int</span> totalReceived = <span class="number">0</span>;</span><br><span class="line">			StringBuilder msg = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">			System.out.println(<span class="string">"Waiting... connect sender"</span>);</span><br><span class="line"></span><br><span class="line">			<span class="comment">// 创建一个新的包，用来返回ack信息</span></span><br><span class="line">			packet pak = <span class="keyword">new</span> packet();</span><br><span class="line">			<span class="keyword">while</span> ((input = streamIn.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">				<span class="comment">// 如果输入为-1，说明包已经发送完毕，同时跳出循环</span></span><br><span class="line">				<span class="keyword">if</span> (input.equals(<span class="string">"-1"</span>)) &#123;</span><br><span class="line">					streamOut.println(-<span class="number">1</span>);</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">// 解析收到的包中的信息</span></span><br><span class="line">				pak.parseMessage(input);</span><br><span class="line">				totalReceived++;</span><br><span class="line">        <span class="comment">// 验证包是否正确</span></span><br><span class="line">				<span class="keyword">int</span> tempNumber = pak.validateMessage();</span><br><span class="line">				output = <span class="string">"Waiting seqNo: "</span> + pak.seqNo+ <span class="string">", validateMessage: ACK"</span> + tempNumber+ <span class="string">", totalReceived: "</span> + totalReceived + <span class="string">", input"</span> + input;</span><br><span class="line">        <span class="comment">// 如果ack序号和seqNo不相等，说明包错了，等待重传</span></span><br><span class="line">				<span class="keyword">if</span>(pak.validateMessage()!=tempNumber)</span><br><span class="line">					System.out.println(<span class="string">"Waiting seqNo: "</span> + pak.seqNo+ <span class="string">", validateMessage: ACK"</span> + tempNumber+<span class="string">", Packet"</span>+pak.seqNo+<span class="string">" Corrupt,Please Resend"</span>);</span><br><span class="line">				<span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="comment">//包正确，那么打印、输出</span></span><br><span class="line">					msg.append(pak.content).append(<span class="string">" "</span>);</span><br><span class="line">					System.out.println(output);</span><br><span class="line">				&#125;</span><br><span class="line">        <span class="comment">// 返回ACK序号</span></span><br><span class="line">				streamOut.println(<span class="string">"ACK"</span>+pak.validateMessage());</span><br><span class="line">			&#125;</span><br><span class="line">      <span class="comment">// 打印所有信息</span></span><br><span class="line">			System.out.println(<span class="string">"Total Message: "</span> + msg);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (UnknownHostException e) &#123;</span><br><span class="line">			System.err.println(<span class="string">"Cannot find the host: "</span> + hostName);</span><br><span class="line">			System.exit(<span class="number">1</span>);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">			System.err.println(<span class="string">"Couldn't read/write from the connection: "</span> + e.getMessage());</span><br><span class="line">			System.exit(<span class="number">1</span>);</span><br><span class="line">		&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">			streamOut.close();</span><br><span class="line">			streamIn.close();</span><br><span class="line">			socket.close();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="结果："><a href="#结果：" class="headerlink" title="结果："></a>结果：</h2><h3 id="network"><a href="#network" class="headerlink" title="network"></a>network</h3><p><img src="/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/1.png" style="zoom:67%;"></p>
+<p>这是运输通道的打印信息，我们看到，第一个packet0是顺利通过的，第二个packet1的第一次发送出现了包错误，因此返回了一个ACK0, 重发后通过。第三个包出现了两次丢包和两次出错，最后通过。</p>
+<h3 id="receiver"><a href="#receiver" class="headerlink" title="receiver"></a>receiver</h3><p><img src="/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/2.png" style="zoom:67%;"></p>
+<p>这是接收者的打印信息，我们看到出现丢包的话，接收者是收不到的，但是如果出现包错误，那么接收者会返回一个不同的ACK序号通知发送者重发</p>
+<h3 id="sender"><a href="#sender" class="headerlink" title="sender"></a>sender</h3><p><img src="/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/3.png" style="zoom:67%;"></p>
+<p>这是发送者的打印信息，如果出现丢包或者包错误，会等待后重新发送，同时记录发送包的次数</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"># 计算机网络</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/21/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80%E5%A4%8D%E4%B9%A0%E5%A4%A7%E7%BA%B2/" rel="prev" title="数据科学数学基础复习大纲">
+      <i class="fa fa-chevron-left"></i> 数据科学数学基础复习大纲
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/" rel="next" title="计算机网络报告Week12">
+      计算机网络报告Week12 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#计算机网络报告-rdt3-0"><span class="nav-number">1.</span> <span class="nav-text">计算机网络报告-rdt3.0</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#报文类"><span class="nav-number">1.1.</span> <span class="nav-text">报文类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网络层搭建"><span class="nav-number">1.2.</span> <span class="nav-text">网络层搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发送者"><span class="nav-number">1.3.</span> <span class="nav-text">发送者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接收者"><span class="nav-number">1.4.</span> <span class="nav-text">接收者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结果："><span class="nav-number">1.5.</span> <span class="nav-text">结果：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#network"><span class="nav-number">1.5.1.</span> <span class="nav-text">network</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#receiver"><span class="nav-number">1.5.2.</span> <span class="nav-text">receiver</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sender"><span class="nav-number">1.5.3.</span> <span class="nav-text">sender</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

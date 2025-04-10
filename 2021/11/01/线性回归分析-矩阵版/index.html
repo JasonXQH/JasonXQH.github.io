@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="线性回归分析——PartII为什么我们一开始不讲矩阵呢？这是因为如果一上来就研究多元线性回归，就会忽略掉很多细节，而且还听不懂 线性回归的模型与假设多元线性回归就是多个x，其线性回归模型为：  y &#x3D; \beta_0+\beta_1x_1+\beta_2x_2+\cdots+\beta_px_p+\varepsilony为响应变量&#x2F;因变量，为一个随机变量； x为协变量&#x2F;自变量，通常假定是确定性的变">
+<meta property="og:type" content="article">
+<meta property="og:title" content="线性回归分析-矩阵版">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/11/01/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E5%88%86%E6%9E%90-%E7%9F%A9%E9%98%B5%E7%89%88/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="线性回归分析——PartII为什么我们一开始不讲矩阵呢？这是因为如果一上来就研究多元线性回归，就会忽略掉很多细节，而且还听不懂 线性回归的模型与假设多元线性回归就是多个x，其线性回归模型为：  y &#x3D; \beta_0+\beta_1x_1+\beta_2x_2+\cdots+\beta_px_p+\varepsilony为响应变量&#x2F;因变量，为一个随机变量； x为协变量&#x2F;自变量，通常假定是确定性的变">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/01/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E5%88%86%E6%9E%90-%E7%9F%A9%E9%98%B5%E7%89%88/1.png">
+<meta property="article:published_time" content="2021-11-01T02:31:48.000Z">
+<meta property="article:modified_time" content="2023-12-27T02:59:36.980Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="统计方法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/11/01/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E5%88%86%E6%9E%90-%E7%9F%A9%E9%98%B5%E7%89%88/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/11/01/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E5%88%86%E6%9E%90-%E7%9F%A9%E9%98%B5%E7%89%88/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>线性回归分析-矩阵版 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/11/01/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E5%88%86%E6%9E%90-%E7%9F%A9%E9%98%B5%E7%89%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          线性回归分析-矩阵版
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-11-01 10:31:48" itemprop="dateCreated datePublished" datetime="2021-11-01T10:31:48+08:00">2021-11-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-12-27 10:59:36" itemprop="dateModified" datetime="2023-12-27T10:59:36+08:00">2023-12-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="线性回归分析——PartII"><a href="#线性回归分析——PartII" class="headerlink" title="线性回归分析——PartII"></a>线性回归分析——PartII</h1><p>为什么我们一开始不讲矩阵呢？这是因为如果一上来就研究多元线性回归，就会忽略掉很多细节，而且还听不懂</p>
+<h2 id="线性回归的模型与假设"><a href="#线性回归的模型与假设" class="headerlink" title="线性回归的模型与假设"></a>线性回归的模型与假设</h2><p>多元线性回归就是多个x，其线性回归模型为：</p>
+<script type="math/tex; mode=display">
+y = \beta_0+\beta_1x_1+\beta_2x_2+\cdots+\beta_px_p+\varepsilon</script><p>y为响应变量/因变量，为一个随机变量；</p>
+<p>x为协变量/自变量，通常假定是确定性的变量</p>
+<p>$\beta_0,\beta_1\cdots,\beta_p $是$p+1$个未知参数：</p>
+<p>$\varepsilon$为随机误差，并假定：$\cases{E(\varepsilon) = 0\~\Var(\varepsilon) = \sigma^2}$</p>
+<p>那么，对于n组观测数据，$(x<em>{i1},x</em>{i2},\cdots,x_{ip},y_i)$，我们可以写出回归方程模型：</p>
+<script type="math/tex; mode=display">
+\cases{y_1 = \beta_0+\beta_1x_{11}+\beta_2x_{12}+\cdots+\beta_px_{1p}+\varepsilon_1\\~\\y_2 = \beta_0+\beta_1x_{21}+\beta_2x_{22}+\cdots+\beta_px_{2p}+\varepsilon_2\\ \cdots\\y_n = \beta_0+\beta_1x_{n1}+\beta_2x_{n2}+\cdots+\beta_px_{np}+\varepsilon_n}</script><p>对于这些方程，我们可以将其抽象出来形成矩阵、向量的形式</p>
+<script type="math/tex; mode=display">
+\boldsymbol  y = \pmatrix{y_1\\y_2\\\vdots \\y_n}~~~~~
+\boldsymbol X= \pmatrix{1&x_{11}&x_{12}&\cdots&x_{1p}\\1&x_{21}&x_{22}&\cdots &x_{2p}\\\vdots&\cdots\\1&x_{n1}& x_{n2}&\cdots&x_{np}}_{n\times(p+1)}\\~\\
+\boldsymbol {\beta} = (\beta_0,\beta_1,\cdots,\beta_p)'\\
+\varepsilon = (\varepsilon_1,\varepsilon_2\cdots,\varepsilon_n)'</script><p>吗线性回归模型的矩阵形式为：</p>
+<script type="math/tex; mode=display">
+\boldsymbol {y = X\beta+\varepsilon}</script><p>我们看到，用矩阵的方式来表示模型，会比较简洁。</p>
+<p>那么，我们要做的就是估计参数向量$\boldsymbol{\beta}$​​ ，带入模型，这样就可以预测出$\hat y$</p>
+<h3 id="线性回归的基本假定"><a href="#线性回归的基本假定" class="headerlink" title="线性回归的基本假定"></a>线性回归的基本假定</h3><p>为了便于参数估计，需要对回归方程进行一些假设：</p>
+<ol>
+<li>关于设计矩阵$\boldsymbol X$ </li>
+</ol>
+<ul>
+<li>它是确定性变量，不是随机变量。在预测的时候，是给定确定的x的条件下去做的预测</li>
+<li>要求$rank(\boldsymbol{X}) = p+1&lt;n$​,这表明了这是个列满秩的矩阵，每一维都不能被其他特征线性表出，每一列的自变量之间不相关。样本量应大于自变量的个数，$\boldsymbol X$​是一个满秩矩阵</li>
+</ul>
+<ol>
+<li>关于随机误差是零均值且等方差的</li>
+</ol>
+<ul>
+<li>$E(\varepsilon_i) =0,i=1,2\cdots,n$  表示没有系统误差</li>
+<li>$Cov(\varepsilon_i,\varepsilon_j) = \cases{\sigma^2,i=j\0,i\neq j},i,j = 1,2\cdots,n$​ 表明随机在不同的样本点之间是不相关的(在正态假定下即独立的)，不存在序列相关，并且有相同的精度。只有自身和自身存在协方差(等于方差)</li>
+</ul>
+<p>这个条件常被称为<strong>高斯-马尔可夫条件</strong></p>
+<ol>
+<li>假定随机误差服从正态分布</li>
+</ol>
+<p>即：$\cases{\varepsilon_i\sim N(0,\sigma^2),i=1,2\cdots,n\~\\varepsilon_1,\varepsilon_2,\cdots,\varepsilon_n\text{相互独立}}$</p>
+<p>在这个假设下，随机误差向量服从：</p>
+<script type="math/tex; mode=display">
+\boldsymbol\varepsilon\sim N(\boldsymbol{0},\sigma^2\boldsymbol{I_n})</script><p>即每一维的误差都来自一个正态分布。</p>
+<p>$\boldsymbol y$ 分为前后两部分，前面是确定性的，而后半部分$\boldsymbol\varepsilon$ 是随机性的，又 $X$也是服从正态分布的，因此等价于假定因变量$\boldsymbol y$ 服从n维正态分布，其期望向量和协方差矩阵分别为：</p>
+<script type="math/tex; mode=display">
+E(\boldsymbol y) = \boldsymbol {X\beta}\\
+Var(\boldsymbol y) = \sigma^2 \boldsymbol{I_n}</script><h2 id="线性回归模型的参数估计"><a href="#线性回归模型的参数估计" class="headerlink" title="线性回归模型的参数估计"></a>线性回归模型的参数估计</h2><h3 id="最小二乘估计"><a href="#最小二乘估计" class="headerlink" title="最小二乘估计"></a>最小二乘估计</h3><p><img src="/2021/11/01/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E5%88%86%E6%9E%90-%E7%9F%A9%E9%98%B5%E7%89%88/1.png"></p>
+<p>根据这张图我们可以定义离差，也就是<strong>实际观测值和估计值的差</strong>，即 $y_i-\boldsymbol x_i\boldsymbol \beta$</p>
+<p>由此我们可以给出最小二乘估计：通过最小化离差平方和而得到的估计方法</p>
+<p>对于线性模型，离差平方和可以定义为：</p>
+<script type="math/tex; mode=display">
+Q(\boldsymbol \beta) = \sum_{i=1}^n(y_i-\boldsymbol x_i' \boldsymbol\beta)^2 = ||\boldsymbol y-\boldsymbol{X\beta}||^2</script><p>最小二乘估计为：</p>
+<script type="math/tex; mode=display">
+\hat\beta_{LS} = \arg\min_\beta Q(\beta)</script><p>这其实是一个数，即行向量乘以列向量，我们可以这样改写上式：</p>
+<script type="math/tex; mode=display">
+Q(\boldsymbol \beta)= (\boldsymbol y-\boldsymbol{X\beta})'(\boldsymbol y-\boldsymbol{X\beta})\\
+Q(\boldsymbol \beta)= \boldsymbol{y'y}-2\boldsymbol{\beta'X'y}+\boldsymbol{\beta'X'X\beta}</script><p>我们要发现$\boldsymbol {y’X\beta}$和$\boldsymbol{\beta’X’y}$ 都是一个数因此可以合并同类项</p>
+<p>这样写好以后，相当于一个$\boldsymbol\beta$ 的二次函数，我们可以通过对其求导来找到$\min \boldsymbol \beta$​ </p>
+<h4 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h4><p>对于一个向量，我们怎么求其最小值呢，在这里我们补充一些求导的公式:</p>
+<p>对于一个 p 维向量 $\boldsymbol x = (x_1,x_2\cdots,x_p)’$</p>
+<ul>
+<li>线性函数求导：对于任意常向量 $\boldsymbol a = (a_1,a_2\cdots,a_p)’$, 我们有：</li>
+</ul>
+<script type="math/tex; mode=display">
+\frac{\partial (\boldsymbol{x'a})}{\partial \boldsymbol x} = \frac{\partial (\boldsymbol{a'x})}{\partial \boldsymbol x} = \boldsymbol a\\</script><ul>
+<li>二次型求导：对于任意$p\times p$ 常值矩阵 $\boldsymbol B$ 我们有：</li>
+</ul>
+<script type="math/tex; mode=display">
+\frac{\partial {\boldsymbol {x'Bx}}}{\partial {\boldsymbol x}} = (\boldsymbol{B+B'})\boldsymbol x</script><p>​    特别地，若 $\boldsymbol B$ 是一个对称矩阵，那么 </p>
+<script type="math/tex; mode=display">
+\frac{\partial (\boldsymbol{x'Bx})}{\partial \boldsymbol x} = 2\boldsymbol {Bx}</script><h4 id="具体计算方法"><a href="#具体计算方法" class="headerlink" title="具体计算方法"></a>具体计算方法</h4><p>我们用 $Q(\boldsymbol \beta)$ 关于$\boldsymbol \beta$​ 求导，可得：</p>
+<script type="math/tex; mode=display">
+\frac{\partial Q(\boldsymbol{\beta})}{\partial \boldsymbol \beta} =  2\boldsymbol{X'X\beta}-2\boldsymbol{X'y}</script><p>令 $\frac{\partial Q(\boldsymbol \beta)}{\partial \boldsymbol \beta}=0$ 可得：</p>
+<script type="math/tex; mode=display">
+\boldsymbol {X'X\beta} = \boldsymbol{X'y}</script><p>基于假设(1),$\boldsymbol {X’X}$ 是满秩的，因此 $(\boldsymbol{X’X})^{-1}$ 存在，由此，最小二乘估计为：</p>
+<script type="math/tex; mode=display">
+\boldsymbol{\hat\beta_{LS}} = \boldsymbol{(X'X)}^{-1}\boldsymbol {X'y}</script><p>说明： </p>
+<ul>
+<li>根据上式可知，在最小二乘估计$ \boldsymbol{\hat \beta}$​ 时，需要$(\boldsymbol{X’X})^{-1}$​ 必须存在。也就是说，$(\boldsymbol{X’X})$是一<strong>非奇异矩阵</strong>，即$\left| {\boldsymbol{X’X}} \right |\neq 0$ </li>
+<li>由线性代数可知 ，$rank(\boldsymbol X)\geq rank(\boldsymbol{X’X})$​, 如果$\boldsymbol{X’X}$ 为 p+1阶满秩矩阵，也就是说 $rank(\boldsymbol{X’X})=p+1$,那么$rank(\boldsymbol X)\geq p+1$​ </li>
+<li>另一方面，设计矩阵$\boldsymbol X$​ 为 $n\times (p+1)$ 阶矩阵，于是应用 $n\geq (p+1)$ 这表明了采用最小二乘法估计方法求解线性回归的未知参数，<strong>样本量必须不少于模型的参数个数​</strong> </li>
+</ul>
+<h4 id="拟合值"><a href="#拟合值" class="headerlink" title="拟合值"></a>拟合值</h4><p>求得 $\boldsymbol {\hat\beta}_{LS}$之后，我们可以定义回归值或者拟合值为：</p>
+<script type="math/tex; mode=display">
+\boldsymbol{\hat y} = \boldsymbol {X\hat\beta}</script><p>其中，$\hat y_i = \boldsymbol x_i’\boldsymbol{\hat\beta} ,~~i=1,2\cdots,n$​​​ </p>
+<p>我们将 $\boldsymbol {\hat\beta}$ 用上面求得的最小二乘估计带入，得到：</p>
+<script type="math/tex; mode=display">
+\boldsymbol{\hat y} = \boldsymbol {X\hat\beta} = \boldsymbol{X(X'X)^{-1}X'y}</script><p>矩阵 $\boldsymbol {X(X’X)^{-1}X’}$​ ： 将观测值$\boldsymbol y$​ 变换为 $\boldsymbol {\hat y}$​ ,从形式上来看，就是给$\boldsymbol y$​ 戴上了一顶帽子  $\hat ~$​ ，因为形象地称矩阵 $\boldsymbol{X(X’X)^{-1}X’}$​ 为帽子矩阵，记为$\boldsymbol H$​ </p>
+<p>于是： $\boldsymbol{\hat y} = \boldsymbol {Hy} $​ ​</p>
+<h4 id="帽子矩阵的性质"><a href="#帽子矩阵的性质" class="headerlink" title="帽子矩阵的性质"></a>帽子矩阵的性质</h4><p>帽子矩阵 $\boldsymbol H = \boldsymbol {X(X’X)^{-1}X’}$ 具有以下的一些性质：</p>
+<ol>
+<li><p>$\boldsymbol H$ 是n阶对称矩阵</p>
+</li>
+<li><p>$\boldsymbol H$ 是幂等矩阵，即$\boldsymbol H =\boldsymbol H^2$</p>
+</li>
+<li><p>$\boldsymbol H$ 的迹为 $p+1$,即 $tr(\boldsymbol H)=p+1$</p>
+</li>
+</ol>
+<p>证明1：</p>
+<script type="math/tex; mode=display">
+\boldsymbol H' = (\boldsymbol{X(X'X)^{-1}X'})' = (\boldsymbol X')'((\boldsymbol {X'X})^{-1})'\boldsymbol X'\\
+=\boldsymbol {X(X'X)^{-1}X'} = \boldsymbol H</script><p>由于$\boldsymbol H$ 的转置矩阵等于$\boldsymbol H$ ，所以$\boldsymbol H$ 是对称的</p>
+<p>证明2：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+&\boldsymbol H^2 = (\boldsymbol{X(X'X)^{-1}X'})^2\\
+&=(\boldsymbol{X(X'X)^{-1}X'})(\boldsymbol{X(X'X)^{-1}X'})\\
+&=\boldsymbol {X(X'X)^{-1}(X'X)(X'X)^{-1}X'}\\
+&=\boldsymbol {X(X'X)^{-1}X'}=\boldsymbol H
+\end{aligned}</script><p>因此$\boldsymbol H$是幂等矩阵</p>
+<p>证明3：</p>
+<p>易知$\boldsymbol{X’X}$​​是一个 $(p+1)\times(p+1)$ 的满秩矩阵。于是我们计算$\boldsymbol H$ 的迹，即：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+&tr(\boldsymbol H) = tr(\boldsymbol {X(X'X)^{-1}X'})\\
+&=tr((\boldsymbol{X'X})^{-1}\boldsymbol {X'X})\\
+&=tr(\boldsymbol I_{p+1})=p+1
+\end{aligned}</script><p>我们要知道矩阵迹的运算性质：多个矩阵相乘得到的方阵的迹，和将这些矩阵中的最后一个挪到最前面之后相乘的迹是相同的，即：</p>
+<script type="math/tex; mode=display">
+Tr(\boldsymbol{ABC}) = Tr(\boldsymbol{BCA}) = Tr(\boldsymbol{CAB})</script><h4 id="残差"><a href="#残差" class="headerlink" title="残差"></a>残差</h4><p>说完了拟合值，我们聚焦到最后一个部分——残差</p>
+<p>我们把残差定义为拟合值和真实值之间的距离</p>
+<script type="math/tex; mode=display">
+\boldsymbol e = \boldsymbol y -\boldsymbol{\hat y}</script><p>也可以写为 ：</p>
+<script type="math/tex; mode=display">
+\boldsymbol e = \boldsymbol y - \boldsymbol{Hy} = (\boldsymbol I-\boldsymbol H)\boldsymbol y</script><p>几何上的关系：回归值 $\boldsymbol {\hat y}$​与残差$\boldsymbol e$ 垂直，即：</p>
+<script type="math/tex; mode=display">
+\boldsymbol {y'e} = (\boldsymbol {Hy})'((\boldsymbol I-\boldsymbol H)\boldsymbol y)= \boldsymbol {y'H'}(\boldsymbol I-\boldsymbol H)\boldsymbol y =0</script><p>然后，我们写出残差的协方差矩阵为：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+&\text{Var}(\boldsymbol e) = \text{Cov}(\boldsymbol e,\boldsymbol e)\\
+&=\text{Cov}((\boldsymbol I-\boldsymbol H)\boldsymbol y,(\boldsymbol I-\boldsymbol H)\boldsymbol y)\\
+&=(\boldsymbol I-\boldsymbol H)\text{Cov}(\boldsymbol y,\boldsymbol y)(\boldsymbol I-\boldsymbol H)'\\
+&=\sigma^2(\boldsymbol I-\boldsymbol H)\boldsymbol I_n(\boldsymbol I-\boldsymbol H)’\\
+&=\sigma^2(\boldsymbol I-\boldsymbol H)
+\end{aligned}</script><p>由此，我们可以构造误差项方差$\sigma^2$ 的估计，用残差去估算即：</p>
+<script type="math/tex; mode=display">
+\hat\sigma^2 = \frac{1}{n-p-1}(\boldsymbol {e'e}) = \frac{1}{n-p-1}\sum_{i=1}^n e_i^2</script><h3 id="极大似然估计"><a href="#极大似然估计" class="headerlink" title="极大似然估计"></a>极大似然估计</h3><p>现在我们介绍第二种方法——极大似然估计。$\boldsymbol y$ 是服从多元正态分布的，即：</p>
+<script type="math/tex; mode=display">
+\boldsymbol y\sim N_n(\boldsymbol {X\beta},\sigma^2\boldsymbol I_n)</script><p>因此 $\boldsymbol y$ 的联合密度函数为：</p>
+<script type="math/tex; mode=display">
+f(\boldsymbol y;\boldsymbol \beta,\sigma^2) = \frac{1}{(2\pi)^{n/2}\left|{\sigma^2 \boldsymbol I_n}^{1/2}\right |}\exp\{-\frac{1}{2}(\boldsymbol y-\boldsymbol{X\beta})'(\sigma^2\boldsymbol (\boldsymbol{y-X\beta}' (\sigma ^2I_n) ^{ -1 }(\boldsymbol{y-X\beta}))</script><p> 参数 $( \beta,\sigma ^2) $​​​的 似然函数为</p>
+<script type="math/tex; mode=display">
+L (\boldsymbol \beta,\sigma ^2) = (2\pi)^{-n/2}(\sigma ^2) ^{-n/2}\exp\{ (\boldsymbol { y- X\beta} ) ' (\boldsymbol{y-X\beta}) \}</script><p>进而我们给出极大似然估计 ：</p>
+<script type="math/tex; mode=display">
+(\boldsymbol{\hat\beta}_ {ML},\hat\sigma _{ML} ^2) =\arg\max_{ (\beta,\sigma^ 2) }L(\boldsymbol\beta,\sigma ^2)\\
+ =\arg\max_ { (\beta,\sigma ^2)}\ln (L(\boldsymbol\beta,\sigma ^2))</script><h4 id="具体计算方法-1"><a href="#具体计算方法-1" class="headerlink" title="具体计算方法"></a>具体计算方法</h4><script type="math/tex; mode=display">
+\ln L(\boldsymbol\beta,\sigma^2) = -\frac{n}{2}\ln(2\pi)-\frac{n}{2}\ln(\sigma^2)-\frac{1}{2\sigma^2}(\boldsymbol{y-X\beta})'(\boldsymbol{y-X\beta})</script><p>对数似然函数分布关于$\boldsymbol \beta$​和和$\sigma^2$​求导，即</p>
+<script type="math/tex; mode=display">
+\frac{\partial\ln L(\boldsymbol\beta,\sigma^2)}{\partial\beta} = -\frac{1}{\sigma^2}(\boldsymbol{X'X\beta-X'y})=0\\
+\frac{\partial\ln L(\boldsymbol\beta,\sigma^2)}{\partial{\sigma^2}} = -\frac{n}{2\sigma^2}+\frac{1}{2\sigma^4}(\boldsymbol {y-X\beta})'(\boldsymbol{y-X\beta})=0</script><p>反解得到：</p>
+<script type="math/tex; mode=display">
+\boldsymbol{\hat\beta}_{ML} = (\boldsymbol{X'X})^{-1}\boldsymbol{X}'\boldsymbol y\\
+\hat\sigma^2_{ML} = \frac{1}{n}(\boldsymbol {y-X'\beta}_{ML})'(\boldsymbol {y-X\hat\beta}_{ML})=\frac{1}{n}\boldsymbol {e'e}</script><blockquote>
+<p>说明：</p>
+<p>$\boldsymbol{\hat\beta}<em>{ML}=\boldsymbol{\hat\beta}</em>{LS}$ ，因此，我们不用写下标了，一般记为 $\boldsymbol{\hat\beta}  = (\boldsymbol{X’X})^{-1}\boldsymbol{X}’\boldsymbol y$​</p>
+<p>$\hat\sigma^2_{ML}$ 不是一个无偏估计，但是一个相合估计</p>
+</blockquote>
+<h3 id="参数估计性质"><a href="#参数估计性质" class="headerlink" title="参数估计性质"></a>参数估计性质</h3><blockquote>
+<p>概率论 关于矩阵的期望方差复习。假设$\boldsymbol {x,y}$是n维随机变量。对任意一个$m\times n$ 维常矩阵 $\boldsymbol A$ 和一个$m’\times n$ 维常矩阵$\boldsymbol B$​,以及一个m维向量$\boldsymbol c$</p>
+<ul>
+<li>$E(\boldsymbol {Ax+c})=\boldsymbol{A}E(\boldsymbol {x})+\boldsymbol c$</li>
+<li>$Var(\boldsymbol{Ax+c})=\boldsymbol A\text{Var(x)}A’$</li>
+<li>$Cov(\boldsymbol{Ax,By})=\boldsymbol A Cov(\boldsymbol{x,y})\boldsymbol B’$​ ​​</li>
+</ul>
+</blockquote>
+<h4 id="最小二乘估计的性质"><a href="#最小二乘估计的性质" class="headerlink" title="最小二乘估计的性质"></a>最小二乘估计的性质</h4><p>最小二乘估计 $\boldsymbol{\hat\beta}=(\boldsymbol{X’X})^{-1}\boldsymbol{X’y}$​ 那么$\boldsymbol{\hat\beta}$​ 满足：</p>
+<blockquote>
+<ul>
+<li>$E(\boldsymbol{\hat\beta})=\boldsymbol{\beta}$​, 即$\boldsymbol{\hat\beta}$是$\boldsymbol \beta$ 的无偏估计</li>
+<li>$Var(\boldsymbol{\hat\beta})=\sigma^2(\boldsymbol{X’X})^{-1}$</li>
+</ul>
+</blockquote>
+<p>证明1：计算$E(\boldsymbol {\hat\beta})$​ </p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+&E(\boldsymbol {\hat\beta})=E((\boldsymbol{X'X})'\boldsymbol{X'y})=(\boldsymbol{X'X})^{-1}\boldsymbol X'E(\boldsymbol y)\\
+&=(\boldsymbol{X'X})^{-1}\boldsymbol X' E(\boldsymbol{X\beta+\epsilon})\\
+&=(\boldsymbol{X'X})^{-1}\boldsymbol X'(\boldsymbol{X\beta}+E(\boldsymbol\epsilon))\\
+&=(\boldsymbol{X'X})^{-1}\boldsymbol{X'X\beta} = \boldsymbol \beta
+\end{aligned}</script><p>证明2：计算$Var(\boldsymbol{\hat\beta})$​​</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+&Var(\boldsymbol{\hat\beta})=Var((\boldsymbol{X'X})^{-1}\boldsymbol{X'y})\\
+&=(\boldsymbol{X'X})^{-1}\boldsymbol {X'}Var(\boldsymbol y)((\boldsymbol{X'X})^{-1}\boldsymbol X')'\\
+&=(\boldsymbol{X'X})^{-1}\boldsymbol {X'}Var(\boldsymbol {X\beta}+\boldsymbol\varepsilon)((\boldsymbol{X'X})^{-1}\boldsymbol X')'\\
+&=(\boldsymbol{X'X})^{-1}\boldsymbol {X'}(\sigma^2\boldsymbol I_n)((\boldsymbol{X'X})^{-1}\boldsymbol X')'\\
+&=\sigma^2(\boldsymbol{X'X})^{-1}\boldsymbol{X'X}(\boldsymbol{X'X})^{-1}\\
+&=\sigma^2(\boldsymbol{X'X})^{-1}
+\end{aligned}</script><h4 id="最小二乘估计-boldsymbol-hat-beta-与残差-boldsymbol-e-的关系"><a href="#最小二乘估计-boldsymbol-hat-beta-与残差-boldsymbol-e-的关系" class="headerlink" title="最小二乘估计$\boldsymbol {\hat\beta}$与残差$\boldsymbol e$ 的关系"></a>最小二乘估计$\boldsymbol {\hat\beta}$与残差$\boldsymbol e$ 的关系</h4><blockquote>
+<p>最小二乘估计$\boldsymbol \beta$与残差$\boldsymbol e$ 线性不相关，即</p>
+<script type="math/tex; mode=display">
+\text{Cov}(\boldsymbol{\hat\beta,e})=\boldsymbol 0</script></blockquote>
+<p>之前我们说到，最小二乘估计$\boldsymbol {\hat\beta}$与残差$\boldsymbol e$​​ 在数学层面是垂直的。那么反映在统计中，就是线性无关的。也就是他们两的协方差等于0</p>
+<p>说明：特别地，在正态分布的假定下，最小二乘估计$\boldsymbol{\hat\beta}$​与残差$\boldsymbol e$​ 独立。基于此，最小二乘估计$\boldsymbol {\hat\beta}$​ 与残差平方和 $SS_E=\boldsymbol{e’e}$独立</p>
+<p>证明：</p>
+<script type="math/tex; mode=display">
+\text{Cov}(\boldsymbol{\hat\beta,e}) = \text{Cov}((\boldsymbol{X'X})^{-1}\boldsymbol{X'y}),(\boldsymbol{I-H})\boldsymbol y)\\</script><p>根据上面所说的协方差的性质，又知道帽子矩阵$\boldsymbol H = \boldsymbol {X(X’X)^{-1}X’}$​​ ，以及$\text{Cov}(\boldsymbol{y,y})=\sigma^2$​,原式可化简为：</p>
+<script type="math/tex; mode=display">
+=\sigma^2((\boldsymbol{X'X})^{-1}\boldsymbol{X}'(\boldsymbol{I}_n-\boldsymbol{X(X'X)^{-1}X'}))\\</script><p>因为 $(\boldsymbol{X’X})^{-1}=\boldsymbol X^{-1}{\boldsymbol X’}^{-1}$, 所以：$\boldsymbol{I}_n-\boldsymbol{X(X’X)^{-1}X’}=0$</p>
+<p>因此$\text{Cov}=0$​ ，得证</p>
+<h2 id="中心化和标准化"><a href="#中心化和标准化" class="headerlink" title="中心化和标准化"></a>中心化和标准化</h2><h3 id="中心化"><a href="#中心化" class="headerlink" title="中心化"></a>中心化</h3><h4 id="矩阵知识补充"><a href="#矩阵知识补充" class="headerlink" title="矩阵知识补充"></a>矩阵知识补充</h4><p>假定$\boldsymbol A$ 是$m\times m$ 可逆矩阵，$\boldsymbol B$是 $m\times n$矩阵，$\boldsymbol C$ 是$n\times m$ 矩阵，$\boldsymbol D$是$n\times n$ 矩阵。如果$\boldsymbol D-\boldsymbol{CA^{-1}B}$ 是$n\times n$ 可逆矩阵，那么：</p>
+<script type="math/tex; mode=display">
+\pmatrix{A &B\\C&D}^{-1}=\pmatrix{E_{11}&E_{12}\\E_{21}&E_{22}}</script><p>其中，</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+&\boldsymbol E_{11}=\boldsymbol A^{-1}+\boldsymbol A^{-1}\boldsymbol B(\boldsymbol D-\boldsymbol {CA}^{-1}\boldsymbol B)^{-1}\\
+&\boldsymbol E_{12}=-\boldsymbol A^{-1}\boldsymbol B(\boldsymbol D-\boldsymbol {CA}^{-1}\boldsymbol B)^{-1}\\
+&\boldsymbol E_{21} = -(\boldsymbol D-\boldsymbol {CA}^{-1}\boldsymbol B)^{-1}\boldsymbol C\boldsymbol A^{-1}\\
+&\boldsymbol E_{22}= (\boldsymbol D-\boldsymbol {CA}^{-1}\boldsymbol B)^{-1}
+\end{aligned}</script><h4 id="中心化步骤"><a href="#中心化步骤" class="headerlink" title="中心化步骤"></a>中心化步骤</h4><p>所谓中心化，就是把矩阵的中心拉到0 ，我们用$x_{ij}^<em>,y_i^</em>,\boldsymbol X^*$ 来表示中心化后的数据：</p>
+<script type="math/tex; mode=display">
+x^*_{ij} = x_{ij}-\overline x_j,~~~\overline x_j = n^{-1}\sum_{i=1}^nx_{ij}\\
+y_i^* = y_i-\overline y,~~~~\overline y=n^{-1}\sum_{i=1}^ny_i\\</script><p>令</p>
+<script type="math/tex; mode=display">
+\cases{\boldsymbol y^* = (y_1^*,\cdots,y_n^*)'\\~\\
+\boldsymbol X_c = (\boldsymbol x_1^*,\cdots,\boldsymbol x_p^*)\\~\\
+\boldsymbol X^* = (\boldsymbol 1_n,\boldsymbol X_c)}\\</script><p>其中，$\boldsymbol x<em>j^*=(x</em>{1j}^<em>,\cdots,x_{nj}^</em>)’$</p>
+<h4 id="中心化前后的关系"><a href="#中心化前后的关系" class="headerlink" title="中心化前后的关系"></a>中心化前后的关系</h4><p>标准化前，原数据集为：</p>
+<script type="math/tex; mode=display">
+\cases{\boldsymbol y=(y_1,\cdots,y_n)'\\~\\
+\boldsymbol X=(\boldsymbol 1_n,\boldsymbol X_o),\boldsymbol X_o=(\boldsymbol x_1,\cdots,\boldsymbol x_p) 
+}</script><p>因为根据模型，$\boldsymbol X$​的第一列都是1，所以在上面做一个拼接</p>
+<hr>
+<p>最小二乘估计为：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\boldsymbol {\hat\beta}=(\boldsymbol {X'X})^{-1}\boldsymbol {X'y}\\~\\
+=\pmatrix{n&\boldsymbol 1_n'\boldsymbol X_o\\
+\boldsymbol X_o'\boldsymbol 1_n&\boldsymbol X_o'\boldsymbol X_o}^{-1}\pmatrix{\boldsymbol 1_n'\\ \boldsymbol X_o'}\boldsymbol y\\~\\
+=\pmatrix{n^{-1}+n^{-2}\boldsymbol 1_n'\boldsymbol {X_oA_oX'_o1}_n& -n^{-1}\boldsymbol 1'_n\boldsymbol {X_oA_o}\\
+-n^{-1}\boldsymbol {A_oX'_o}\boldsymbol1_n&\boldsymbol A_o }\pmatrix{\boldsymbol 1_n'\\\boldsymbol X_o'}\boldsymbol y\\~\\
+=\pmatrix{n^{-1}\boldsymbol 1_n'+n^{-2}\boldsymbol 1_n'\boldsymbol {X_oA_oX_o'1_n1_n'}-n^{-1}\boldsymbol 1_n'\boldsymbol {X_oA_oX_o'}\\-n^{-1}\boldsymbol {A_oX_o'1_n1_n'}+\boldsymbol A_o\boldsymbol X_o'}\boldsymbol y
+\end{aligned}</script><p>其中 $\boldsymbol A_o=(\boldsymbol X_o’\boldsymbol X_o-n^{-1}\boldsymbol X_o’\boldsymbol 1_n\boldsymbol 1_n’\boldsymbol X_o)^{-1}$</p>
+<hr>
+<p>对于中心化的数据，我们有相似的：</p>
+<script type="math/tex; mode=display">
+=\pmatrix{n^{-1}\boldsymbol 1_n'+n^{-2}\boldsymbol 1_n'\boldsymbol {X_cA_cX_c'1_n1_n'}-n^{-1}\boldsymbol 1_n'\boldsymbol {X_cA_cX_c'}\\-n^{-1}\boldsymbol {A_cX_c'1_n1_n'}+\boldsymbol A_c\boldsymbol X_c'}\boldsymbol y^*</script><p>其中 $\boldsymbol A_c=(\boldsymbol X_c’\boldsymbol X_c-n^{-1}\boldsymbol X_c’\boldsymbol 1_n\boldsymbol 1_n’\boldsymbol X_c)^{-1}$​​</p>
+<hr>
+<p>中心化的因变量与为中心化的因变量之间的关系：</p>
+<script type="math/tex; mode=display">
+\boldsymbol y^* = \boldsymbol y-\boldsymbol 1_n(\boldsymbol1_n'\boldsymbol 1_n)^{-1}\boldsymbol 1_n' \boldsymbol y = (\boldsymbol I_n-\boldsymbol H_{1n})\boldsymbol y</script><p>其中 $\boldsymbol H_{1n} = \boldsymbol 1_n(\boldsymbol 1_n’\boldsymbol1_n)^{-1}\boldsymbol1_n’$​是<strong>对称幂等</strong>矩阵, 即一个$\boldsymbol 1_n$​张成的帽子矩阵</p>
+<p>中心化的自变量与未中心化的自变量之间的关系：</p>
+<script type="math/tex; mode=display">
+\boldsymbol X_c = \boldsymbol X_o-\boldsymbol1_n(\boldsymbol1'_n\boldsymbol1_n)^{-1}\boldsymbol 1_n'\boldsymbol X_o\\
+=(\boldsymbol I_n-\boldsymbol1_n(\boldsymbol1'_n\boldsymbol1_n)^{-1}\boldsymbol1_n')\boldsymbol X_o\\
+=(\boldsymbol I_n-\boldsymbol H_{1n})\boldsymbol X_o</script><p>而且  $\boldsymbol1<em>n$​向量和它张成的空间的补空间$(\boldsymbol I_n-\boldsymbol H</em>{1n})$​​ 是垂直的，可以有如下证明</p>
+<script type="math/tex; mode=display">
+\boldsymbol1_n'(\boldsymbol I_n-\boldsymbol H_{1n}) = \boldsymbol1_n'-\boldsymbol1_n'\boldsymbol H_{1n}\\
+=\boldsymbol1_n'-\boldsymbol1_n'\boldsymbol1_n(\boldsymbol1_n'\boldsymbol1_n)^{-1}\boldsymbol1_n'=0</script><hr>
+<p>然后我们要找$\boldsymbol A_c$和$\boldsymbol A_o$的关系</p>
+<script type="math/tex; mode=display">
+\boldsymbol A_c=(\boldsymbol X_c'\boldsymbol X_c-n^{-1}\boldsymbol X_c'\boldsymbol 1_n\boldsymbol 1_n'\boldsymbol X_c)^{-1}\\
+= \boldsymbol X_o'(\boldsymbol I_n-\boldsymbol H_{1n})^2 \boldsymbol X_o-n^{-1} \boldsymbol X_c'(\boldsymbol I_n-\boldsymbol H_{1n})\boldsymbol 1_n\boldsymbol 1_n'(\boldsymbol I_n-\boldsymbol H_{1n})\boldsymbol X_o)^{-1}\\</script><p>因为前面的$(\boldsymbol I<em>n-\boldsymbol H</em>{1n})$是幂等且对称的矩阵 </p>
+<p>后面 $(\boldsymbol X<em>o’(\boldsymbol I_n-\boldsymbol H</em>{1n})\boldsymbol X<em>o)^{-1} = \boldsymbol A_0$中有$1_n’(\boldsymbol I_n-\boldsymbol H</em>{1n})$​ 因此直接等于0 </p>
+<p>因此：</p>
+<script type="math/tex; mode=display">
+\boldsymbol A_c =\boldsymbol X_o'(\boldsymbol I_n-\boldsymbol H_{1n})\boldsymbol X_o = \boldsymbol A_o</script><hr>
+<p>已知经验回归方程为：</p>
+<script type="math/tex; mode=display">
+\hat y = \hat \beta_{\text{intercept}}+\boldsymbol x'\boldsymbol {\hat\beta}_{text{slope}}</script><p>我们把中心化的数据用到最小二乘估计模型中，即估算<strong>回归常数</strong>和<strong>回归系数</strong>：</p>
+<script type="math/tex; mode=display">
+\boldsymbol {\hat\beta_c}=(\boldsymbol {\hat\beta}_{\text{c,intercept}},\boldsymbol {\hat\beta}_{\text{c,slope}})'</script><h5 id="估计-hat-beta-text-c-intercept-​​"><a href="#估计-hat-beta-text-c-intercept-​​" class="headerlink" title="估计 $\hat\beta_{\text{c,intercept}}$​​"></a>估计 $\hat\beta_{\text{c,intercept}}$​​</h5><p>对于回归常数，我们代入数据</p>
+<script type="math/tex; mode=display">
+\boldsymbol {\hat\beta}_{\text{c,intercept}} = (n^{-1}\boldsymbol 1_n'+n^{-2}\boldsymbol 1_n'\boldsymbol {X_cA_cX_c'1_n1_n'}-n^{-1}\boldsymbol 1_n'\boldsymbol {X_cA_cX_c'})\boldsymbol y^*\\</script><p>我们发现，括号中的后两项都有$\boldsymbol 1<em>n’\boldsymbol X_c’$ ，也就是 $\boldsymbol 1_n’(\boldsymbol I_n-\boldsymbol H</em>{1n})\boldsymbol X_o$ .我们刚刚证明了这是垂直的，乘积为0</p>
+<p>因此：</p>
+<script type="math/tex; mode=display">
+\boldsymbol {\hat\beta}_{\text{c,intercept}} =n^{-1}\boldsymbol 1_n'\boldsymbol y^*\\
+=n^{-1}\boldsymbol 1_n' (\boldsymbol I_n-\boldsymbol H_{1n})\boldsymbol y = 0</script><h5 id="估计-hat-beta-text-c-slope"><a href="#估计-hat-beta-text-c-slope" class="headerlink" title="估计$\hat\beta_{\text{c,slope}}$"></a>估计$\hat\beta_{\text{c,slope}}$</h5><script type="math/tex; mode=display">
+\begin{aligned}
+&\boldsymbol {\hat\beta_{\text{c,slope}}} = (-n^{-1}\boldsymbol A_c\boldsymbol X_c'\boldsymbol 1_n\boldsymbol 1_n'+\boldsymbol A_c\boldsymbol X_c')\boldsymbol y^*\\
+&=\boldsymbol A_c\boldsymbol X_c'(\boldsymbol I_n-n^{-1}\boldsymbol 1_n\boldsymbol1_n')\boldsymbol y\\
+
+&=\boldsymbol A_o\boldsymbol X_o'(\boldsymbol I_n-\boldsymbol H_{1n})(\boldsymbol I_n-n^{-1}\boldsymbol 1_n\boldsymbol1_n')\boldsymbol y
+\end{aligned}</script><p>因为$\boldsymbol 1<em>n$ 是 竖向量，因此 $\boldsymbol1_n’\boldsymbol1_n$ 是一个常数，为 $\frac{1}{n}$因此，我们有 $\boldsymbol H</em>{1n} = \boldsymbol 1_n(\boldsymbol 1_n’\boldsymbol1_n)^{-1}\boldsymbol1_n’ =\frac{1}{n}\boldsymbol (\boldsymbol 1_n\boldsymbol 1_n’) $​</p>
+<p>因此</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+&=\boldsymbol A_o\boldsymbol X_o'(\boldsymbol I_n-\boldsymbol H_{1n})(\boldsymbol I_n-n^{-1}\boldsymbol 1_n\boldsymbol1_n')\boldsymbol y\\~~
+&=\boldsymbol A_o\boldsymbol X_o'(\boldsymbol I_n-\boldsymbol H_{1n})(\boldsymbol I_n-\boldsymbol H_{1n})\boldsymbol y
+=\boldsymbol A_o\boldsymbol X_o'(\boldsymbol I_n-\boldsymbol H_{1n})\boldsymbol y
+\\
+&\boldsymbol {\hat\beta}_{\text{c,slope}} = \boldsymbol {\hat\beta}_{\text{slope}}
+\end{aligned}</script><p>采用了中心化的数据得到的经验回归方程为：</p>
+<script type="math/tex; mode=display">
+\hat y^* =\boldsymbol x'\hat\beta_{\text{slope}}</script><p>也就是说，$\beta_1,\beta_2\cdots,\beta_p$​的估计是不会变的</p>
+<h3 id="标准化"><a href="#标准化" class="headerlink" title="标准化"></a>标准化</h3><h4 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h4><script type="math/tex; mode=display">
+x_{ij}^{**} = \frac{x_{ij}^*}{\sqrt{L_{jj}}} = \frac{x_{ij}-\overline x_j}{\sqrt{L_{jj}}},i=1,2,\cdots,n~~;j=1,2,\cdots,p\\
+y_{i}^{**} = \frac{y_i^*}{\sqrt{L_{yy}}},i=1,2\cdots,n</script><p>其中，$L_{jj}$是自变量 $x_j$ 的离差平方和，即：</p>
+<script type="math/tex; mode=display">
+L_{jj} = \sum_{i=1}^n(x_{ij}-\overline x_j)^2</script><p>而$L_{yy}$是因变量y的离差平方和，即</p>
+<script type="math/tex; mode=display">
+L_{yy} = \sum_{i=1}^n(y_i-\overline y)^2</script><p>进而我们可以定义向量$\boldsymbol y^{**}$和矩阵$\boldsymbol X_s$</p>
+<script type="math/tex; mode=display">
+\boldsymbol y^{**} = (\frac{y_1-\overline y}{\sqrt{L_{yy}}},\cdots,\frac{y_n-\overline y}{\sqrt{L_{yy}}})' = \frac{1}{\sqrt{L_{yy}}}\boldsymbol y^*\\~\\
+\boldsymbol X_s = (\frac{1}{\sqrt{L_{11}}}\boldsymbol x_1^* ,\cdots,\frac{1}{L_{pp}}\boldsymbol x_p^*)</script><p>我们从$x<em>{ij}^*$的定义可以知道，其实就是中心化的$x</em>{ij}$ ，因此$\boldsymbol X_s$可以被写为：</p>
+<script type="math/tex; mode=display">
+\boldsymbol X_s = \boldsymbol X_c\boldsymbol L</script><p>其中，$\boldsymbol L=diag{\frac{1}{\sqrt{L<em>{11}}},\cdots,\frac{1}{\sqrt{L</em>{pp}}}}$​</p>
+<h4 id="参数估计"><a href="#参数估计" class="headerlink" title="参数估计"></a>参数估计</h4><p>标准化后的最小二重估计为：</p>
+<script type="math/tex; mode=display">
+\boldsymbol {\hat\beta}_s = (\boldsymbol{\hat\beta_{\text{s,intercept}}},\boldsymbol{\hat\beta_{\text{s,slope}}})'=(0,\boldsymbol {\hat\beta}_{\text{s,slope}})'</script><p>回归系数为：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+&\boldsymbol{\hat\beta}_{s,slope} = (\boldsymbol {X}_s'\boldsymbol X_s)^{-1} \boldsymbol X_s' \boldsymbol y^{**}\\
+&=(\boldsymbol{LX}_c'\boldsymbol X_c\boldsymbol L)^{-1}\boldsymbol L \boldsymbol X_c'\frac{1}{\sqrt{L_{yy}}}\boldsymbol y^*\\
+&=\boldsymbol L^{-1}(\boldsymbol X_c'\boldsymbol X_c)^{-1}\boldsymbol L^{-1}\boldsymbol L\boldsymbol X_c'\frac{1}{\sqrt{L_{yy}}} y^*\\
+&=\frac{1}{\sqrt{L_{yy}}}\boldsymbol L^{-1}(\boldsymbol X_c'\boldsymbol X_c)^{-1}\boldsymbol X_c' \boldsymbol y^*
+\end{aligned}</script><p>那么$\boldsymbol{\hat\beta}<em>{\text{s,slope}} $ 和 $\boldsymbol{\hat\beta}</em>{\text{c,slope}} $ 的关系又如何呢？我们先把$\boldsymbol{\hat\beta}_{\text{c,slope}} $化简成 $\boldsymbol X_c$的表达式 </p>
+<blockquote>
+<p>注意： $\boldsymbol {\hat\beta_{\text{c,slope}}} $ 还不是最终形态，我们可以这样来化简：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+&\boldsymbol {\hat\beta_{\text{c,slope}}}  
+=\boldsymbol A_c\boldsymbol X_c'(\boldsymbol I_n-\boldsymbol H_{1n})\boldsymbol y^*\\
+&=(\boldsymbol X_c\boldsymbol X_c'-\frac{1}{n}\boldsymbol X_c'\boldsymbol 1_n\boldsymbol 1_n'\boldsymbol X_c)^{-1}\boldsymbol X_c'(\boldsymbol I_n-\boldsymbol H_{1n})(\boldsymbol I_n-\boldsymbol H_{1n})\boldsymbol y\\
+\end{aligned}</script><p>因为上面证过了，$\boldsymbol A_c$展开后后面一项等于0，因此：</p>
+<script type="math/tex; mode=display">
+\boldsymbol {\hat\beta_{\text{c,slope}}}  =(\boldsymbol X_c\boldsymbol X_c')^{-1}\boldsymbol X_c'\boldsymbol y^*</script></blockquote>
+<p>因此： </p>
+<script type="math/tex; mode=display">
+\boldsymbol{\hat\beta}_{\text{s,slope}} =\frac{1}{\sqrt{L_{yy}}}\boldsymbol L^{-1}\boldsymbol {\hat\beta}_{\text{c,slope}}</script><p>其中每一个分量为：</p>
+<script type="math/tex; mode=display">
+\hat\beta_{sj} = \frac{\sqrt{L_{jj}}}{\sqrt{L_{yy}}}\hat\beta_{cj} = \frac{\sqrt{L_{jj}}}{\sqrt{L_{yy}}}\hat\beta_j,j=1,2\cdots,p</script><h2 id="显著性检验"><a href="#显著性检验" class="headerlink" title="显著性检验"></a>显著性检验</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>我们做了这么多参数估计，现在我们进一步判断因变量y和自变量$x_1,x_2\cdots,x_p$ 之间是否存在显著的线性关系。</p>
+<p>因此，我们可以采用F检验和t检验这两种统计检验方法：</p>
+<ul>
+<li>F检验： 用于检验<strong>回归方程</strong>的显著性</li>
+<li>t检验：用于检验<strong>回归系数</strong>的显著性</li>
+</ul>
+<p>我们之前学过，在一元线性回归模型中，F检验(研究方差分析)和t检验(枢轴量法)、相关系数这三类检验是等价的</p>
+<p>在多元线性回归模型中，F检验和t检验就不等价了。而且在多元线性回归中，两个变量之间的相关性是很难定义的，因为会受到其他变量的影响</p>
+<h3 id="F检验"><a href="#F检验" class="headerlink" title="F检验"></a>F检验</h3><p>F检验是检验回归方程的显著性。对多元线性回归方程的显著性检验是要看自变量 $x_1,x_2\cdots,x_p$ 从整体上对因变量y是否有明显的影响</p>
+<p>原假设为</p>
+<script type="math/tex; mode=display">
+H_0:\beta_1=\beta_2=\cdots=\beta_p = 0</script><p>备择假设为：</p>
+<script type="math/tex; mode=display">
+H_1:\text{存在}\beta_j\text{不为零},j=1,2\cdots,p</script><p>如果$H_0$ 为真，则表明因变量y与$x_1,x_2\cdots,x_p$ 之间的关系用线性回归模型来刻画是不合适的</p>
+<h4 id="检验过程"><a href="#检验过程" class="headerlink" title="检验过程"></a>检验过程</h4><p>离差平方和：</p>
+<script type="math/tex; mode=display">
+\sum_{i=1}^n(y_i-\overline y)^2 =\sum_{i=1}^n(\hat y_i-\overline y)^2+\sum_{i=1}^n(y_i-\hat y_i)^2</script><p>我们记为 </p>
+<script type="math/tex; mode=display">
+SS_T = SS_R+SS_E</script><p>拟合值： $\hat y_i = \boldsymbol x_i’\boldsymbol {\hat\beta}$​</p>
+<p>偏差： $e_i = y_i-\hat y_i$</p>
+<h3 id="t检验"><a href="#t检验" class="headerlink" title="t检验"></a>t检验</h3><h2 id="置信区间与预测"><a href="#置信区间与预测" class="headerlink" title="置信区间与预测"></a>置信区间与预测</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95/" rel="tag"># 统计方法</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/" rel="prev" title="数据科学算法ch7-随机游走">
+      <i class="fa fa-chevron-left"></i> 数据科学算法ch7-随机游走
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/11/02/%E7%BB%9F%E8%AE%A1%E6%96%B9%E6%B3%95ch5-%E8%81%9A%E7%B1%BB1/" rel="next" title="统计方法ch5-聚类1">
+      统计方法ch5-聚类1 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#线性回归分析——PartII"><span class="nav-number">1.</span> <span class="nav-text">线性回归分析——PartII</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#线性回归的模型与假设"><span class="nav-number">1.1.</span> <span class="nav-text">线性回归的模型与假设</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#线性回归的基本假定"><span class="nav-number">1.1.1.</span> <span class="nav-text">线性回归的基本假定</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线性回归模型的参数估计"><span class="nav-number">1.2.</span> <span class="nav-text">线性回归模型的参数估计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#最小二乘估计"><span class="nav-number">1.2.1.</span> <span class="nav-text">最小二乘估计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#补充"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">补充</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#具体计算方法"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">具体计算方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#拟合值"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">拟合值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#帽子矩阵的性质"><span class="nav-number">1.2.1.4.</span> <span class="nav-text">帽子矩阵的性质</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#残差"><span class="nav-number">1.2.1.5.</span> <span class="nav-text">残差</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#极大似然估计"><span class="nav-number">1.2.2.</span> <span class="nav-text">极大似然估计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#具体计算方法-1"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">具体计算方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参数估计性质"><span class="nav-number">1.2.3.</span> <span class="nav-text">参数估计性质</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#最小二乘估计的性质"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">最小二乘估计的性质</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最小二乘估计-boldsymbol-hat-beta-与残差-boldsymbol-e-的关系"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">最小二乘估计$\boldsymbol {\hat\beta}$与残差$\boldsymbol e$ 的关系</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中心化和标准化"><span class="nav-number">1.3.</span> <span class="nav-text">中心化和标准化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#中心化"><span class="nav-number">1.3.1.</span> <span class="nav-text">中心化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#矩阵知识补充"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">矩阵知识补充</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中心化步骤"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">中心化步骤</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中心化前后的关系"><span class="nav-number">1.3.1.3.</span> <span class="nav-text">中心化前后的关系</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#估计-hat-beta-text-c-intercept-​​"><span class="nav-number">1.3.1.3.1.</span> <span class="nav-text">估计 $\hat\beta_{\text{c,intercept}}$​​</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#估计-hat-beta-text-c-slope"><span class="nav-number">1.3.1.3.2.</span> <span class="nav-text">估计$\hat\beta_{\text{c,slope}}$</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#标准化"><span class="nav-number">1.3.2.</span> <span class="nav-text">标准化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#步骤"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">步骤</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参数估计"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">参数估计</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#显著性检验"><span class="nav-number">1.4.</span> <span class="nav-text">显著性检验</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">1.4.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#F检验"><span class="nav-number">1.4.2.</span> <span class="nav-text">F检验</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#检验过程"><span class="nav-number">1.4.2.1.</span> <span class="nav-text">检验过程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#t检验"><span class="nav-number">1.4.3.</span> <span class="nav-text">t检验</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#置信区间与预测"><span class="nav-number">1.5.</span> <span class="nav-text">置信区间与预测</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

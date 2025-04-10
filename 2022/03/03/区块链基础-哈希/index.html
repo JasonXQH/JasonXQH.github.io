@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="区块链基础-哈希区块链中常见的Hash函数首先，我们要给出Hash函数的定义以及特征： 定义Hash函数是一种从任何种类、任何大小的数据中创建固定大小值的方法，这个值也被称为散列值。通常，用一个短的随机字母和数字组成的字符串来代表。 比如说对于sha 256算法来说，不管输入的值是什么类型、值有多大，它出来的一定是一个256bits的字符串。 特征 Hash函数是逆向难解的。根据给定的散列值，以目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="区块链基础-哈希">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/03/03/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%9F%BA%E7%A1%80-%E5%93%88%E5%B8%8C/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="区块链基础-哈希区块链中常见的Hash函数首先，我们要给出Hash函数的定义以及特征： 定义Hash函数是一种从任何种类、任何大小的数据中创建固定大小值的方法，这个值也被称为散列值。通常，用一个短的随机字母和数字组成的字符串来代表。 比如说对于sha 256算法来说，不管输入的值是什么类型、值有多大，它出来的一定是一个256bits的字符串。 特征 Hash函数是逆向难解的。根据给定的散列值，以目">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/03/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%9F%BA%E7%A1%80-%E5%93%88%E5%B8%8C/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/03/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%9F%BA%E7%A1%80-%E5%93%88%E5%B8%8C/3.jpeg">
+<meta property="article:published_time" content="2022-03-03T11:43:58.000Z">
+<meta property="article:modified_time" content="2022-03-03T14:53:40.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="block chain">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/03/03/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%9F%BA%E7%A1%80-%E5%93%88%E5%B8%8C/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/03/03/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%9F%BA%E7%A1%80-%E5%93%88%E5%B8%8C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>区块链基础-哈希 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/03/03/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%9F%BA%E7%A1%80-%E5%93%88%E5%B8%8C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          区块链基础-哈希
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-03-03 19:43:58 / Modified: 22:53:40" itemprop="dateCreated datePublished" datetime="2022-03-03T19:43:58+08:00">2022-03-03</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="区块链基础-哈希"><a href="#区块链基础-哈希" class="headerlink" title="区块链基础-哈希"></a>区块链基础-哈希</h1><h2 id="区块链中常见的Hash函数"><a href="#区块链中常见的Hash函数" class="headerlink" title="区块链中常见的Hash函数"></a>区块链中常见的Hash函数</h2><p>首先，我们要给出Hash函数的定义以及特征：</p>
+<h4 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h4><p>Hash函数是一种从<strong>任何种类、任何大小的数据中创建固定大小值</strong>的方法，这个值也被称为散列值。通常，用一个短的随机字母和数字组成的字符串来代表。</p>
+<p>比如说对于sha 256算法来说，不管输入的值是什么类型、值有多大，它出来的一定是一个256bits的字符串。</p>
+<h4 id="特征"><a href="#特征" class="headerlink" title="特征"></a>特征</h4><ul>
+<li>Hash函数是逆向难解的。根据给定的散列值，以目前的计算资源很难在有限的时间内推出原文</li>
+<li>强抗碰撞性。对于任意两个不同的明文x和y，$H(x)$ 不等于$H(y)$ </li>
+<li>雪崩效应。原文的微小变更会导致散列值巨大的变化，使得通过明文来反推原文的难度是非常困难的</li>
+</ul>
+<h4 id="Hash函数常见算法"><a href="#Hash函数常见算法" class="headerlink" title="Hash函数常见算法"></a>Hash函数常见算法</h4><ul>
+<li>MD </li>
+</ul>
+<p>MD系列有MD4和MD5，输出位128位。MD5比MD4更加安全，但计算速度较慢。</p>
+<ul>
+<li>SHA </li>
+</ul>
+<p>SHA是一个Hash函数族。主要有SHA-0,SHA-1,SHA-2,SHA-3 这几个版本。 SHA-2版本包括SHA-224、SHA-256、SHA-384和SHA-512，其中SHA-256是应用最广泛的Hash函数。</p>
+<p>现在 MD5、SHA-0和SHA-1已经发现碰撞，存在安全问题，已经不适于商业应用。</p>
+<h3 id="哈希函数在区块链中的应用"><a href="#哈希函数在区块链中的应用" class="headerlink" title="哈希函数在区块链中的应用"></a>哈希函数在区块链中的应用</h3><p>首先我们要思考在P2P网络中，如何保证数据的准确性？比如说我用P2P下载一部电影，那么这时候电影文件会被拆分成一个一个片段，由不同的用户传给我。那么怎么保证我收到的电影片段是完整的呢？答案就是利用哈希。因为哈希的雪崩效应和强抗碰撞性，只要输入的片段有所偏差，那么输出的值肯定是不对的。因此我们可以用哈希函数对数据的正确性进行验证。</p>
+<p>应用在区块链上：</p>
+<h4 id="区块链的地址与标识。"><a href="#区块链的地址与标识。" class="headerlink" title="区块链的地址与标识。"></a><strong>区块链的地址与标识</strong>。</h4><p>每个交易的标识、区块的标识都是一个 Hash值。区块链通过区块链头中的PrevBlockHash或ParentHash连接相邻的块，最终形成链状结构。 </p>
+<h4 id="区块体相关数据的树根hash-——-交易树。"><a href="#区块体相关数据的树根hash-——-交易树。" class="headerlink" title="区块体相关数据的树根hash —— 交易树。"></a><strong>区块体相关数据的树根hash —— 交易树</strong>。</h4><p>在区块的头部存储Merkle树的根散列值，这个根散列值是由两两交易逐层生成的，因此这个根散列值也代表了区块中的所有交易数据的数字摘要。</p>
+<p><img src="/2022/03/03/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%9F%BA%E7%A1%80-%E5%93%88%E5%B8%8C/1.png" style="zoom:67%;"></p>
+<p>比如说，我想知道L3这块数据的正确性，我只需要Hash0、Hash1-1这两个哈希值(Top Hash已知)，我们就能通过Hash函数验证L3是否正确。这就是Merkle Proof</p>
+<h4 id="签名与验证"><a href="#签名与验证" class="headerlink" title="签名与验证"></a><strong>签名与验证</strong></h4><p>要理解签名和验证，首先要搞明白公钥和私钥的区别。比特币账户是以一个$2^{160}$的数字地址形式存在的，该账户能拥有、转出和转入比特币。因为地址够长，从而可以确保任意两个账户不会重复。</p>
+<h5 id="公钥和私钥"><a href="#公钥和私钥" class="headerlink" title="公钥和私钥"></a>公钥和私钥</h5><p>那么为了标识一个唯一的身份，就出现了公有密钥(公钥)和私有密钥(私钥)的概念。</p>
+<ul>
+<li>私有密钥是随机生成的，而共有密钥根据私有密钥产生</li>
+<li>公有密钥是交易方对外公布的地址，别人都可以知道。用于接收转入</li>
+<li>私有密钥则用于支付，这个是不能告诉任何人的。</li>
+</ul>
+<h5 id="对称加密和非对称加密"><a href="#对称加密和非对称加密" class="headerlink" title="对称加密和非对称加密"></a>对称加密和非对称加密</h5><p>了解了公钥和私钥的概念，还需要了解<strong>对称加密</strong>和<strong>非对称加密</strong>的概念。</p>
+<ul>
+<li>对称加密是最快速、最简单的一种加密方式，加密（encryption）与解密（decryption）用的是同样的密钥（secret key）。但是在对称加密中，如何给别人提供密钥呢？如果广播的话，每个人都知道密钥是什么，那么会造成数据的不安全。</li>
+<li>非对称加密为数据的加密与解密提供了一个非常安全的方法，它使用了一对密钥，公钥（public key）和私钥（private key）。非对称加密使用这对密钥中的一个进行加密，而解密则需要另一个密钥。比如，你向银行请求公钥，银行将公钥发给你，你使用公钥对消息加密，那么只有私钥的持有人—银行才能对你的消息解密。与对称加密不同的是，银行不需要将私钥通过网络发送出去，因此安全性大大提高。</li>
+</ul>
+<h5 id="数字签名与验证"><a href="#数字签名与验证" class="headerlink" title="数字签名与验证"></a>数字签名与验证</h5><ol>
+<li>数字签名的签名过程</li>
+</ol>
+<p>数字签名的操作过程需要有发方的签名数字证书的私钥及其验证公钥。</p>
+<p>具体过程如下：</p>
+<ul>
+<li>首先对代发文件做哈希算法<strong>形成数字摘要</strong></li>
+<li>再对数字摘要用签名私钥做非对称加密形成数字签名；</li>
+<li>之后将以上的签名和电子文件原文以及签名证书的公钥加在一起进行封装，形成签名结果发送给收方待收方验证。</li>
+</ul>
+<ol>
+<li>数字签名的验证过程</li>
+</ol>
+<p>接收方收到发方的签名结果进行签名验证</p>
+<p>具体过程如下： </p>
+<ul>
+<li>接收方收到数字签名的结果，其中包括数字签名、电子原文和发方公钥，即待验证的数据。</li>
+<li>接收方进行签名验证：接收方首先用发方公钥解密数字签名，导出数字摘要；</li>
+<li>并对电子文件原文做同样哈希算法得出一个新的数字摘要，将两个摘要的哈希值进行结果比较，相同签名得到验证，否则无效。</li>
+</ul>
+<p>示意图如下：</p>
+<p><img src="/2022/03/03/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%9F%BA%E7%A1%80-%E5%93%88%E5%B8%8C/3.jpeg" style="zoom: 150%;"></p>
+<p>数字签名的意义就是，在传输一份文件的时候，除了文件本身还附带了一个我的签名，这个签名的作用就是证明，我本人发了这个文件，是赖不掉的(不可抵赖性)；而且保证了文件的安全性，因为如果被篡改会导致验证失败</p>
+<ol>
+<li><strong>防篡改</strong>。由哈希函数和默克尔树的特性可知，区块中的某个交易的修改会导致交易的散列值发生变化，区块头部中的根散列值也会发生变化。区块的校验方法会校验区块头部中的根散列值和区块中交易生成的新的根散列值是否一致</li>
+<li><strong>数据编码</strong></li>
+</ol>
+<h2 id="加密解密算法"><a href="#加密解密算法" class="headerlink" title="加密解密算法"></a>加密解密算法</h2><h2 id="数字签名"><a href="#数字签名" class="headerlink" title="数字签名"></a>数字签名</h2><h2 id="数字证书及PKI体系"><a href="#数字证书及PKI体系" class="headerlink" title="数字证书及PKI体系"></a>数字证书及PKI体系</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/block-chain/" rel="tag"># block chain</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/02/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93-%E5%AD%98%E5%82%A8/" rel="prev" title="高级数据库-存储">
+      <i class="fa fa-chevron-left"></i> 高级数据库-存储
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/03/08/AI-Searching/" rel="next" title="AI-Searching">
+      AI-Searching <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#区块链基础-哈希"><span class="nav-number">1.</span> <span class="nav-text">区块链基础-哈希</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#区块链中常见的Hash函数"><span class="nav-number">1.1.</span> <span class="nav-text">区块链中常见的Hash函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#定义"><span class="nav-number">1.1.0.1.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#特征"><span class="nav-number">1.1.0.2.</span> <span class="nav-text">特征</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Hash函数常见算法"><span class="nav-number">1.1.0.3.</span> <span class="nav-text">Hash函数常见算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#哈希函数在区块链中的应用"><span class="nav-number">1.1.1.</span> <span class="nav-text">哈希函数在区块链中的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#区块链的地址与标识。"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">区块链的地址与标识。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#区块体相关数据的树根hash-——-交易树。"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">区块体相关数据的树根hash —— 交易树。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#签名与验证"><span class="nav-number">1.1.1.3.</span> <span class="nav-text">签名与验证</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#公钥和私钥"><span class="nav-number">1.1.1.3.1.</span> <span class="nav-text">公钥和私钥</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#对称加密和非对称加密"><span class="nav-number">1.1.1.3.2.</span> <span class="nav-text">对称加密和非对称加密</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#数字签名与验证"><span class="nav-number">1.1.1.3.3.</span> <span class="nav-text">数字签名与验证</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加密解密算法"><span class="nav-number">1.2.</span> <span class="nav-text">加密解密算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数字签名"><span class="nav-number">1.3.</span> <span class="nav-text">数字签名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数字证书及PKI体系"><span class="nav-number">1.4.</span> <span class="nav-text">数字证书及PKI体系</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

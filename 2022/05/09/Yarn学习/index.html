@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Yarn学习设计思想作业与资源管理在学习Yarn之前，我们先学习一下作业管理和资源管理。 在MapReduce中，有一个部件是 JobTracker，它负责作业管理和资源管理  作业管理：状态监控、信息汇总、任务调度 资源管理：管理主从节点  但是，资源管理和计算框架不能结合得这样紧密(因此这也是MapReduce的一个弊端之一)，资源管理应该是由操作系统来分配的，是通用的 而且，MapReduc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Yarn学习">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Yarn学习设计思想作业与资源管理在学习Yarn之前，我们先学习一下作业管理和资源管理。 在MapReduce中，有一个部件是 JobTracker，它负责作业管理和资源管理  作业管理：状态监控、信息汇总、任务调度 资源管理：管理主从节点  但是，资源管理和计算框架不能结合得这样紧密(因此这也是MapReduce的一个弊端之一)，资源管理应该是由操作系统来分配的，是通用的 而且，MapReduc">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/8.png">
+<meta property="article:published_time" content="2022-05-09T08:20:58.000Z">
+<meta property="article:modified_time" content="2022-05-16T14:46:20.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="bigdata">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Yarn学习 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Yarn学习
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-05-09 16:20:58" itemprop="dateCreated datePublished" datetime="2022-05-09T16:20:58+08:00">2022-05-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-05-16 22:46:20" itemprop="dateModified" datetime="2022-05-16T22:46:20+08:00">2022-05-16</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Yarn学习"><a href="#Yarn学习" class="headerlink" title="Yarn学习"></a>Yarn学习</h1><h2 id="设计思想"><a href="#设计思想" class="headerlink" title="设计思想"></a>设计思想</h2><h3 id="作业与资源管理"><a href="#作业与资源管理" class="headerlink" title="作业与资源管理"></a>作业与资源管理</h3><p>在学习Yarn之前，我们先学习一下作业管理和资源管理。</p>
+<p>在MapReduce中，有一个部件是 JobTracker，它负责作业管理和资源管理</p>
+<ul>
+<li>作业管理：状态监控、信息汇总、任务调度</li>
+<li>资源管理：管理主从节点</li>
+</ul>
+<p>但是，资源管理和计算框架不能结合得这样紧密(因此这也是MapReduce的一个弊端之一)，资源管理应该是由操作系统来分配的，是通用的</p>
+<p>而且，MapReduce的作业管理也有缺陷：JobTracker需要维护所有作业的元信息，内存开销大。那么，当同一时刻执行的作业数量增加时， JobTracker与执行这些作业中的任务以及 TaskTracker之间的通信频率增大，造成 JobTracker进程的不稳定。</p>
+<p>基于此，我们提出了HADOOP 2.0，其结构如下：也就是将资源管理单独剥离出来，交给Yarn去管理。有了Yarn以后，MapReduce就只需要负责数据处理就好了，而且还可以在此基础上运行Spark、Flink，以实现资源的共享</p>
+<p>因此，Yarn从某个角度上来说可以看做是一个操作系统，MapReduce、Spark可以看做是在这个操作系统上的软件。</p>
+<p><img src="/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/1.png" style="zoom:67%;"></p>
+<h3 id="平台与框架"><a href="#平台与框架" class="headerlink" title="平台与框架"></a>平台与框架</h3><p>我们要理清楚平台和框架的区别：</p>
+<ul>
+<li>平台：具有提供资源功能的系统，如 Yarn,K8s, Mesos</li>
+<li>框架：运行在平台上的系统，如Spark, Flink, MapReduce</li>
+</ul>
+<p>在Yarn这个平台中，管理的粒度是<strong>应用</strong>。</p>
+<ul>
+<li>这个应用不一定是是框架中的应用</li>
+<li>运行在Yarn这个平台上的框架，可以将应用或者作业映射为Yarn的应用。</li>
+</ul>
+<p>比如, 在Spark中，一个application 映射成 Yarn中的一个应用。但在MapReduce中，是以Job为单位的，因此一个Job作为Yarn中的一个应用。</p>
+<h2 id="体系架构"><a href="#体系架构" class="headerlink" title="体系架构"></a>体系架构</h2><h3 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h3><p><img src="/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/2.png" style="zoom:67%;"></p>
+<p>Yarn的架构和MapReduce差不多，也是分为主从节点，不过名字换了一下，变成了 Resource Manager和Node Manager。</p>
+<p>我们看到上图中有两组不同颜色的工作进程和Application Master。说明此时在Yarn中有两个应用正在工作。</p>
+<h4 id="ResourceManager"><a href="#ResourceManager" class="headerlink" title="ResourceManager"></a>ResourceManager</h4><p>资源管理器：负责整个系统的资源管理和分配 (全局)。</p>
+<p>它分为两部分：</p>
+<ul>
+<li>资源调度器(Resource Scheduler)：分配 Container并进行资源调度 </li>
+<li>应用程序管理器(Application Manager)：管理整个系统中运行的所有应用 <ul>
+<li>应用程序提交 </li>
+<li>与调度器协商资源以启动ApplicationMaster </li>
+<li>监控Application Master运行状态</li>
+</ul>
+</li>
+</ul>
+<p>注意：Application Manager<strong>并不管理 </strong>Application内部的资源如何分配、如何协调。有点像班长，只管小组长是否还工作。关于每个小组如何分工，他不负责</p>
+<h4 id="NodeManager"><a href="#NodeManager" class="headerlink" title="NodeManager"></a>NodeManager</h4><p>节点管理器：负责每个节点资源和任务管理 </p>
+<ul>
+<li>定时地向ResourceManager汇报本节点的资源使用情况和 Container运行状态 </li>
+<li>接受并处理来自Application Master的Container启动/停止等各 种请求</li>
+</ul>
+<h4 id="Application-Master"><a href="#Application-Master" class="headerlink" title="Application Master"></a>Application Master</h4><p>当用户基于Yarn平台提交一个框架应用， Yarn均启动一个 AM用于管理该应用</p>
+<ul>
+<li>AM与RM调度器协商以获取资源（以Container 表示），将获取的资源进一步分配给应用内部的任务 </li>
+<li>AM与NM通信以启动/停止任务，监控所有任务运行状态， 并在任务发生故障时重新申请资源来重启任务</li>
+</ul>
+<h4 id="container"><a href="#container" class="headerlink" title="container"></a>container</h4><p>我们可能已经注意到，前面的AM以及工作进程，进程都被虚线框了起来。这些虚线就是Container</p>
+<ul>
+<li>Container是资源的抽象表示，包含CPU、 内存等资源，是一个动态资源划分单位</li>
+<li>当AM向RM申请资源时，RM向AM返回以 Container表示的资源</li>
+</ul>
+<h3 id="YARN和Mapreduce1-0的对比"><a href="#YARN和Mapreduce1-0的对比" class="headerlink" title="YARN和Mapreduce1.0的对比"></a>YARN和Mapreduce1.0的对比</h3><ul>
+<li>MapReduce 1.0既是计算系统，需要负责作业 管理，也是资源管理系统</li>
+<li>Yarn是独立出来的资源管理系统，而 MapReduce 2.0作为计算系统负责作业管理</li>
+</ul>
+<p><img src="/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/3.png" style="zoom:67%;"></p>
+<p>Container对应Task并不是特别准确，因为Task是一个进程，Container是容器。因此用child和YarnChild对应更加准确。</p>
+<h3 id="执行流程图"><a href="#执行流程图" class="headerlink" title="执行流程图"></a>执行流程图</h3><p><img src="/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/4.png" style="zoom:67%;"></p>
+<p>当用户向Yarn中提交应用程序之后，Yarn先启动Application Master，再由AM根据应用程序进行任务划分，并为个任务申请资源，同时监控整个运行过程</p>
+<ol>
+<li>用户编写客户端应用程序，想Yarn提交应用程序</li>
+<li>ResourceManager负责接收和处理来自客户端的请求，尝试为该应用程序分配第一个Container，若分配成功则在这个Container中启动应用程序的Application Master</li>
+<li>Application Master想Resource Manager注册，这样客户端可以通过ResourceManager查看应用的资源使用情况。ApplicationMaster将应用解析为作业并进一步分解为若干任务，并向Resource Manager申请启动这些任务的资源。</li>
+<li>RM想提出的AM分配Container形式表示的资源。一旦AM申请到资源后，在多个任务之间进行分配</li>
+<li>AM确定资源分配方案后，便于对应的NodeManager通信，在相应的Container中启动相应的工作进程用于执行任务</li>
+<li>各个任务向AM汇报自己的状态和进度，以便让AM随时掌握各个任务的运行状态</li>
+<li>随着任务执行结束，AM逐步释放所占用的资源，最终向RM注销并关闭自己</li>
+</ol>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><h3 id="单平台多框架"><a href="#单平台多框架" class="headerlink" title="单平台多框架"></a>单平台多框架</h3><p>Yarn 其实就是一个资源管理的平台，其上可以运行多个框架，并为多个应用进行资源的分配。比如说，在Yarn上可以运行MapReduce、Spark、Flink等应用，而且能实现动态共享物力资源。对于Yarn阿狸说，它值负责想框架提供Container，而不关心在Container中运行何种任务。</p>
+<p>如下图，Yarn中部署了MR和Spark两个计算框架，并且提交了两个MapReduce应用和一个Spark应用。由此看出，每当提交了一个应用，Yarn都会启动一个对应的AM(即使是同一类型的应用)。这就说明Yarn是按照应用粒度来划分的，每个应用之间相互独立地控制执行的目的。</p>
+<p><img src="/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/5.png" style="zoom:67%;"></p>
+<h3 id="平台资源分配"><a href="#平台资源分配" class="headerlink" title="平台资源分配"></a>平台资源分配</h3><ul>
+<li>Resource Manager中的调度器维护了一个 或多个应用队列(queue) ,每个队列拥有一定量的资源，位于同一队列中的应用共享该队列所拥有的资源。</li>
+<li>Yarn进行资源分配对象是应用，用户提交 的每个应用会分配到其中一个队列当中， 而队列决定了该应用能使用的资源上限。</li>
+<li>资源调度实际上是决定如何将资源分配给队列、以及如何分配给队列中应用的过程</li>
+</ul>
+<h4 id="资源分配策略-FIFO"><a href="#资源分配策略-FIFO" class="headerlink" title="资源分配策略-FIFO"></a>资源分配策略-FIFO</h4><p>FIFO调度器只维护一个队列，该队列拥有集群中所有资源，调度器的资源分配方式是<strong>先提交的应用先得到资源</strong></p>
+<p>该调度器实现起来比较简单，但是很可能导致一个应用独占所有的资源，而其他资源需不断等待。</p>
+<p><img src="/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/6.png" style="zoom:67%;"></p>
+<h4 id="资源分配策略-Capacity"><a href="#资源分配策略-Capacity" class="headerlink" title="资源分配策略-Capacity"></a>资源分配策略-Capacity</h4><p>改进FIFO调度器的思想是将一个队列分解为多个队列，每个队列都拥有一定的资源。某一应用最多只会占用其中一个队列所拥有的资源，而不会占用集群中的所有资源。</p>
+<p>因此进化成了 Capacity 策略：Capacity Scheduler维护了层级式队列，集群中的资源划分给了这些队列，队列内部的资源分配方式是FIFO</p>
+<p><img src="/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/7.png" style="zoom:67%;"></p>
+<h4 id="资源分配策略-Fair"><a href="#资源分配策略-Fair" class="headerlink" title="资源分配策略-Fair"></a>资源分配策略-Fair</h4><p>改进Capacity调度器的思想是容许队列之间共享资源，从而避免浪费。因此提出了Fair Scheduler, Fair Scheduler维护层级式的队列，集群中的资源划分给这些队列，但是这些队列可以共享资源，因而这些队列逻辑上可以看作是一个共享队列 </p>
+<p><img src="/2022/05/09/Yarn%E5%AD%A6%E4%B9%A0/8.png" style="zoom:67%;"></p>
+<p>当然这种方法也有弊端，应用2在提交之后需要和应用1抢占资源，因此会导致一定的时间延迟</p>
+<h2 id="容错机制"><a href="#容错机制" class="headerlink" title="容错机制"></a>容错机制</h2><p>YARN中的故障主要分为四部分：</p>
+<ul>
+<li>Resource Manager故障 </li>
+<li>Node Manager故障 </li>
+<li>Application Master故障：重启 </li>
+<li>Container中的任务故障：重启</li>
+</ul>
+<p>由于AM和Container中运行的任务与具体框架相关，作为资源管理平台的Yarn在它们发生故障的情况下只能重启来恢复</p>
+<h3 id="RM故障"><a href="#RM故障" class="headerlink" title="RM故障"></a>RM故障</h3><ul>
+<li>如果Resource Manager发生故障，那么它 在进行故障恢复时需要从某一持久化存储 系统中恢复状态信息，所有应用将会重新执行 </li>
+<li>我们可以部署多个Resource Manager并通过ZooKeeper进行协调，从而保证 Resource Manager的高可用性</li>
+</ul>
+<h3 id="NM故障"><a href="#NM故障" class="headerlink" title="NM故障"></a>NM故障</h3><p>Resource Manager认为Node Manager所在节点上所有容器运行的任务也都执行失 败，并把执行失败的信息告诉Application Master </p>
+<ul>
+<li>AM将向RM重新申请资源运行这些任务</li>
+<li><p>RM将分配其它节点的Container执行这些任务</p>
+<p>如果发生故障的Node Manager进行恢复， 那么它将向Resource Manager重新注册，重置本地的状态信息</p>
+</li>
+</ul>
+<h2 id="典型示例"><a href="#典型示例" class="headerlink" title="典型示例"></a>典型示例</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/bigdata/" rel="tag"># bigdata</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/08/%E7%94%A8Scala%E5%AE%9E%E7%8E%B0Spark%E7%BC%96%E7%A8%8B/" rel="prev" title="用Scala实现Spark编程">
+      <i class="fa fa-chevron-left"></i> 用Scala实现Spark编程
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/10/Flink%E5%AD%A6%E4%B9%A0/" rel="next" title="Flink学习">
+      Flink学习 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Yarn学习"><span class="nav-number">1.</span> <span class="nav-text">Yarn学习</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#设计思想"><span class="nav-number">1.1.</span> <span class="nav-text">设计思想</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#作业与资源管理"><span class="nav-number">1.1.1.</span> <span class="nav-text">作业与资源管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#平台与框架"><span class="nav-number">1.1.2.</span> <span class="nav-text">平台与框架</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#体系架构"><span class="nav-number">1.2.</span> <span class="nav-text">体系架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#架构图"><span class="nav-number">1.2.1.</span> <span class="nav-text">架构图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ResourceManager"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">ResourceManager</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NodeManager"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">NodeManager</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Application-Master"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">Application Master</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#container"><span class="nav-number">1.2.1.4.</span> <span class="nav-text">container</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#YARN和Mapreduce1-0的对比"><span class="nav-number">1.2.2.</span> <span class="nav-text">YARN和Mapreduce1.0的对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#执行流程图"><span class="nav-number">1.2.3.</span> <span class="nav-text">执行流程图</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工作原理"><span class="nav-number">1.3.</span> <span class="nav-text">工作原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#单平台多框架"><span class="nav-number">1.3.1.</span> <span class="nav-text">单平台多框架</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#平台资源分配"><span class="nav-number">1.3.2.</span> <span class="nav-text">平台资源分配</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#资源分配策略-FIFO"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">资源分配策略-FIFO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#资源分配策略-Capacity"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">资源分配策略-Capacity</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#资源分配策略-Fair"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">资源分配策略-Fair</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容错机制"><span class="nav-number">1.4.</span> <span class="nav-text">容错机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RM故障"><span class="nav-number">1.4.1.</span> <span class="nav-text">RM故障</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NM故障"><span class="nav-number">1.4.2.</span> <span class="nav-text">NM故障</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#典型示例"><span class="nav-number">1.5.</span> <span class="nav-text">典型示例</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

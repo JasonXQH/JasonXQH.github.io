@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="react基础4授权与部署最终章。可能有番外吧。。但是也要在完成大作业之后了 前三章： react基础3表单与后端 react基础2排序分页与查询+路由 react基础组件+如何组合组件  Authentication and AuthorizationIntroductionRegistering a New User利用postman 进行post，成功了  Submitting the Re">
+<meta property="og:type" content="article">
+<meta property="og:title" content="react基础4授权与部署">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="react基础4授权与部署最终章。可能有番外吧。。但是也要在完成大作业之后了 前三章： react基础3表单与后端 react基础2排序分页与查询+路由 react基础组件+如何组合组件  Authentication and AuthorizationIntroductionRegistering a New User利用postman 进行post，成功了  Submitting the Re">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/21.png">
+<meta property="article:published_time" content="2020-06-05T14:56:38.000Z">
+<meta property="article:modified_time" content="2020-06-21T04:43:18.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="web期末">
+<meta property="article:tag" content="react">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>react基础4授权与部署 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          react基础4授权与部署
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-06-05 22:56:38" itemprop="dateCreated datePublished" datetime="2020-06-05T22:56:38+08:00">2020-06-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-06-21 12:43:18" itemprop="dateModified" datetime="2020-06-21T12:43:18+08:00">2020-06-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/react/" itemprop="url" rel="index"><span itemprop="name">react</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="react基础4授权与部署"><a href="#react基础4授权与部署" class="headerlink" title="react基础4授权与部署"></a>react基础4授权与部署</h1><p>最终章。可能有番外吧。。但是也要在完成大作业之后了</p>
+<p>前三章：</p>
+<p><a href="https://jasonxqh.github.io/2020/06/04/react基础3/">react基础3表单与后端</a></p>
+<p><a href="https://jasonxqh.github.io/2020/06/02/react基础2/#more">react基础2排序分页与查询+路由</a></p>
+<p><a href="https://jasonxqh.github.io/2020/05/30/react基础/#more">react基础组件+如何组合组件 </a></p>
+<h2 id="Authentication-and-Authorization"><a href="#Authentication-and-Authorization" class="headerlink" title="Authentication and Authorization"></a>Authentication and Authorization</h2><h3 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h3><h3 id="Registering-a-New-User"><a href="#Registering-a-New-User" class="headerlink" title="Registering a New User"></a>Registering a New User</h3><p>利用postman 进行post，成功了</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/1.png" style="zoom:67%;"></p>
+<h3 id="Submitting-the-Registration-Form"><a href="#Submitting-the-Registration-Form" class="headerlink" title="Submitting the Registration Form"></a>Submitting the Registration Form</h3><p>首先新建一个userService.js 这个文件封装了调用后端api的函数，沟通了前后端。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> http <span class="keyword">from</span> <span class="string">"./httpService"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; apiUrl &#125; <span class="keyword">from</span> <span class="string">"../config.json"</span>;</span><br><span class="line"><span class="keyword">const</span> apiEndpoint = apiUrl + <span class="string">"/users"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">register</span>(<span class="params">user</span>) </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> http.post(apiEndpoint, &#123;</span><br><span class="line">    email: user.username,</span><br><span class="line">    password: user.password,</span><br><span class="line">    name: user.name,</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后再registerForm中导入，我们可以用这种语法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">import * as userService from &quot;..&#x2F;services&#x2F;userService&quot;;</span><br></pre></td></tr></table></figure>
+<p>这样的语法 ,会在registerForm中创建一个userServices对象，然后从userServices导入的所有函数都会成为他的方法<br>然后修改doSubmit方法,调用userService.register() 来注册</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">doSubmit = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">await</span> userService.register(<span class="keyword">this</span>.state.data);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>我们看到在前端输入信息提交之后，在dev-tools中可以看到这条注册信息，然后后端会在MongoDb上载入信息</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/3.png" style="zoom:67%;"></p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/2.png" style="zoom:67%;"></p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/4.png" style="zoom:80%;"></p>
+<h3 id="Handling-Registration-Errors"><a href="#Handling-Registration-Errors" class="headerlink" title="Handling Registration Errors"></a>Handling Registration Errors</h3><p>现在来处理注册时出现的错误，利用try，catch</p>
+<p>如果出现错误且错误码为400，那么就是说用户的操作出现了问题。我们需要在表单中提示一些错误的信息。</p>
+<p>这里我们只能得到用户已经被注册了的错误。所以我们先克隆errors。然后让errors的username属性设置成ex.response.data，然后再实现更新。ex.response.data是服务器给我们报的错误</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">doSubmit = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">await</span> userService.register(<span class="keyword">this</span>.state.data);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">    <span class="keyword">if</span> (ex.response &amp;&amp; ex.response.status === <span class="number">400</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> errors = &#123; ...this.state.errors &#125;;</span><br><span class="line">      errors.username = ex.response.data;</span><br><span class="line">      <span class="keyword">this</span>.setState(&#123; errors &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/5.png" style="zoom:80%;"></p>
+<h3 id="Logging-in-a-User"><a href="#Logging-in-a-User" class="headerlink" title="Logging in a User"></a>Logging in a User</h3><p>我们先做登录页，登录页做好了我们做注册成功跳转页面这个功能。我们在postman中实现登录。发现返回了一堆代码，这其实是一种 ID card</p>
+<p>实现逻辑是这样的：所以如果用户发送了合法的用户名和密码的组合给了服务器，服务器给用户一个认证卡。以后无论何时，用户都需要请求apiEndpoint，apiEndpoint需要认证这个用户，客户端会把这个token发给server，如果他是一个合法的token，服务器就会执行用户请求</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/6.png" style="zoom:80%;"></p>
+<h3 id="Submitting-the-Login-Form"><a href="#Submitting-the-Login-Form" class="headerlink" title="Submitting the Login Form"></a>Submitting the Login Form</h3><p>首先新建一个authService.js 这里面封装了调用后端的post函数，并把promise返回</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> http <span class="keyword">from</span> <span class="string">"./httpService"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; apiUrl &#125; <span class="keyword">from</span> <span class="string">"../config.json"</span>;</span><br><span class="line"><span class="keyword">const</span> apiEndpoint = apiUrl + <span class="string">"/auth"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">login</span>(<span class="params">email, password</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> http.post(apiEndpoint, &#123; email, password &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在loginForm.jsx中导入以后，我们重写doSubmit函数</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">doSubmit = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; data &#125; = <span class="keyword">this</span>.state;</span><br><span class="line">    <span class="keyword">await</span> login(data.username, data.password);</span><br><span class="line">  &#125;;</span><br></pre></td></tr></table></figure>
+<p>那么我如果输入刚才登陆的账号密码，那么我们看到返回了一个token</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/7.png" style="zoom: 50%;"></p>
+<h3 id="Handling-Login-Errors"><a href="#Handling-Login-Errors" class="headerlink" title="Handling Login Errors"></a>Handling Login Errors</h3><p>现在来处理登陆时发生的错误,利用try catch，逻辑和注册表单一样</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">doSubmit = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; data &#125; = <span class="keyword">this</span>.state;</span><br><span class="line">    <span class="keyword">await</span> login(data.username, data.password);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">    <span class="keyword">if</span> (ex.response &amp;&amp; ex.response.status === <span class="number">400</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> errors = &#123; ...this.state.errors &#125;;</span><br><span class="line">      errors.username = ex.response.data;</span><br><span class="line">      <span class="keyword">this</span>.setState(&#123; errors &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/8.png" style="zoom: 50%;"></p>
+<h3 id="Storing-the-JWT-JSON-Token"><a href="#Storing-the-JWT-JSON-Token" class="headerlink" title="Storing the JWT(JSON Token)"></a>Storing the JWT(JSON Token)</h3><p> 我们得到了Token之后，现在我们应该把token保留在客户端。每个浏览器都有一个小型的本地数据库。这个数据库可以保存键值对</p>
+<p>因为login函数（http.post）会返回一个promise对象，其中的data存放着返回的jwt，也就是我们想要的token，那么我们重命名它，然后存储到浏览器本地的小型数据库中。然后，点击提交的以后自动转回到首页</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> doSubmit = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> &#123; data &#125; = <span class="keyword">this</span>.state;</span><br><span class="line">      <span class="keyword">const</span> &#123; <span class="attr">data</span>: jwt &#125; = <span class="keyword">await</span> login(data.username, data.password);</span><br><span class="line">      <span class="built_in">console</span>.log(jwt);</span><br><span class="line">      localStorage.setItem(<span class="string">"token"</span>, jwt);</span><br><span class="line">      <span class="keyword">this</span>.props.history.push(<span class="string">"/"</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="Logging-in-the-User-upon-Registration"><a href="#Logging-in-the-User-upon-Registration" class="headerlink" title="Logging in the User upon Registration"></a>Logging in the User upon Registration</h3><p>现在我们想从 Headers（服务器发给我的包的头部信息）中获取tokens，学会了这个就可以如何使用头部来传递信息了</p>
+<p>为实现这个功能，我们对后端user.js进行修改</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">res</span><br><span class="line">   .header(<span class="string">"x-auth-token"</span>, token)</span><br><span class="line">   .header(<span class="string">"access-control-expose-headers"</span>, <span class="string">"x-auth-token"</span>)</span><br><span class="line">   .send(_.pick(user, [<span class="string">"_id"</span>, <span class="string">"name"</span>, <span class="string">"email"</span>]));</span><br></pre></td></tr></table></figure>
+<p>我们修改registerForm.js中的doSubmit,让他从headers中获取token并且存入localStorage。最后跳转到首页</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">doSubmit = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> response = <span class="keyword">await</span> userService.register(<span class="keyword">this</span>.state.data);</span><br><span class="line">    <span class="built_in">console</span>.log(response);</span><br><span class="line">    localStorage.setItem(<span class="string">"token"</span>, response.headers[<span class="string">"x-auth-token"</span>]);</span><br><span class="line">    <span class="keyword">this</span>.props.history.push(<span class="string">'/'</span>)</span><br><span class="line">  &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">    <span class="keyword">if</span> (ex.response &amp;&amp; ex.response.status === <span class="number">400</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> errors = &#123; ...this.state.errors &#125;;</span><br><span class="line">      errors.username = ex.response.data;</span><br><span class="line">      <span class="keyword">this</span>.setState(&#123; errors &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>下面是console.log(response)打印出来的内容，我们就是从这个headers中获取token</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/11.png" style="zoom: 50%;"></p>
+<h3 id="JSON-Web-Tokens-JWT"><a href="#JSON-Web-Tokens-JWT" class="headerlink" title="JSON Web Tokens (JWT)"></a>JSON Web Tokens (JWT)</h3><p><a href="https://jwt.io/" target="_blank" rel="noopener">https://jwt.io/</a></p>
+<p>在这个网站我们可以验证我们得到的Token是否合法</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/12.png" style="zoom: 80%;"></p>
+<p>我们看到和我注册的信息是一致的</p>
+<p>这相当于一个JSON对象，利用Base64URL加密算法进行编码得到的结果。我们看到左边有刚刚的id，name，email，最后一行是创建的事件。这就是为什么JWT是一个ID card的原因了，他就像驾照活着护照。存放了很多用户的信息</p>
+<p>蓝色部分只有服务器才有。除非服务器被hack了，他们是不能通过修改token来伪装的。</p>
+<h3 id="Getting-the-Current-User"><a href="#Getting-the-Current-User" class="headerlink" title="Getting the Current User"></a>Getting the Current User</h3><p>下面我们来说说如何在本地得到token，解码它，然后读取装在信息，并且显示在导航栏上</p>
+<p>npm i jwt-decode@2.2.0</p>
+<p>在app.js中导入 jwt-decode</p>
+<p>这样说吧，jwt-decode 导出了一个默认函数，然后我们把他叫做jwtDecode，我们随便叫他什么都可以。只要有辨识度即可</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> jwtDecode <span class="keyword">from</span> <span class="string">"jwt-decode"</span>;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">App</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  state = &#123;&#125;;</span><br><span class="line">  componentDidMount() &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> jwt = localStorage.getItem(<span class="string">"token"</span>);</span><br><span class="line">      <span class="keyword">const</span> user = jwtDecode(jwt);</span><br><span class="line">      <span class="keyword">this</span>.setState(&#123; user &#125;);</span><br><span class="line">    &#125;<span class="keyword">catch</span>(ex)&#123;&#125;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//...同时，我们向NavBar中传递user信息</span></span><br><span class="line">    &lt;NavBar user=&#123;<span class="keyword">this</span>.state.user&#125; /&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/13.png" style="zoom: 80%;"></p>
+<h3 id="Displaying-the-Current-User-on-NavBar"><a href="#Displaying-the-Current-User-on-NavBar" class="headerlink" title="Displaying the Current User on NavBar"></a>Displaying the Current User on NavBar</h3><p>接下来我们实现：没有登陆就只显示Login和Register，登陆了就显示用户名和logout链接</p>
+<p>首先我们在NavBar的()中把user解构出来，如果user非空，那么就显示user的名字和Logout按钮，否则就显示Login和Register</p>
+<p>那我们就这样渲染，我们知道</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">          </span><br><span class="line"><span class="comment">//....</span></span><br><span class="line">		&#123;!user &amp;&amp; (</span><br><span class="line">            &lt;React.Fragment&gt;</span><br><span class="line">              &lt;NavLink className=<span class="string">"nav-item nav-link"</span> to=<span class="string">"/login"</span>&gt;</span><br><span class="line">                Login</span><br><span class="line">              &lt;<span class="regexp">/NavLink&gt;</span></span><br><span class="line"><span class="regexp">              &lt;NavLink className="nav-item nav-link" to="/</span>register<span class="string">"&gt;</span></span><br><span class="line"><span class="string">                Register</span></span><br><span class="line"><span class="string">              &lt;/NavLink&gt;</span></span><br><span class="line"><span class="string">            &lt;/React.Fragment&gt;</span></span><br><span class="line"><span class="string">          )&#125;</span></span><br><span class="line"><span class="string">          &#123;user &amp;&amp; (</span></span><br><span class="line"><span class="string">            &lt;React.Fragment&gt;</span></span><br><span class="line"><span class="string">              &lt;NavLink className="</span>nav-item nav-link<span class="string">" to="</span>/profile<span class="string">"&gt;</span></span><br><span class="line"><span class="string">                &#123;user.name&#125;</span></span><br><span class="line"><span class="string">              &lt;/NavLink&gt;</span></span><br><span class="line"><span class="string">              &lt;NavLink className="</span>nav-item nav-link<span class="string">" to="</span>/logout<span class="string">"&gt;</span></span><br><span class="line"><span class="string">                Logout</span></span><br><span class="line"><span class="string">              &lt;/NavLink&gt;</span></span><br><span class="line"><span class="string">            &lt;/React.Fragment&gt;</span></span><br><span class="line"><span class="string">          )&#125;</span></span><br><span class="line"><span class="string">//....</span></span><br></pre></td></tr></table></figure>
+<p>但是这么做有个问题。我登陆以后返回首页，看到的还是login和register，只有当我重新刷新的时候，才会显示名字和logout。</p>
+<p>这是因为在App组件当中，我们从本地获得JWT并且在cdm中解码了它，这个方法在程序的生命周期中只被调用了一次。为了解决这个问题，我们在登录和注册表单中，不要使用history的push方法来重定向</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.props.history.push(<span class="string">"/"</span>);</span><br></pre></td></tr></table></figure>
+<p>我们要完全的重载应用.window.location强制重载。这样的结果就是App对象又会被Mount一次。这时候，我们的本地存储已经有JWT了，这样就可以解码它并且得到当前的user了</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.location = <span class="string">'/'</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="Logging-out-a-User"><a href="#Logging-out-a-User" class="headerlink" title="Logging out a User"></a>Logging out a User</h3><p>logging out 就是把本地的token删除。</p>
+<p>首先我们注册这个路由，然后渲染一个logout组件。当这个组件被装载时，我们删掉本地的token，然后将用户重定向到主页</p>
+<p>logout.jsx</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React, &#123; Component &#125; <span class="keyword">from</span> <span class="string">"react"</span>;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Logout</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  componentDidMount() &#123;</span><br><span class="line">    localStorage.removeItem(<span class="string">"token"</span>);</span><br><span class="line">      <span class="comment">//重定向</span></span><br><span class="line">    <span class="built_in">window</span>.location = <span class="string">"/"</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> Logout;</span><br></pre></td></tr></table></figure>
+<p>然后注册路由之后。我们就可以正常退出了</p>
+<h3 id="Refactoring"><a href="#Refactoring" class="headerlink" title="Refactoring"></a>Refactoring</h3><p>现在我们有很多的文件出现了token，以后我们如果想换其他键值，就会比较麻烦，所以我们只需要一个模块来完成授权工作，所有授权相关的都在那个模块当中。所以我们希望把保存和删除token的方法，放到authService当中。这样这个服务就是应用中唯一负责处理授权的地方。</p>
+<p>authService.jsx</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> http <span class="keyword">from</span> <span class="string">"./httpService"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; apiUrl &#125; <span class="keyword">from</span> <span class="string">"../config.json"</span>;</span><br><span class="line"><span class="keyword">import</span> jwtDecode <span class="keyword">from</span> <span class="string">"jwt-decode"</span>;</span><br><span class="line"><span class="keyword">const</span> apiEndpoint = apiUrl + <span class="string">"/auth"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">login</span>(<span class="params">email, password</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; <span class="attr">data</span>: jwt &#125; = <span class="keyword">await</span> http.post(apiEndpoint, &#123; email, password &#125;);</span><br><span class="line">  localStorage.setItem(<span class="string">"token"</span>, jwt);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">loginWithJwt</span>(<span class="params">jwt</span>) </span>&#123;</span><br><span class="line">  localStorage.setItem(<span class="string">"token"</span>, jwt);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">logout</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  localStorage.removeItem(<span class="string">"token"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">getCurrentUser</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> jwt = localStorage.getItem(<span class="string">"token"</span>);</span><br><span class="line">    <span class="keyword">return</span> jwtDecode(jwt);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  login,</span><br><span class="line">  logout,</span><br><span class="line">  getCurrenrUser,</span><br><span class="line">  loginWithJwt,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>App,loginForm,registerForm,logout中对于token的操作，都换成</p>
+<p>import auth from “../services/authService”;  然后相对应引用auth.loginWithJwt, auth.login,  auth.logout, auth.getCurrentUser,…</p>
+<p><strong>首先来看看App.js</strong>: 在cdm中调用getCurrentUser方法，从本地数据库中取出token并用user接受这个对象</p>
+<p>然后更新user,如果当前没有token，那么就返回一个null值， user为null</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">App</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  state = &#123;&#125;;</span><br><span class="line">  componentDidMount() &#123;</span><br><span class="line">    <span class="keyword">const</span> user = auth.getCurrentUser();</span><br><span class="line">    <span class="keyword">this</span>.setState(&#123; user &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后来看loginForm：调用auth.login，authService会帮他提取出JWT并存储到本地数据库中</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//... </span></span><br><span class="line">doSubmit = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> &#123; data &#125; = <span class="keyword">this</span>.state;</span><br><span class="line">      <span class="keyword">await</span> auth.login(data.username, data.password);</span><br><span class="line">      <span class="built_in">window</span>.location = <span class="string">"/"</span>;</span><br><span class="line"><span class="comment">//window.location 这和用户登录没关系，只是重定向可以调到主页也可以其他页，不管login的事</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">      <span class="keyword">if</span> (ex.response &amp;&amp; ex.response.status === <span class="number">400</span>) &#123;</span><br><span class="line">        <span class="keyword">const</span> errors = &#123; ...this.state.errors &#125;;</span><br><span class="line">        errors.username = ex.response.data;</span><br><span class="line">        <span class="keyword">this</span>.setState(&#123; errors &#125;);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"><span class="comment">//...</span></span><br></pre></td></tr></table></figure>
+<p>registerForm:  调用loginWithJwt，authService接收headers中提取出来的JWT并存储到本地数据库中</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//...</span></span><br><span class="line">doSubmit = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> response = <span class="keyword">await</span> userService.register(<span class="keyword">this</span>.state.data);</span><br><span class="line">      <span class="built_in">console</span>.log(response);</span><br><span class="line">      auth.loginWithJwt(response.headers[<span class="string">"x-auth-token"</span>]);</span><br><span class="line">      <span class="built_in">window</span>.location = <span class="string">"/"</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"><span class="comment">//...</span></span><br></pre></td></tr></table></figure>
+<p>最后来看看logout: authService会删除本地的token</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//...</span></span><br><span class="line">componentDidMount() &#123;</span><br><span class="line">      auth.Logout();</span><br><span class="line">    <span class="built_in">window</span>.location = <span class="string">"/"</span>;<span class="comment">//同样不管logout函数的事情</span></span><br><span class="line">  &#125;</span><br><span class="line"><span class="comment">//...</span></span><br></pre></td></tr></table></figure>
+<h3 id="Calling-Protected-API-Endpoints"><a href="#Calling-Protected-API-Endpoints" class="headerlink" title="Calling Protected API Endpoints"></a>Calling Protected API Endpoints</h3><p>受保护的终端要求用户认证或者登录，并且有明确的授权</p>
+<p>后端 的config中的default.json中修改 “requiresAuth”: true 这样的话，如果是没有授权的用户就无法修改或者删除我后端数据库的内容了。</p>
+<p>然后，我们需要给有token的用户授权。这个工作需要在httpServer中实现。因为这个模块的职责就是和终端进行http对话。现在我们添加一个配置一个信息，目的是让axios无论发送什么给服务器都带上这个头部</p>
+<p>首先在authservice中写一个返回 JWT 的函数</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">getJwt</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> localStorage.getItem(tokenKey);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后再httpService中添加以下配置，这样就实现了对注册用户的认证</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">axios.defaults.headers.common[<span class="string">'x-auth-token'</span>] = auth.getJwt();</span><br></pre></td></tr></table></figure>
+<h3 id="Fixing-Bi-directional-Dependencies"><a href="#Fixing-Bi-directional-Dependencies" class="headerlink" title="Fixing Bi-directional Dependencies"></a>Fixing Bi-directional Dependencies</h3><p>我们在authService和httpService之间缔造了一个双向依赖关系，这是很危险的</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/14.png" style="zoom: 50%;"></p>
+<p> 在这里，http更为重要，auth是建立在http之上的，所以我们既要在http中抹去对authService的依赖，又要在http中获取JWT。所以我们与其调用auth中的函数获取token，不如就直接跟auth说把token给我拿来，就像下面这张图</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/15.png" style="zoom: 50%;"></p>
+<p>我们在httpService中写一个这个set函数，目的是获取到jwt并赋值给请求头</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setJwt</span>(<span class="params">jwt</span>)</span>&#123;</span><br><span class="line">  axios.defaults.headers.common[<span class="string">"x-auth-token"</span>] = jwt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后把这个函数导出</p>
+<p>在authService中我们调用setJwt,把getJwt得到的结果来传入到这个函数。这样，httpService中就会得到我们的jwt了。解决了双向依赖</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http.setJwt(getJwt);</span><br></pre></td></tr></table></figure>
+<h3 id="Authorization"><a href="#Authorization" class="headerlink" title="Authorization"></a>Authorization</h3><p>在后端，我们实现了只有管理员才能删除电影的功能.这就相当于当后端收到一个删除电影的请求的时候，请确保用户被授权且是管理员，auth和admin是中间件函数</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">router.delete(<span class="string">"/:id"</span>, [auth, admin], <span class="keyword">async</span> (req, res) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> movie = <span class="keyword">await</span> Movie.findByIdAndRemove(req.params.id);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!movie)</span><br><span class="line">    <span class="keyword">return</span> res.status(<span class="number">404</span>).send(<span class="string">"The movie with the given ID was not found."</span>);</span><br><span class="line"></span><br><span class="line">  res.send(movie);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>auth函数的功能：首先他确认服务器的requiresAuth打开了没有，如果是关闭的，他会将控制权移交到下一个中间件函数，否则就读取头部信息中的 x-auth-token .如果没有token的话，我们就返回Access denied. No token provided。意思是没有办法验证。如果有token的话，就先验证这个token是不是合法，是就传递给另外一个，不是就返回Invalid token.</p>
+<p>auth函数的实现如下</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> jwt = <span class="built_in">require</span>(<span class="string">"jsonwebtoken"</span>);</span><br><span class="line"><span class="keyword">const</span> config = <span class="built_in">require</span>(<span class="string">"config"</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!config.get(<span class="string">"requiresAuth"</span>)) <span class="keyword">return</span> next();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> token = req.header(<span class="string">"x-auth-token"</span>);</span><br><span class="line">  <span class="keyword">if</span> (!token) <span class="keyword">return</span> res.status(<span class="number">401</span>).send(<span class="string">"Access denied. No token provided."</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> decoded = jwt.verify(token, config.get(<span class="string">"jwtPrivateKey"</span>));</span><br><span class="line">    req.user = decoded;</span><br><span class="line">    next();</span><br><span class="line">  &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">    res.status(<span class="number">400</span>).send(<span class="string">"Invalid token."</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>admin函数的其实要检测设置，如果配置关闭，就传递控制权，不做任何事情；否则就检测是否用户为管理员，如果不是管理员，那么就返回 Access denied</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> config = <span class="built_in">require</span>(<span class="string">"config"</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 401 Unauthorized</span></span><br><span class="line">  <span class="comment">// 403 Forbidden</span></span><br><span class="line">  <span class="keyword">if</span> (!config.get(<span class="string">"requiresAuth"</span>)) <span class="keyword">return</span> next();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!req.user.isAdmin) <span class="keyword">return</span> res.status(<span class="number">403</span>).send(<span class="string">"Access denied."</span>);</span><br><span class="line"></span><br><span class="line">  next();</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>如果授权的话我们呢需要在数据库中修改</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/16.png" style="zoom: 80%;"></p>
+<p>设置好后，重新登入，那么就可以删除movie了</p>
+<h3 id="Showing-or-Hiding-Elements-based-on-the-User"><a href="#Showing-or-Hiding-Elements-based-on-the-User" class="headerlink" title="Showing or Hiding Elements based on the User"></a>Showing or Hiding Elements based on the User</h3><p>现在我们想让没有登陆的用户看不到Delete，New Movie 按钮</p>
+<p>在App中设置movie的路由.我们不能直接传入user进去，为了给子组件传递属性，我们要用到render</p>
+<p>我们用render替换component,用箭头函数传入props，返回Movies组件，在movies组件当中加入所有的props还有当前的user属性</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;Route</span><br><span class="line">  path=<span class="string">"/movies"</span></span><br><span class="line">  render=&#123;(props) =&gt; <span class="xml"><span class="tag">&lt;<span class="name">Movies</span> &#123;<span class="attr">...props</span>&#125; <span class="attr">user</span>=<span class="string">&#123;this.state.user&#125;</span> /&gt;</span></span>&#125;</span><br><span class="line">/&gt;</span><br></pre></td></tr></table></figure>
+<p>然后在movies的 new movies中，我们这样修改（在上面已经解构了）.只有当user存在，我们才可以说把这个NewMovie渲染出来</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;user &amp;&amp; (</span><br><span class="line">   &lt;Link</span><br><span class="line">     to=<span class="string">"/movies/new"</span></span><br><span class="line">     className=<span class="string">"btn btn-primary"</span></span><br><span class="line">     style=&#123;&#123; <span class="attr">marginBottom</span>: <span class="number">20</span> &#125;&#125;</span><br><span class="line">   &gt;</span><br><span class="line">     New Movie</span><br><span class="line">   &lt;<span class="regexp">/Link&gt;</span></span><br><span class="line"><span class="regexp"> )&#125;</span></span><br></pre></td></tr></table></figure>
+<p>同理，我们可以隐藏Delete</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">content: <span class="function"><span class="params">movie</span> =&gt;</span> (</span><br><span class="line">  <span class="keyword">this</span>.props.user&amp;&amp;(</span><br><span class="line">      &lt;button</span><br><span class="line">    onClick=&#123;() =&gt; <span class="keyword">this</span>.props.onDelete(movie)&#125;</span><br><span class="line">    className=<span class="string">"btn btn-danger btn-sm"</span></span><br><span class="line">	  &gt;</span><br><span class="line">    Delete</span><br><span class="line">  &lt;<span class="regexp">/button&gt;)</span></span><br><span class="line"><span class="regexp">)</span></span><br></pre></td></tr></table></figure>
+<p>效果图</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/18.png" style="zoom: 80%;"></p>
+<h3 id="Protecting-Routes"><a href="#Protecting-Routes" class="headerlink" title="Protecting Routes"></a>Protecting Routes</h3><p>但直接隐藏并不能阻止新建电影，因为可以直接通过输入网站来访问路由</p>
+<p>所以我们来看看怎么保护这个路由(初步实现)，没有办法再每个route中都重复这个逻辑</p>
+<p>逻辑和刚才的一样（我们在上面已经结构了user),传入props，判断是否存在user，如果不存在，那么就重定向为login页面，存在那么渲染 MovieForm组件</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;Route</span><br><span class="line">  path=<span class="string">"/movies/:id"</span></span><br><span class="line">  render=&#123;(props) =&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (!user) <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">Redirect</span> <span class="attr">to</span>=<span class="string">"/login"</span> /&gt;</span></span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">MovieForm</span> &#123;<span class="attr">...props</span>&#125; /&gt;</span></span>;</span><br><span class="line">  &#125;&#125;</span><br><span class="line">/&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="Extracting-PrivateRoute"><a href="#Extracting-PrivateRoute" class="headerlink" title="Extracting PrivateRoute"></a>Extracting PrivateRoute</h3><p>我们这里想把前面的逻辑封装成一个组件</p>
+<p>PrivateRoute.jsx:返回一个标准的React Route。</p>
+<p>原来的path现在已经囊括到{…rest}当中去了，render中我们要把!user 改成!auth.getCurrentUser()</p>
+<p>除此之外，我们还需要判断当前的Component是否存在。因为在App.js当中，要么设置component要么设置render，所以如果有component，那么就返回继承了所有props的component，否则就继承所有props的render</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> auth <span class="keyword">from</span> <span class="string">"../services/authService"</span>;</span><br><span class="line"><span class="keyword">import</span> React, &#123; Component &#125; <span class="keyword">from</span> <span class="string">"react"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; Route, Redirect &#125; <span class="keyword">from</span> <span class="string">"react-router-dom"</span>;</span><br><span class="line"><span class="keyword">const</span> PrivateRoute = <span class="function">(<span class="params">&#123;  component: Component, render, ...rest &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;Route</span><br><span class="line">      &#123;...rest&#125;</span><br><span class="line">      render=&#123;(props) =&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (!auth.getCurrentUser()) <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">Redirect</span> <span class="attr">to</span>=<span class="string">"/login"</span> /&gt;</span></span>;</span><br><span class="line">        <span class="keyword">return</span> Component ? <span class="xml"><span class="tag">&lt;<span class="name">Component</span> &#123;<span class="attr">...props</span>&#125; /&gt;</span></span> : render(props);</span><br><span class="line">      &#125;&#125;</span><br><span class="line">    /&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> PrivateRoute;</span><br></pre></td></tr></table></figure>
+<p>然后我们在app.js中引入的时候，对之前的进行修改. </p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;PrivateRoute path=<span class="string">"/movies/:id"</span> component=&#123;MovieForm&#125; /&gt;</span><br></pre></td></tr></table></figure>
+<p>现在如果我们点击movie的名字，那么我们不会跳到MovieForm表单，我们会跳到Login表单</p>
+<h3 id="Redirecting-after-Login"><a href="#Redirecting-after-Login" class="headerlink" title="Redirecting after Login"></a>Redirecting after Login</h3><p>我们现在点击movie名字，登录好以后，不想再回到主页了，我想到这个movie的表单当中去，怎么办？</p>
+<p>我们首先打印一下这个组件的props</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/19.png" style="zoom: 80%;"></p>
+<p>我们发现在location中的pathname是有效的，我们就要重定向到这条路径。Redirect中我们把to设置成一个对象</p>
+<p>我们首先传入一个pathname，这是默认的，我们也要设置state属性，这是用来传递附加数据的。我再这个state当中传入一个from属性把它设置为props.location 因为这个location对象保留了用户跳转前的 位置信息</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> (</span><br><span class="line">    &lt;Route</span><br><span class="line">      &#123;...rest&#125;</span><br><span class="line">      render=&#123;(props) =&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (!auth.getCurrentUser())</span><br><span class="line">          <span class="keyword">return</span> (</span><br><span class="line">            &lt;Redirect</span><br><span class="line">              to=&#123;&#123;</span><br><span class="line">                pathname: <span class="string">"/login"</span>,</span><br><span class="line">                state: &#123; <span class="attr">from</span>: props.location &#125;,</span><br><span class="line">              &#125;&#125;</span><br><span class="line">            /&gt;</span><br><span class="line">          );</span><br><span class="line">        <span class="keyword">return</span> Component ? <span class="xml"><span class="tag">&lt;<span class="name">Component</span> &#123;<span class="attr">...props</span>&#125; /&gt;</span></span> : render(props);</span><br><span class="line">      &#125;&#125;</span><br><span class="line">    /&gt;</span><br><span class="line">  );</span><br></pre></td></tr></table></figure>
+<p>然后我们转到loginForm去看看是否state已经设置了，如果设置了我们就取location中的pathname；如果state没有被设置，那么就回到主页当中.</p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/20.png" style="zoom: 80%;"></p>
+<p>比如上图，我是直接点击login进入LoginForm的，那么这时候state就不会被设置，那么登陆过后就直接跳转主页</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">doSubmit = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;    </span><br><span class="line">    <span class="keyword">const</span> &#123; data &#125; = <span class="keyword">this</span>.state;</span><br><span class="line">    <span class="keyword">await</span> auth.login(data.username, data.password);</span><br><span class="line">    <span class="keyword">const</span> &#123; state &#125; = <span class="keyword">this</span>.props.location</span><br><span class="line">    <span class="built_in">window</span>.location = state ? state.from.pathname : <span class="string">"/"</span>; </span><br><span class="line">      <span class="comment">//...</span></span><br><span class="line">  &#125;<span class="keyword">catch</span>(ex)&#123;<span class="comment">//...</span></span><br><span class="line">  &#125;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在还需要注意到，在登陆状态下如果我们直接输入login，还是会跳转到login表单。所以在login表单我们要做一个重定向</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (auth.getCurrentUser()) <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">Redirect</span> <span class="attr">to</span>=<span class="string">"/"</span> /&gt;</span></span>;</span><br></pre></td></tr></table></figure>
+<h3 id="Exercise"><a href="#Exercise" class="headerlink" title="Exercise"></a>Exercise</h3><p>现在我们要实现只有admin才能显示delete按钮（刚才是只要是用户就能显示）</p>
+<h3 id="Hiding-the-Delete-Column"><a href="#Hiding-the-Delete-Column" class="headerlink" title="Hiding the Delete Column"></a>Hiding the Delete Column</h3><p>有几种方法隐藏这个Delete 列，一种方法是添加一个属性如visible或者hidden来动态控制它，这个方法需要修改好几个组件；还有一种方法是将这个Delete列直接删除，只在当前用户是管理员的情况下才添加进来，这个方法相对简单</p>
+<p>我们为了不污染constructor，把delete列单独设置成了deleteColumn对象。然后写一个constructor，利用auth.getCurrentUser()获取当前的user</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">deleteColumn = &#123;</span><br><span class="line">   key: <span class="string">"delete"</span>,</span><br><span class="line">   content: <span class="function"><span class="params">movie</span> =&gt;</span> (</span><br><span class="line">     &lt;button</span><br><span class="line">       onClick=&#123;() =&gt; <span class="keyword">this</span>.props.onDelete(movie)&#125;</span><br><span class="line">       className=<span class="string">"btn btn-danger btn-sm"</span></span><br><span class="line">     &gt;</span><br><span class="line">       Delete</span><br><span class="line">     &lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp">   )</span></span><br><span class="line"><span class="regexp"> &#125;;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp"> constructor() &#123;</span></span><br><span class="line"><span class="regexp">   super();</span></span><br><span class="line"><span class="regexp">   const user = auth.getCurrentUser();</span></span><br><span class="line"><span class="regexp">   if (user &amp;&amp; user.isAdmin) this.columns.push(this.deleteColumn);</span></span><br><span class="line"><span class="regexp"> &#125;</span></span><br></pre></td></tr></table></figure>
+<p>我们设置mosh为管理员：再mongodb中添加 isAdmin: true </p>
+<p><img src="/2020/06/05/react%E5%9F%BA%E7%A1%804%E6%8E%88%E6%9D%83%E4%B8%8E%E9%83%A8%E7%BD%B2/21.png" style="zoom: 80%;"></p>
+<h2 id="Deployment"><a href="#Deployment" class="headerlink" title="Deployment"></a>Deployment</h2><h3 id="Introduction-1"><a href="#Introduction-1" class="headerlink" title="Introduction"></a>Introduction</h3><h3 id="Environment-Variables"><a href="#Environment-Variables" class="headerlink" title="Environment Variables"></a>Environment Variables</h3><h3 id="Production-Builds"><a href="#Production-Builds" class="headerlink" title="Production Builds"></a>Production Builds</h3><h3 id="Getting-Started-with-Heroku"><a href="#Getting-Started-with-Heroku" class="headerlink" title="Getting Started with Heroku"></a>Getting Started with Heroku</h3><h3 id="MongoDB-in-the-Cloud"><a href="#MongoDB-in-the-Cloud" class="headerlink" title="MongoDB in the Cloud"></a>MongoDB in the Cloud</h3><p>云数据库</p>
+<h3 id="Adding-Code-to-a-Git-Repository"><a href="#Adding-Code-to-a-Git-Repository" class="headerlink" title="Adding Code to a Git Repository"></a>Adding Code to a Git Repository</h3><h3 id="Deploying-to-Heroku"><a href="#Deploying-to-Heroku" class="headerlink" title="Deploying to Heroku"></a>Deploying to Heroku</h3><h3 id="Viewing-Logs"><a href="#Viewing-Logs" class="headerlink" title="Viewing Logs"></a>Viewing Logs</h3><h3 id="Setting-Environment-Variables-on-Heroku"><a href="#Setting-Environment-Variables-on-Heroku" class="headerlink" title="Setting Environment Variables on Heroku"></a>Setting Environment Variables on Heroku</h3><h3 id="Preparing-the-Font-end-for-Deployment"><a href="#Preparing-the-Font-end-for-Deployment" class="headerlink" title="Preparing the Font-end for Deployment"></a>Preparing the Font-end for Deployment</h3><h3 id="Deploying-the-Front-end"><a href="#Deploying-the-Front-end" class="headerlink" title="Deploying the Front-end"></a>Deploying the Front-end</h3>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+              <a href="/tags/web%E6%9C%9F%E6%9C%AB/" rel="tag"># web期末</a>
+              <a href="/tags/react/" rel="tag"># react</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/05/%E7%A6%BB%E6%95%A3%E6%95%B0%E5%AD%A6%E4%B9%8B%E5%85%B3%E7%B3%BB2/" rel="prev" title="离散数学之关系2">
+      <i class="fa fa-chevron-left"></i> 离散数学之关系2
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/07/web%E6%9C%9F%E6%9C%AB%E5%A4%A7%E4%BD%9C%E4%B8%9A-%E4%B8%BB%E5%8D%9A%E5%AE%A2/" rel="next" title="web期末大作业-主博客">
+      web期末大作业-主博客 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#react基础4授权与部署"><span class="nav-number">1.</span> <span class="nav-text">react基础4授权与部署</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Authentication-and-Authorization"><span class="nav-number">1.1.</span> <span class="nav-text">Authentication and Authorization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Introduction"><span class="nav-number">1.1.1.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Registering-a-New-User"><span class="nav-number">1.1.2.</span> <span class="nav-text">Registering a New User</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Submitting-the-Registration-Form"><span class="nav-number">1.1.3.</span> <span class="nav-text">Submitting the Registration Form</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Handling-Registration-Errors"><span class="nav-number">1.1.4.</span> <span class="nav-text">Handling Registration Errors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logging-in-a-User"><span class="nav-number">1.1.5.</span> <span class="nav-text">Logging in a User</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Submitting-the-Login-Form"><span class="nav-number">1.1.6.</span> <span class="nav-text">Submitting the Login Form</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Handling-Login-Errors"><span class="nav-number">1.1.7.</span> <span class="nav-text">Handling Login Errors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Storing-the-JWT-JSON-Token"><span class="nav-number">1.1.8.</span> <span class="nav-text">Storing the JWT(JSON Token)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logging-in-the-User-upon-Registration"><span class="nav-number">1.1.9.</span> <span class="nav-text">Logging in the User upon Registration</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JSON-Web-Tokens-JWT"><span class="nav-number">1.1.10.</span> <span class="nav-text">JSON Web Tokens (JWT)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Getting-the-Current-User"><span class="nav-number">1.1.11.</span> <span class="nav-text">Getting the Current User</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Displaying-the-Current-User-on-NavBar"><span class="nav-number">1.1.12.</span> <span class="nav-text">Displaying the Current User on NavBar</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logging-out-a-User"><span class="nav-number">1.1.13.</span> <span class="nav-text">Logging out a User</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Refactoring"><span class="nav-number">1.1.14.</span> <span class="nav-text">Refactoring</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Calling-Protected-API-Endpoints"><span class="nav-number">1.1.15.</span> <span class="nav-text">Calling Protected API Endpoints</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fixing-Bi-directional-Dependencies"><span class="nav-number">1.1.16.</span> <span class="nav-text">Fixing Bi-directional Dependencies</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Authorization"><span class="nav-number">1.1.17.</span> <span class="nav-text">Authorization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Showing-or-Hiding-Elements-based-on-the-User"><span class="nav-number">1.1.18.</span> <span class="nav-text">Showing or Hiding Elements based on the User</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Protecting-Routes"><span class="nav-number">1.1.19.</span> <span class="nav-text">Protecting Routes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Extracting-PrivateRoute"><span class="nav-number">1.1.20.</span> <span class="nav-text">Extracting PrivateRoute</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redirecting-after-Login"><span class="nav-number">1.1.21.</span> <span class="nav-text">Redirecting after Login</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exercise"><span class="nav-number">1.1.22.</span> <span class="nav-text">Exercise</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hiding-the-Delete-Column"><span class="nav-number">1.1.23.</span> <span class="nav-text">Hiding the Delete Column</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Deployment"><span class="nav-number">1.2.</span> <span class="nav-text">Deployment</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Introduction-1"><span class="nav-number">1.2.1.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Environment-Variables"><span class="nav-number">1.2.2.</span> <span class="nav-text">Environment Variables</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Production-Builds"><span class="nav-number">1.2.3.</span> <span class="nav-text">Production Builds</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Getting-Started-with-Heroku"><span class="nav-number">1.2.4.</span> <span class="nav-text">Getting Started with Heroku</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MongoDB-in-the-Cloud"><span class="nav-number">1.2.5.</span> <span class="nav-text">MongoDB in the Cloud</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Adding-Code-to-a-Git-Repository"><span class="nav-number">1.2.6.</span> <span class="nav-text">Adding Code to a Git Repository</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploying-to-Heroku"><span class="nav-number">1.2.7.</span> <span class="nav-text">Deploying to Heroku</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Viewing-Logs"><span class="nav-number">1.2.8.</span> <span class="nav-text">Viewing Logs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Setting-Environment-Variables-on-Heroku"><span class="nav-number">1.2.9.</span> <span class="nav-text">Setting Environment Variables on Heroku</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Preparing-the-Font-end-for-Deployment"><span class="nav-number">1.2.10.</span> <span class="nav-text">Preparing the Font-end for Deployment</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploying-the-Front-end"><span class="nav-number">1.2.11.</span> <span class="nav-text">Deploying the Front-end</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

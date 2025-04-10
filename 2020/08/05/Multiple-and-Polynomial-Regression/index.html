@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Multiple and Polynomial Regression学习自 Udemy课程以及博客 https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;82966686c68c Multiple Regression 多元回归Intuition  我们来看着这次的数据集。Profit是我们要预测的量，剩下的R&amp;D Spend 、Marketing 、State 是自变量。我们要做的是根据数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Multiple_and_Polynomial_Regression">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Multiple and Polynomial Regression学习自 Udemy课程以及博客 https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;82966686c68c Multiple Regression 多元回归Intuition  我们来看着这次的数据集。Profit是我们要预测的量，剩下的R&amp;D Spend 、Marketing 、State 是自变量。我们要做的是根据数">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/14.png">
+<meta property="article:published_time" content="2020-08-05T10:50:34.000Z">
+<meta property="article:modified_time" content="2020-10-07T07:57:10.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Multiple_and_Polynomial_Regression | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/08/05/Multiple-and-Polynomial-Regression/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Multiple_and_Polynomial_Regression
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-08-05 18:50:34" itemprop="dateCreated datePublished" datetime="2020-08-05T18:50:34+08:00">2020-08-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-07 15:57:10" itemprop="dateModified" datetime="2020-10-07T15:57:10+08:00">2020-10-07</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Multiple-and-Polynomial-Regression"><a href="#Multiple-and-Polynomial-Regression" class="headerlink" title="Multiple and Polynomial Regression"></a>Multiple and Polynomial Regression</h1><p>学习自 Udemy课程以及博客 <a href="https://www.jianshu.com/p/82966686c68c" target="_blank" rel="noopener">https://www.jianshu.com/p/82966686c68c</a></p>
+<h2 id="Multiple-Regression-多元回归"><a href="#Multiple-Regression-多元回归" class="headerlink" title="Multiple Regression 多元回归"></a>Multiple Regression 多元回归</h2><h3 id="Intuition"><a href="#Intuition" class="headerlink" title="Intuition"></a>Intuition</h3><p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/1.png" style="zoom:80%;"></p>
+<p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/2.png" style="zoom:80%;"></p>
+<p>我们来看着这次的数据集。Profit是我们要预测的量，剩下的R&amp;D Spend 、Marketing 、State 是自变量。我们要做的是根据数据集来构建一个线性回归模型。</p>
+<p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/3.png" style="zoom:80%;"></p>
+<p>每一个自变量就对应一个 $x_i$ 所以我们可以写出$y = b_0+b_1x_1+b_2x_2+b_3x_3…$ ,但是像State这样的量怎么用来计算呢？</p>
+<p>我们需要引入虚拟变量(Dummy Variables) 的概念用以反映质的属性的一个人工变量，是量化了的自变量，通常取值为0或1。引入哑变量可使线形回归模型变得更复杂，但对问题描述更简明，一个方程能达到两个方程的作用，而且接近现实。例如，反映文化程度的虚拟变量可取为：1:本科学历；0：非本科学历</p>
+<p>一般地，在虚拟变量的设置中：基础类型、肯定类型取值为1；比较类型，否定类型取值为0。</p>
+<p>为什么要dummy化 </p>
+<ul>
+<li><p>若用数字1-12表示1-12月，那么就潜在表示了12月和1月差的很远，其实离的很近</p>
+</li>
+<li><p>若用离散数字表示一地域，假如用数字1-23表示23个省，那么数字潜在的意思是，相邻的数字代表的省比较相似，差距的数字表示的省不相似，然而并没有这个意思。所以用单纯用离散的数字表示类别可能会影响后面回归或分类的精度</p>
+</li>
+</ul>
+<p><strong>模型中引入虚拟变量的作用：</strong></p>
+<p>  1、分离异常因素的影响 </p>
+<p>  2、检验不同属性类型对因变量的作用，例如工资模型中的文化程度、季节对销售额的影响。</p>
+<p>  3、提高模型的精度，相当于将不同属性的样本合并，扩大了样本容量（增加了误差自由度，从而降低了误差方差）</p>
+<p>另外要注意的是，dummy化不要冗余，比如有1-23个省，我们用22个0，1变量就可以表示，若22个变量都是0则表示第23个省。</p>
+<p>在这个数据集当中，我们可以把State转换成Dummy Variables。比如下图。但事实上，我们只需要选择一列即可，因为这里只有New York和California两个选择。</p>
+<p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/4.png" style="zoom:80%;"></p>
+<p>那么我们可以把拟合线的公式这样来写：$y=b_0+b_1<em>x_1+b_2</em>x_2+b_3<em>x_3+b_4</em>D_1$ </p>
+<p>当有100个互斥值的时候我们需要99个Dummy Variables，这样当所有Dummy Variable=0的时候就代表了第100个值</p>
+<h3 id="如何创建一个模型"><a href="#如何创建一个模型" class="headerlink" title="如何创建一个模型"></a>如何创建一个模型</h3><p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/7.png" style="zoom:80%;"></p>
+<p>拿到数据以后我们不能讲每一列都当作一个维度来加入到这个模型中，也不能将大多数的列都删除，这样就会让模型变得不稳定。</p>
+<p><strong>数学建模有五种方法，第2-4种是逐步回归思路，是比较科学和系统的</strong></p>
+<ul>
+<li>All - in</li>
+<li>Backward Elimination</li>
+<li>Forward Selection</li>
+<li>Bidirectional Elimination</li>
+<li>Score Comparison</li>
+</ul>
+<h4 id="All-in"><a href="#All-in" class="headerlink" title="All-in"></a>All-in</h4><p>第一种我们要将所有的变量都加入到模型当中去。</p>
+<h4 id="Backward-Elimination-后向逐步回归"><a href="#Backward-Elimination-后向逐步回归" class="headerlink" title="Backward Elimination(后向逐步回归)"></a>Backward Elimination(后向逐步回归)</h4><p>所有变量均放入模型，之后尝试将其中一个自变量从模型中剔除，看整个模型解释因变量的变异是否有显著变化，之后将对残差平方和贡献较小的变量剔除；此过程不断迭代，直到没有自变量符合剔除的条件。</p>
+<ul>
+<li>Step1： Select  a significance level to stay in the model（SL=0.05) SL代表显著性。统计学上通常把低于5%概率事件看做小概率事件，5%就是significance level，也就是认定是异常的界限。</li>
+<li>Step2：使用所有的自变量来拟合出一个模型</li>
+<li>Step3:  对于这个模型当中的每一个自变量都来计算它的P值（P-value）,来显示它对我们模型有多大的影响力，然后我们取这个最高的P值，假设这个P&gt;SL,就继续往第四步，否则就算法结束。<ul>
+<li>关于p-value <a href="https://www.cnblogs.com/lijingblog/p/11043513.html" target="_blank" rel="noopener">https://www.cnblogs.com/lijingblog/p/11043513.html</a></li>
+<li><a href="https://www.mathbootcamps.com/what-is-a-p-value/" target="_blank" rel="noopener">https://www.mathbootcamps.com/what-is-a-p-value/</a></li>
+<li>【为什么小于0.05就很重要？】大部分时候，我们假设错误拒绝H0的概率为0.05，所以如果p值小于0.05，说明错误拒绝H0的概率很低，则我们有理由相信H0本身就是错误的，而非检验错误导致。大部分时候p-value用于<strong>检验独立变量与输入变量</strong>的关系，H0假设通常为假设两者没有关系，所以若p值小于0.05，则可以推翻H0（两者没有关系），推出H1（两者有关系）。</li>
+<li>所以说当 p-value大于SL的时候，我们就要移除这个predictor</li>
+</ul>
+</li>
+<li>Step4:最高的P值对应的那个自变量我们就要将它从我们的模型中去除</li>
+<li>去除了一个自变量后，在用剩下的自变量重新对模型进行拟合</li>
+</ul>
+<p>因此这里就是一个第三步到第五步的一个循环，直到所有剩下的P值都比SL要小，这样就说明模型已经拟合好了</p>
+<h4 id="Forward-Selection-前向逐步回归"><a href="#Forward-Selection-前向逐步回归" class="headerlink" title="Forward Selection(前向逐步回归)"></a>Forward Selection(前向逐步回归)</h4><p>向前法的思想是变量由少到多，属于贪心算法，每次增加一个，直至没有可引入的变量为止。具体步骤如下。</p>
+<ul>
+<li>Step1： Select a significance level to enter the model(e.g. SL = 0.05)</li>
+<li>Step2：我们在这边对每个自变量 $x_n$ 都进行简单线性回归拟合，分别得到它们的P值，然后取得它们中最低的。</li>
+<li>Step3：对于这个最低的P值，我们的结论就是这个自变量它对我们将要拟合的模型的影响是最大的，所以说，我们会保留这个自变量</li>
+<li>Step4：我们再看剩下的自变量当中加上哪一个会给我们带来最小的P值，假如说新的P值比我们之前定义的SL小，那就重新回到第三步，也就是第三步又加入了一个新的变量然后在接下来剩下的变量当中，重新找最大的P值，然后继续加到模型当中， </li>
+</ul>
+<h4 id="Bidirectional-Elimination"><a href="#Bidirectional-Elimination" class="headerlink" title="Bidirectional Elimination"></a>Bidirectional Elimination</h4><p>所谓双向淘汰，其实就是对之前的两种算法的结合</p>
+<ul>
+<li>Step1：我们需要选择两个显著性门槛：一个旧的变量是否应该被剔除和一个新的还没有被采纳的变量是否应当进入我们的模型。(e.g.:SLENTER = 0.05,SLSTAY = 0.05)</li>
+<li>Step2:我们要进行顺向选择，来决定是否采纳一个新的自变量。(new variables must have:P&lt;SLENTER to enter)</li>
+<li>Step3: 要进行反向淘汰，也就是我们可能要剔除旧的变量 (old variables must have P&lt;SLSTAY to stay)</li>
+<li>Step4：在第二第三步之间进行循环，由于已经定义了两个门槛，但出现新的出不去，旧的进不来时，就说明模型已经拟合好了。</li>
+</ul>
+<h4 id="All-Possible-Models-信息量比较"><a href="#All-Possible-Models-信息量比较" class="headerlink" title="All Possible Models 信息量比较"></a>All Possible Models 信息量比较</h4><p>对于所有可能的模型，我们对它们进行逐一的打分，对于多元线性回归，如果有N个自变量，那么就有$2^N-1$个不同的模型 </p>
+<ul>
+<li>Step1: Select a criterion of goodness of fit(e.g. Akaike criterion)</li>
+<li>Step2: Construct All Possible Regression Models: $2^N-1$ total combinations</li>
+<li>Step3: Select the one with the best criterion</li>
+</ul>
+<p>Fin: Your model is Ready</p>
+<p>那这里就会有一个问题，如果N很大的时候，模型的数量就会非常庞大。所以说这个方法虽然直觉上很好理解，但自变量数量很大时就不适合使用这种方法。</p>
+<h3 id="代码："><a href="#代码：" class="headerlink" title="代码："></a>代码：</h3><p>对于上面的数据集，我们首先要做一些简单的数据处理：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">dataset = pd.read_csv(<span class="string">'50_Startups.csv'</span>)</span><br><span class="line">X = dataset.iloc[:, :<span class="number">-1</span>].values</span><br><span class="line">y = dataset.iloc[:, <span class="number">-1</span>].values</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> sklearn.compose <span class="keyword">import</span> ColumnTransformer</span><br><span class="line"><span class="keyword">from</span> sklearn.preprocessing <span class="keyword">import</span> OneHotEncoder</span><br><span class="line">ct = ColumnTransformer(transformers=[(<span class="string">'encoder'</span>, OneHotEncoder(), [<span class="number">3</span>])], remainder=<span class="string">'passthrough'</span>)</span><br><span class="line">X = np.array(ct.fit_transform(X))</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/8.png" style="zoom:80%;"></p>
+<p>目的就是将三个州化成0、1这样的dummy variable</p>
+<p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/9.png" style="zoom:80%;"></p>
+<p>随后我们就可以交给线性回归模型去训练了。注意，交给回归模型训练不需要删除一列dummy variable，也不需要选择哪一个variable的影响最大。因为这些python都帮我们做好了，事实上我们只需要两三行代码就可以完成模型训练了。所以我们更本不用担心变量的选取是否准确</p>
+<p>接下来是将数据集分为训练集和测试集并交给LinearRegression进行训练：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> train_test_split</span><br><span class="line">X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = <span class="number">0.2</span>, random_state = <span class="number">0</span>)</span><br><span class="line"><span class="keyword">from</span> sklearn.linear_model <span class="keyword">import</span> LinearRegression</span><br><span class="line">regressor = LinearRegression()</span><br><span class="line">regressor.fit(X_train, y_train)</span><br></pre></td></tr></table></figure>
+<p>训练完成之后，我们只要对测试集进行预测即可</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">y_pred = regressor.predict(X_test)</span><br><span class="line">np.set_printoptions(precision=<span class="number">2</span>)<span class="comment"># 这边是对打印的数据格式进行一个设置，也就是在两个小数之间添加一个逗号</span></span><br><span class="line">print(np.concatenate((y_pred.reshape(len(y_pred),<span class="number">1</span>), y_test.reshape(len(y_test),<span class="number">1</span>)),<span class="number">1</span>))</span><br></pre></td></tr></table></figure>
+<p>reshape就是将横向的向量变成竖向的向量。len(y_pred) 计算向量长度，1就代表按照y轴排列，也就是竖向排列</p>
+<p>最后预测出来的结果和真实的结果进行一个比较</p>
+<p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/10.png" style="zoom:100%;"></p>
+<h2 id="Polynomial-Regression-多项式回归"><a href="#Polynomial-Regression-多项式回归" class="headerlink" title="Polynomial Regression 多项式回归"></a>Polynomial Regression 多项式回归</h2><p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/5.png" style="zoom:80%;"></p>
+<p>对于抛物线来说，线性回归是没有办法模拟出来的。但是可以用多项式回归模拟出来</p>
+<p>这个表达式和多元线性回归非常像，唯一的区别就是多项式线性回归中存在很多次方项，而多元线性回归中是多个变量。实际上这里可以把多元线性回归中的多个变量理解成多项式中的$x_n^2$ .所谓线性，看的是 $b_0$一直到$b_n$ 这些参数的一个线性组合，跟自变量是否线性其实没什么关系，因此这种情况依然是线性的。当然也存在非线性的多项式回归，比如这里假设公式是 $y=b_0/b_2+b_3x_3$ 这时候就不是关于 $b_0$ 一直到 $b_n$ 这些参数的线性表达式了</p>
+<p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/6.png" style="zoom:80%;"></p>
+<p>多项式模型在研究病毒传播等大流行病中能比简单线性回归模型更好的完成任务。</p>
+<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><p>现在有一个数据集：</p>
+<p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/11.png" style="zoom:100%;"></p>
+<p>我们选择x和y,其中x就是level，y是Salary</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dataset = pd.read_csv(<span class="string">'Position_Salaries.csv'</span>)</span><br><span class="line">X = dataset.iloc[:, <span class="number">1</span>:<span class="number">-1</span>].values</span><br><span class="line">y = dataset.iloc[:, <span class="number">-1</span>].values</span><br></pre></td></tr></table></figure>
+<p>接下来我们做一个 Linear Regression和 Polynomial Regression的对比</p>
+<p><strong>Linear Regression</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.linear_model <span class="keyword">import</span> LinearRegression</span><br><span class="line">lin_reg = LinearRegression()</span><br><span class="line">lin_reg.fit(X, y)</span><br></pre></td></tr></table></figure>
+<p><strong>Polynomial Regression</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.preprocessing <span class="keyword">import</span> PolynomialFeatures</span><br><span class="line"><span class="comment"># 也就是多项式的最高次数</span></span><br><span class="line">poly_reg = PolynomialFeatures(degree = <span class="number">2</span>)</span><br><span class="line"><span class="comment"># 然后将一个X转化成 x_poly,也就是将原来的Level变成一个新的feature matrix (x+x^2)</span></span><br><span class="line">X_poly = poly_reg.fit_transform(X)</span><br><span class="line">lin_reg_2 = LinearRegression()</span><br><span class="line">lin_reg_2.fit(X_poly, y)</span><br></pre></td></tr></table></figure>
+<p>然后我们来看看两种方式的拟合结果</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Visualising the Linear Regression results</span></span><br><span class="line">plt.scatter(X, y, c=<span class="string">'r'</span>)</span><br><span class="line">plt.plot(X, lin_reg.predict(X), c=<span class="string">'b'</span>)</span><br><span class="line">plt.title(<span class="string">'Truth or Bluff (Linear Regression)'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Position Level'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Salary'</span>)</span><br><span class="line">plt.show()</span><br><span class="line"><span class="comment"># Visualising the Polynomial Regression results</span></span><br><span class="line">plt.scatter(X, y, c=<span class="string">'r'</span>)</span><br><span class="line">plt.plot(X, lin_reg.predict(X), c=<span class="string">'b'</span>)</span><br><span class="line">plt.plot(X, lin_reg2.predict(poly_reg.fit_transform(X)), c=<span class="string">'b'</span>)</span><br><span class="line">plt.title(<span class="string">'Truth or Bluff (Polynomial Regression)'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Position Level'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Salary'</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/12.png" style="zoom:100%;"></p>
+<p>我们看到是Polynomial regression 拟合的更好一些，但也不是完全贴合</p>
+<p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/13.png" style="zoom:100%;"></p>
+<p>于是我们使用更高阶来试试，将poly_reg 改为 PolynomialFeatures(degree = 4)，并用plt对图像进行一个优化，得到如下的拟合曲线。发现基本能够完全贴合</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">X_grid = np.arange(min(X), max(X), <span class="number">0.1</span>)</span><br><span class="line">X_grid = X_grid.reshape((len(X_grid), <span class="number">1</span>))</span><br><span class="line">plt.scatter(X, y, color = <span class="string">'red'</span>)</span><br><span class="line">plt.plot(X_grid, lin_reg_2.predict(poly_reg.fit_transform(X_grid)), color = <span class="string">'blue'</span>)</span><br><span class="line">plt.title(<span class="string">'Truth or Bluff (Polynomial Regression)'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Position level'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Salary'</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/08/05/Multiple-and-Polynomial-Regression/14.png" style="zoom:100%;"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/05/Simple-Linear-Regression/" rel="prev" title="Simple_Linear_Regression">
+      <i class="fa fa-chevron-left"></i> Simple_Linear_Regression
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/07/Pandas%E5%9F%BA%E7%A1%802/" rel="next" title="Pandas基础2">
+      Pandas基础2 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Multiple-and-Polynomial-Regression"><span class="nav-number">1.</span> <span class="nav-text">Multiple and Polynomial Regression</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Multiple-Regression-多元回归"><span class="nav-number">1.1.</span> <span class="nav-text">Multiple Regression 多元回归</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Intuition"><span class="nav-number">1.1.1.</span> <span class="nav-text">Intuition</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何创建一个模型"><span class="nav-number">1.1.2.</span> <span class="nav-text">如何创建一个模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#All-in"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">All-in</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Backward-Elimination-后向逐步回归"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">Backward Elimination(后向逐步回归)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Forward-Selection-前向逐步回归"><span class="nav-number">1.1.2.3.</span> <span class="nav-text">Forward Selection(前向逐步回归)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Bidirectional-Elimination"><span class="nav-number">1.1.2.4.</span> <span class="nav-text">Bidirectional Elimination</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#All-Possible-Models-信息量比较"><span class="nav-number">1.1.2.5.</span> <span class="nav-text">All Possible Models 信息量比较</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码："><span class="nav-number">1.1.3.</span> <span class="nav-text">代码：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Polynomial-Regression-多项式回归"><span class="nav-number">1.2.</span> <span class="nav-text">Polynomial Regression 多项式回归</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#代码"><span class="nav-number">1.2.1.</span> <span class="nav-text">代码</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

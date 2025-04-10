@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="C++中的ssstream本文学习自 博客1 博客2 C++引入了ostringstream、istringstream、stringstream这三个类，要使用他们创建对象就必须包含sstream.h头文件。 1#include&lt;sstream&gt; istringstream类用于执行C++风格的串流的输入操作。ostringstream类用于执行C风格的串流的输出操作。strings">
+<meta property="og:type" content="article">
+<meta property="og:title" content="sstream">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/05/30/sstream/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="C++中的ssstream本文学习自 博客1 博客2 C++引入了ostringstream、istringstream、stringstream这三个类，要使用他们创建对象就必须包含sstream.h头文件。 1#include&lt;sstream&gt; istringstream类用于执行C++风格的串流的输入操作。ostringstream类用于执行C风格的串流的输出操作。strings">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/30/sstream/1.gif">
+<meta property="article:published_time" content="2020-05-30T05:39:55.000Z">
+<meta property="article:modified_time" content="2020-05-30T06:17:10.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="C++">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/05/30/sstream/1.gif">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/05/30/sstream/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>sstream | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/05/30/sstream/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          sstream
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-05-30 13:39:55 / Modified: 14:17:10" itemprop="dateCreated datePublished" datetime="2020-05-30T13:39:55+08:00">2020-05-30</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="C-中的ssstream"><a href="#C-中的ssstream" class="headerlink" title="C++中的ssstream"></a>C++中的ssstream</h1><p>本文学习自</p>
+<p><a href="https://www.cnblogs.com/wuchanming/p/3906176.html" target="_blank" rel="noopener">博客1</a></p>
+<p><a href="https://blog.csdn.net/xw20084898/article/details/21939811" target="_blank" rel="noopener">博客2</a></p>
+<p>C++引入了ostringstream、istringstream、stringstream这三个类，要使用他们创建对象就必须包含sstream.h头文件。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sstream&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p><strong>istringstream类</strong>用于执行C++风格的串流的输入操作。<br><strong>ostringstream</strong>类用于执行C风格的串流的输出操作。<br><strong>stringstream</strong>类同时可以支持C风格的串流的输入输出操作。</p>
+<p>istringstream类是从istream和stringstreambase派生而来，</p>
+<p>ostringstream是从ostream和 stringstreambase派生而来，</p>
+<p> stringstream则是从iostream类和stringstreambase派生而来。</p>
+<p>继承关系如下图</p>
+<p><img src="/2020/05/30/sstream/1.gif" alt></p>
+<h3 id="istringstream"><a href="#istringstream" class="headerlink" title="istringstream"></a>istringstream</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sstream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">istringstream</span> istr;</span><br><span class="line">    istr.str(<span class="string">"1 56.7"</span>);</span><br><span class="line">    <span class="comment">//上述两个过程可以简单写成 istringstream istr("1 56.7");</span></span><br><span class="line">	<span class="comment">//str()成员函数的使用可以让istringstream对象返回一个string字符串</span></span><br><span class="line">    <span class="comment">// 例如本例中的输出操作 cout&lt;&lt;istr.str(); 。</span></span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; istr.str() &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">int</span> a;</span><br><span class="line">    <span class="keyword">float</span> b;</span><br><span class="line">    istr &gt;&gt; a;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; a &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    istr &gt;&gt; b;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; b &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出:</span></span><br><span class="line"><span class="comment">1 56.7</span></span><br><span class="line"><span class="comment">1</span></span><br><span class="line"><span class="comment">56.7</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>上例中，构造字符串流的时候，空格会成为字符串参数的内部分界，例子中对a,b对象的输入”赋值”操作证明了这一点，字符串的空格成为了整型数据与浮点型数据的分解点，利用分界获取的方法我们事实上完成了字符串到整型对象与浮点型对象的拆分转换过程。</p>
+<h3 id="ostringstream"><a href="#ostringstream" class="headerlink" title="ostringstream"></a>ostringstream</h3><p>ostringstream同样是由一个string对象构造而来，ostringstream类向一个string插入字符。<br>ostringstream的构造函数原形如下：<br>ostringstream::ostringstream(string str); </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sstream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstdlib&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">ostringstream</span> ostr;</span><br><span class="line">    ostr.str(<span class="string">"abc"</span>);</span><br><span class="line"><span class="comment">//如果构造的时候设置了字符串参数,那么增长操作的时候不会从结尾开始增加,而是修改原有数据  </span></span><br><span class="line">    ostr.<span class="built_in">put</span>(<span class="string">'d'</span>);</span><br><span class="line">    ostr.<span class="built_in">put</span>(<span class="string">'e'</span>);</span><br><span class="line">    ostr.<span class="built_in">put</span>(<span class="string">'f'</span>);</span><br><span class="line">    ostr.<span class="built_in">put</span>(<span class="string">'g'</span>);</span><br><span class="line">    ostr&lt;&lt;<span class="string">"hi"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">string</span> gstr = ostr.str();</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;gstr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//输出	defghi</span></span><br></pre></td></tr></table></figure>
+<p>在上例代码中，我们通过put()或者左移操作符可以不断向ostr插入<strong>单个字符或者是字符串</strong>，通过str()函数返回增长过后的完整字符串数据</p>
+<p>但值得注意的一点是，当构造的时候对象内已经存在字符串数据的时候，那么增长操作的时候不会从结尾开始增加,而是修改原有数据,超出的部分增长。</p>
+<h3 id="stringstream"><a href="#stringstream" class="headerlink" title="stringstream"></a>stringstream</h3><p>它是用于C++风格的字符串的输入输出的。 stringstream的构造函数原形如下：</p>
+<p>stringstream::stringstream(string str);</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sstream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstdlib&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="function"><span class="built_in">stringstream</span> <span class="title">ostr</span><span class="params">(<span class="string">"ccc"</span>)</span></span>;</span><br><span class="line">ostr.<span class="built_in">put</span>(<span class="string">'d'</span>);</span><br><span class="line">ostr.<span class="built_in">put</span>(<span class="string">'e'</span>);</span><br><span class="line">ostr&lt;&lt;<span class="string">"fg"</span>;</span><br><span class="line"><span class="built_in">string</span> gstr = ostr.str();</span><br><span class="line"><span class="built_in">cout</span>&lt;&lt;gstr&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">char</span> a;</span><br><span class="line">ostr&gt;&gt;a;</span><br><span class="line"><span class="built_in">cout</span>&lt;&lt;a;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出</span></span><br><span class="line"><span class="comment">defg</span></span><br><span class="line"><span class="comment">d</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<h4 id="stringstream在题目中常常用来做字符串切割"><a href="#stringstream在题目中常常用来做字符串切割" class="headerlink" title="stringstream在题目中常常用来做字符串切割"></a>stringstream在题目中常常用来做字符串切割</h4><p>1.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//每次读取一行字符串，一直读到空串为止</span></span><br><span class="line"><span class="keyword">while</span>(getline(<span class="built_in">cin</span>,s))</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span>(!s.<span class="built_in">size</span>())</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">    <span class="comment">//假设输入每行有两个单词，那么就可以利用stringstream的特性读入两个字符串，以空格为间</span></span><br><span class="line">    <span class="function"><span class="built_in">stringstream</span> <span class="title">ss</span><span class="params">(s)</span></span>;</span><br><span class="line">	ss&gt;&gt;word1&gt;&gt;word2;</span><br><span class="line">    <span class="comment">//.....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>2.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sstream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="comment">//可以先用 clear( )以及 str( ) 將指定字串設定成一开始的內容，再用 &gt;&gt; 把个別的资料输出，例如：</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">string</span> s;</span><br><span class="line">    <span class="built_in">stringstream</span> ss;</span><br><span class="line">    <span class="keyword">int</span> a, b, c;</span><br><span class="line">    getline(<span class="built_in">cin</span>, s);</span><br><span class="line">    ss.<span class="built_in">clear</span>();</span><br><span class="line">    ss.str(s);</span><br><span class="line">    ss &gt;&gt; a &gt;&gt; b &gt;&gt; c;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;a&lt;&lt;<span class="string">" "</span>&lt;&lt;b&lt;&lt;<span class="string">" "</span>&lt;&lt;c&lt;&lt;<span class="string">" "</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="使用stringstream对象简化类型转换"><a href="#使用stringstream对象简化类型转换" class="headerlink" title="使用stringstream对象简化类型转换"></a>使用stringstream对象简化类型转换</h4><p>1.int 到string的转换</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sstream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt; </span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">stringstream</span> stream;</span><br><span class="line">    <span class="built_in">string</span> result;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">1000</span>;</span><br><span class="line">    stream &lt;&lt; i; <span class="comment">//将int输入流</span></span><br><span class="line">    stream &gt;&gt; result; <span class="comment">//从stream中抽取前面插入的int值</span></span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; result &lt;&lt; <span class="built_in">endl</span>; <span class="comment">// print the string "1000"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>2.string到int的转换</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">string</span> result=”<span class="number">10000</span>”;</span><br><span class="line"><span class="keyword">int</span> n=<span class="number">0</span>;</span><br><span class="line">stream&lt;&lt;result;</span><br><span class="line">stream&gt;&gt;n;<span class="comment">//n等于10000</span></span><br></pre></td></tr></table></figure>
+<p>3.连接string和int，使其成为一个整体</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sstream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">string</span> name = <span class="string">"Bob"</span>;</span><br><span class="line">    <span class="keyword">int</span> age = <span class="number">22</span>;</span><br><span class="line">    <span class="built_in">stringstream</span>  ss;</span><br><span class="line">    ss&lt;&lt;<span class="string">"Name is : "</span>;		<span class="comment">//把"Name is : "字符串输入到ss中去</span></span><br><span class="line">    ss&lt;&lt;name;				<span class="comment">//把name输入到ss中去</span></span><br><span class="line">    ss&lt;&lt;<span class="string">"; Age is : "</span>;		<span class="comment">//把"; Age is : "字符串输入到ss中去</span></span><br><span class="line">    ss&lt;&lt;age;				<span class="comment">//把 int类型的age加入到ss中去</span></span><br><span class="line">    <span class="built_in">string</span> info = ss.str();</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;info&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment"> 我们可以直接用+连接两个字符串，但是没用办法用+ 连接int和string类型，stringstream帮我们做到了</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//输出: 	Name is : Bob; Age is : 22</span></span><br></pre></td></tr></table></figure>
+<p>4.int 转换为char</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sstream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">stringstream</span> stream;</span><br><span class="line">    <span class="keyword">char</span> result[<span class="number">8</span>];</span><br><span class="line">    <span class="keyword">int</span> number = <span class="number">8888</span>;</span><br><span class="line">    stream &lt;&lt; number; <span class="comment">//向stream中插入8888</span></span><br><span class="line">    stream &gt;&gt; result; <span class="comment">//抽取stream中的值到result</span></span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; result &lt;&lt; <span class="built_in">endl</span>; <span class="comment">// 屏幕显示 "8888"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>5.进行多次转换，必须调用stringstream的成员函数clear()</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sstream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">stringstream</span> stream;</span><br><span class="line">    <span class="keyword">int</span> first,second;</span><br><span class="line">    stream &lt;&lt; <span class="string">"456"</span>;<span class="comment">//插入字符串</span></span><br><span class="line">    stream &gt;&gt; first;<span class="comment">//转换成int</span></span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; first &lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    stream.<span class="built_in">clear</span>();<span class="comment">//在进行多次转换前，必须清除stream</span></span><br><span class="line">    stream &lt;&lt; <span class="literal">true</span>;<span class="comment">//插入bool值</span></span><br><span class="line">    stream &gt;&gt; second ;<span class="comment">//提取出int</span></span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; second &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出:</span></span><br><span class="line"><span class="comment">456</span></span><br><span class="line"><span class="comment">1</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">如果没有clear</span></span><br><span class="line"><span class="comment">那么会出现下面的结果</span></span><br><span class="line"><span class="comment">456</span></span><br><span class="line"><span class="comment">43	//不知所云</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C/" rel="tag"># C++</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/30/Trie%E6%A0%91/" rel="prev" title="Trie树">
+      <i class="fa fa-chevron-left"></i> Trie树
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/30/sscanf%E5%92%8Csprintf/" rel="next" title="sscanf和sprintf">
+      sscanf和sprintf <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#C-中的ssstream"><span class="nav-number">1.</span> <span class="nav-text">C++中的ssstream</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#istringstream"><span class="nav-number">1.0.1.</span> <span class="nav-text">istringstream</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ostringstream"><span class="nav-number">1.0.2.</span> <span class="nav-text">ostringstream</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stringstream"><span class="nav-number">1.0.3.</span> <span class="nav-text">stringstream</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#stringstream在题目中常常用来做字符串切割"><span class="nav-number">1.0.3.1.</span> <span class="nav-text">stringstream在题目中常常用来做字符串切割</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用stringstream对象简化类型转换"><span class="nav-number">1.0.3.2.</span> <span class="nav-text">使用stringstream对象简化类型转换</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

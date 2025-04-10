@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="如何用数组来控制指针实现链表.md 我们一般看到的链表定义都是这样的  12345struct ListNode &amp;#123;    int val;    ListNode *next;    ListNode(int x) : val(x), next(NULL) &amp;#123;&amp;#125;&amp;#125;; 但是，我们可以用一个下标数组，来实现 *next的操作 我们可以用数组实现next指针的功">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何用数组来控制指针实现链表">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/04/20/%E5%A6%82%E4%BD%95%E7%94%A8%E6%95%B0%E7%BB%84%E6%9D%A5%E6%8E%A7%E5%88%B6%E6%8C%87%E9%92%88%E5%AE%9E%E7%8E%B0%E9%93%BE%E8%A1%A8/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="如何用数组来控制指针实现链表.md 我们一般看到的链表定义都是这样的  12345struct ListNode &amp;#123;    int val;    ListNode *next;    ListNode(int x) : val(x), next(NULL) &amp;#123;&amp;#125;&amp;#125;; 但是，我们可以用一个下标数组，来实现 *next的操作 我们可以用数组实现next指针的功">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%A6%82%E4%BD%95%E7%94%A8%E6%95%B0%E7%BB%84%E6%9D%A5%E6%8E%A7%E5%88%B6%E6%8C%87%E9%92%88%E5%AE%9E%E7%8E%B0%E9%93%BE%E8%A1%A8/1.png">
+<meta property="article:published_time" content="2020-04-20T07:08:40.000Z">
+<meta property="article:modified_time" content="2020-05-08T09:25:44.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="小技巧">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/04/20/%E5%A6%82%E4%BD%95%E7%94%A8%E6%95%B0%E7%BB%84%E6%9D%A5%E6%8E%A7%E5%88%B6%E6%8C%87%E9%92%88%E5%AE%9E%E7%8E%B0%E9%93%BE%E8%A1%A8/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/04/20/%E5%A6%82%E4%BD%95%E7%94%A8%E6%95%B0%E7%BB%84%E6%9D%A5%E6%8E%A7%E5%88%B6%E6%8C%87%E9%92%88%E5%AE%9E%E7%8E%B0%E9%93%BE%E8%A1%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>如何用数组来控制指针实现链表 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/04/20/%E5%A6%82%E4%BD%95%E7%94%A8%E6%95%B0%E7%BB%84%E6%9D%A5%E6%8E%A7%E5%88%B6%E6%8C%87%E9%92%88%E5%AE%9E%E7%8E%B0%E9%93%BE%E8%A1%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何用数组来控制指针实现链表
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-04-20 15:08:40" itemprop="dateCreated datePublished" datetime="2020-04-20T15:08:40+08:00">2020-04-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-05-08 17:25:44" itemprop="dateModified" datetime="2020-05-08T17:25:44+08:00">2020-05-08</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="如何用数组来控制指针实现链表-md"><a href="#如何用数组来控制指针实现链表-md" class="headerlink" title="如何用数组来控制指针实现链表.md"></a>如何用数组来控制指针实现链表.md</h1><ul>
+<li>我们一般看到的链表定义都是这样的</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> val;</span><br><span class="line">    ListNode *next;</span><br><span class="line">    ListNode(<span class="keyword">int</span> x) : val(x), next(<span class="literal">NULL</span>) &#123;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="但是，我们可以用一个下标数组，来实现-next的操作-我们可以用数组实现next指针的功能，并实现排序"><a href="#但是，我们可以用一个下标数组，来实现-next的操作-我们可以用数组实现next指针的功能，并实现排序" class="headerlink" title="但是，我们可以用一个下标数组，来实现 *next的操作 我们可以用数组实现next指针的功能，并实现排序"></a>但是，我们可以用一个下标数组，来实现 *next的操作 我们可以用数组实现next指针的功能，并实现排序</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//比如这样，我们建立两个数组，第一个数组存储具体数字，第二个数组存储下标</span></span><br><span class="line"><span class="comment">//一般，我们要对头节点进行操作的话，需要设立dummyNode,这里A[0]就是个哑节点</span></span><br><span class="line"><span class="comment">//那么，我们要实现一个排序操作，我们就要对他的next数组进行操作。</span></span><br><span class="line"><span class="comment">//首先我们吧next数组初始化为-1</span></span><br><span class="line">	A[<span class="number">7</span>]= &#123;<span class="number">0</span>,<span class="number">2</span> <span class="number">1</span> <span class="number">4</span> <span class="number">5</span> <span class="number">8</span> <span class="number">6</span>&#125;</span><br><span class="line"><span class="comment">//排序完成后，A的下标数组如下</span></span><br><span class="line"> 	Next[<span class="number">7</span>]=&#123;<span class="number">2</span>，<span class="number">3</span>，<span class="number">1</span>，<span class="number">4</span>，<span class="number">6</span>，<span class="number">-1</span>，<span class="number">5</span>&#125;</span><br><span class="line"><span class="comment">//我们可见，操作完成后，0节点指向2，2节点指向1，1结点指向3，3节点指向4.4节点指向6</span></span><br><span class="line"><span class="comment">//6节点指向5，5节点指向-1。然后映射到A[7]上，就完成了排列,</span></span><br><span class="line"><span class="comment">//打印顺序</span></span><br><span class="line">A[<span class="number">0</span>]（不打印）-&gt;A[<span class="number">2</span>]-&gt;A[<span class="number">1</span>]-&gt;A[<span class="number">3</span>]-&gt;A[<span class="number">4</span>]-&gt;A[<span class="number">6</span>]-&gt;A[<span class="number">5</span>]</span><br><span class="line"><span class="comment">//  所以，用数组来存储指针，并不改变A数组中元素的顺序，只改变A数组的打印顺序</span></span><br><span class="line">    </span><br><span class="line"><span class="comment">//那么，每次新输入一个数，如何来实现A数组的排序呢</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	1.首先，把next数组初始化为 -1</span></span><br><span class="line"><span class="comment">	2.需要两个类似于迭代器的东西，然后，每次，都让迭代器从0开始遍历，一直到新插入的数所在的位置后</span></span><br><span class="line"><span class="comment">	也就是 A[p]&lt;A[q]&lt;A[nxt[p]]的时候。我们更新next[p]和next[q]的位置</span></span><br><span class="line"><span class="comment">	3.这时候next[q] = next[p] </span></span><br><span class="line"><span class="comment">	       next[p] = q</span></span><br><span class="line"><span class="comment"> 	4.事实上，这就实现了插入操作</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="comment">//核心的部分讲完了，我们现在要进行一些函数的封装</span></span><br><span class="line">    <span class="number">1.</span>如果我们要实现自定义的数据类型的有序列表操作，我们还需要建立一个Record类，在其中重写运算符</span><br><span class="line">    <span class="number">2.</span>建立链表类，里面含有next数组和A数组，以及初始化函数</span><br><span class="line">    <span class="number">3.</span>派生出一个新的有序链表类，让他继承链表类</span><br><span class="line">    <span class="number">4.</span>在有序链表类中完成上述操作，再设定一个打印操作</span><br><span class="line">   </span><br><span class="line">#include &lt;bits/stdc++.h&gt;</span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 操作一：建立一个Record 类*/</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="class"><span class="keyword">class</span> <span class="title">typeName</span>&gt;</span></span><br><span class="line"><span class="class"><span class="title">class</span> <span class="title">Record</span>&#123;</span></span><br><span class="line">    tp v;</span><br><span class="line">    <span class="keyword">bool</span> <span class="keyword">operator</span> &lt; (<span class="keyword">const</span> Record &amp;t)<span class="keyword">const</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> v&lt;t.v;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">bool</span> <span class="keyword">operator</span> &gt;(<span class="keyword">const</span> Record &amp;t)<span class="keyword">const</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> v&gt;t.v;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">bool</span> <span class="keyword">operator</span> ==(<span class="keyword">const</span> Record &amp;t)<span class="keyword">const</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> v ==t.v;	</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">const</span>  <span class="keyword">int</span> Maxn = <span class="number">40</span>;</span><br><span class="line"><span class="comment">/*操作2：建立链表类，里面含有next数组和A数组，以及初始化函数*/</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LinkList</span>&#123;</span></span><br><span class="line">  <span class="keyword">public</span></span><br><span class="line">    Record&lt;<span class="keyword">int</span>&gt;A[Maxn];</span><br><span class="line">    <span class="keyword">int</span> next[Maxn],tot;</span><br><span class="line">    LinkList()&#123;</span><br><span class="line">        <span class="built_in">memset</span>(next,<span class="number">-1</span>,<span class="keyword">sizeof</span>(next));</span><br><span class="line">        tot = <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">addElem</span> <span class="params">(<span class="keyword">int</span> x)</span></span>&#123;</span><br><span class="line">        A[++tot].v = x;</span><br><span class="line">        <span class="keyword">return</span> tot;</span><br><span class="line">    &#125; 	</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">OrderedList</span>:</span><span class="keyword">public</span> LinkList&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">insert</span><span class="params">(<span class="keyword">int</span> x)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> p = <span class="number">0</span>;<span class="comment">//从0开始遍历</span></span><br><span class="line">        <span class="keyword">int</span> q = addElem(x);<span class="comment">//获取到x再A数组中的位置</span></span><br><span class="line">        <span class="keyword">while</span>(next[p]!=<span class="number">-1</span>&amp;&amp;A[next[p]]&lt;A[q])</span><br><span class="line">        &#123;</span><br><span class="line">            p = next[p];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//现在 A[p]&lt;A[q]&lt;A[nxt[p]]</span></span><br><span class="line">        <span class="comment">//开始更新</span></span><br><span class="line">        next[q] = next[p];</span><br><span class="line">        next[p] = q;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> cur = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>(next[cur]!=<span class="number">-1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            p = next[p];</span><br><span class="line">            <span class="built_in">cout</span>&lt;&lt;A[p].v&lt;&lt;<span class="string">" "</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">/*最后实现main函数*/</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    OrderedList l;</span><br><span class="line">    <span class="keyword">int</span> x;</span><br><span class="line">    <span class="keyword">while</span>(<span class="built_in">scanf</span>(<span class="string">"%d"</span>,&amp;x),x!=<span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        l.insert(x);</span><br><span class="line">    &#125;</span><br><span class="line">    l.<span class="built_in">print</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>具体每次运行的结果，请看运行数据.md</li>
+</ul>
+<h3 id="上面的是简单的排序操作，我们再结合一下例题"><a href="#上面的是简单的排序操作，我们再结合一下例题" class="headerlink" title="上面的是简单的排序操作，我们再结合一下例题"></a>上面的是简单的排序操作，我们再结合一下例题</h3><p><img src="/2020/04/20/%E5%A6%82%E4%BD%95%E7%94%A8%E6%95%B0%E7%BB%84%E6%9D%A5%E6%8E%A7%E5%88%B6%E6%8C%87%E9%92%88%E5%AE%9E%E7%8E%B0%E9%93%BE%E8%A1%A8/1.png" alt="示例"></p>
+<ul>
+<li><p>有n个盒子在桌子上的一条线上从左到右编号为1……n。你的任务是模拟四种操作</p>
+<p>1 X Y 移动盒子编号X到盒子编号Y的左边（如果X已经在Y的左边了就忽略）</p>
+<p>2 X Y 移动盒子编号X到盒子编号Y的右边（如果X已经在Y的右边了就忽略）</p>
+<p>3 X Y 交换盒子编号X与盒子编号Y的位置</p>
+<p>4 将整条线反转</p>
+<p>操作保证合法，X不等于Y</p>
+<p>举一个例子，如果n=6，操作 1 1 4然后就变成了2 3 1 4 5 6；再操作 2 3 5就变成了 2 1 4 5 3 6；再操作 3 1 6 就变成 2 6 4 5 3 1；最后操作4，就变成了 1 3 5 4 6 2</p>
+<p>输入</p>
+<p>最多有10组数据，每个数据会包含两个整数n,m（1≤n,m&lt;100,000）, 接下来是m行数据，表示操作。</p>
+<p>输出</p>
+<p>对于每组数据，输出他们奇数位置的编号的和。</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	这道题，也可以用数组来模仿链表来实现，而且，数组的操作方式更加高效</span></span><br><span class="line"><span class="comment">	上面的排序例子，我们只设计了一个next数组，但是这道题目，需要把链表断开来再连上去</span></span><br><span class="line"><span class="comment">	需要前后相连，所以，我们需要设计一个 prev数组。 同样，我们要新建一个 dummyNode</span></span><br><span class="line"><span class="comment">	首先，dummyNode的前驱，是n； dummyNode 的后继是1；</span></span><br><span class="line"><span class="comment">	所以我们看到这个链表其实是一个循环链表！</span></span><br><span class="line"><span class="comment">	因为这是从1，2，3，4......n的n个盒子。所以，不需要再建立一个数组存储数据</span></span><br><span class="line"><span class="comment">	所以不用建立一个映射，数组的下标其实就代表了第n个盒子的标号</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;bits/stdc++.h&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">int</span> r[<span class="number">100000</span>+<span class="number">5</span>],l[<span class="number">100000</span>+<span class="number">5</span>];</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">init</span><span class="params">(<span class="keyword">int</span> n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>;i&lt;=n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        l[i]=i<span class="number">-1</span>;<span class="comment">//1到n的前驱，就是0，1，2，.....n-1；</span></span><br><span class="line">        r[i]=(i+<span class="number">1</span>)%(n+<span class="number">1</span>);<span class="comment">//1-n的后继，就是2，3，4，......0</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//此外还要规定dummyNode的前驱和后继</span></span><br><span class="line">    r[<span class="number">0</span>]=<span class="number">1</span>;<span class="comment">//后继</span></span><br><span class="line">    l[<span class="number">0</span>]=n;<span class="comment">//前驱</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//这个函数的作用，是把L和R相连也就是说实现 L-&gt;R</span></span><br><span class="line"><span class="comment">//那么很显然 L-&gt;R只有一个链接，所以L的后继为R，R的前驱为L。这是双向的</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">link</span><span class="params">(<span class="keyword">int</span> L,<span class="keyword">int</span> R)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    r[L] =R;</span><br><span class="line">    l[R]=L;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n, m, a, x, y, k = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">bool</span> flag;</span><br><span class="line">    <span class="keyword">while</span> (<span class="built_in">cin</span>&gt;&gt;n&gt;&gt;m) &#123;</span><br><span class="line">        flag = <span class="literal">false</span>;</span><br><span class="line">        init(n);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; m; i++) </span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">cin</span> &gt;&gt; a;</span><br><span class="line">            <span class="keyword">if</span> (a == <span class="number">4</span>)</span><br><span class="line">                flag = !flag;<span class="comment">//有可能多次反转！</span></span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="built_in">cin</span> &gt;&gt; x &gt;&gt; y;</span><br><span class="line">                    <span class="keyword">if</span> (a == <span class="number">3</span> &amp;&amp; r[y] == x) swap(x, y);</span><br><span class="line">                <span class="comment">/*</span></span><br><span class="line"><span class="comment">                交换xy的值，不是交换r[x],r[y]的值。反正是互换，这里把x移到y左边，易于操作</span></span><br><span class="line"><span class="comment">                比如说 链表为 1 2 3 4 5，交换x=4与y=3 ，符合上面的条件</span></span><br><span class="line"><span class="comment">                那么我们换成x=3，y=4</span></span><br><span class="line"><span class="comment">                这样的swap其实是不会影响结果的，只是因为方便后面的判断 if (r[x] == y) </span></span><br><span class="line"><span class="comment">                因为到后面还是交换3，4的值，不管x，y是哪一种，结果都是 1 2 4 3 5</span></span><br><span class="line"><span class="comment">                </span></span><br><span class="line"><span class="comment">                那么本来不是紧挨着的，那么可以换吗？？</span></span><br><span class="line"><span class="comment">                可以，但没必要，因为本来不是紧挨者的，再后面的操作，换不换无所谓</span></span><br><span class="line"><span class="comment">                */</span></span><br><span class="line">                </span><br><span class="line">                    <span class="keyword">if</span> (a != <span class="number">3</span> &amp;&amp; flag) </span><br><span class="line">                    &#123;</span><br><span class="line">                        a = <span class="number">3</span> - a;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">if</span> (a == <span class="number">1</span> &amp;&amp; x == l[y])<span class="comment">//如果x本来就在y左边，那么不需要操作</span></span><br><span class="line">                        <span class="keyword">continue</span>;</span><br><span class="line">                    <span class="keyword">if</span> (a == <span class="number">2</span> &amp;&amp; x == r[y])<span class="comment">//如果x本来就在y右边，那么不需要操作</span></span><br><span class="line">                        <span class="keyword">continue</span>;</span><br><span class="line">                	<span class="comment">//分别定义x，y的前驱和后继</span></span><br><span class="line">                    <span class="keyword">int</span> Lx = l[x], Rx = r[x], Ly = l[y], Ry = r[y];</span><br><span class="line">                    <span class="keyword">if</span> (a == <span class="number">1</span>)</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="comment">//如果a=1，那么就需要实现 x---&gt;y</span></span><br><span class="line">                        link(Lx, Rx);<span class="comment">//先让x的前驱后继相连，等于说x脱离链表</span></span><br><span class="line">                        link(Ly, x);<span class="comment">//现在要把y的前驱于x相连，实现y于前驱断开</span></span><br><span class="line">                        link(x, y);<span class="comment">//然后让x于y相连，实现x于y相连，x成为y的新前驱</span></span><br><span class="line">                    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (a == <span class="number">2</span>)</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="comment">//如果a= 2，那么就需要实现y------&gt;x</span></span><br><span class="line">                        link(Lx, Rx);<span class="comment">// 等于说x脱离链表</span></span><br><span class="line">                        link(y, x);<span class="comment">//让y于x相连，y成为x的新前驱</span></span><br><span class="line">                        link(x, Ry);<span class="comment">//让本来y的后继成为x的后继，实现x的插入</span></span><br><span class="line">                    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (a == <span class="number">3</span>)</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="comment">//如果a=3，那么就需要实现x和y的 交换</span></span><br><span class="line">                        <span class="comment">//如果x本来就在y的左边，那么只要交换x，y两个的位置</span></span><br><span class="line">                        <span class="keyword">if</span> (r[x] == y)</span><br><span class="line">                        &#123;</span><br><span class="line">                            <span class="comment">//让x的前驱连接y</span></span><br><span class="line">                            link(Lx, y);</span><br><span class="line">                            <span class="comment">//让y链接x</span></span><br><span class="line">                            link(y, x);</span><br><span class="line">                            <span class="comment">//让x链接y原来的后继</span></span><br><span class="line">                            link(x, Ry);</span><br><span class="line">                        &#125; <span class="keyword">else</span></span><br><span class="line">                        &#123;</span><br><span class="line">                            <span class="comment">//如果是有点距离的，那么需要多一点的操作</span></span><br><span class="line">                            <span class="comment">//让x的前驱链接y</span></span><br><span class="line">                            link(Lx, y);</span><br><span class="line">                            <span class="comment">//让y链接x的后继</span></span><br><span class="line">                            link(y, Rx);</span><br><span class="line">                            <span class="comment">//现在，y已经处于x的位置了</span></span><br><span class="line">                            </span><br><span class="line">                            link(Ly, x);</span><br><span class="line">                            <span class="comment">//让y的前驱和x相连</span></span><br><span class="line">                            link(x, Ry);</span><br><span class="line">                            <span class="comment">//让x的后继与y原来的后继相连</span></span><br><span class="line">                            <span class="comment">//现在，xy已经实现交换了</span></span><br><span class="line">                        &#125;</span><br><span class="line">               	 	&#125;</span><br><span class="line">           		 &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> t = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">long</span> <span class="keyword">long</span> sum = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            t = r[t];</span><br><span class="line">            <span class="keyword">if</span>(i%<span class="number">2</span>==<span class="number">0</span>)</span><br><span class="line">                sum+=t;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(flag&amp;&amp;n%<span class="number">2</span>==<span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            sum = (<span class="keyword">long</span> <span class="keyword">long</span>)n*(n+<span class="number">1</span>)/<span class="number">2</span>-sum;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="string">"Case "</span>&lt;&lt;++k&lt;&lt;<span class="string">": "</span>&lt;&lt;sum&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>综上，我们可以用数组来模拟链表，并做一些类似于链表的操作，还有链式前项星等应用也是通过数组模仿链表来实现的，如果需要操作的对象是无序的，我们需要不仅要建立指针数组，还要建立一个存储数据的数组，来做一个映射。但是如果操作的是有序的1，2，3，…..n的话，其实没必要再新建一个数组存放数据了，直接用数组下标就可以完成操作了</li>
+<li>其次，我们在做题目分析的时候需要判断头节点是否会被操作，如果需要被操作，我们还要新建一个dummyNode作为哨兵节点。</li>
+</ul>
+<h3 id="下面是运行的数据"><a href="#下面是运行的数据" class="headerlink" title="下面是运行的数据"></a>下面是运行的数据</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line">​```c++</span><br><span class="line">Before the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">-1</span> nxt[<span class="number">1</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span></span><br><span class="line"></span><br><span class="line">After the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"></span><br><span class="line">Before the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">-1</span> nxt[<span class="number">2</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span></span><br><span class="line"></span><br><span class="line">After the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">2</span> nxt[<span class="number">2</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span></span><br><span class="line"><span class="number">3</span> <span class="number">6</span></span><br><span class="line"></span><br><span class="line">Before the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">2</span> nxt[<span class="number">2</span>] = <span class="number">-1</span> nxt[<span class="number">3</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span></span><br><span class="line"></span><br><span class="line">After the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">2</span> nxt[<span class="number">2</span>] = <span class="number">3</span> nxt[<span class="number">3</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span></span><br><span class="line"><span class="number">3</span> <span class="number">6</span> <span class="number">9</span></span><br><span class="line"></span><br><span class="line">Before the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">2</span> nxt[<span class="number">2</span>] = <span class="number">3</span> nxt[<span class="number">3</span>] = <span class="number">-1</span> nxt[<span class="number">4</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span></span><br><span class="line"></span><br><span class="line">After the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">2</span> nxt[<span class="number">2</span>] = <span class="number">4</span> nxt[<span class="number">3</span>] = <span class="number">-1</span> nxt[<span class="number">4</span>] = <span class="number">3</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span></span><br><span class="line"><span class="number">3</span> <span class="number">6</span> <span class="number">8</span> <span class="number">9</span></span><br><span class="line"></span><br><span class="line">Before the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">2</span> nxt[<span class="number">2</span>] = <span class="number">4</span> nxt[<span class="number">3</span>] = <span class="number">-1</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span></span><br><span class="line"></span><br><span class="line">After the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">2</span> nxt[<span class="number">2</span>] = <span class="number">4</span> nxt[<span class="number">3</span>] = <span class="number">5</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span></span><br><span class="line"><span class="number">3</span> <span class="number">6</span> <span class="number">8</span> <span class="number">9</span> <span class="number">10</span></span><br><span class="line"></span><br><span class="line">Before the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">2</span> nxt[<span class="number">2</span>] = <span class="number">4</span> nxt[<span class="number">3</span>] = <span class="number">5</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span> nxt[<span class="number">6</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span>  A[<span class="number">6</span>]= <span class="number">7</span></span><br><span class="line"></span><br><span class="line">After the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">2</span> nxt[<span class="number">2</span>] = <span class="number">6</span> nxt[<span class="number">3</span>] = <span class="number">5</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span> nxt[<span class="number">6</span>] = <span class="number">4</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span>  A[<span class="number">6</span>]= <span class="number">7</span></span><br><span class="line"><span class="number">3</span> <span class="number">6</span> <span class="number">7</span> <span class="number">8</span> <span class="number">9</span> <span class="number">10</span></span><br><span class="line"></span><br><span class="line">Before the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">2</span> nxt[<span class="number">2</span>] = <span class="number">6</span> nxt[<span class="number">3</span>] = <span class="number">5</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span> nxt[<span class="number">6</span>] = <span class="number">4</span> nxt[<span class="number">7</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span>  A[<span class="number">6</span>]= <span class="number">7</span>  A[<span class="number">7</span>]= <span class="number">5</span></span><br><span class="line"></span><br><span class="line">After the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">7</span> nxt[<span class="number">2</span>] = <span class="number">6</span> nxt[<span class="number">3</span>] = <span class="number">5</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span> nxt[<span class="number">6</span>] = <span class="number">4</span> nxt[<span class="number">7</span>] = <span class="number">2</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span>  A[<span class="number">6</span>]= <span class="number">7</span>  A[<span class="number">7</span>]= <span class="number">5</span></span><br><span class="line"><span class="number">3</span> <span class="number">5</span> <span class="number">6</span> <span class="number">7</span> <span class="number">8</span> <span class="number">9</span> <span class="number">10</span></span><br><span class="line"></span><br><span class="line">Before the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">7</span> nxt[<span class="number">2</span>] = <span class="number">6</span> nxt[<span class="number">3</span>] = <span class="number">5</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span> nxt[<span class="number">6</span>] = <span class="number">4</span> nxt[<span class="number">7</span>] = <span class="number">2</span> nxt[<span class="number">8</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span>  A[<span class="number">6</span>]= <span class="number">7</span>  A[<span class="number">7</span>]= <span class="number">5</span>  A[<span class="number">8</span>]= <span class="number">4</span></span><br><span class="line"></span><br><span class="line">After the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">8</span> nxt[<span class="number">2</span>] = <span class="number">6</span> nxt[<span class="number">3</span>] = <span class="number">5</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span> nxt[<span class="number">6</span>] = <span class="number">4</span> nxt[<span class="number">7</span>] = <span class="number">2</span> nxt[<span class="number">8</span>] = <span class="number">7</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span>  A[<span class="number">6</span>]= <span class="number">7</span>  A[<span class="number">7</span>]= <span class="number">5</span>  A[<span class="number">8</span>]= <span class="number">4</span></span><br><span class="line"><span class="number">3</span> <span class="number">4</span> <span class="number">5</span> <span class="number">6</span> <span class="number">7</span> <span class="number">8</span> <span class="number">9</span> <span class="number">10</span></span><br><span class="line"></span><br><span class="line">Before the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">1</span> nxt[<span class="number">1</span>] = <span class="number">8</span> nxt[<span class="number">2</span>] = <span class="number">6</span> nxt[<span class="number">3</span>] = <span class="number">5</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span> nxt[<span class="number">6</span>] = <span class="number">4</span> nxt[<span class="number">7</span>] = <span class="number">2</span> nxt[<span class="number">8</span>] = <span class="number">7</span> nxt[<span class="number">9</span>] = <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span>  A[<span class="number">6</span>]= <span class="number">7</span>  A[<span class="number">7</span>]= <span class="number">5</span>  A[<span class="number">8</span>]= <span class="number">4</span>  A[<span class="number">9</span>]= <span class="number">2</span></span><br><span class="line"></span><br><span class="line">After the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">9</span> nxt[<span class="number">1</span>] = <span class="number">8</span> nxt[<span class="number">2</span>] = <span class="number">6</span> nxt[<span class="number">3</span>] = <span class="number">5</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span> nxt[<span class="number">6</span>] = <span class="number">4</span> nxt[<span class="number">7</span>] = <span class="number">2</span> nxt[<span class="number">8</span>] = <span class="number">7</span> nxt[<span class="number">9</span>] = <span class="number">1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span>  A[<span class="number">6</span>]= <span class="number">7</span>  A[<span class="number">7</span>]= <span class="number">5</span>  A[<span class="number">8</span>]= <span class="number">4</span>  A[<span class="number">9</span>]= <span class="number">2</span></span><br><span class="line"><span class="number">2</span> <span class="number">3</span> <span class="number">4</span> <span class="number">5</span> <span class="number">6</span> <span class="number">7</span> <span class="number">8</span> <span class="number">9</span> <span class="number">10</span></span><br><span class="line"></span><br><span class="line">Before the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">9</span> nxt[<span class="number">1</span>] = <span class="number">8</span> nxt[<span class="number">2</span>] = <span class="number">6</span> nxt[<span class="number">3</span>] = <span class="number">5</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span> nxt[<span class="number">6</span>] = <span class="number">4</span> nxt[<span class="number">7</span>] = <span class="number">2</span> nxt[<span class="number">8</span>] = <span class="number">7</span> nxt[<span class="number">9</span>] = <span class="number">1</span> nxt[<span class="number">10</span>] =</span><br><span class="line"> <span class="number">-1</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span>  A[<span class="number">6</span>]= <span class="number">7</span>  A[<span class="number">7</span>]= <span class="number">5</span>  A[<span class="number">8</span>]= <span class="number">4</span>  A[<span class="number">9</span>]= <span class="number">2</span>  A[<span class="number">10</span>]= <span class="number">1</span></span><br><span class="line"></span><br><span class="line">After the Operation</span><br><span class="line">nxt[<span class="number">0</span>] = <span class="number">10</span> nxt[<span class="number">1</span>] = <span class="number">8</span> nxt[<span class="number">2</span>] = <span class="number">6</span> nxt[<span class="number">3</span>] = <span class="number">5</span> nxt[<span class="number">4</span>] = <span class="number">3</span> nxt[<span class="number">5</span>] = <span class="number">-1</span> nxt[<span class="number">6</span>] = <span class="number">4</span> nxt[<span class="number">7</span>] = <span class="number">2</span> nxt[<span class="number">8</span>] = <span class="number">7</span> nxt[<span class="number">9</span>] = <span class="number">1</span> nxt[<span class="number">10</span>]</span><br><span class="line">= <span class="number">9</span></span><br><span class="line"> A[<span class="number">0</span>]= <span class="number">-1</span>  A[<span class="number">1</span>]= <span class="number">3</span>  A[<span class="number">2</span>]= <span class="number">6</span>  A[<span class="number">3</span>]= <span class="number">9</span>  A[<span class="number">4</span>]= <span class="number">8</span>  A[<span class="number">5</span>]= <span class="number">10</span>  A[<span class="number">6</span>]= <span class="number">7</span>  A[<span class="number">7</span>]= <span class="number">5</span>  A[<span class="number">8</span>]= <span class="number">4</span>  A[<span class="number">9</span>]= <span class="number">2</span>  A[<span class="number">10</span>]= <span class="number">1</span></span><br><span class="line"><span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span> <span class="number">5</span> <span class="number">6</span> <span class="number">7</span> <span class="number">8</span> <span class="number">9</span> <span class="number">10</span></span><br><span class="line">​</span><br></pre></td></tr></table></figure>
+<p>```</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" rel="tag"># 小技巧</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/20/%E5%BD%93%E6%B2%A1%E6%9C%89dummynode%E6%97%B6%E5%AE%9E%E7%8E%B0%E9%93%BE%E8%A1%A8%E5%A4%B4%E6%8F%92/" rel="prev" title="当没有dummynode时实现链表头插">
+      <i class="fa fa-chevron-left"></i> 当没有dummynode时实现链表头插
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/20/141%E7%8E%AF%E5%BD%A2%E9%93%BE%E8%A1%A8/" rel="next" title="141环形链表">
+      141环形链表 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#如何用数组来控制指针实现链表-md"><span class="nav-number">1.</span> <span class="nav-text">如何用数组来控制指针实现链表.md</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#但是，我们可以用一个下标数组，来实现-next的操作-我们可以用数组实现next指针的功能，并实现排序"><span class="nav-number">1.0.1.</span> <span class="nav-text">但是，我们可以用一个下标数组，来实现 *next的操作 我们可以用数组实现next指针的功能，并实现排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#上面的是简单的排序操作，我们再结合一下例题"><span class="nav-number">1.0.2.</span> <span class="nav-text">上面的是简单的排序操作，我们再结合一下例题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">1.1.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#下面是运行的数据"><span class="nav-number">1.1.1.</span> <span class="nav-text">下面是运行的数据</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

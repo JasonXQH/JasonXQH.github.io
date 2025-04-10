@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="卷积神经网路理论Convolutional Neural Networks 对于这张图片，我们会产生一种错觉：图片中的人是向右看的还是向前看的。我们发现如果我们观察这个人的右轮廓，就会觉得这个人是向右看的。如果我们直视这个人的眼睛和耳朵，那么就会觉得这个人是向前看的。因此我们可以推断出我们看见什么取决于大脑看见的特征.  又比如说这一张图，我们如果看红色的轮廓，那我们会认为这是一个年轻的小孩正在侧">
+<meta property="og:type" content="article">
+<meta property="og:title" content="卷积神经网路理论">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="卷积神经网路理论Convolutional Neural Networks 对于这张图片，我们会产生一种错觉：图片中的人是向右看的还是向前看的。我们发现如果我们观察这个人的右轮廓，就会觉得这个人是向右看的。如果我们直视这个人的眼睛和耳朵，那么就会觉得这个人是向前看的。因此我们可以推断出我们看见什么取决于大脑看见的特征.  又比如说这一张图，我们如果看红色的轮廓，那我们会认为这是一个年轻的小孩正在侧">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/25.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/24.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/26.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/27.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/28.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/29.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/30.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/31.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/32.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/33.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/34.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/35.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/36.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/37.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/38.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/39.png">
+<meta property="article:published_time" content="2020-11-24T13:37:52.000Z">
+<meta property="article:modified_time" content="2021-12-02T05:04:50.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="Tensorflow">
+<meta property="article:tag" content="cv">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>卷积神经网路理论 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          卷积神经网路理论
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-11-24 21:37:52" itemprop="dateCreated datePublished" datetime="2020-11-24T21:37:52+08:00">2020-11-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-12-02 13:04:50" itemprop="dateModified" datetime="2021-12-02T13:04:50+08:00">2021-12-02</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="卷积神经网路理论"><a href="#卷积神经网路理论" class="headerlink" title="卷积神经网路理论"></a>卷积神经网路理论</h1><h2 id="Convolutional-Neural-Networks"><a href="#Convolutional-Neural-Networks" class="headerlink" title="Convolutional Neural Networks"></a>Convolutional Neural Networks</h2><p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/1.png" style="zoom:120%;"></p>
+<p>对于这张图片，我们会产生一种错觉：图片中的人是向右看的还是向前看的。我们发现如果我们观察这个人的右轮廓，就会觉得这个人是向右看的。如果我们直视这个人的眼睛和耳朵，那么就会觉得这个人是向前看的。因此我们可以推断出我们看见什么取决于大脑看见的特征.</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/1.jpg" style="zoom:60%;"></p>
+<p>又比如说这一张图，我们如果看红色的轮廓，那我们会认为这是一个年轻的小孩正在侧脸注视前方。但是如果我们看蓝笔画出的轮廓，就会观察到一个老婆婆低下头打着盹。</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/3.png" style="zoom:100%;"></p>
+<p>最后一张图片，让我们的大脑变得无所适从——我们会在两张脸的特征上跳来跳去，导致一开始这张图片会有些眼花缭乱的感觉。</p>
+<p>这三个例子都在告诉我们我们的大脑是怎么运作的：大脑分析处理现实生活中看到的东西的特征然后经过处理得到我们认知的图像。这就导致了我们会出现很多错觉。</p>
+<p>在卷积神经网络当中，机器处理分析图像的方式和我们的大脑非常类似。</p>
+<p>现在我们来看一些例子：下面三张图片是神经网络预测的图片</p>
+<p>前两幅图计算机都非常准确得预测了照片中的物体，但是对于第三张图片的预测却出现了偏差。这是因为第三张图片本身拍摄的就不是非常清晰，特征也不是很明显，下面几个选项的描述也有点模糊。因此机器预测这个图片中的物品是剪刀而不是放大镜  </p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/4.png" style="zoom:100%;"></p>
+<p>这是CNN(卷积神经网络) 的简易模型：</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/5.png" style="zoom:100%;"></p>
+<p>比如说：</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/6.png" style="zoom:100%;"></p>
+<p>卷积神经网络并不会给出一个100%的概率，这就好像有时候我们会对别人的表情神态判断错误一样</p>
+<p>对于一幅图片，我们知道它是由像素组成的。在电脑里，一张图片就表现为一个矩阵。比如说一张2x2像素的灰白图，在电脑里就是一个2x2的矩阵，每个元素的取值范围是 (0,255)</p>
+<p>如果是一张彩色的照片，那么我们就需要3个2x2的矩阵来对其进行存储，因为色彩是由3个维度的数据RGB组成的。</p>
+<h3 id="计算机怎么读取图片"><a href="#计算机怎么读取图片" class="headerlink" title="计算机怎么读取图片"></a>计算机怎么读取图片</h3><p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/7.png" style="zoom:100%;"></p>
+<p>比如说一个笑脸的照片，我们可以用01矩阵来存储：0代表白，1代表黑</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/8.png" style="zoom:100%;"></p>
+<h3 id="卷积网络的步骤"><a href="#卷积网络的步骤" class="headerlink" title="卷积网络的步骤"></a>卷积网络的步骤</h3><p>STEP1: Convolution 卷积</p>
+<p>STEP2: Max Pooling 最大池化</p>
+<p>STEP3: Flattening 平坦化</p>
+<p>STEP4: Full Connection 全连接</p>
+<h2 id="Convolution"><a href="#Convolution" class="headerlink" title="Convolution"></a>Convolution</h2><p>这是卷积的公式,但是这里我们并不会过多的解释数学层面的，因此其内部的原理可以参考这篇文章：</p>
+<p><a href="http://cs.nju.edu.cn/wujx/paper/CNN.pdf" target="_blank" rel="noopener">http://cs.nju.edu.cn/wujx/paper/CNN.pdf</a></p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/10.png" style="zoom:100%;"></p>
+<p>那么，卷积的直观含义是什么呢？</p>
+<p>假设左边的矩阵是输入的图片，为了简化像素用01表示。中间的3x3矩阵叫做特征探测器，大多数卷积神经网络中用的都是3x3的矩阵，但是也有用5x5和7x7的。特征探测器和输入的图像矩阵做一个运算: 将特征探测器覆盖在图像矩阵的一片区域上，然后将这九个数相对应的一个值乘以一个值，计算过后特征探测器会向右移动，移动的距离叫做步长。最后计算九个数对应相乘的和</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/12.png" style="zoom:100%;"></p>
+<p>计算过后的矩阵如下：我们可以叫它 特征图或者Convolved Feature, 显然这个输入的矩阵被压缩了一点。这里我们用的步长是1(当步长为2的时候，得到的Feature Map就会进一步变小，通常2的效果更好)。</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/11.png" style="zoom:100%;"></p>
+<p>卷积过后，虽然矩阵中存储的数据变少了，但是特征探测器的目的是探测某些特征，也就是探测图像的某些完整部分。特征探测器具有某些特定的模式，而Feature map中数字最大的地方就是与探测器模式相匹配的地方。</p>
+<p>这和我们大脑的工作模式相似，我们并不会一个一个像素看，而是看一些局部的特征。卷积也是这样，通过特征探测器在特征图中保留下有用的信息。</p>
+<p>卷积过程中仅仅创建一张特征图是远远不够的。因为我们需要用到多个不同种类的特征探测器，所以需要创建多个特征图来保留图像中的信息。 然后，通过神经网络的训练，来决定哪个特征对于某个分类特别重要。</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/13.png" style="zoom:100%;"></p>
+<p>特征探测在滤镜/美化图片当中有广泛的应用，比如说对于这张泰姬陵的照片</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/14.png" style="zoom:100%;"></p>
+<h4 id="锐化"><a href="#锐化" class="headerlink" title="锐化"></a>锐化</h4><p>如果特征探测器是这样的，那么会对图像产生锐化的效果，照片会更加清晰：</p>
+<p>因为这个探测器中间的数值是5，周围是-1，这个目的就是突触主体元素，而减少边缘周围的像素。</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/15.png" style="zoom:100%;"></p>
+<h4 id="模糊"><a href="#模糊" class="headerlink" title="模糊"></a>模糊</h4><p>同样，模糊操作是一个 全部都是1的 探测器，这就说明了中间的像素和周围像素有着同等的重要性。他们合在一起就像是图片变模糊了一样</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/16.png" style="zoom:100%;"></p>
+<h4 id="边界增强滤镜"><a href="#边界增强滤镜" class="headerlink" title="边界增强滤镜:"></a>边界增强滤镜:</h4><p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/17.png" style="zoom:100%;"></p>
+<p>这个探测器只有-1和1，也就是说我们去掉了围绕中间主要元素周围的像素，只在左边保留一个-1。但是这个探测器的原理比较难以理解</p>
+<h4 id="边界探测滤镜："><a href="#边界探测滤镜：" class="headerlink" title="边界探测滤镜："></a>边界探测滤镜：</h4><p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/18.png" style="zoom:100%;"></p>
+<p>中间是4而上下左右是1，因此这个探测器削弱了中间主要元素的重要性，而提升了周围元素的重要性。这就期限了探测边框的效果</p>
+<h4 id="Emboss浮雕滤镜"><a href="#Emboss浮雕滤镜" class="headerlink" title="Emboss浮雕滤镜"></a>Emboss浮雕滤镜</h4><p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/19.png" style="zoom:100%;"></p>
+<p>这个探测器，我们发现它是左右不对成的，因此体现在图片上也感觉到这个图片朝左凸出</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/20.png" style="zoom:100%;"></p>
+<h3 id="ReLU-Layer-线性整流函数"><a href="#ReLU-Layer-线性整流函数" class="headerlink" title="ReLU Layer 线性整流函数"></a>ReLU Layer 线性整流函数</h3><p>现在我们来介绍 ReLU，这是在卷积的基础上再添加的一个步骤</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/21.png" style="zoom:100%;"></p>
+<p>数据通过ReLU后，过滤掉负值，只会保留非负值，比如下面这幅图的效果：</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/25.png" style="zoom:100%;"></p>
+<p>使用 ReLU的原因是它类似于一个过滤器，能打破神经网络的线性，并提高图像里或者神经网络模型中的 非线性。那么为什么要提高非线性呢？因为图像通常是高度非线性的，当我们在识别相邻不同物体时，有不同的边界、不同的颜色，因此图像可能具有很多非线性的元素。但是当我们进行卷积操作去建立我们的特征图的时候，有可能会引进一些线性的东西。</p>
+<p>下面是一个例子：</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/22.png" style="zoom:100%;"></p>
+<p>这张建筑物的图片，通过探测器处理之后变成了这样一张图片：</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/23.png" style="zoom:100%;"></p>
+<p>其中，黑色是负值而白色是正值。我们看到这幅图片中，白色到黑色之间是类似于线性变化的。但是我们再通过ReLU处理一下，就会得到这样一幅图片：</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/24.png" style="zoom:100%;"></p>
+<p>我们发现这样子的话这张图片就只有非负值了，白色和灰色之间没有一个渐变的阶段。</p>
+<p>虽然我们现在还不能解释这样处理的好处，但是起码能给我们一个主观上的感受。</p>
+<p>运用ReLU而不是Sigmoid函数，因为ReLU能有效解决梯度爆炸的问题，计算速度非常快（之所以计算快，因为relu函数公式的原因）<br>而之前的sigmoid函数的缺点：计算量相对大（公式$1/(1+e^{-z})$复杂），sigmoid函数反向传播时，很容易就会出现梯度爆炸现象</p>
+<p>拓展阅读资料：</p>
+<p> <a href="https://arxiv.org/pdf/1609.04112.pdf" target="_blank" rel="noopener">https://arxiv.org/pdf/1609.04112.pdf</a></p>
+<p><a href="https://arxiv.org/pdf/1502.01852.pdf" target="_blank" rel="noopener">https://arxiv.org/pdf/1502.01852.pdf</a></p>
+<h2 id="Max-Pooling-最大池化"><a href="#Max-Pooling-最大池化" class="headerlink" title="Max Pooling  最大池化"></a>Max Pooling  最大池化</h2><p> 现在我们有好几张不同角度拍摄的猎豹的照片，我们怎么能让电脑在这几张不同的照片中识别出猎豹呢？</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/26.png" style="zoom:100%;"></p>
+<p>我们知道猎豹眼睛下方的“黑色泪痕”是一个辨别猎豹最明显的标志。但是如果电脑说必须在特定的位置，有特定的形状纹理才能识别到这个特征，那恐怕连一张照片都识别不了。所以我们必须确定我们的神经网络拥有一个空间不变性(spatial invariance’)的特性，这代表着电脑不用关心这个特征位于哪里，在图像的哪个位置。因为我们在制作特征图和制作卷积层的时候已经将这种情况考虑进去了。电脑也不需要关心采集到的特征是否有一些倾斜是否在纹理上有不同。所以我们的神经网络必须要有一些弹性，能够找到这种特征，这就是池化的作用</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/27.png" style="zoom:100%;"></p>
+<p>这就是最大池化的操作了。我们用一个 2x2的矩阵框在特征图上移动，然后每次选取矩阵框中最大的数字放在Pooled Feature Map当中，我们采用的步长是2.当然也可以选择1，只不过这样方框的位置和原来的位置就出现了重叠。这里超过了矩阵的边框也不要紧，只要记录下每个框中最大的数值即可。</p>
+<p>经过最大池化，我们还是能够保留特征——那些最大值就是非常明显的特征，同时我们删除了75%不是明显特征的信息，减少了数据规模，防止出现信息过度拟合。更重要的是，我们保留了明显的特征，因此我们的算法可以允许一些图片的失真或者扭曲。</p>
+<p>比如说对猎豹的泪痕花纹，假设这个花纹在特征探测是获得的数字是4. 那么，如果图像扭曲了，4出现了移位，只要和之前在同一个矩阵框之下，在池化后都能被记录下来。</p>
+<p>问题： 池化有很多种，还有最小池化、平均池化 ，对于不同的池化方法，我们可以读者一篇论文</p>
+<p><a href="http://ais.uni-bonn.de/papers/icann2010_maxpool.pdf" target="_blank" rel="noopener">http://ais.uni-bonn.de/papers/icann2010_maxpool.pdf</a></p>
+<p>经过最大池化，现在的模型如下：</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/28.png" style="zoom:100%;"></p>
+<p>我们可以在这个网站上 <a href="http://scs.ryerson.ca/~aharley/vis/conv/flat.html" target="_blank" rel="noopener">http://scs.ryerson.ca/~aharley/vis/conv/flat.html</a> 感受到池化带给我们的直观感受</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/29.png" style="zoom:100%;"></p>
+<p>当我在左边输入8的时候，整个输入、卷积、池化、全连接的过程就在右边可视化了出来</p>
+<p>最底下一层是我们的输入层</p>
+<p>倒数第二层是第一次的卷积操作</p>
+<p>倒数第三层是第一次的池化操作，我们发现经过了池化操作，图画变小了但是基本的特征还是保留了下来。</p>
+<p>接着两层是第二次的卷积和池化，最上面是两次的全连接层，最后输出预测结果。</p>
+<p>我们将8稍稍向右倾斜，发现得到的池化结果还是相似的。这就说明池化能让神经网络的弹性更大。</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/30.png" style="zoom:100%;"></p>
+<p>但是当我们画一个笑脸，我们会发现这个神经网络是识别不出这是一个笑脸的。因为显然它只被0-9训练过，对其他的输入是一无所知的。这就好比我们看到了一件我们从来没看到过的东西，我们会说：这个东西比较像XXX(一个我们认识的东西)</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/31.png" style="zoom:100%;"></p>
+<h2 id="Flattening"><a href="#Flattening" class="headerlink" title="Flattening"></a>Flattening</h2><p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/32.png" style="zoom:100%;"></p>
+<p>Flattening 操作非常简单，对于池化后的矩阵，我们只需要将其压平成一列即可。</p>
+<p>那么，生成多个特征图放进卷积层，再通过ReLU函数来生成池化层，最后压平放入一个长向量里，这个长向量就是神经网络的一个输入层。</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/33.png" style="zoom:100%;"></p>
+<h2 id="Full-Connection"><a href="#Full-Connection" class="headerlink" title="Full Connection"></a>Full Connection</h2><p>这一步我们将把整个ANN加到CNN一系列操作之后，如图所示：</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/34.png" style="zoom:100%;"></p>
+<p>我们看到之前ANN中的隐藏层现在变成了一个全连接层。全连接层是一种特别的隐藏层，因为它和输入层还有输出层是全连接的。而一般的隐藏层并不这么干。</p>
+<p>这里神经网络的主要目的是：它能把我们得到的特征加入更多的属性，以得到更好的预测结果。我们之前已经有了平坦化之后的输出向量，在那个向量里已经蕴含了一些特征，比如对照片进行一个分类操作，但与此同时我们知道ANN能够对特征进行一个推理和分析并发现新的属性，那我们为何不利用ANN这种功能来优化这些特征呢？</p>
+<p>下面是一个更加复杂的例子，通过对这个例子的分析，我们会对CNN有更加深刻的理解：</p>
+<p>在这个模型当中我们有两层全连接层，并且有两个输出神经元(狗和猫)。我们知道在ANN当中只有一个输出神经元，那在CNN中为什么要有两个神经元呢？事实上，如果分成两类的话，我们可以用一个二元的输出神经元：0代表狗，1代表猫。但是如果要分类的东西较多，比如说还有鸟，大象之类的动物，那就必须给每一个动物都分配一个输出神经元。这是CNN 的特性。</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/35.png" style="zoom:100%;"></p>
+<p>图像经过卷积池化平坦化后的数据被输入到ANN当中，然后通过一个损失函数(交叉熵函数)计算误差，这个误差是用来衡量神经网络的性能的。计算出误差以后我们将误差往回传播并调整一些参数：比如说这些神经网络中的权重和卷积过程中的特征探测器。因为很可能一开始的特征探测器是错误的，因此调整特征探测器能提高预测的准确性。经过调整后，再将信息传递到ANN当中，并计算误差，返回调整。以此进行多轮学习，最终我们的神经网络会得到优化。</p>
+<p>这个过程和ANN是一样的，只是需要的时间更长一点，因为多了之前的三个步骤(卷积池化压平)</p>
+<p>那么这两个输出神经元是如何工作的呢？</p>
+<p>我们先从狗开始，我们首先要做的就是找到哪些权重杯赋予与“狗”神经元相连接的突触。这样我们就可以知道那个神经元对”狗”重要。为了方便，我们把值设置为0-1之间，如果这个神经元是0.9、1，那么就说明这个神经元被激活了，它认为它找到了某个特征；0就代表这个神经元没有找到特征。这些神经元的值将会传给Dog和Cat这两个输出神经元，然后由Dog和Cat神经元负责去判断这个特征是否符合它的要求。</p>
+<p>比如说这里，第一、二、六个神经元被激活了，它们分别代表狗的耳朵，鼻子和舌头。那么在训练的时候狗神经元就知道这些特征是属于狗的，经过多次迭代，狗神经元在预测的时候就会认为如果这些神经元都激活了，那么这张图片就应该属于狗，因此狗神经元就会被激活。而猫神经元就会认为这些隐藏层的神经元被激活时，图像中的动物并不是猫，久而久之，猫神经元就会忽略这些神经元的信号。</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/36.png" style="zoom:100%;"></p>
+<p>同理，对猫来说也有“属于”它的神经元，而狗神经元就会选择忽视那些属于猫特征的神经元。</p>
+<p>经过成千上百次的训练，CNN就会自己判断这张图片是属于猫还是属于狗了，如下图所示</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/37.png" style="zoom:100%;"></p>
+<p>这时候我输入一张狗的照片，要CNN帮我们预测分类。他们会通过倾听全连接层传递的信息而进行判断并给出可能是狗的概率和可能是猫的概率。概率是由全连接层的神经元根据他们的值 “投票”产生的 ，这就是全连接网络的工作原理。</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/38.png" style="zoom:100%;"></p>
+<p>整一个CNN的过程可以用下图总结</p>
+<p><img src="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/39.png" style="zoom:100%;"></p>
+<p>学习博客：</p>
+<p><a href="https://adeshpande3.github.io/adeshpande3.github.io/The-9-Deep-Learning-Papers-You-Need-To-Know-About.html" target="_blank" rel="noopener">https://adeshpande3.github.io/adeshpande3.github.io/The-9-Deep-Learning-Papers-You-Need-To-Know-About.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Tensorflow/" rel="tag"># Tensorflow</a>
+              <a href="/tags/cv/" rel="tag"># cv</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/" rel="prev" title="CSAPP虚拟内存">
+      <i class="fa fa-chevron-left"></i> CSAPP虚拟内存
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/11/26/OptimalBST/" rel="next" title="OptimalBST">
+      OptimalBST <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#卷积神经网路理论"><span class="nav-number">1.</span> <span class="nav-text">卷积神经网路理论</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Convolutional-Neural-Networks"><span class="nav-number">1.1.</span> <span class="nav-text">Convolutional Neural Networks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#计算机怎么读取图片"><span class="nav-number">1.1.1.</span> <span class="nav-text">计算机怎么读取图片</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#卷积网络的步骤"><span class="nav-number">1.1.2.</span> <span class="nav-text">卷积网络的步骤</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Convolution"><span class="nav-number">1.2.</span> <span class="nav-text">Convolution</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#锐化"><span class="nav-number">1.2.0.1.</span> <span class="nav-text">锐化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#模糊"><span class="nav-number">1.2.0.2.</span> <span class="nav-text">模糊</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#边界增强滤镜"><span class="nav-number">1.2.0.3.</span> <span class="nav-text">边界增强滤镜:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#边界探测滤镜："><span class="nav-number">1.2.0.4.</span> <span class="nav-text">边界探测滤镜：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Emboss浮雕滤镜"><span class="nav-number">1.2.0.5.</span> <span class="nav-text">Emboss浮雕滤镜</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReLU-Layer-线性整流函数"><span class="nav-number">1.2.1.</span> <span class="nav-text">ReLU Layer 线性整流函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Max-Pooling-最大池化"><span class="nav-number">1.3.</span> <span class="nav-text">Max Pooling  最大池化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flattening"><span class="nav-number">1.4.</span> <span class="nav-text">Flattening</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Full-Connection"><span class="nav-number">1.5.</span> <span class="nav-text">Full Connection</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Django学习3Uploading Files在这一章，我们将学习如何搭建一个RESTFul API，能实现图片上传的操作 Managing Media Files首先我们要把用户上传的图片给存储到特定地方，然后能够被 url检索到。在这里，我们可以创建一个 media 文件夹。 然后，我们需要修改settings.py, 在settings.py 中有 STATIC_URL &#x3D; &#39;&#x2F;s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Django学习3">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Django学习3Uploading Files在这一章，我们将学习如何搭建一个RESTFul API，能实现图片上传的操作 Managing Media Files首先我们要把用户上传的图片给存储到特定地方，然后能够被 url检索到。在这里，我们可以创建一个 media 文件夹。 然后，我们需要修改settings.py, 在settings.py 中有 STATIC_URL &#x3D; &#39;&#x2F;s">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/1.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/15.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/16.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/17.png">
+<meta property="article:published_time" content="2022-01-16T14:27:19.000Z">
+<meta property="article:modified_time" content="2022-08-25T11:34:10.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/1.gif">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Django学习3 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/01/16/Django%E5%AD%A6%E4%B9%A03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Django学习3
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-01-16 22:27:19" itemprop="dateCreated datePublished" datetime="2022-01-16T22:27:19+08:00">2022-01-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-08-25 19:34:10" itemprop="dateModified" datetime="2022-08-25T19:34:10+08:00">2022-08-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Django学习3"><a href="#Django学习3" class="headerlink" title="Django学习3"></a>Django学习3</h1><h2 id="Uploading-Files"><a href="#Uploading-Files" class="headerlink" title="Uploading Files"></a>Uploading Files</h2><p>在这一章，我们将学习如何搭建一个RESTFul API，能实现图片上传的操作</p>
+<h3 id="Managing-Media-Files"><a href="#Managing-Media-Files" class="headerlink" title="Managing Media Files"></a>Managing Media Files</h3><p>首先我们要把用户上传的图片给存储到特定地方，然后能够被 url检索到。在这里，我们可以创建一个 media 文件夹。</p>
+<p>然后，我们需要修改<code>settings.py</code>, 在<code>settings.py</code> 中有 <code>STATIC_URL = &#39;/static/&#39;</code> 它是用来检索app的静态文件的(如CSS,JAVASCRIPT,HTML) ，因为这属于前端的工作，在这个app中我们就没有创建static文件夹。</p>
+<p>那么，当用户上传图片后，我们希望通过<code>/media/{图片路径}</code>来获取图片，因此我们需要创建  MEIDA_URL 和 MEDIA_ROOT 这两个值. 其中<code>MEDIA_URL = &#39;/media/&#39;</code> 代表需要去 media文件夹检索图片; 而 <code>MEDIA_ROOT = os.path.join(BASE_DIR, &#39;media&#39;)</code> 代表将 <code>localhost:9000/</code>和<code>media/</code> 连接起来。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">MEDIA_URL = <span class="string">'/media/'</span></span><br><span class="line"></span><br><span class="line">MEDIA_ROOT = os.path.join(BASE_DIR, <span class="string">'media'</span>)</span><br></pre></td></tr></table></figure>
+<p> 现在，比如说我在media文件夹下存放了一张 <code>dog.jpg</code> 的照片，就可以通过<code>http://127.0.0.1:9000/media/dog.jpg</code> 在网页显示这张照片了</p>
+<h3 id="Adding-Images-to-Products"><a href="#Adding-Images-to-Products" class="headerlink" title="Adding Images to Products"></a>Adding Images to Products</h3><p>现在我们要修改models.py, 增加一个 ProductImage的类，因为一件商品可以有多张图片，因此这里需要建立一个一对多的关系：</p>
+<p>这里，用 <code>ImageField</code> 来存储一个图片对象，存放在<code>store/images</code> 文件夹当中。</p>
+<p>注意，这里一定要确定<code>related_name</code> 要不然Product无法反向找到ProductImage对象</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductImage</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    product = models.ForeignKey(Product,</span><br><span class="line">                                on_delete = models.CASCADE,</span><br><span class="line">                                related_name=<span class="string">'images'</span>)</span><br><span class="line">    image = models.ImageField(upload_to=<span class="string">'store/images'</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="Building-an-API-to-Upload-Images"><a href="#Building-an-API-to-Upload-Images" class="headerlink" title="Building an API to Upload Images"></a>Building an API to Upload Images</h3><p>现在我们要创建一个API来上传图片。创建一个API的流程我们已经很熟悉了：先Serializer—View—Router构建出大致框架，再细化Serializer和View实现具体功能</p>
+<h4 id="框架"><a href="#框架" class="headerlink" title="框架"></a>框架</h4><p>首先我们来确定Serializer中的Meta信息：我们想要呈现的是一个物品的所有图片，以及每张图片的编号和路径。因此我们可以这样来写：</p>
+ <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductImageSerializer</span><span class="params">(serializers.ModelSerializer)</span>:</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        model = ProductImage</span><br><span class="line">        fields = [<span class="string">'id'</span>, <span class="string">'image'</span>]</span><br></pre></td></tr></table></figure>
+<p>然后，我们创建 <code>ProductImageViewSet</code> ，在这里一开始要确定<code>serializer_class</code>和<code>queryset</code> ，由于url的模板是这样的<code>store/product/{product_pk}/images/{pk}</code> ，在检索图片的时候，我们就需要用到url中的参数 <code>product_pk</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductImageViewSet</span><span class="params">(ModelViewSet)</span>:</span></span><br><span class="line">    serializer_class = ProductImageSerializer</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_queryset</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> ProductImage.objects.filter(product_id=self.kwargs[<span class="string">'product_pk'</span>])</span><br></pre></td></tr></table></figure>
+<p>最后我们注册路由，由于product和images是一对多的关系，这里需要使用嵌套路由，即：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#...</span></span><br><span class="line">products_router = routers.NestedDefaultRouter(</span><br><span class="line">    router, <span class="string">'products'</span>, lookup=<span class="string">'product'</span>)</span><br><span class="line">products_router.register(<span class="string">'images'</span>, views.ProductImageViewSet,</span><br><span class="line">                         basename=<span class="string">'product-images'</span>)</span><br><span class="line"><span class="comment">#...</span></span><br></pre></td></tr></table></figure>
+<h4 id="具体功能"><a href="#具体功能" class="headerlink" title="具体功能"></a>具体功能</h4><p>这个API的具体功能就是希望将用户上传的图片保存在特定的文件夹当中. 因此，实现的关键就是如何保存图片。</p>
+<p>我们知道serializer是无法直接获取到url中的参数的，只能获取请求体中的数据(validated_data).因此需要在views中利用<code>get_serializer_context</code> 方法将该商品的id传入。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductImageViewSet</span><span class="params">(ModelViewSet)</span>:</span></span><br><span class="line">    serializer_class = ProductImageSerializer</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_serializer_context</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> &#123;<span class="string">'product_id'</span>: self.kwargs[<span class="string">'product_pk'</span>]&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_queryset</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> ProductImage.objects.filter(product_id=self.kwargs[<span class="string">'product_pk'</span>])</span><br></pre></td></tr></table></figure>
+<p>然后，我们在serializer中重写create函数，在里面通过<code>self.context[&#39;product_id&#39;]</code>获取到product_pk这个参数，并以此创建一个新的<code>ProductImage</code>对象</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductImageSerializer</span><span class="params">(serializers.ModelSerializer)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">create</span><span class="params">(self, validated_data)</span>:</span></span><br><span class="line">        product_id = self.context[<span class="string">'product_id'</span>]</span><br><span class="line">        <span class="keyword">return</span> ProductImage.objects.create(product_id=product_id, **validated_data)</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        model = ProductImage</span><br><span class="line">        fields = [<span class="string">'id'</span>, <span class="string">'image'</span>]</span><br></pre></td></tr></table></figure>
+<p>结果如下：</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/1.gif" style="zoom:67%;"></p>
+<h3 id="Returning-Images-from-the-API"><a href="#Returning-Images-from-the-API" class="headerlink" title="Returning Images from the API"></a>Returning Images from the API</h3><p>现在，我们希望，在对<code>http://127.0.0.1:9000/store/products/</code> 进行 GET请求的时候，可以将每个product的图片信息显示出来：</p>
+<p>怎么修改？首先我们要修改Serializer，让他把image加进来：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductSerializer</span><span class="params">(serializers.ModelSerializer)</span>:</span></span><br><span class="line">    images = ProductImageSerializer(many=<span class="literal">True</span>, read_only=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        model = Product</span><br><span class="line">        fields = [<span class="string">'id'</span>,  <span class="string">'title'</span>, <span class="string">'description'</span>, <span class="string">'slug'</span>,</span><br><span class="line">                  <span class="string">'inventory'</span>, <span class="string">'unit_price'</span>, <span class="string">'price_with_tax'</span>, <span class="string">'collection'</span>, <span class="string">'images'</span>]</span><br><span class="line"></span><br><span class="line">    price_with_tax = serializers.SerializerMethodField(</span><br><span class="line">        method_name=<span class="string">'calculate_tax'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">calculate_tax</span><span class="params">(self, product: Product)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> product.unit_price * Decimal(<span class="number">1.1</span>)</span><br></pre></td></tr></table></figure>
+<p>为了优化查询，我们需要对ProductViewSet进行修改，即用<code>prefetch_related</code> 将image在初次查询的时候就囊括进来，不用筛选出products以后再单独去进行反向查询</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductViewSet</span><span class="params">(ModelViewSet)</span>:</span></span><br><span class="line">    queryset = Product.objects.prefetch_related(<span class="string">'images'</span>).all()</span><br><span class="line">    <span class="comment">#...</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/2.png" style="zoom:67%;"></p>
+<h3 id="Validating-Uploaded-Files"><a href="#Validating-Uploaded-Files" class="headerlink" title="Validating Uploaded Files"></a>Validating Uploaded Files</h3><p>之前我们使用ImageField来确定上传文件的类型，在这背后其实是 Pillow 包做的底层逻辑，对文件是否为图片进行了一个判断。</p>
+<p>那么，如果我们希望对图片的大小进行一个限制，比如说不能超过50kb，该怎么写？</p>
+<p>我们可以单独创建一个validators.py来存放验证器：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.core.exceptions <span class="keyword">import</span> ValidationError</span><br><span class="line"><span class="comment"># 在这里我们引入 ValidationError 模块。</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">validate_file_size</span><span class="params">(file)</span>:</span></span><br><span class="line">    max_size_kb = <span class="number">50</span></span><br><span class="line"><span class="comment"># 如果文件大小(以B为单位)，大于规定大小，我们就会返回一个错误。    </span></span><br><span class="line">    <span class="keyword">if</span> file.size &gt; max_size_kb*<span class="number">1024</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValidationError(<span class="string">f'Files cannot be larger than <span class="subst">&#123;max_size_kb&#125;</span> KB!'</span>)</span><br></pre></td></tr></table></figure>
+<p>然后，在models.py中引入这个验证器：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductImage</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    product = models.ForeignKey(Product,</span><br><span class="line">                                on_delete=models.CASCADE,</span><br><span class="line">                                related_name=<span class="string">'images'</span>)</span><br><span class="line">    image = models.ImageField(upload_to=<span class="string">'store/images'</span>,</span><br><span class="line">                              validators=[validate_file_size])</span><br></pre></td></tr></table></figure>
+<p>此外，如果该属性是 <code>FileField</code> ,我们只希望接收特定格式的文件，比如jpg ，怎么办？ 我们可以使用<code>FileExtensionValidator</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.core.validators <span class="keyword">import</span> MinValueValidator,FileExtensionValidator</span><br><span class="line"></span><br><span class="line"><span class="comment">#...</span></span><br><span class="line">image = models.FileField(upload_to=<span class="string">'store/images'</span>,</span><br><span class="line">                         validators=[FileExitensionValidator(allowed_extensions=[<span class="string">'jpg'</span>])])</span><br></pre></td></tr></table></figure>
+<h3 id="Setting-Up-the-Client-App"><a href="#Setting-Up-the-Client-App" class="headerlink" title="Setting Up the Client App"></a>Setting Up the Client App</h3><p>我们打开part3 中的storefront3_client文件夹，把它复制到电脑硬盘中(直接在移动硬盘中操作会出现奇奇怪怪的问题)，然后运行<code>npm install</code> 安装依赖，接着运行<code>npm start</code> 启动前端项目</p>
+<p>结果如下：</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/3.png" style="zoom:67%;"></p>
+<h3 id="Enabling-CORS"><a href="#Enabling-CORS" class="headerlink" title="Enabling CORS"></a>Enabling CORS</h3><p>但是，上面这个前端是没有办法向后端去传递消息的，因为没有进行跨域.什么是跨域呢？ 因为前端是运行在8001端口的，而后端是运行在9001 端口的，这两者之间如果不进行跨域的话，是没有办法进行信息传输的。</p>
+<p>CORS 即 Cross-origin Resource Sharing 中文名是跨源资源共享，即跨域。它的作用就是将在一个域名接收到的请求转发到另外一个域名，然后将另外一个域名的返回的结果在转发到这个域名上来。类似一个中转服务器</p>
+<p>为了在Django中实现CORS，我们需要用到<code>django-cors-headers</code> 这个Github项目，地址：<a href="https://github.com/adamchainz/django-cors-headers" target="_blank" rel="noopener">https://github.com/adamchainz/django-cors-headers</a> 。 里面有细致的安装步骤。</p>
+<p>首先，我们运行 <code>pipenv install django-cors-headers</code> 安装 corsheaders APP</p>
+<p>然后，我们在 <code>settings.py</code> 中注册 corsheaders</p>
+<p>接着，将<code>&#39;corsheaders.middleware.CorsMiddleware&#39;</code> 复制到中间件列表的最前面</p>
+<p>最后，注册允许跨域的前端域名，如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CORS_ALLOWED_ORIGINS = [</span><br><span class="line">    <span class="string">'http://localhost:8001'</span>,</span><br><span class="line">    <span class="string">'http://127.0.0.1:8001'</span>,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p>然后，因为我们的后端试监听在9000端口的，因此需要修改前端中的<code>uploadFile</code>函数(默认是8000)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">const uploadFile &#x3D; (file) &#x3D;&gt; &#123;</span><br><span class="line">  const apiUrl &#x3D; &#39;http:&#x2F;&#x2F;127.0.0.1:9000&#x2F;store&#x2F;products&#x2F;1&#x2F;images&#x2F;&#39;;</span><br><span class="line">#...</span><br></pre></td></tr></table></figure>
+<p>我们可以尝试上传一张图片：</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/4.png" style="zoom:67%;"></p>
+<p>然后我们查看请求的url信息：</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/5.png" style="zoom:67%;"></p>
+<h3 id="Managing-Images-in-the-Admin"><a href="#Managing-Images-in-the-Admin" class="headerlink" title="Managing Images in the Admin"></a>Managing Images in the Admin</h3><p>现在我们想给以Admin管理图片的功能，能让他在后台可以直接查看到图片，添加\删除图片，怎么办？</p>
+<p>由于 图片和商品是一个多对一的关系，想要在特定的商品界面显示与其关联的图片，可以使用inline的方式嵌入：</p>
+<p>那么首先我们要到<code>store&gt;admin.py</code> 中创建 <code>ProductImageInline</code> 类：</p>
+<p>在这个类中，我们首先规定 models 属性，让其等于 ProductImage</p>
+<p>此外，为了显示图片，我们需要额外创建一个字段，暂且称其为 <code>thumnail</code>，然后，我们要使用<code>format_html</code>方法将图片转换成html语言显示出来。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductImageInline</span><span class="params">(admin.TabularInline)</span>:</span></span><br><span class="line">    model = models.ProductImage</span><br><span class="line">    readonly_fields = [<span class="string">'thumnail'</span>]</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">thumnail</span><span class="params">(self, instance)</span>:</span></span><br><span class="line">        <span class="keyword">if</span> instance.image.name != <span class="string">''</span>:</span><br><span class="line">            <span class="keyword">return</span> format_html(<span class="string">f'&lt;img src="<span class="subst">&#123;instance.image.url&#125;</span>" class = "thumnail"/&gt;'</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="string">''</span></span><br></pre></td></tr></table></figure>
+<p>然后，我们要在product中将<code>ProductImageInline</code>类导入进去，之前我们在<code>core&gt;admin.py</code> 中为了实现Generic Model Tag的内联实现，我们重新定义了inline字段，因此要在<code>core&gt;admin.py</code>中导入<code>ProductImageInline</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CustomProductAdmin</span><span class="params">(ProductAdmin)</span>:</span></span><br><span class="line">    inlines = [TagInline, ProductImageInline]</span><br><span class="line"></span><br><span class="line">admin.site.unregister(Product)</span><br><span class="line">admin.site.register(Product, CustomProductAdmin)</span><br></pre></td></tr></table></figure>
+<p>但这还是不够的，虽然能在admin界面显示图片，但是是以原大小显示的，很不美观，因此我们需要用css来调节一下。</p>
+<p>为了项目的可维护性，我们需要在store文件夹下创建 static 文件夹，专门存放html、css之类的静态文件。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.thumnail</span> &#123;</span><br><span class="line">  <span class="attribute">width</span>: <span class="number">100px</span>;</span><br><span class="line">  <span class="attribute">height</span>: <span class="number">100px</span>;</span><br><span class="line">  <span class="attribute">object-fit</span>: cover;<span class="comment">/*等比例缩放*/</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后，我们要在 ProductAdmin中引入这个css文件：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@admin.register(models.Product)</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductAdmin</span><span class="params">(admin.ModelAdmin)</span>:</span></span><br><span class="line"> 		<span class="comment">#..</span></span><br><span class="line">    <span class="comment"># Media是内置的类，和Meta类似，会自动到static文件夹中找静态文件</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Media</span>:</span></span><br><span class="line">        css = &#123;</span><br><span class="line">            <span class="string">'all'</span>: [<span class="string">'store/style.css'</span>]</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<p>结果如下：</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/6.png" style="zoom:67%;"></p>
+<h2 id="Sending-Emails"><a href="#Sending-Emails" class="headerlink" title="Sending Emails"></a>Sending Emails</h2><h3 id="Setting-up-a-Fake-SMTP-Server"><a href="#Setting-up-a-Fake-SMTP-Server" class="headerlink" title="Setting up a Fake SMTP Server"></a>Setting up a Fake SMTP Server</h3><p>在计算机网络中，我们学过<a href="https://jasonxqh.github.io/2021/05/03/计算机网络-应用层总结/#SMTP-电子邮件">SMTP协议</a> ，也就是一个简单邮件传输协议。现在我们如果想要我们的app来发送邮件，就需要创建一个简单的SMTP服务器  </p>
+<p>项目网址如下： <a href="https://github.com/rnwood/smtp4dev" target="_blank" rel="noopener">https://github.com/rnwood/smtp4dev</a></p>
+<p>我们需要在Docker中安装这个项目，因此需要先安装Docker。然后运行<code>docker run --rm -it -p 3000:80 -p 2525:25 rnwood/smtp4dev</code> 安装</p>
+<p>但是对于m1 mac，可能会出现找不到合适版本的问题，我们可以指定一个版本让其安装：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run --rm -it -p 3000:80 -p 2525:25 rnwood&#x2F;smtp4dev:3.1.3-ci20211206101</span><br></pre></td></tr></table></figure>
+<p>然后，访问<code>localhost:3000</code> ，就可以打开 smtp4dev</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/7.png" style="zoom:67%;"></p>
+<p>这是一个假的smtp服务器，他不会真的发送邮件，但它的作用是检测通过这个端口(2525)利用SMTP协议发送的邮件</p>
+<h3 id="Configuring-the-Email-Backend"><a href="#Configuring-the-Email-Backend" class="headerlink" title="Configuring the Email Backend"></a>Configuring the Email Backend</h3><p>首先我们要在Django中对电子邮件后端进行一些配置。</p>
+<p>我们</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">EMAIL_BACKEND = <span class="string">'django.core.mail.backends.smtp.EmailBackend'</span></span><br><span class="line">EMAIL_HOST = <span class="string">'localhost'</span></span><br><span class="line">EMAIL_HOST_USER = <span class="string">''</span></span><br><span class="line">EMAIL_HOST_PASSWORD = <span class="string">''</span></span><br><span class="line">EMAIL_PORT = <span class="number">2525</span></span><br><span class="line">DEFAULT_FROM_EMAIL = <span class="string">''</span></span><br></pre></td></tr></table></figure>
+<p><code>EMAIL_BACKEND</code> 设置邮件后台，默认为smtp，还有console(邮件显示在终端),file(将邮件显示在文件里)</p>
+<p><code>EMAIL_HOST</code> 由于smtp4dev是开在本地的，因此这里写 ‘localhost’</p>
+<p><code>EMAIL_HOST_USER</code> 和 <code>EMAIL_HOST_PASSWORD</code> 由于对这个邮件服务器我们没有设置用户和密码，因此直接写空串</p>
+<p><code>EMAIL_PORT</code> 是邮件走的端口号，由于 smtp4dev 监听在2525，这里写2525</p>
+<p><code>DEFAULT_FROM_EMAIL</code> 是默认邮箱，即从这个邮箱往其他邮箱发送邮件</p>
+<h3 id="Sending-Emails-1"><a href="#Sending-Emails-1" class="headerlink" title="Sending  Emails"></a>Sending  Emails</h3><p>我们可以用 <code>django.core.mail</code> 中的 <code>send_mail</code> 函数来发送信息。由于存在发送错误的情况，我们需要用 try-except 进行错误捕捉。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.shortcuts <span class="keyword">import</span> render</span><br><span class="line"><span class="keyword">from</span> django.core.mail <span class="keyword">import</span> send_mail, mail_admins, BadHeaderError</span><br><span class="line"></span><br><span class="line"><span class="comment"># 这个函数第一个参数是邮件主题；第二个参数是正文；第三个参数是发送者邮箱；第四个是接收者邮箱(列表)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">say_hello</span><span class="params">(request)</span>:</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        send_mail(<span class="string">'subject'</span>, <span class="string">'message'</span>,</span><br><span class="line">                  <span class="string">'jason@from.com'</span>, [<span class="string">'jason@to.com'</span>])</span><br><span class="line">    <span class="keyword">except</span> BadHeaderError:</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">    <span class="keyword">return</span> render(request, <span class="string">'hello.html'</span>, &#123;<span class="string">'name'</span>: <span class="string">'Jason'</span>&#125;)</span><br></pre></td></tr></table></figure>
+<p>在访问 <code>http://127.0.0.1:9000/playground/hello/</code> 之后我们看到 smtp4dev服务器已经捕捉到这封邮件了</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/8.png" style="zoom:67%;"></p>
+<h3 id="Attaching-Files"><a href="#Attaching-Files" class="headerlink" title="Attaching Files"></a>Attaching Files</h3><p>如果我们想发送一封带有附件的文件，该怎么办？</p>
+<p>我们可以先确定邮件的内容，然后再利用<code>attach_file</code> 来加载附件</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">say_hello</span><span class="params">(request)</span>:</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        message = EmailMessage(<span class="string">'subject'</span>, <span class="string">'message'</span>,</span><br><span class="line">                               <span class="string">'jason@from.com'</span>, [<span class="string">'jason@to.com'</span>])</span><br><span class="line">        message.attach_file(<span class="string">'playground/static/1.png'</span>)</span><br><span class="line">        message.send()</span><br><span class="line">    <span class="keyword">except</span> BadHeaderError:</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">    <span class="keyword">return</span> render(request, <span class="string">'hello.html'</span>, &#123;<span class="string">'name'</span>: <span class="string">'Jason'</span>&#125;)</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/9.png" style="zoom:67%;"></p>
+<h3 id="Sending-Templated-Emails"><a href="#Sending-Templated-Emails" class="headerlink" title="Sending Templated Emails"></a>Sending Templated Emails</h3><p>我们可以下载<code>django-templated-mail</code> 这个app，来实现发送模板邮件的功能。</p>
+<p>首先我在 <code>playground</code> 下的 <code>templates/emails</code> 文件夹下创建一个<code>hello.html</code>文件，用来存放模板</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;% block subject%&#125; This is a long subject &#123;% endblock %&#125;</span><br><span class="line"></span><br><span class="line">&#123;%block html_body%&#125;</span><br><span class="line"><span class="tag">&lt;<span class="name">h1</span>&gt;</span>Hello<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br><span class="line">My name is &#123;&#123;name&#125;&#125;</span><br><span class="line">&#123;%endblock%&#125;</span><br></pre></td></tr></table></figure>
+<p><code>views.py</code>中，我们要用 BaseEmailMessage 去替换原来的 EmailMessage</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.shortcuts <span class="keyword">import</span> render</span><br><span class="line"><span class="keyword">from</span> django.core.mail <span class="keyword">import</span> EmailMessage, send_mail, mail_admins, BadHeaderError</span><br><span class="line"><span class="keyword">from</span> templated_mail.mail <span class="keyword">import</span> BaseEmailMessage</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">say_hello</span><span class="params">(request)</span>:</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        message = BaseEmailMessage(</span><br><span class="line">            template_name=<span class="string">'emails/hello.html'</span>,</span><br><span class="line">            context=&#123;<span class="string">'name'</span>: <span class="string">'Jason'</span>&#125;</span><br><span class="line">        )</span><br><span class="line">        message.send([<span class="string">'jason@to.com'</span>])</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> BadHeaderError:</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">    <span class="keyword">return</span> render(request, <span class="string">'hello.html'</span>, &#123;<span class="string">'name'</span>: <span class="string">'Jason'</span>&#125;)</span><br></pre></td></tr></table></figure>
+<p>结果如下：</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/10.png"></p>
+<h2 id="Running-Background-Tasks"><a href="#Running-Background-Tasks" class="headerlink" title="Running Background Tasks"></a>Running Background Tasks</h2><h3 id="Introduction-to-Celery"><a href="#Introduction-to-Celery" class="headerlink" title="Introduction to Celery"></a>Introduction to Celery</h3><p>在遇到一些上传文件、发送邮件的任务时，我们希望它能够在后台运行。这时候我们就可以用到Celery：</p>
+<p>Celery是一个简单，灵活，可靠的分布式系统，用于处理大量消息，同时为操作提供维护此类系统所需的工具。</p>
+<p>它是一个任务队列，专注于实时处理，同时还支持任务调度。</p>
+<h4 id="celery-的优点"><a href="#celery-的优点" class="headerlink" title="celery 的优点"></a>celery 的优点</h4><ul>
+<li><p>简单：celery的 配置和使用还是比较简单的, 非常容易使用和维护和不需要配置文件</p>
+</li>
+<li><p>高可用：当任务执行失败或执行过程中发生连接中断，celery 会自动尝试重新执行任务</p>
+</li>
+<li><p>如果连接丢失或发生故障，worker和client 将自动重试，并且一些代理通过主/主或主/副本复制方式支持HA。</p>
+</li>
+<li><p>快速：一个单进程的celery每分钟可处理上百万个任务</p>
+</li>
+<li><p>灵活： 几乎celery的各个组件都可以被扩展及自定制 </p>
+</li>
+</ul>
+<h4 id="celery-的5个角色"><a href="#celery-的5个角色" class="headerlink" title="celery 的5个角色"></a>celery 的5个角色</h4><ul>
+<li>Task</li>
+</ul>
+<p>就是任务，有异步任务和定时任务</p>
+<ul>
+<li>Broker</li>
+</ul>
+<p>中间人，接收生产者发来的消息即Task，将任务存入队列。任务的消费者是Worker。</p>
+<p>Celery本身不提供队列服务，推荐用Redis或RabbitMQ实现队列服务。Redis只是一个数据库，但是可以用来实现队列服务，而RabbitMQ是一个企业级的 Broker</p>
+<ul>
+<li>Worker</li>
+</ul>
+<p>执行任务的单元，它实时监控消息队列，如果有任务就获取任务并执行它。</p>
+<ul>
+<li>Beat</li>
+</ul>
+<p>定时任务调度器，根据配置定时将任务发送给Broker。</p>
+<ul>
+<li>Backend</li>
+</ul>
+<p>用于存储任务的执行结果。 </p>
+<p>其结构如下所示：</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/11.png"></p>
+<h3 id="Installing-Redis"><a href="#Installing-Redis" class="headerlink" title="Installing Redis"></a>Installing Redis</h3><p><code>pipenv install redis</code></p>
+<p><code>docker run -d -p 6379:6379 redis</code></p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/12.png"></p>
+<h3 id="Setting-Up-Celery"><a href="#Setting-Up-Celery" class="headerlink" title="Setting Up Celery"></a>Setting Up Celery</h3><p>Celery与Windows系统不兼容，所以如果是windows系统请使用 wsl linux环境运行这个Django项目。</p>
+<p>首先，我们要在storefront中新创建一个celery模块：先运行<code>pipenv install celery</code> 下载Celery</p>
+<p>进行一个简单的配置</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> celery <span class="keyword">import</span> Celery</span><br><span class="line"><span class="comment"># 设置环境变量，将DJANGO_SETTINGS_MODULE设置为这个项目的settings.py</span></span><br><span class="line">os.environ.setdefault(<span class="string">'DJANGO_SETTINGS_MODULE'</span>, <span class="string">'storefront.settings'</span>)</span><br><span class="line"><span class="comment"># 创建一个Celery实例</span></span><br><span class="line">celery = Celery(<span class="string">'storefront'</span>)</span><br><span class="line"><span class="comment"># 确定Celery可以在那里找到配置变量，我们指向了django.conf模块中的settings对象</span></span><br><span class="line"><span class="comment"># 第二个参数代表，所有在setting对象中的变量都需要以CELERY开头</span></span><br><span class="line">celery.config_from_object(<span class="string">'django.conf:settings'</span>, namespace=<span class="string">'CELERY'</span>)</span><br><span class="line">celery.autodiscover_tasks()</span><br></pre></td></tr></table></figure>
+<p>然后在<code>settings.py</code>  中 设置<code>CELERY_BROKER_URL</code>变量，6379代表redis运行的端口号，<code>/1</code>代表我们这个项目所属数据库的名字</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CELERY_BROKER_URL = <span class="string">'redis://localhost:6379/1'</span></span><br></pre></td></tr></table></figure>
+<p>在 storefront中的<code>__init__.py</code> 中导入我们设置好的celery模块：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> .celery <span class="keyword">import</span> celery</span><br></pre></td></tr></table></figure>
+<p>最后，我们用<code>celery -A storefront worker --loglevel=info</code> 来启动celery</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/13.png"></p>
+<p>我们看到，celery已经启动了，一共有8个cpu核可供我们进行并行任务处理</p>
+<p>然而，现在我们的项目已经有点复杂了，一共需要3条命令，3个终端窗口才能实现</p>
+<ul>
+<li>一个 运行项目 ： <code>python manage.py run server</code></li>
+<li>一个运行redis ： <code>docker run -p 6379:6379 redis</code></li>
+<li>一个运行celery:  <code>celery -A storefront worker</code></li>
+</ul>
+<h3 id="Creating-and-Executing-Tasks"><a href="#Creating-and-Executing-Tasks" class="headerlink" title="Creating and Executing Tasks"></a>Creating and Executing Tasks</h3><p>我们在<code>playground</code> 中创建<code>tasks.py</code> 用来模拟需要运行的任务。这里我们模拟发送一封信件，需要消耗10s。注意，如果要让celery去执行，需要使用<code>shared_task</code>来修饰</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> time <span class="keyword">import</span> sleep</span><br><span class="line"><span class="keyword">from</span> celery <span class="keyword">import</span> shared_task</span><br><span class="line"></span><br><span class="line"><span class="meta">@shared_task</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">notify_customers</span><span class="params">(message)</span>:</span></span><br><span class="line">    print(<span class="string">'Sending 10k emails...'</span>)</span><br><span class="line">    print(message)</span><br><span class="line">    sleep(<span class="number">10</span>)</span><br><span class="line">    print(<span class="string">'Emails were successfully sent!'</span>)</span><br></pre></td></tr></table></figure>
+<p>然后，我们可以再<code>views.py</code>中运行这个任务：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> .tasks <span class="keyword">import</span> notify_customers</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">say_hello</span><span class="params">(request)</span>:</span></span><br><span class="line">  	<span class="comment">#需要用到 .delay()方法 </span></span><br><span class="line">    notify_customers.delay(<span class="string">'hello'</span>)</span><br><span class="line">    <span class="keyword">return</span> render(request, <span class="string">'hello.html'</span>, &#123;<span class="string">'name'</span>: <span class="string">'Jason'</span>&#125;)</span><br></pre></td></tr></table></figure>
+<p>结果如下，我访问<code>http://localhost:9000/playground/hello/</code>会直接返回html文件：</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/15.gif"></p>
+<p>此时，该任务在后台运行，我们发现，过了10秒以后，才显示 Email were successfully sent</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/14.png"></p>
+<p>需要注意的是，这里我即使使用 ctrl+c 关闭了 Celery ，刷新界面之后也会直接返回html文件，这是因为，redis还开在后台，项目会把这个任务存放在redis(broker)当中，当celery重新启动的时候，redis会尝试重新发送这个任务给worker。</p>
+<p>但是如果我关掉redis，那么程序就会报错，因为任务无法发送到6379端口</p>
+<h3 id="Scheduling-Periodic-Tasks"><a href="#Scheduling-Periodic-Tasks" class="headerlink" title="Scheduling Periodic Tasks"></a>Scheduling Periodic Tasks</h3><p>如果我希望每隔特定的时间重复运行一个任务，我们可以使用 celery beat</p>
+<p>要使用celery beat，需要在 <code>settings.py</code>中设置 <code>CELERY_BEAT_SCHEDULE</code> 变量，如下所示：</p>
+<p>首先，我们要确定重复的任务：notify_customers，设置这个任务的位置, 即task属性，以及什么时候重复。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">CELERY_BEAT_SCHEDULE = &#123;</span><br><span class="line">    <span class="string">'notify_customers'</span>: &#123;</span><br><span class="line">        <span class="string">'task'</span>: <span class="string">'playground.tasks.notify_customers'</span>,</span><br><span class="line">        <span class="string">'schedule'</span>: <span class="number">2</span>,</span><br><span class="line">        <span class="string">'args'</span>: [<span class="string">'Hello world'</span>]</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这里，我直接使用了数字2，代表每间隔2秒进行一次重复。当然，我也可以使用<code>celery.schedules</code>中的 <code>crontab</code>模块：<code>&#39;schedule&#39;: crontab(day_of_week=1, hour=7, minute=5)</code></p>
+<p>这个就代表，每一周的第一天的七点零五分运行这个任务。</p>
+<p>或者<code>&#39;schedule&#39;: crontab(minute=&#39;*/15&#39;)</code> 代表每间隔15分钟运行一次，当然<code>&#39;schedule&#39;: 15*60</code> 也可以达到相同的结果。</p>
+<p>最后，我们打开一个新的终端，运行<code>celery -A storefront beat</code></p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/16.gif"></p>
+<h3 id="Monitoring-Celery-Tasks"><a href="#Monitoring-Celery-Tasks" class="headerlink" title="Monitoring Celery Tasks"></a>Monitoring Celery Tasks</h3><p>最后，我们来讲讲怎么监控 Celery Task , 这里我们需要用到一个小工具： Flower。 我们可以用<code>pipenv install flower</code> 来下载</p>
+<p>然后用<code>celery -A storefront flower</code>来启动flower：</p>
+<p>然后访问<code>http://localhost:5555</code> 来监控后台任务</p>
+<p><img src="/2022/01/16/Django%E5%AD%A6%E4%B9%A03/17.png"></p>
+<h2 id="Automated-Testing"><a href="#Automated-Testing" class="headerlink" title="Automated Testing"></a>Automated Testing</h2><h3 id="What-is-Automated-Testing"><a href="#What-is-Automated-Testing" class="headerlink" title="What is Automated Testing"></a>What is Automated Testing</h3><p>现在我们要对项目做单元测试。单元测试是代码正确性验证的最重要的工具，也是系统测试当中最重要的环节。也是唯一需要编写代码才能进行测试的一种测试方法。在标准的开发过程中，单元测试的代码与实际程序的代码具有同等的重要性。每一个单元测试，都是用来定向测试其所对应的一个单元的数据是否正确。</p>
+<p>比如说对于我们store app中的products，对它们可以进行创建、更新、删除等操作。但有些操作只有特定权限的用户才能够进行。因此我们需要手动测试这些api，是否只有特定的人才能实现特定的功能。</p>
+<p>然而，单元测试的代码会随着项目的增长称指数型爆发，在后期会难以为继，因此，我们就需要更有效地工具——自动测试(Automated Testing) , 我们可以将测试集成在一起，然后统一运行，这样节省了时间，又能使测试覆盖面更广。</p>
+<h3 id="Test-Behaviours-Not-Implementations"><a href="#Test-Behaviours-Not-Implementations" class="headerlink" title="Test Behaviours,Not Implementations"></a>Test Behaviours,Not Implementations</h3><p>写单元测试的时候，我们要有一个原则： 测试api的行为，不测试api的实现逻辑。就好比我们要测试电视遥控板的功能是否正常，而不是把电视遥控板拆开去测一个电阻是否正常工作</p>
+<p>比如说，我们对 /collections 的POST方法进行测试，我们需要囊括以下结果：</p>
+<ul>
+<li>Anonymous -&gt; 401</li>
+<li>Non-admin -&gt; 403</li>
+<li>Admin &amp;&amp; invalid data -&gt; 401</li>
+<li>Admin &amp;&amp; valid data -&gt; 401</li>
+</ul>
+<p>这是这个collection的behavior，而不是内部的实现逻辑</p>
+<h3 id="Tooling"><a href="#Tooling" class="headerlink" title="Tooling"></a>Tooling</h3><p>在Python中，我们有不同的测试工具，主要是两个测试框架：</p>
+<ul>
+<li>unittest</li>
+<li>pytest</li>
+</ul>
+<p>在这里我们使用pytest, 因为它有三个优点：</p>
+<ul>
+<li>More features</li>
+<li>Tons of  plugins</li>
+<li>Less boilerplate(代码量少)</li>
+</ul>
+<p>我们可以用 <code>pipenv install --dev pytest</code> 来下在pytest</p>
+<p>此外，还需要下载一个插件： <code>pipenv install --dev pytest-django</code></p>
+<h3 id="Your-First-Test"><a href="#Your-First-Test" class="headerlink" title="Your First Test"></a>Your First Test</h3><p>现在我们来写第一个test，首先我们在store文件夹下创建一个test文件夹，然后创建<code>test_collection.py</code> ，注意，命名规则需要一个<code>test_</code> 开始。</p>
+<p>然后，为了方面组织测试函数，我们把测试一个功能的所有函数都放在一个类里，这个类叫做<code>TestCreateCollection</code> 注意，这个类也要以<code>Test</code> 开始，否则pytest不会把这个测试囊括在内。</p>
+<p>在这个类中，我们可以写一个个测试函数。注意，函数命名要以<code>test_</code>开始。</p>
+<p>接下来我们正式开始写测试，首先，我们需要用到APIClient，它可以模拟一个客户端向后端发送请求。</p>
+<p>因为这里我们想要测试创建collection，因此需要用到<code>client.post</code></p>
+<p>然后，我们判断 response的状态码是否等于预想的401，如果等于，测试就会通过，否则就会报错。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> rest_framework.test <span class="keyword">import</span> APIClient</span><br><span class="line"><span class="keyword">from</span> rest_framework <span class="keyword">import</span> status</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TestCreateCollection</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">test_if_user_is_anonymous_returns_401</span><span class="params">(self)</span>:</span></span><br><span class="line">        client = APIClient()</span><br><span class="line">        response = client.post(<span class="string">'/store/collections'</span>, &#123;<span class="string">'title'</span>: <span class="string">'a'</span>&#125;)</span><br><span class="line">        <span class="keyword">assert</span> response.status_code == status.HTTP_401_UNAUTHORIZED</span><br></pre></td></tr></table></figure>
+<h3 id="Running-Tests"><a href="#Running-Tests" class="headerlink" title="Running Tests"></a>Running Tests</h3><p>接下来我们运行上面这个测试：</p>
+<h3 id="Skipping-Tests"><a href="#Skipping-Tests" class="headerlink" title="Skipping Tests"></a>Skipping Tests</h3><h3 id="Continuous-Testing"><a href="#Continuous-Testing" class="headerlink" title="Continuous Testing"></a>Continuous Testing</h3><h3 id="Running-and-Debugging-Tests-in-VSCode"><a href="#Running-and-Debugging-Tests-in-VSCode" class="headerlink" title="Running and Debugging Tests in VSCode"></a>Running and Debugging Tests in VSCode</h3><h3 id="Authenticating-the-User"><a href="#Authenticating-the-User" class="headerlink" title="Authenticating the User"></a>Authenticating the User</h3><h3 id="Single-or-Multiple-Assertions"><a href="#Single-or-Multiple-Assertions" class="headerlink" title="Single or Multiple Assertions"></a>Single or Multiple Assertions</h3><h3 id="Fixtures"><a href="#Fixtures" class="headerlink" title="Fixtures"></a>Fixtures</h3><h3 id="Creating-Model-Instances"><a href="#Creating-Model-Instances" class="headerlink" title="Creating Model Instances"></a>Creating Model Instances</h3><h2 id="Performance-Testing"><a href="#Performance-Testing" class="headerlink" title="Performance Testing"></a>Performance Testing</h2><h3 id="Why-Performance-Testing"><a href="#Why-Performance-Testing" class="headerlink" title="Why Performance Testing"></a>Why Performance Testing</h3><h3 id="Installing-Locust"><a href="#Installing-Locust" class="headerlink" title="Installing Locust"></a>Installing Locust</h3><h3 id="Creating-a-Test-Script"><a href="#Creating-a-Test-Script" class="headerlink" title="Creating a Test Script"></a>Creating a Test Script</h3><h3 id="Running-a-Test-Script"><a href="#Running-a-Test-Script" class="headerlink" title="Running a Test Script"></a>Running a Test Script</h3><h3 id="Running-a-Performance-Test"><a href="#Running-a-Performance-Test" class="headerlink" title="Running a Performance Test"></a>Running a Performance Test</h3><h3 id="Performance-Optimization-Techniques"><a href="#Performance-Optimization-Techniques" class="headerlink" title="Performance Optimization Techniques"></a>Performance Optimization Techniques</h3><h3 id="Profiling-with-Silk"><a href="#Profiling-with-Silk" class="headerlink" title="Profiling with Silk"></a>Profiling with Silk</h3><h3 id="Verifying-Optimizations"><a href="#Verifying-Optimizations" class="headerlink" title="Verifying Optimizations"></a>Verifying Optimizations</h3><h3 id="Stress-Testing"><a href="#Stress-Testing" class="headerlink" title="Stress Testing"></a>Stress Testing</h3><h2 id="Caching"><a href="#Caching" class="headerlink" title="Caching"></a>Caching</h2><h3 id="What-is-Caching"><a href="#What-is-Caching" class="headerlink" title="What is Caching"></a>What is Caching</h3><h3 id="Cache-Backends"><a href="#Cache-Backends" class="headerlink" title="Cache Backends"></a>Cache Backends</h3><h3 id="Simulating-a-Slow-API"><a href="#Simulating-a-Slow-API" class="headerlink" title="Simulating a Slow API"></a>Simulating a Slow API</h3><h3 id="Getting-a-Baseline-Performance-Benchmark"><a href="#Getting-a-Baseline-Performance-Benchmark" class="headerlink" title="Getting a Baseline Performance Benchmark"></a>Getting a Baseline Performance Benchmark</h3><h3 id="Installing-Redis-1"><a href="#Installing-Redis-1" class="headerlink" title="Installing Redis"></a>Installing Redis</h3><h3 id="Configuring-Caching"><a href="#Configuring-Caching" class="headerlink" title="Configuring Caching"></a>Configuring Caching</h3><h3 id="Using-the-Low-level-Cache-API"><a href="#Using-the-Low-level-Cache-API" class="headerlink" title="Using the Low-level Cache API"></a>Using the Low-level Cache API</h3><h3 id="Caching-Views-mp4"><a href="#Caching-Views-mp4" class="headerlink" title="Caching Views.mp4"></a>Caching Views.mp4</h3><h3 id="Verifying-Optimizations-1"><a href="#Verifying-Optimizations-1" class="headerlink" title="Verifying Optimizations"></a>Verifying Optimizations</h3><h3 id="Managing-Redis-Cache-Content"><a href="#Managing-Redis-Cache-Content" class="headerlink" title="Managing Redis Cache Content"></a>Managing Redis Cache Content</h3><h2 id="Preparing-for-Production"><a href="#Preparing-for-Production" class="headerlink" title="Preparing for Production"></a>Preparing for Production</h2><h3 id="Adding-the-Home-Page"><a href="#Adding-the-Home-Page" class="headerlink" title="Adding the Home Page"></a>Adding the Home Page</h3><h3 id="Adding-Static-Assets"><a href="#Adding-Static-Assets" class="headerlink" title="Adding Static Assets"></a>Adding Static Assets</h3><h3 id="Collecting-Static-Assets"><a href="#Collecting-Static-Assets" class="headerlink" title="Collecting Static Assets"></a>Collecting Static Assets</h3><h3 id="Serving-Static-Assets"><a href="#Serving-Static-Assets" class="headerlink" title="Serving Static Assets"></a>Serving Static Assets</h3><h3 id="Configuring-Logging"><a href="#Configuring-Logging" class="headerlink" title="Configuring Logging"></a>Configuring Logging</h3><h3 id="Logging"><a href="#Logging" class="headerlink" title="Logging"></a>Logging</h3><h3 id="Managing-Development-and-Production-Settings"><a href="#Managing-Development-and-Production-Settings" class="headerlink" title="Managing Development and Production Settings"></a>Managing Development and Production Settings</h3><h3 id="Serving-the-Application-with-Gunicorn"><a href="#Serving-the-Application-with-Gunicorn" class="headerlink" title="Serving the Application with Gunicorn"></a>Serving the Application with Gunicorn</h3><h2 id="Deployment"><a href="#Deployment" class="headerlink" title="Deployment"></a>Deployment</h2><h3 id="Hosting-Options"><a href="#Hosting-Options" class="headerlink" title="Hosting Options"></a>Hosting Options</h3><h3 id="Adding-Project-to-Git"><a href="#Adding-Project-to-Git" class="headerlink" title="Adding Project to Git"></a>Adding Project to Git</h3><h3 id="Getting-Started-with-Heroku"><a href="#Getting-Started-with-Heroku" class="headerlink" title="Getting Started with Heroku"></a>Getting Started with Heroku</h3><h3 id="Creating-a-Heroku-App"><a href="#Creating-a-Heroku-App" class="headerlink" title="Creating a Heroku App"></a>Creating a Heroku App</h3><h3 id="Setting-Environment-Variables"><a href="#Setting-Environment-Variables" class="headerlink" title="Setting Environment Variables"></a>Setting Environment Variables</h3><h3 id="Creating-a-Procfile"><a href="#Creating-a-Procfile" class="headerlink" title="Creating a Procfile"></a>Creating a Procfile</h3><h3 id="Provisioning-a-MySQL-Database"><a href="#Provisioning-a-MySQL-Database" class="headerlink" title="Provisioning a MySQL Database"></a>Provisioning a MySQL Database</h3><h3 id="Provisioning-a-Redis-Instance"><a href="#Provisioning-a-Redis-Instance" class="headerlink" title="Provisioning a Redis Instance"></a>Provisioning a Redis Instance</h3><h3 id="Provisioning-an-SMTP-Server"><a href="#Provisioning-an-SMTP-Server" class="headerlink" title="Provisioning an SMTP Server"></a>Provisioning an SMTP Server</h3><h3 id="Deploying-the-Application"><a href="#Deploying-the-Application" class="headerlink" title="Deploying the Application"></a>Deploying the Application</h3><h3 id="Populating-the-Database"><a href="#Populating-the-Database" class="headerlink" title="Populating the Database"></a>Populating the Database</h3><h3 id="Dockerizing-the-App"><a href="#Dockerizing-the-App" class="headerlink" title="Dockerizing the App"></a>Dockerizing the App</h3><h3 id="Course-Wrap-Up"><a href="#Course-Wrap-Up" class="headerlink" title="Course Wrap Up"></a>Course Wrap Up</h3>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"># python</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/01/05/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch1-%E7%AE%97%E6%B3%95%E8%AF%84%E4%BB%B7%E6%A0%87%E5%87%86/" rel="prev" title="数据科学算法ch1-算法评价标准">
+      <i class="fa fa-chevron-left"></i> 数据科学算法ch1-算法评价标准
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/02/20/%E4%BA%86%E8%A7%A3Hadoop/" rel="next" title="了解Hadoop">
+      了解Hadoop <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Django学习3"><span class="nav-number">1.</span> <span class="nav-text">Django学习3</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Uploading-Files"><span class="nav-number">1.1.</span> <span class="nav-text">Uploading Files</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Managing-Media-Files"><span class="nav-number">1.1.1.</span> <span class="nav-text">Managing Media Files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Adding-Images-to-Products"><span class="nav-number">1.1.2.</span> <span class="nav-text">Adding Images to Products</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Building-an-API-to-Upload-Images"><span class="nav-number">1.1.3.</span> <span class="nav-text">Building an API to Upload Images</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#框架"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">框架</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#具体功能"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">具体功能</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Returning-Images-from-the-API"><span class="nav-number">1.1.4.</span> <span class="nav-text">Returning Images from the API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Validating-Uploaded-Files"><span class="nav-number">1.1.5.</span> <span class="nav-text">Validating Uploaded Files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Setting-Up-the-Client-App"><span class="nav-number">1.1.6.</span> <span class="nav-text">Setting Up the Client App</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Enabling-CORS"><span class="nav-number">1.1.7.</span> <span class="nav-text">Enabling CORS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Managing-Images-in-the-Admin"><span class="nav-number">1.1.8.</span> <span class="nav-text">Managing Images in the Admin</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sending-Emails"><span class="nav-number">1.2.</span> <span class="nav-text">Sending Emails</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Setting-up-a-Fake-SMTP-Server"><span class="nav-number">1.2.1.</span> <span class="nav-text">Setting up a Fake SMTP Server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Configuring-the-Email-Backend"><span class="nav-number">1.2.2.</span> <span class="nav-text">Configuring the Email Backend</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sending-Emails-1"><span class="nav-number">1.2.3.</span> <span class="nav-text">Sending  Emails</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Attaching-Files"><span class="nav-number">1.2.4.</span> <span class="nav-text">Attaching Files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sending-Templated-Emails"><span class="nav-number">1.2.5.</span> <span class="nav-text">Sending Templated Emails</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Running-Background-Tasks"><span class="nav-number">1.3.</span> <span class="nav-text">Running Background Tasks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Introduction-to-Celery"><span class="nav-number">1.3.1.</span> <span class="nav-text">Introduction to Celery</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#celery-的优点"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">celery 的优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#celery-的5个角色"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">celery 的5个角色</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Installing-Redis"><span class="nav-number">1.3.2.</span> <span class="nav-text">Installing Redis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Setting-Up-Celery"><span class="nav-number">1.3.3.</span> <span class="nav-text">Setting Up Celery</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating-and-Executing-Tasks"><span class="nav-number">1.3.4.</span> <span class="nav-text">Creating and Executing Tasks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Scheduling-Periodic-Tasks"><span class="nav-number">1.3.5.</span> <span class="nav-text">Scheduling Periodic Tasks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Monitoring-Celery-Tasks"><span class="nav-number">1.3.6.</span> <span class="nav-text">Monitoring Celery Tasks</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Automated-Testing"><span class="nav-number">1.4.</span> <span class="nav-text">Automated Testing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-Automated-Testing"><span class="nav-number">1.4.1.</span> <span class="nav-text">What is Automated Testing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Test-Behaviours-Not-Implementations"><span class="nav-number">1.4.2.</span> <span class="nav-text">Test Behaviours,Not Implementations</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tooling"><span class="nav-number">1.4.3.</span> <span class="nav-text">Tooling</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Your-First-Test"><span class="nav-number">1.4.4.</span> <span class="nav-text">Your First Test</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Running-Tests"><span class="nav-number">1.4.5.</span> <span class="nav-text">Running Tests</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Skipping-Tests"><span class="nav-number">1.4.6.</span> <span class="nav-text">Skipping Tests</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Continuous-Testing"><span class="nav-number">1.4.7.</span> <span class="nav-text">Continuous Testing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Running-and-Debugging-Tests-in-VSCode"><span class="nav-number">1.4.8.</span> <span class="nav-text">Running and Debugging Tests in VSCode</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Authenticating-the-User"><span class="nav-number">1.4.9.</span> <span class="nav-text">Authenticating the User</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Single-or-Multiple-Assertions"><span class="nav-number">1.4.10.</span> <span class="nav-text">Single or Multiple Assertions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fixtures"><span class="nav-number">1.4.11.</span> <span class="nav-text">Fixtures</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating-Model-Instances"><span class="nav-number">1.4.12.</span> <span class="nav-text">Creating Model Instances</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Performance-Testing"><span class="nav-number">1.5.</span> <span class="nav-text">Performance Testing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Why-Performance-Testing"><span class="nav-number">1.5.1.</span> <span class="nav-text">Why Performance Testing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Installing-Locust"><span class="nav-number">1.5.2.</span> <span class="nav-text">Installing Locust</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating-a-Test-Script"><span class="nav-number">1.5.3.</span> <span class="nav-text">Creating a Test Script</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Running-a-Test-Script"><span class="nav-number">1.5.4.</span> <span class="nav-text">Running a Test Script</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Running-a-Performance-Test"><span class="nav-number">1.5.5.</span> <span class="nav-text">Running a Performance Test</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Performance-Optimization-Techniques"><span class="nav-number">1.5.6.</span> <span class="nav-text">Performance Optimization Techniques</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Profiling-with-Silk"><span class="nav-number">1.5.7.</span> <span class="nav-text">Profiling with Silk</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Verifying-Optimizations"><span class="nav-number">1.5.8.</span> <span class="nav-text">Verifying Optimizations</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stress-Testing"><span class="nav-number">1.5.9.</span> <span class="nav-text">Stress Testing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Caching"><span class="nav-number">1.6.</span> <span class="nav-text">Caching</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-Caching"><span class="nav-number">1.6.1.</span> <span class="nav-text">What is Caching</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cache-Backends"><span class="nav-number">1.6.2.</span> <span class="nav-text">Cache Backends</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Simulating-a-Slow-API"><span class="nav-number">1.6.3.</span> <span class="nav-text">Simulating a Slow API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Getting-a-Baseline-Performance-Benchmark"><span class="nav-number">1.6.4.</span> <span class="nav-text">Getting a Baseline Performance Benchmark</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Installing-Redis-1"><span class="nav-number">1.6.5.</span> <span class="nav-text">Installing Redis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Configuring-Caching"><span class="nav-number">1.6.6.</span> <span class="nav-text">Configuring Caching</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Using-the-Low-level-Cache-API"><span class="nav-number">1.6.7.</span> <span class="nav-text">Using the Low-level Cache API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Caching-Views-mp4"><span class="nav-number">1.6.8.</span> <span class="nav-text">Caching Views.mp4</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Verifying-Optimizations-1"><span class="nav-number">1.6.9.</span> <span class="nav-text">Verifying Optimizations</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Managing-Redis-Cache-Content"><span class="nav-number">1.6.10.</span> <span class="nav-text">Managing Redis Cache Content</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Preparing-for-Production"><span class="nav-number">1.7.</span> <span class="nav-text">Preparing for Production</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Adding-the-Home-Page"><span class="nav-number">1.7.1.</span> <span class="nav-text">Adding the Home Page</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Adding-Static-Assets"><span class="nav-number">1.7.2.</span> <span class="nav-text">Adding Static Assets</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Collecting-Static-Assets"><span class="nav-number">1.7.3.</span> <span class="nav-text">Collecting Static Assets</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Serving-Static-Assets"><span class="nav-number">1.7.4.</span> <span class="nav-text">Serving Static Assets</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Configuring-Logging"><span class="nav-number">1.7.5.</span> <span class="nav-text">Configuring Logging</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logging"><span class="nav-number">1.7.6.</span> <span class="nav-text">Logging</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Managing-Development-and-Production-Settings"><span class="nav-number">1.7.7.</span> <span class="nav-text">Managing Development and Production Settings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Serving-the-Application-with-Gunicorn"><span class="nav-number">1.7.8.</span> <span class="nav-text">Serving the Application with Gunicorn</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Deployment"><span class="nav-number">1.8.</span> <span class="nav-text">Deployment</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hosting-Options"><span class="nav-number">1.8.1.</span> <span class="nav-text">Hosting Options</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Adding-Project-to-Git"><span class="nav-number">1.8.2.</span> <span class="nav-text">Adding Project to Git</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Getting-Started-with-Heroku"><span class="nav-number">1.8.3.</span> <span class="nav-text">Getting Started with Heroku</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating-a-Heroku-App"><span class="nav-number">1.8.4.</span> <span class="nav-text">Creating a Heroku App</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Setting-Environment-Variables"><span class="nav-number">1.8.5.</span> <span class="nav-text">Setting Environment Variables</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating-a-Procfile"><span class="nav-number">1.8.6.</span> <span class="nav-text">Creating a Procfile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Provisioning-a-MySQL-Database"><span class="nav-number">1.8.7.</span> <span class="nav-text">Provisioning a MySQL Database</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Provisioning-a-Redis-Instance"><span class="nav-number">1.8.8.</span> <span class="nav-text">Provisioning a Redis Instance</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Provisioning-an-SMTP-Server"><span class="nav-number">1.8.9.</span> <span class="nav-text">Provisioning an SMTP Server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploying-the-Application"><span class="nav-number">1.8.10.</span> <span class="nav-text">Deploying the Application</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Populating-the-Database"><span class="nav-number">1.8.11.</span> <span class="nav-text">Populating the Database</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dockerizing-the-App"><span class="nav-number">1.8.12.</span> <span class="nav-text">Dockerizing the App</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Course-Wrap-Up"><span class="nav-number">1.8.13.</span> <span class="nav-text">Course Wrap Up</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

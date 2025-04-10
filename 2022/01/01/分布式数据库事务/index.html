@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="分布式数据库事务概述对于部署在云上的服务，仅仅由一台服务器来承载流量是不够的，因此数据库会被扩展到多台主机上。主要有两种扩展模式：  分库&#x2F;分表的扩展模式。这意思就是，在每一个节点(服务器)上，运行一套独立的数据库，然后在上面铺一层中间件，在收到了用户的请求之后，由中间件分发给节点来处理。运用这种模式，数据需要划分得特别干净    很多时候我们无法做到划分出这么干净的数据，因此还有一种拓展方式是：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式数据库事务">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="分布式数据库事务概述对于部署在云上的服务，仅仅由一台服务器来承载流量是不够的，因此数据库会被扩展到多台主机上。主要有两种扩展模式：  分库&#x2F;分表的扩展模式。这意思就是，在每一个节点(服务器)上，运行一套独立的数据库，然后在上面铺一层中间件，在收到了用户的请求之后，由中间件分发给节点来处理。运用这种模式，数据需要划分得特别干净    很多时候我们无法做到划分出这么干净的数据，因此还有一种拓展方式是：">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/3.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/6.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/7.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/16.png">
+<meta property="article:published_time" content="2022-01-01T02:48:16.000Z">
+<meta property="article:modified_time" content="2022-06-23T13:40:02.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据管理系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/2.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>分布式数据库事务 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分布式数据库事务
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-01-01 10:48:16" itemprop="dateCreated datePublished" datetime="2022-01-01T10:48:16+08:00">2022-01-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-06-23 21:40:02" itemprop="dateModified" datetime="2022-06-23T21:40:02+08:00">2022-06-23</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="分布式数据库事务"><a href="#分布式数据库事务" class="headerlink" title="分布式数据库事务"></a>分布式数据库事务</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>对于部署在云上的服务，仅仅由一台服务器来承载流量是不够的，因此数据库会被扩展到多台主机上。主要有两种扩展模式：</p>
+<ul>
+<li>分库/分表的扩展模式。这意思就是，在每一个节点(服务器)上，运行一套独立的数据库，然后在上面铺一层中间件，在收到了用户的请求之后，由中间件分发给节点来处理。运用这种模式，数据需要划分得特别干净</li>
+</ul>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/2.png" style="zoom:67%;"></p>
+<ul>
+<li>很多时候我们无法做到划分出这么干净的数据，因此还有一种拓展方式是：并行/分布式数据库。 就是我们不把数据划分的任务交给中间件，而是直接构建一个分布式数据库系统，比如说 OceanBase。如下：</li>
+</ul>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/1.png" style="zoom:67%;"></p>
+<p>对于分布式数据库，电脑间的交互肯定是需要的，但是我们尽量要减少这种交互，因为网络交互存在带宽限制。</p>
+<p>我们要了解三种 数据库构架设计： Shared Everthting、Shared Nothing、和Shared Disk：</p>
+<ol>
+<li>Shared Everthting:一般是针对单个主机，完全透明共享CPU/MEMORY/IO，并行处理能力是最差的，典型的代表SQLServer</li>
+<li>Shared Disk：各个处理单元使用自己的私有 CPU和Memory，共享磁盘系统。典型的代表Oracle Rac， 它是数据共享，可通过增加节点来提高并行处理的能力，扩展能力较好。其类似于SMP（对称多处理）模式，但是当存储器接口达到饱和的时候，增加节点并不能获得更高的性能 。</li>
+<li>Shared Nothing：各个处理单元都有自己私有的CPU/内存/硬盘等，不存在共享资源，类似于MPP（大规模并行处理）模式，各处理单元之间通过协议通信，并行处理和扩展能力更好。典型代表DB2 DPF和Hadoop ，<strong>各节点相互独立，各自处理自己的数据</strong>，处理后的结果可能向上层汇总或在节点间流转。</li>
+</ol>
+<p>我们常说的 Sharding 其实就是Share Nothing架构，它是把某个表从物理存储上被水平分割，并分配给多台服务器（或多个实例），每台服务器可以独立工作，具备共同的schema，比如MySQL Proxy和Google的各种架构，只需增加服务器数就可以增加处理能力和容量。</p>
+<p>但是，一旦网络的带宽和IO带宽达到相同数量级的时候，就相当于电脑访问自己硬盘中的数据和访问其他节点中的数据所花费的开销类似，这时候share nothing的优势就不明显了。</p>
+<h1 id="分布式事务的ACID"><a href="#分布式事务的ACID" class="headerlink" title="分布式事务的ACID"></a>分布式事务的ACID</h1><p>那么，如果使用Share nothing的话，我们该如何对数据进行切分? 可以使用哈希</p>
+<p>在分布式数据库中，我们又该如何维持数据的正确性呢？</p>
+<p>说到数据库事务就不得不说，数据库事务中的四大特性，ACID:</p>
+<ul>
+<li>A:原子性(Atomicity)</li>
+</ul>
+<p>一个事务(transaction)中的所有操作，要么全部完成，要么全部不完成，不会结束在中间某个环节。事务在执行过程中发生错误，会被回滚（Rollback）到事务开始前的状态，就像这个事务从来没有执行过一样。</p>
+<p>就像你买东西要么交钱收货一起都执行，要么要是发不出货，就退钱。</p>
+<ul>
+<li>C:一致性(Consistency)</li>
+</ul>
+<p>事务的一致性指的是在一个事务执行之前和执行之后数据库都必须处于一致性状态。如果事务成功地完成，那么系统中所有变化将正确地应用，系统处于有效状态。如果在事务中出现错误，那么系统中的所有变化将自动地回滚，系统返回到原始状态。</p>
+<ul>
+<li>I:隔离性(Isolation)</li>
+</ul>
+<p>指的是在并发环境中，当不同的事务同时操纵相同的数据时，每个事务都有各自的完整数据空间。由并发事务所做的修改必须与任何其他并发事务所做的修改隔离。事务查看数据更新时，数据所处的状态要么是另一事务修改它之前的状态，要么是另一事务修改它之后的状态，事务不会查看到中间状态的数据。</p>
+<p>打个比方，你买东西这个事情，是不影响其他人的。</p>
+<ul>
+<li>D:持久性(Durability)</li>
+</ul>
+<p>指的是只要事务成功结束，它对数据库所做的更新就必须永久保存下来。即使发生系统崩溃，重新启动数据库系统后，数据库还能恢复到事务成功结束时的状态。</p>
+<p>打个比方，你买东西的时候需要记录在账本上，即使老板忘记了那也有据可查。 </p>
+<h2 id="隔离性"><a href="#隔离性" class="headerlink" title="隔离性"></a>隔离性</h2><p>首先我们来讲分布式数据库事务的隔离性。</p>
+<p>在两个节点分别处理两个子事务的情况下，是否只要保证了单个节点的原子性，就可以保证整体的原子性呢？</p>
+<p>显然不是，我们以两个节点为例。</p>
+<p>现在有两个事务，交给两个节点去处理，可以有以下两种处理方式</p>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/3.jpg"></p>
+<p>第一种方式，是序列化的，在每个节点上，都是先运行T1，再运行T2，而且T1、T2都符合原子性的标准。假设X=Y=0，那么最后它们都等于200</p>
+<p>第二种方式，是非序列化的，在Node X上先执行T1.在Node Y上先执行T2。那那么这时候，由于二者是同步进行的，没有序列化，因此会互相造成干扰。如果X=Y=0, 那么，最后X = 200,Y=100</p>
+<p>因此，当在分布式数据库中考虑序列化，我们要注意更多，不能依靠单个节点上的事务机制来保证所有事务的原子性。</p>
+<p>在分布式数据库执行事务，我们需要考虑两类schedule：</p>
+<ul>
+<li>Local schedule</li>
+<li>Global schedule</li>
+</ul>
+<p>因此，对于 Global Transaction，如果我们要将其序列化执行，也需要满足两个条件：</p>
+<ul>
+<li>每一个 Local Schedule 都必须是 可序列化的 (基本条件)</li>
+<li>对于 Global Transaction 的所有 sub-transactions ，都以相同的顺序出现在所有站点的等效串行时间表中，不能出现在X 节点上顺序是 T1-&gt;T2，在Y节点上顺序是 T2-&gt;T1的情况</li>
+</ul>
+<h3 id="Lock"><a href="#Lock" class="headerlink" title="Lock"></a>Lock</h3><h4 id="两阶段锁"><a href="#两阶段锁" class="headerlink" title="两阶段锁"></a>两阶段锁</h4><p>在介绍分布式两阶段锁之前，我们先来学习两阶段锁，它用于单机事务中的一致性和隔离性</p>
+<p>在一个事务操作中，分为<code>加锁阶段</code>和<code>解锁阶段</code>，且所有的加锁操作在解锁操作之前，具体如下图所示：</p>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/8.png"></p>
+<ul>
+<li>加锁时机</li>
+</ul>
+<p>当对记录进行更新操作或者<code>select for update(X锁)、lock in share mode(S锁)</code>时，会对记录进行加锁，锁的种类很多，不在此赘述。</p>
+<ul>
+<li>何时解锁</li>
+</ul>
+<p>在一个事务中，只有在<code>commit</code>或者<code>rollback</code>时，才是解锁阶段。</p>
+<ul>
+<li>二阶段加锁最佳实践</li>
+</ul>
+<p>下面举个具体的例子，来讲述二段锁对应用性能的影响，我们举个库存扣减的例子：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">方案一：</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">transaction</span>;</span><br><span class="line">// 锁定用户账户表</span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> t_accout <span class="keyword">where</span> acount_id=<span class="number">234</span> <span class="keyword">for</span> <span class="keyword">update</span></span><br><span class="line">//生成订单</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t_trans;</span><br><span class="line">// 减库存</span><br><span class="line"><span class="keyword">update</span> t_inventory <span class="keyword">set</span> <span class="keyword">num</span>=<span class="keyword">num</span><span class="number">-3</span> <span class="keyword">where</span> <span class="keyword">id</span>=$&#123;<span class="keyword">id</span>&#125; <span class="keyword">and</span> <span class="keyword">num</span>&gt;=<span class="number">3</span>;</span><br><span class="line"><span class="keyword">commit</span>;</span><br><span class="line"></span><br><span class="line">方案二：</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">transaction</span>;</span><br><span class="line">// 减库存</span><br><span class="line"><span class="keyword">update</span> t_inventory <span class="keyword">set</span> <span class="keyword">num</span>=<span class="keyword">num</span><span class="number">-3</span> <span class="keyword">where</span> <span class="keyword">id</span>=$&#123;<span class="keyword">id</span>&#125; <span class="keyword">and</span> <span class="keyword">num</span>&gt;=<span class="number">3</span>;</span><br><span class="line">// 锁定用户账户表</span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> t_accout <span class="keyword">where</span> acount_id=<span class="number">234</span> <span class="keyword">for</span> <span class="keyword">update</span></span><br><span class="line">//生成订单</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t_trans;</span><br><span class="line"><span class="keyword">commit</span>;</span><br></pre></td></tr></table></figure>
+<p>我们的应用通过<code>JDBC</code>操作数据库时，底层本质上还是走<code>TCP</code>进行通信，<code>MySQL协议</code>是一种<code>停-等式协议</code>(和<code>http</code>协议类似，每发送完一个分组就停止发送，等待对方的确认,在收到确认后再发送下一个分组)，既然通过网络进行通信，就必然会有延迟，两种方案的网络通信时序图如下：</p>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/6.jpeg"></p>
+<p>由于商品库存往往是最致命的热点，是整个服务的热点。如果采用第一种方案的话，<code>TPS</code>理论上可以提升<code>3rt/rt=3</code>倍。而这是在一个事务中只有3条SQL的情况，理论上多一条SQL就多一个rt时间。</p>
+<p>另外，当<strong>更新操作到达数据库的那个点</strong>，才算加锁成功。<code>commit</code>到达数据库的时候才算解锁成功。所以，更新操作的前半个<code>rt</code>和<code>commit</code>操作的后半个<code>rt</code>都不计算在整个锁库存的时间内。</p>
+<ul>
+<li>性能优化</li>
+</ul>
+<p>从上面的例子可以看出，在一个事务操作中，将对最热点记录的操作放到事务的最后面，这样可以显著地提高服务的<code>吞吐量</code>。</p>
+<ul>
+<li>select for update 和 update where的最优选择</li>
+</ul>
+<p>我们可以将一些简单的判断逻辑写到update操作的谓词里面，这样可以减少加锁的时间，如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">方案一：</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">transaction</span></span><br><span class="line"><span class="keyword">num</span> = <span class="keyword">select</span> <span class="keyword">count</span> <span class="keyword">from</span> t_inventory <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">234</span> <span class="keyword">for</span> <span class="keyword">update</span></span><br><span class="line"><span class="keyword">if</span> <span class="keyword">count</span> &gt;= <span class="number">3</span>:</span><br><span class="line">    <span class="keyword">update</span> t_inventory <span class="keyword">set</span> <span class="keyword">num</span>=<span class="keyword">num</span><span class="number">-3</span> <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">234</span></span><br><span class="line">    <span class="keyword">commit</span> </span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">rollback</span></span><br></pre></td></tr></table></figure>
+<p>方案二：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">start</span> <span class="keyword">transaction</span>:</span><br><span class="line">    <span class="built_in">int</span> affectedRows = <span class="keyword">update</span> t_inventory <span class="keyword">set</span> <span class="keyword">num</span>=<span class="keyword">num</span><span class="number">-3</span> <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">234</span> <span class="keyword">and</span> <span class="keyword">num</span>&gt;=<span class="number">3</span></span><br><span class="line">    <span class="keyword">if</span> affectedRows &gt; <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">commit</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">rollback</span></span><br></pre></td></tr></table></figure>
+<p>延时图如下：</p>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/7.jpeg"></p>
+<p>从上图可以看出，加了update谓词以后，一个事务少了1rt的锁记录时间（update谓词和select for update对记录加的都是X锁，所以效果是一样的）。</p>
+<h4 id="Centralized-2PL"><a href="#Centralized-2PL" class="headerlink" title="Centralized 2PL"></a>Centralized 2PL</h4><p>Centralized 2PL 是一种将锁的管理责任只委托给一个节点的方法, 也叫做 Primary 2PL 算法. </p>
+<p>首先我们要了解一下 Centralized 2PL中的一些名词：</p>
+<ul>
+<li>Coordinating TM (Transaction Manager) </li>
+<li>Participating sites : 那些要进行数据库操作的地方</li>
+<li>LM (Lock Manager)</li>
+</ul>
+<h5 id="流程示意图"><a href="#流程示意图" class="headerlink" title="流程示意图"></a>流程示意图</h5><p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/9.png"></p>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/10.png"></p>
+<ul>
+<li>首先，Coordinating TM 代理站点向 Centralized LM发送请求加个锁</li>
+<li>LM 同意TM的请求，帮其加锁</li>
+<li>TM告诉目标站点：帮你请求到锁了，你可以进行数据库操作了</li>
+<li>站点结束数据操作之后，告诉TM</li>
+<li>TM向LM汇报：操作完成了，现在你可以释放锁了</li>
+</ul>
+<p>Centrailized 2PL 主要有以下特点：</p>
+<ul>
+<li>有一个维护所有锁信息的<strong>单一节点</strong></li>
+<li>一个锁管理器(LM)适用于整个DDBMS。</li>
+<li>参与全局事务的Local transaction managers(TM) 从 LM中请求和释放锁。或者Transaction Coordinator(可以理解为总代理) 可以代表Participating Sites提出所有的锁请求。</li>
+<li>优点：容易发现死锁</li>
+<li>劣势：可扩展性差</li>
+</ul>
+<h4 id="Distributed-2PL"><a href="#Distributed-2PL" class="headerlink" title="Distributed 2PL"></a>Distributed 2PL</h4><p>Distributed 2PL 和 Centralized 2PL 不同，它在每个站点都有一个LM，同时，只有一个TM。它们的通讯逻辑也发生了变化</p>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/11.png"></p>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/12.png"></p>
+<p>由于现在每个站点都有一个 LM，因此站点中的LM不再和数据操作隔离，可以直接对本站点的数据库进行操作。</p>
+<p>它们之间的交互逻辑如下：</p>
+<ul>
+<li>TM 告诉 某一个站点的LM: 哥，你们数据库中有个操作，请你加个锁呗</li>
+<li>LM 回答：得嘞，没问题，这就给他加，就不麻烦你了哈</li>
+<li>当前站点的数据库操作完成后，比较害羞，对TM说：哥哥，我好了，你和LM说让他把锁松开</li>
+<li>TM然后再对 LM说，差不多得了，可以释放锁了</li>
+</ul>
+<p>分布式二阶段锁的特点是：</p>
+<ul>
+<li>每个站点都有一个LM。因此每一个站点都有一个 时序表(scheduler)</li>
+<li>每个LM处理该站点的数据的锁请求。</li>
+<li>并发控制是<strong>通过 Participating sites 的 LMs 的合作</strong> 来完成的</li>
+<li>优点：更好的扩展性</li>
+<li>缺点：难以探测到死锁的发生 </li>
+</ul>
+<h2 id="原子性和持久性"><a href="#原子性和持久性" class="headerlink" title="原子性和持久性"></a>原子性和持久性</h2><p>分布式数据库事务的原子性和持久性是通过多阶段提交来实现的。</p>
+<p><a href="https://blog.csdn.net/skyie53101517/article/details/80741868" target="_blank" rel="noopener">https://blog.csdn.net/skyie53101517/article/details/80741868</a></p>
+<h3 id="2PC"><a href="#2PC" class="headerlink" title="2PC"></a>2PC</h3><p>二阶段提交(Two-phaseCommit)是指，在计算机网络以及数据库领域内，为了使基于分布式系统架构下的所有节点在进行事务提交时保持一致性而设计的一种算法(Algorithm)。通常，二阶段提交也被称为是一种协议(Protocol)。在分布式系统中，每个节点虽然可以知晓自己的操作时成功或者失败，却无法知道其他节点的操作的成功或失败。当一个事务跨越多个节点时，为了保持事务的ACID特性，需要引入一个作为<strong>协调者(coordinator)</strong>的组件来统一掌控所有节点(称作<strong>参与者(participant)</strong>)的操作结果并最终指示这些节点是否要把操作结果进行真正的提交(比如将更新后的数据写入磁盘等等)。因此，<strong>二阶段提交的算法思路可以概括为：参与者将操作成败通知协调者，再由协调者根据所有参与者的反馈情报决定各参与者是否要提交操作还是中止操作。</strong></p>
+<h4 id="准备阶段-voting-phase"><a href="#准备阶段-voting-phase" class="headerlink" title="准备阶段 voting phase"></a>准备阶段 voting phase</h4><p>事务协调者(事务管理器)给每个参与者(资源管理器)发送Prepare消息，每个参与者要么直接返回失败(如权限验证失败)，要么在本地执行事务，写本地的redo和undo日志，但不提交，到达一种“万事俱备，只欠东风”的状态。</p>
+<p>可以进一步将准备阶段分为以下三个步骤：</p>
+<blockquote>
+<p>1）协调者节点向所有参与者节点询问是否可以执行提交操作(vote)，并开始等待各参与者节点的响应。</p>
+<p>2）参与者节点执行询问发起为止的所有事务操作，并将Undo信息和Redo信息写入日志。（注意：若成功这里其实每个参与者已经执行了事务操作）</p>
+<p>3）各参与者节点响应协调者节点发起的询问。如果参与者节点的事务操作实际执行成功，则它返回一个”同意”消息；如果参与者节点的事务操作实际执行失败，则它返回一个”中止”消息。</p>
+</blockquote>
+<h4 id="提交阶段-decision-phase"><a href="#提交阶段-decision-phase" class="headerlink" title="提交阶段 decision phase"></a>提交阶段 decision phase</h4><p>如果协调者收到了参与者的失败消息或者超时，<strong>直接给每个参与者发送回滚(Rollback)消息</strong>；否则，<strong>发送提交(Commit)消息</strong>；参与者根据协调者的指令执行提交或者回滚操作，释放所有事务处理过程中使用的锁资源。(注意:必须在最后阶段释放锁资源)</p>
+<p>接下来分两种情况分别讨论提交阶段的过程。</p>
+<ul>
+<li>当协调者节点从<strong>所有参与者节点获得的相应消息都为”同意”</strong>时:</li>
+</ul>
+<blockquote>
+<p>1）协调者节点向所有参与者节点发出”正式提交(commit)”的请求。</p>
+<p>2）参与者节点正式完成操作，并释放在整个事务期间内占用的资源。</p>
+<p>3）参与者节点向协调者节点发送”完成”消息。</p>
+<p>4）协调者节点受到所有参与者节点反馈的”完成”消息后，完成事务。</p>
+</blockquote>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/13.png"></p>
+<p>如果任一参与者节点在第一阶段返回的响应消息为”中止”，或者 协调者节点在第一阶段的询问超时之前无法获取所有参与者节点的响应消息时：</p>
+<blockquote>
+<p>1）协调者节点向所有参与者节点发出”回滚操作(rollback)”的请求。</p>
+<p>2）参与者节点利用之前写入的Undo信息执行回滚，并释放在整个事务期间内占用的资源。</p>
+<p>3）参与者节点向协调者节点发送”回滚完成”消息。</p>
+<p>4）协调者节点受到所有参与者节点反馈的”回滚完成”消息后，取消事务。</p>
+</blockquote>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/14.png"></p>
+<p>不管最后结果如何，第二阶段都会结束当前事务。</p>
+<p>二阶段提交看起来确实能够提供原子性的操作，但是不幸的事，二阶段提交还是有几个<strong>缺点</strong>的：</p>
+<blockquote>
+<p>1、<strong>同步阻塞问题</strong>。执行过程中，<strong>所有参与节点都是事务阻塞型的</strong>。当参与者占有公共资源时，其他第三方节点访问公共资源不得不处于阻塞状态。</p>
+<p>2、<strong>单点故障</strong>。由于协调者的重要性，<strong>一旦协调者发生故障, 参与者会一直阻塞下去</strong>。尤其在第二阶段，协调者发生故障，那么所有的参与者还都处于锁定事务资源的状态中，而无法继续完成事务操作。（如果是协调者挂掉，可以重新选举一个协调者，但是无法解决因为协调者宕机导致的参与者处于阻塞状态的问题）</p>
+<p>3、<strong>数据不一致</strong>。在提交阶段中，当协调者向参与者发送commit请求之后，发生了局部网络异常或者在发送commit请求过程中协调者发生了故障，这回导致只有一部分参与者接受到了commit请求。而在这部分参与者接到commit请求之后就会执行commit操作。但是其他部分未接到commit请求的机器则无法执行事务提交。于是整个分布式系统便出现了数据部一致性的现象。</p>
+<p>4、二阶段无法解决的问题：协调者再发出commit消息之后宕机，而唯一接收到这条消息的参与者同时也宕机了。那么即使协调者通过选举协议产生了新的协调者，这条事务的状态也是不确定的，没人知道事务是否被已经提交。</p>
+</blockquote>
+<p>由于二阶段提交存在着诸如同步阻塞、单点问题、脑裂等缺陷，所以，研究者们在二阶段提交的基础上做了改进，提出了三阶段提交。</p>
+<h3 id="3PC"><a href="#3PC" class="headerlink" title="3PC"></a>3PC</h3><blockquote>
+<p>三阶段提交（Three-phase commit），也叫三阶段提交协议（Three-phase commit protocol），是二阶段提交（2PC）的改进版本。</p>
+</blockquote>
+<p>与两阶段提交不同的是，三阶段提交有两个改动点。</p>
+<ol>
+<li><p>引入超时机制。同时在协调者和参与者中都引入超时机制。</p>
+</li>
+<li><p>在第一阶段和第二阶段中插入一个准备阶段。<strong>保证了在最后提交阶段之前各参与节点的状态是一致的</strong></p>
+</li>
+</ol>
+<p>也就是说，除了引入超时机制之外，3PC把2PC的准备阶段再次一分为二，这样三阶段提交有 <code>CanCommit</code> 、 <code>PreCommit</code> 、 <code>DoCommit</code>三个阶段。</p>
+<h4 id="CanCommit阶段"><a href="#CanCommit阶段" class="headerlink" title="CanCommit阶段"></a>CanCommit阶段</h4><p>3PC的CanCommit阶段其实和2PC的准备阶段很像。协调者向参与者发送commit请求，参与者如果可以提交就返回Yes响应，否则返回No响应。</p>
+<blockquote>
+<p><strong>1.事务询问</strong> 协调者向参与者发送CanCommit请求。询问是否可以执行事务提交操作。然后开始等待参与者的响应。</p>
+<p><strong>2.响应反馈</strong> 参与者接到CanCommit请求之后，正常情况下，如果其自身认为可以顺利执行事务，则返回Yes响应，并进入预备状态。否则反馈No</p>
+</blockquote>
+<p>优点：不像2pc 第一个阶段就开始锁表，3pc的阶段一是为了先排除个别参与者不具备提交事务能力的前提下，而避免锁表。</p>
+<h4 id="PreCommit阶段"><a href="#PreCommit阶段" class="headerlink" title="PreCommit阶段"></a>PreCommit阶段</h4><p>协调者根据参与者的反应情况来决定是否可以执行事务的PreCommit操作。根据响应情况，有以下两种可能。</p>
+<p><strong>假如协调者从所有的参与者获得的反馈都是Yes响应，那么就会执行事务的预执行。</strong></p>
+<blockquote>
+<p><strong>1.发送预提交请求</strong> 协调者向参与者发送PreCommit请求，并进入Prepared阶段。</p>
+<p><strong>2.事务预提交</strong> 参与者接收到PreCommit请求后，会执行事务操作，并将undo和redo信息记录到事务日志中。</p>
+<p><strong>3.响应反馈</strong> 如果参与者成功的执行了事务操作，则返回ACK响应，同时开始等待最终指令。</p>
+</blockquote>
+<p><strong>假如有任何一个参与者向协调者发送了No响应;  或者等待超时之后，协调者都没有接到参与者的响应，那么就执行事务的中断。</strong></p>
+<blockquote>
+<p><strong>1.发送中断请求</strong> 协调者向所有参与者发送abort请求。</p>
+<p><strong>2.中断事务</strong> 参与者收到来自协调者的abort请求之后（或超时之后，仍未收到协调者的请求），执行事务的中断。</p>
+</blockquote>
+<h4 id="doCommit阶段"><a href="#doCommit阶段" class="headerlink" title="doCommit阶段"></a>doCommit阶段</h4><p>该阶段进行真正的事务提交，也可以分为以下两种情况。</p>
+<p><strong>执行提交</strong></p>
+<blockquote>
+<p><strong>1.发送提交请求</strong> 协调接收到参与者发送的ACK响应，那么他将从预提交状态进入到提交状态。并向所有参与者发送doCommit请求。</p>
+<p><strong>2.事务提交</strong> 参与者接收到doCommit请求之后，执行正式的事务提交。并在完成事务提交之后释放所有事务资源。</p>
+<p><strong>3.响应反馈</strong> 事务提交完之后，向协调者发送Ack响应。</p>
+<p><strong>4.完成事务</strong> 协调者接收到所有参与者的ack响应之后，完成事务。</p>
+</blockquote>
+<p><strong>中断事务</strong> 协调者没有接收到参与者发送的ACK响应（可能是接受者发送的不是ACK响应，也可能响应超时），那么就会执行中断事务。</p>
+<blockquote>
+<p><strong>1.发送中断请求</strong> 协调者向所有参与者发送abort请求</p>
+<p><strong>2.事务回滚</strong> 参与者接收到abort请求之后，利用其在阶段二记录的undo信息来执行事务的回滚操作，并在完成回滚之后释放所有的事务资源。</p>
+<p><strong>3.反馈结果</strong> 参与者完成事务回滚之后，向协调者发送ACK消息</p>
+<p><strong>4.中断事务</strong> 协调者接收到参与者反馈的ACK消息之后，执行事务的中断。</p>
+</blockquote>
+<p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/15.png"></p>
+<h3 id="2PC与3PC的区别"><a href="#2PC与3PC的区别" class="headerlink" title="2PC与3PC的区别"></a>2PC与3PC的区别</h3><p>相对于2PC，3PC<strong>主要解决的单点故障问题</strong>，并减少阻塞。在2PC中，只有协调者有超时机制；但是在3PC中，协调者和参与者都有超时机制，因此即使因为网络原因协调者与参与者断开通信， 参与者在超时后也会自动提交commit，这样防止了一直锁表的风险，而不会一直持有事务资源并处于阻塞状态。</p>
+<p>但是这种机制也会导致数据一致性问题，因为，由于网络原因，协调者发送的abort响应没有及时被参与者接收到，那么参与者在等待超时之后执行了commit操作。这样就和其他接到abort命令并执行回滚的参与者之间存在数据不一致的情况。</p>
+<hr>
+<p>了解了2PC和3PC之后，我们可以发现，无论是二阶段提交还是三阶段提交都无法彻底解决分布式的一致性问题。Google Chubby的作者Mike Burrows说过， <code>there is only one consensus protocol, and that’s Paxos” – all other approaches are just broken versions of Paxos.</code> 意即<strong>世上只有一种一致性算法，那就是Paxos</strong>，所有其他一致性算法都是Paxos算法的不完整版</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><img src="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/16.png"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" rel="tag"># 数据管理系统</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/" rel="prev" title="计算机视觉-检测和分割">
+      <i class="fa fa-chevron-left"></i> 计算机视觉-检测和分割
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A9%E5%B1%95%E6%80%A7%E9%97%AE%E9%A2%98/" rel="next" title="数据库扩展性问题">
+      数据库扩展性问题 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#分布式数据库事务"><span class="nav-number">1.</span> <span class="nav-text">分布式数据库事务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.1.</span> <span class="nav-text">概述</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分布式事务的ACID"><span class="nav-number">2.</span> <span class="nav-text">分布式事务的ACID</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#隔离性"><span class="nav-number">2.1.</span> <span class="nav-text">隔离性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Lock"><span class="nav-number">2.1.1.</span> <span class="nav-text">Lock</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#两阶段锁"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">两阶段锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Centralized-2PL"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">Centralized 2PL</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#流程示意图"><span class="nav-number">2.1.1.2.1.</span> <span class="nav-text">流程示意图</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Distributed-2PL"><span class="nav-number">2.1.1.3.</span> <span class="nav-text">Distributed 2PL</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原子性和持久性"><span class="nav-number">2.2.</span> <span class="nav-text">原子性和持久性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2PC"><span class="nav-number">2.2.1.</span> <span class="nav-text">2PC</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#准备阶段-voting-phase"><span class="nav-number">2.2.1.1.</span> <span class="nav-text">准备阶段 voting phase</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#提交阶段-decision-phase"><span class="nav-number">2.2.1.2.</span> <span class="nav-text">提交阶段 decision phase</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3PC"><span class="nav-number">2.2.2.</span> <span class="nav-text">3PC</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CanCommit阶段"><span class="nav-number">2.2.2.1.</span> <span class="nav-text">CanCommit阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PreCommit阶段"><span class="nav-number">2.2.2.2.</span> <span class="nav-text">PreCommit阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#doCommit阶段"><span class="nav-number">2.2.2.3.</span> <span class="nav-text">doCommit阶段</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2PC与3PC的区别"><span class="nav-number">2.2.3.</span> <span class="nav-text">2PC与3PC的区别</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.3.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="大营销项目中遇到的bug与心得营销服务第11节: API实现这一节先自己实现了API，然后和视频中的对了一下，感觉还可以，就开始测试。 bug1: 404 Not Found首先遇到的问题就是怎么也找不到Endpoint，curl，apiPost等工具都是404 Not Found。其实我是没写错的，有时候真是玄学问题，maven重新载入一下项目就可以了。 bug2: redis DelayedQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大营销项目中遇到的bug与心得">
+<meta property="og:url" content="https://jasonxqh.github.io/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="大营销项目中遇到的bug与心得营销服务第11节: API实现这一节先自己实现了API，然后和视频中的对了一下，感觉还可以，就开始测试。 bug1: 404 Not Found首先遇到的问题就是怎么也找不到Endpoint，curl，apiPost等工具都是404 Not Found。其实我是没写错的，有时候真是玄学问题，maven重新载入一下项目就可以了。 bug2: redis DelayedQ">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/5.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/5.jpg">
+<meta property="article:published_time" content="2024-11-18T05:19:03.000Z">
+<meta property="article:modified_time" content="2025-04-09T14:39:53.133Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="big-market">
+<meta property="article:tag" content="一些思考">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>大营销项目中遇到的bug与心得 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          大营销项目中遇到的bug与心得
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-11-18 13:19:03" itemprop="dateCreated datePublished" datetime="2024-11-18T13:19:03+08:00">2024-11-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-04-09 22:39:53" itemprop="dateModified" datetime="2025-04-09T22:39:53+08:00">2025-04-09</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="大营销项目中遇到的bug与心得"><a href="#大营销项目中遇到的bug与心得" class="headerlink" title="大营销项目中遇到的bug与心得"></a>大营销项目中遇到的bug与心得</h1><h2 id="营销服务第11节-API实现"><a href="#营销服务第11节-API实现" class="headerlink" title="营销服务第11节: API实现"></a>营销服务第11节: API实现</h2><p>这一节先自己实现了API，然后和视频中的对了一下，感觉还可以，就开始测试。</p>
+<h3 id="bug1-404-Not-Found"><a href="#bug1-404-Not-Found" class="headerlink" title="bug1: 404 Not Found"></a>bug1: 404 Not Found</h3><p>首先遇到的问题就是怎么也找不到Endpoint，curl，apiPost等工具都是404 Not Found。其实我是没写错的，有时候真是玄学问题，maven重新载入一下项目就可以了。</p>
+<h3 id="bug2-redis-DelayedQueue"><a href="#bug2-redis-DelayedQueue" class="headerlink" title="bug2: redis DelayedQueue"></a>bug2: redis DelayedQueue</h3><p>我们要用redisson中的RBlockQueue和RDelayedQueue的话，存入和取出的逻辑是这样的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">awardStockConsumeSendQueue</span><span class="params">(StrategyAwardStockKeyVO strategyAwardStockKeyVO)</span> </span>&#123;</span><br><span class="line">       String cacheKey = Constants.RedisKey.STRATEGY_AWARD_COUNT_QUERY_KEY;</span><br><span class="line">       RBlockingQueue&lt;Object&gt; blockingQueue = redisService.getBlockingQueue(cacheKey);</span><br><span class="line">       RDelayedQueue&lt;Object&gt; delayedQueue = redisService.getDelayedQueue(blockingQueue);</span><br><span class="line">       delayedQueue.offer(strategyAwardStockKeyVO,<span class="number">3</span>, TimeUnit.SECONDS);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="meta">@Override</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> StrategyAwardStockKeyVO <span class="title">takeQueueValue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       String cacheKey = Constants.RedisKey.STRATEGY_AWARD_COUNT_QUERY_KEY;</span><br><span class="line">       RBlockingQueue&lt;StrategyAwardStockKeyVO&gt; destinationQueue = redisService.getBlockingQueue(cacheKey);</span><br><span class="line">       <span class="keyword">return</span> destinationQueue.poll();</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，在存入的时候，要先获取<code>RBlockingQueue</code>根据这个阻塞队列再构建<code>RDelayedQueue</code>，最后把对象存入延时队列。等到过期以后，延时队列中的对象会被存到<code>RBlockingQueue</code>中去，因此在取对象的时候，只需要根据key获得<code>RBlockingQueue</code>即可，不需要再获取<code>RDelayedQueue</code>了</p>
+<h3 id="bug3-redis-setValue-和-setAtomicLong"><a href="#bug3-redis-setValue-和-setAtomicLong" class="headerlink" title="bug3: redis setValue 和 setAtomicLong"></a>bug3: redis setValue 和 setAtomicLong</h3><p>在扣减库存的时候有如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Boolean <span class="title">subtractAwardStock</span><span class="params">(String cacheKey)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> surplus = redisService.decr(cacheKey);</span><br><span class="line">    <span class="keyword">if</span>(surplus &lt; <span class="number">0</span>)&#123;</span><br><span class="line">        redisService.setAtomicLong(cacheKey, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 1. 按照cacheKey decr 后的值，如 99、98、97 和 key 组成为库存锁的key进行使用。</span></span><br><span class="line">    <span class="comment">// 2. 加锁为了兜底，如果后续有恢复库存，手动处理等，也不会超卖。因为所有的可用库存key，都被加锁了</span></span><br><span class="line">    String lockKey = cacheKey + Constants.UNDERLINE + surplus;</span><br><span class="line">    Boolean lock = redisService.setNx(lockKey);</span><br><span class="line">    <span class="keyword">if</span>(!lock) log.info(<span class="string">"策略奖品库存加锁失败 &#123;&#125;"</span>,lockKey);</span><br><span class="line">    <span class="keyword">return</span> lock;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我一开始写的是 <code>setValue(cacheKey,0)</code> 但是在压测的时候：如果多个线程几乎同时判断 <code>surplus &lt; 0</code>，多个线程可能依次执行 <code>setValue(cacheKey, 0)</code>，而 Redis 键的值可能会被覆盖或被其他逻辑清空。在这种情况下，某些线程在 <code>setValue</code> 操作完成后，其他并发线程可能又对该键进行了操作，导致值被意外清空。</p>
+<p>因此我们要使用原子性操作<code>setAtomicLong</code></p>
+<h2 id="前端第3节：对接抽奖页面"><a href="#前端第3节：对接抽奖页面" class="headerlink" title="前端第3节：对接抽奖页面"></a>前端第3节：对接抽奖页面</h2><h3 id="bug1"><a href="#bug1" class="headerlink" title="bug1"></a>bug1</h3><p>我想在页面中加一个<code>&lt;div&gt;</code> 里面包装了抽奖逻辑：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">const</span> strategyArmoryHandle = <span class="keyword">async</span> () =&gt;&#123;</span><br><span class="line">    <span class="keyword">const</span> queryParams = <span class="keyword">new</span> URLSearchParams(<span class="built_in">window</span>.location.search);</span><br><span class="line">    <span class="keyword">const</span> strategyId = <span class="built_in">Number</span>(queryParams.get(<span class="string">"strategyId"</span>));</span><br><span class="line">    <span class="keyword">if</span>(!strategyId)&#123;</span><br><span class="line">        <span class="built_in">window</span>.alert(<span class="string">"在请求地址中配置 strategyId的值"</span>)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> res = <span class="keyword">await</span> strategyArmory(strategyId);</span><br><span class="line">    <span class="keyword">const</span> &#123;code,info&#125; = <span class="keyword">await</span> res.json();</span><br><span class="line">    <span class="keyword">if</span>(code != <span class="string">"0000"</span>)&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">window</span>.alert(<span class="string">"抽奖策略装配失败 code: "</span>+code + <span class="string">" info:"</span> + info)</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">Home</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        &lt;div className=<span class="string">"flex flex-col items-center justify-center min-h-screen bg-gray-100"</span>&gt;</span><br><span class="line">            &#123;<span class="comment">/* 头部文案 */</span>&#125;</span><br><span class="line">            &lt;header className=<span class="string">"text-3xl font-bold text-center text-gray-800 my-8"</span>&gt;</span><br><span class="line">                大营销平台 - 抽奖展示</span><br><span class="line">            &lt;<span class="regexp">/header&gt;</span></span><br><span class="line"><span class="regexp">            &lt;div className=&#123;"px-6 py-2 mb-8 text-white bg-blue-500 rounded-fuLl shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"&#125; onClick=&#123;strategyArmoryHandle&#125;&gt;</span></span><br><span class="line"><span class="regexp">                装配抽奖</span></span><br><span class="line"><span class="regexp">            &lt;/</span>div&gt;</span><br><span class="line">					<span class="comment">//..</span></span><br><span class="line">        &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">    );</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>结果遇到报错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Unhandled Runtime Error</span><br><span class="line"></span><br><span class="line">[ Server ] Error: Event handlers cannot be passed to Client Component props.</span><br><span class="line">  &lt;div className&#x3D;... onClick&#x3D;&#123;function strategyArmoryHandle&#125; children&#x3D;...&gt;</span><br></pre></td></tr></table></figure></p>
+<p>这个错误是因为 <strong>Next.js 15 的新架构</strong>中，<code>onClick</code> 等事件处理器不能直接传递给 <strong>Server Components</strong>，而你定义的组件 <code>Home</code> 默认是 <strong>Server Component</strong>。解决方案是将需要交互的部分（如按钮和 <code>onClick</code> 逻辑）改为 <strong>Client Component</strong>。</p>
+<p>新建一个 <code>StrategyArmoryButton</code> 组件：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">'use client'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123;strategyArmory&#125; <span class="keyword">from</span> <span class="string">"@/apis"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">StrategyArmoryButton</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> handleClick = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">        <span class="keyword">const</span> queryParams = <span class="keyword">new</span> URLSearchParams(<span class="built_in">window</span>.location.search);</span><br><span class="line">        <span class="keyword">const</span> strategyId = <span class="built_in">Number</span>(queryParams.get(<span class="string">"strategyId"</span>));</span><br><span class="line">        <span class="keyword">if</span> (!strategyId) &#123;</span><br><span class="line">            <span class="built_in">window</span>.alert(<span class="string">"在请求地址中配置 strategyId 的值"</span>);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">const</span> res = <span class="keyword">await</span> strategyArmory(strategyId);</span><br><span class="line">        <span class="keyword">const</span> &#123;code, info&#125; = <span class="keyword">await</span> res.json();</span><br><span class="line">        <span class="keyword">if</span> (code !== <span class="string">"0000"</span>) &#123;</span><br><span class="line">            <span class="built_in">window</span>.alert(<span class="string">"抽奖策略装配失败 code: "</span> + code + <span class="string">" info: "</span> + info);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">window</span>.alert(<span class="string">"抽奖策略装配成功！"</span>);</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        &lt;div</span><br><span class="line">            className=<span class="string">"px-6 py-2 mb-8 text-white bg-blue-500 rounded-full shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"</span></span><br><span class="line">            onClick=&#123;handleClick&#125;</span><br><span class="line">        &gt;</span><br><span class="line">            装配抽奖</span><br><span class="line">        &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">    );</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>修改 <code>Home</code> 组件，使用 <code>StrategyArmoryButton</code>：<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">Home</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">      &lt;div className=<span class="string">"flex flex-col items-center justify-center min-h-screen bg-gray-100"</span>&gt;</span><br><span class="line">        &lt;header className=<span class="string">"text-3xl font-bold text-center text-gray-800 my-8"</span>&gt;</span><br><span class="line">          大营销平台 - 抽奖展示</span><br><span class="line">        &lt;<span class="regexp">/header&gt;</span></span><br><span class="line"><span class="regexp">        </span></span><br><span class="line"><span class="regexp">        &lt;StrategyArmoryButton /</span>&gt;</span><br><span class="line">        <span class="comment">//....</span></span><br><span class="line">     &lt;<span class="regexp">/div&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="营销服务-第13节：引入分库分表路由组件"><a href="#营销服务-第13节：引入分库分表路由组件" class="headerlink" title="营销服务 第13节：引入分库分表路由组件"></a>营销服务 第13节：引入分库分表路由组件</h2><h3 id="bug1-1"><a href="#bug1-1" class="headerlink" title="bug1"></a>bug1</h3><p>因为mybatis中的mapper文件比较多，所以我将其按照domain分类成了两个子文件夹，但是做测试的时候一直找不到对应的mapper，这是因为配置问题：</p>
+<p>之前在application-dev中关于<code>mapper-locations</code> 的配置是这样的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mybatis:</span><br><span class="line">  mapper-locations: classpath:&#x2F;mybatis&#x2F;mapper&#x2F;*.xml</span><br></pre></td></tr></table></figure>
+<p>这样就导致子文件夹中的mapper不能被扫描到，改成这样即可：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mybatis:</span><br><span class="line">  mapper-locations: classpath:&#x2F;mybatis&#x2F;mapper&#x2F;**&#x2F;*.xml</span><br></pre></td></tr></table></figure>
+<h2 id="营销服务第16节：引入mq"><a href="#营销服务第16节：引入mq" class="headerlink" title="营销服务第16节：引入mq"></a>营销服务第16节：引入mq</h2><h3 id="心德1：流程中为什么要引入MQ"><a href="#心德1：流程中为什么要引入MQ" class="headerlink" title="心德1：流程中为什么要引入MQ"></a>心德1：流程中为什么要引入MQ</h3><p><img src="/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/1.png" style="zoom:67%;"></p>
+<p>这是营销活动中，下抽奖单的逻辑：</p>
+<ol>
+<li>第一步；完成责任链的活动校验，时间、状态、库存。</li>
+<li>第二步；对库存的扣减，使用 decr + lock 锁的方式（兜底）进行处理。（和策略部分抽奖扣减库存的逻辑一样）</li>
+<li>第三步；做完库存扣减后，发送延迟队列，由任务调度更新趋势库存，满足最终一致。</li>
+<li>第四步；库存消耗为0后，发送MQ消息，驱动变更数据库库存为0</li>
+</ol>
+<p>这里为什么要引入MQ？为什么只在sku库存扣减到0的时候引入MQ？</p>
+<p>答：如果扣减完库存，直接发送mq去更新库，和直接操作库扣减库存不用缓存是一样的了。数据库是扛不住大量的数据同时更新一条记录的，所有的请求会进入等待前面的处理释放行级锁。那么其他查询的操作，也没法获取到数据库连接，直至拖垮数据库。 所以要做异步的，延迟的，缓慢的更新，降低集中操作数据库的处理。</p>
+<p>因此redis缓存扣减策略是必要的，那么为什么还要引入MQ呢？因为可能一瞬间有几千条抽奖单将库存消耗为0，如果一条一条去更新数据库，确实比较慢，造成开销浪费。因此，用MQ一步到位，将库存变为0，同时清空延迟队列，减少数据库更新次数。</p>
+<h2 id="营销服务第19节：中奖记录写入MQ和任务扫描补偿"><a href="#营销服务第19节：中奖记录写入MQ和任务扫描补偿" class="headerlink" title="营销服务第19节：中奖记录写入MQ和任务扫描补偿"></a>营销服务第19节：中奖记录写入MQ和任务扫描补偿</h2><p>这里我遇到了一个很坑的bug：</p>
+<p>在我查询数据库中的Task表的时候，我的xml是这么定义的：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"queryNoSendMessageTaskList"</span> <span class="attr">resultMap</span>=<span class="string">"BaseResultMap"</span>&gt;</span></span><br><span class="line">  select user_id,topic,message_id,message,state</span><br><span class="line">  from task</span><br><span class="line">  where state = 'fail' or (state = 'create' and now() - update_time &gt; 6)</span><br><span class="line">  limit 10</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>但是，运行的时候却和我报如下错：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.mybatis.spring.MyBatisSystemException: nested exception is org.apache.ibatis.executor.result.ResultMapException: Error attempting to get column &#39;user_id&#39; from result set.  Cause: java.lang.NumberFormatException: For input string: &quot;xiaofuge&quot;</span><br></pre></td></tr></table></figure>
+<p>也就是说，在表中读取<code>user_id</code>这列，却没有办法将其转换成数字类型。</p>
+<p>这就很奇怪，因为我<code>Task</code>PO对象和xml中，从来就没有定义过user_id是数字类型的。为什么会自动转换并报错？</p>
+<p>答案出于一个偷懒的想法：</p>
+<p><img src="/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/2.png" style="zoom:67%;"></p>
+<p>就是我在定义Task持久化对象的时候，使用了@Builder注释，但没有加上<code>@AllArgsConstructor</code> 和<code>@NoArgsConstructor</code>，这就导致了这导致了构造器的缺失，进而影响了 MyBatis 的工作方式。</p>
+<p><strong><code>@Builder</code> 只生成了一个带有所有字段的构造器</strong>，并没有自动生成无参构造器和全参构造器。</p>
+<ul>
+<li><p><strong><code>@AllArgsConstructor</code></strong> 注解会自动生成一个包含所有字段的构造器（包含 <code>Task</code> 类中的所有字段）。</p>
+</li>
+<li><p><strong><code>@NoArgsConstructor</code></strong> 注解会自动生成一个无参构造器。</p>
+</li>
+</ul>
+<p>而<code>MyBatis</code> 在进行字段映射时，通常会使用无参构造器来实例化对象，然后通过 setter 方法来设置字段的值。而这里Task没有一个无参构造器，因此 MyBatis 就无法使用反射实例化对象，也就无法正确填充属性值。</p>
+<p>所以，我们对于一个对象来说，要么老老实实用<code>@Data</code>修饰，然后用<code>setXXX</code>来填入参数，如果要用<code>@Builder</code>构造,就一定要再加上<code>@AllArgsConstructor</code> 和 <code>@NoArgsConstructor</code></p>
+<h2 id="营销服务第20节"><a href="#营销服务第20节" class="headerlink" title="营销服务第20节"></a>营销服务第20节</h2><h3 id="写API-controller的时候，如何定义API？"><a href="#写API-controller的时候，如何定义API？" class="headerlink" title="写API controller的时候，如何定义API？"></a>写API controller的时候，如何定义API？</h3><p>当请求方法是GET的时候，传入参数是放在url里面的，此时需要使用@RequestParam注解</p>
+<p>当请求方法是POST的时候，传入参数是放在请求体里面的，此时需要用@RequestBody注解获取参数 </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping</span>(value = <span class="string">"armory"</span>, method = RequestMethod.GET)</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Response&lt;Boolean&gt; <span class="title">activityArmory</span><span class="params">(@RequestParam Long activityId)</span> </span>&#123;<span class="comment">/**/&#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"><span class="doctag">@RequestMapping</span>(value = "draw", method = RequestMethod.POST)</span></span><br><span class="line"><span class="comment"><span class="doctag">@Override</span></span></span><br><span class="line"><span class="comment">public Response&lt;ActivityDrawResponseDTO&gt; draw(<span class="doctag">@RequestBody</span> ActivityDrawRequestDTO requestDTO) &#123;/**/</span>&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="营销服务第26节：积分领域调额服务"><a href="#营销服务第26节：积分领域调额服务" class="headerlink" title="营销服务第26节：积分领域调额服务"></a>营销服务第26节：积分领域调额服务</h2><p>在这一部分中，我们除了实现逻辑之外，还增加了查询判断和 redis lock 加锁增强代码健壮性。另外完善工程日志。</p>
+<p><img src="/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/3.png" style="zoom:67%;"></p>
+<p><img src="/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/4.png" style="zoom:67%;"></p>
+<p>这样做的目的是什么？</p>
+<ul>
+<li><p><strong>确保并发安全</strong></p>
+<ul>
+<li><strong>优势：</strong> 通过在方法开始时获取基于 Redis 的分布式锁，确保同一用户在同一活动下的订单保存操作不会被多个线程或进程同时执行。这有效防止了并发导致的数据不一致或重复插入的问题。</li>
+<li><strong>应用场景：</strong> 特别适用于高并发环境下，多个请求可能同时尝试为同一用户和活动创建订单的情况。</li>
+</ul>
+</li>
+<li><p><strong>减少竞争条件</strong></p>
+<ul>
+<li><strong>优势：</strong> 分布式锁确保了“查询再操作”逻辑中的一致性。由于锁的存在，多个线程不会同时执行 <code>queryAccountByUserId</code> 和后续的插入或更新操作，从而避免了第一版本中可能出现的重复键异常 (<code>DuplicateKeyException</code>)。</li>
+</ul>
+</li>
+<li><p><strong>锁的超时机制</strong></p>
+</li>
+</ul>
+<ul>
+<li><strong>优势：</strong> <code>lock.lock(3, TimeUnit.SECONDS);</code> 设置了锁的持有时间为3秒，防止因异常或错误导致的死锁。这确保了系统的健壮性，即使某个线程未能正常释放锁，锁也会在超时后自动释放，避免资源被永久占用。</li>
+</ul>
+<p>原来的做法，是仅依赖于数据库级别的并发控制和事务管理来处理并发操作。</p>
+<h3 id="Redis-锁的特点"><a href="#Redis-锁的特点" class="headerlink" title="Redis 锁的特点"></a>Redis 锁的特点</h3><h3 id="1-分布式锁"><a href="#1-分布式锁" class="headerlink" title="1. 分布式锁"></a><strong>1. 分布式锁</strong></h3><ul>
+<li><strong>目的：</strong> 确保在分布式系统中，某一关键代码段在任何给定时间内只能被一个实例执行。</li>
+<li><strong>使用场景：</strong> 防止竞争条件、管理资源访问、确保数据一致性。</li>
+</ul>
+<h3 id="2-实现细节"><a href="#2-实现细节" class="headerlink" title="2. 实现细节"></a><strong>2. 实现细节</strong></h3><ul>
+<li><strong>原子性：</strong> Redis 提供原子操作（如 <code>SETNX</code>），确保锁的获取是原子的，避免竞争条件。</li>
+<li><strong>超时机制（TTL）：</strong> 锁通常设置有过期时间，以防止持有锁的进程在失败或未能释放锁时导致死锁。</li>
+<li><strong>锁键的唯一性：</strong> 锁的键通常基于特定的标识符（如用户ID和活动ID）构建，以确保锁的范围和粒度。</li>
+</ul>
+<h3 id="3-优势"><a href="#3-优势" class="headerlink" title="3. 优势"></a><strong>3. 优势</strong></h3><ul>
+<li><strong>性能高效：</strong> Redis 作为内存数据库，提供快速的锁获取和释放操作。</li>
+<li><strong>实现简单：</strong> 通过 Redis 命令和诸如 Redisson 等库，可以轻松实现分布式锁。</li>
+<li><strong>可扩展性强：</strong> 适用于大规模分布式系统，能够在多个实例间同步访问共享资源。</li>
+</ul>
+<h3 id="4-潜在缺点"><a href="#4-潜在缺点" class="headerlink" title="4. 潜在缺点"></a><strong>4. 潜在缺点</strong></h3><ul>
+<li><strong>单点故障风险：</strong> 如果 Redis 服务不可用，锁机制将失效。可以通过 Redis 集群或哨兵机制来提高可用性。</li>
+<li><strong>复杂的失败场景处理：</strong> 需要处理进程在获取锁后崩溃但未释放锁的情况，通常需要结合唯一锁值和合理的超时设置。</li>
+<li><strong>额外的开销：</strong> 引入分布式锁会增加网络开销，如果滥用可能成为性能瓶颈。</li>
+</ul>
+<h3 id="5-最佳实践"><a href="#5-最佳实践" class="headerlink" title="5. 最佳实践"></a><strong>5. 最佳实践</strong></h3><ul>
+<li><strong>使用成熟的库：</strong> 采用经过验证的库（如 Redisson）来处理边界情况，并提供高级功能，如锁租约和可重入性。</li>
+<li><strong>设置合理的超时：</strong> 确保锁的超时时间足够完成关键代码段的执行，但不至于过长导致不必要的阻塞。</li>
+<li><strong>优雅地处理锁获取失败：</strong> 实现重试机制和回退策略，以应对锁获取失败的情况。</li>
+<li><strong>避免长时间持有锁：</strong> 将关键代码段保持尽可能短，减少锁的持有时间，降低竞争和阻塞的风险。</li>
+</ul>
+<h2 id="营销服务第27节：串联case"><a href="#营销服务第27节：串联case" class="headerlink" title="营销服务第27节：串联case"></a>营销服务第27节：串联case</h2><h3 id="RequestBody注解问题"><a href="#RequestBody注解问题" class="headerlink" title="@RequestBody注解问题"></a>@RequestBody注解问题</h3><p>在这一节我们新暴露了几个API，直到此时我才发现原来在controller里面，根据客户端发送的消息格式的不同，也需要匹配不同的写法。</p>
+<h4 id="第一个方法：creditPayExchangeSku"><a href="#第一个方法：creditPayExchangeSku" class="headerlink" title="第一个方法：creditPayExchangeSku"></a><strong>第一个方法：<code>creditPayExchangeSku</code></strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Response&lt;Boolean&gt; <span class="title">creditPayExchangeSku</span><span class="params">(@RequestBody SkuProductShopCartRequestDTO request)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 方法实现</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>参数类型：</strong> <code>SkuProductShopCartRequestDTO</code> 是一个复杂的对象，通常包含多个字段，可能对应于前端发送的 JSON 结构。</li>
+<li><strong>注解使用：</strong> <code>@RequestBody</code> 注解用于将整个 HTTP 请求体中的内容（例如 JSON、XML）反序列化为 <code>SkuProductShopCartRequestDTO</code> 对象。</li>
+</ul>
+<h4 id="第二个方法：queryUserCreditAccount"><a href="#第二个方法：queryUserCreditAccount" class="headerlink" title="第二个方法：queryUserCreditAccount"></a><strong>第二个方法：<code>queryUserCreditAccount</code></strong></h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(value = <span class="string">"query_user_credit"</span>, method = RequestMethod.POST)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Response&lt;BigDecimal&gt; <span class="title">queryUserCreditAccount</span><span class="params">(String userId)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 方法实现</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>参数类型：</strong> <code>userId</code> 是一个简单的字符串类型参数。</li>
+<li><strong>注解使用：</strong> 没有使用 <code>@RequestBody</code> 注解，而是直接将 <code>userId</code> 作为方法参数。</li>
+</ul>
+<h3 id="为什么一个方法使用-RequestBody，另一个不使用"><a href="#为什么一个方法使用-RequestBody，另一个不使用" class="headerlink" title="为什么一个方法使用 @RequestBody，另一个不使用"></a><strong>为什么一个方法使用 <code>@RequestBody</code>，另一个不使用</strong></h3><h4 id="a-参数的复杂度和结构"><a href="#a-参数的复杂度和结构" class="headerlink" title="a. 参数的复杂度和结构"></a><strong>a. 参数的复杂度和结构</strong></h4><ul>
+<li>复杂对象 vs 简单类型：<ul>
+<li><strong>复杂对象（如 <code>SkuProductShopCartRequestDTO</code>）：</strong> 通常包含多个字段和嵌套结构，适合通过 <code>@RequestBody</code> 将整个请求体映射为一个 Java 对象。这种方式适用于客户端以 JSON 或 XML 等格式发送复杂数据的情况。</li>
+<li><strong>简单类型（如 <code>String userId</code>）：</strong> 仅包含单一值，通常通过 URL 参数、表单参数或查询参数传递。这种情况下，不需要 <code>@RequestBody</code>，因为数据不在请求体的复杂结构中。</li>
+</ul>
+</li>
+</ul>
+<h4 id="b-客户端发送数据的方式"><a href="#b-客户端发送数据的方式" class="headerlink" title="b. 客户端发送数据的方式"></a><strong>b. 客户端发送数据的方式</strong></h4><ul>
+<li><p>使用 <code>@RequestBody</code> 的场景：</p>
+<ul>
+<li>客户端通过 HTTP 请求体（如 POST 请求的 JSON 数据）发送复杂的对象。</li>
+<li>需要将整个请求体内容反序列化为一个 Java 对象进行处理。</li>
+</ul>
+<p>如：客户端发送一个 POST 请求，内容类型为 <code>application/json</code>，请求体包含一个 JSON 对象：</p>
+<ul>
+<li><p>```<br>{</p>
+<pre><code>&quot;userId&quot;: &quot;user123&quot;,
+&quot;sku&quot;: 456789,
+&quot;其他字段&quot;: &quot;值&quot;
+</code></pre><p>}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">  + Spring 使用 @RequestBody 将整个 JSON 对象反序列化为 &#96;SkuProductShopCartRequestDTO&#96; 实例，并传递给 &#96;creditPayExchangeSku&#96; 方法。</span><br><span class="line">  </span><br><span class="line">- 不使用 &#96;@RequestBody&#96; 的场景：</span><br><span class="line"></span><br><span class="line">  - 客户端通过 URL 参数或表单数据发送简单的键值对。</span><br><span class="line">  </span><br><span class="line">  - 参数可以直接作为方法的参数进行绑定，无需反序列化整个请求体。</span><br><span class="line">  </span><br><span class="line">  - 如：表单数据</span><br><span class="line">  </span><br><span class="line">    -</span><br></pre></td></tr></table></figure>
+<p>  POST /query_user_credit<br>  Content-Type: application/x-www-form-urlencoded</p>
+<p>  userId=user123</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">  </span><br><span class="line">  - URL 参数：</span><br><span class="line">  </span><br><span class="line">    - &#96;POST &#x2F;query_user_credit?userId&#x3D;user123&#96;</span><br><span class="line">  </span><br><span class="line">  - Spring 将 &#96;userId&#96; 参数直接绑定到 &#96;queryUserCreditAccount&#96; 方法的 &#96;userId&#96; 参数上，无需 &#96;@RequestBody&#96;。</span><br><span class="line"></span><br><span class="line">#### **c. 注解的具体作用**</span><br><span class="line"></span><br><span class="line">- &#96;@RequestBody&#96;：</span><br><span class="line">  - 告诉 Spring MVC 将 HTTP 请求体中的数据绑定到方法参数上。</span><br><span class="line">  - 适用于需要从请求体中读取和解析数据的情况，尤其是复杂对象。</span><br><span class="line">- 无注解或使用其他注解（如 &#96;@RequestParam&#96;）：</span><br><span class="line">  - 适用于从 URL 参数、查询参数或表单数据中获取简单值。</span><br><span class="line">  - 默认情况下，如果没有使用特定注解，Spring 会根据参数名称和请求中的参数进行匹配和绑定。</span><br><span class="line">- 虽然在功能上，对于简单参数，省略 &#96;@RequestParam&#96; 可能不会引发问题，但为了代码的清晰性、可维护性以及更好的配置灵活性，**建议显式地使用 &#96;@RequestParam&#96; 注解**。这样不仅有助于代码的自解释性，还能在需要时轻松进行参数的详细配置</span><br><span class="line"></span><br><span class="line">## Dubbo配置流程以及踩坑情况</span><br><span class="line"></span><br><span class="line">### 引入dubbo和nacos</span><br><span class="line"></span><br><span class="line">1. 在项目根pom文件中引入nacos：</span><br><span class="line"></span><br><span class="line">&#96;&#96;&#96;xml</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.dubbo&lt;&#x2F;groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;dubbo&lt;&#x2F;artifactId&gt;</span><br><span class="line">    &lt;version&gt;3.0.9&lt;&#x2F;version&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.dubbo&lt;&#x2F;groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;dubbo-spring-boot-starter&lt;&#x2F;artifactId&gt;</span><br><span class="line">    &lt;version&gt;3.0.9&lt;&#x2F;version&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.alibaba.nacos&lt;&#x2F;groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;nacos-client&lt;&#x2F;artifactId&gt;</span><br><span class="line">    &lt;version&gt;2.1.0&lt;&#x2F;version&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<ol>
+<li>配置<code>application-dev.xml</code></li>
+</ol>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">dubbo:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">big-market</span></span><br><span class="line">    <span class="attr">version:</span> <span class="number">1.0</span></span><br><span class="line">  <span class="attr">registry:</span></span><br><span class="line">    <span class="attr">id:</span> <span class="string">nacos-registry</span></span><br><span class="line">    <span class="attr">address:</span> <span class="string">nacos://127.0.0.1:8848</span></span><br><span class="line">  <span class="attr">protocol:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">dubbo</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">-1</span></span><br><span class="line">  <span class="attr">scan:</span></span><br><span class="line">    <span class="attr">base-packages:</span> <span class="string">io.github.jasonxqh.api</span></span><br></pre></td></tr></table></figure>
+<h4 id="dubbo-application"><a href="#dubbo-application" class="headerlink" title="dubbo.application"></a>dubbo.application</h4><p><strong><code>name</code></strong>:</p>
+<ul>
+<li><strong>作用</strong>：定义 Dubbo 应用的名称。这个名称在服务注册中心（如 Nacos）中用于标识该应用。</li>
+<li><strong>意义</strong>：便于在注册中心中区分不同的 Dubbo 应用，尤其在微服务架构中有多个应用时。</li>
+</ul>
+<p><strong><code>version</code></strong>:</p>
+<ul>
+<li><strong>作用</strong>：指定应用的版本号。</li>
+<li><strong>意义</strong>：用于服务版本管理，可以在同一个接口的不同版本之间进行区分和兼容。例如，不同版本的服务可以同时存在，消费者可以选择调用特定版本的服务。</li>
+</ul>
+<h4 id="dubbo-registry"><a href="#dubbo-registry" class="headerlink" title="dubbo.registry"></a>dubbo.registry</h4><p><strong><code>id</code></strong>:</p>
+<ul>
+<li><strong>作用</strong>：给注册中心实例指定一个唯一标识符。</li>
+<li><strong>意义</strong>：在配置多个注册中心时，通过 <code>id</code> 区分不同的注册中心实例。</li>
+</ul>
+<p><strong><code>address</code></strong>:</p>
+<ul>
+<li><strong>作用</strong>：指定注册中心的地址和协议。</li>
+<li><strong>值</strong>： <code>nacos://127.0.0.1:8848</code><ul>
+<li><strong><code>nacos</code></strong>：表示使用 <strong>Nacos</strong> 作为注册中心。</li>
+<li><strong><code>127.0.0.1:8848</code></strong>：Nacos 注册中心的地址和端口。</li>
+</ul>
+</li>
+<li><strong>意义</strong>：Dubbo 服务提供者和消费者通过这个地址与 Nacos 进行通信，实现服务的注册与发现。</li>
+</ul>
+<h4 id="dubbo-protocol"><a href="#dubbo-protocol" class="headerlink" title="dubbo.protocol"></a>dubbo.protocol</h4><ul>
+<li><strong><code>name</code></strong>:<ul>
+<li><strong>作用</strong>：指定使用的通信协议。</li>
+<li><strong>值</strong>：<code>dubbo</code>，表示使用 <strong>Dubbo</strong> 协议。</li>
+<li><strong>意义</strong>：Dubbo 支持多种协议（如 <code>dubbo</code>、<code>rmi</code>、<code>http</code> 等），选择合适的协议以满足不同的性能和兼容性需求。</li>
+</ul>
+</li>
+<li><strong><code>port</code></strong>:<ul>
+<li><strong>作用</strong>：指定服务提供者监听的端口号。</li>
+<li><strong>值</strong>：<code>-1</code> 表示自动分配端口。</li>
+<li><strong>意义</strong>：<ul>
+<li><strong>自动分配</strong>：在开发或测试环境中，使用自动分配端口可以避免端口冲突，简化配置。</li>
+<li><strong>固定端口</strong>：在生产环境中，建议指定固定端口，便于服务的管理和监控。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="dubbo-scan"><a href="#dubbo-scan" class="headerlink" title="dubbo.scan"></a>dubbo.scan</h4><p><strong><code>base-packages</code></strong>:</p>
+<ul>
+<li><strong>作用</strong>：指定 Dubbo 扫描注解的基础包路径。</li>
+<li><strong>值</strong>：<code>io.github.jasonxqh.api</code></li>
+<li><strong>意义</strong>：<ul>
+<li><strong>自动扫描</strong>：Dubbo 会自动扫描指定包及其子包下的类，查找并注册带有 Dubbo 注解（如 <code>@DubboService</code>、<code>@DubboReference</code>）的服务提供者和消费者。</li>
+<li><strong>简化配置</strong>：无需在每个类上单独配置注册信息，提升开发效率。</li>
+</ul>
+</li>
+</ul>
+<h3 id="启动nacos"><a href="#启动nacos" class="headerlink" title="启动nacos"></a>启动nacos</h3><p>首先，要在</p>
+<p>在<code>docker-compose-environment</code>中配置nacos信息，运行后 拉取镜像，即可启动</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># http://127.0.0.1:8848/nacos 【账号：nacos 密码：nacos】</span></span><br><span class="line"><span class="attr">nacos:</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">nacos/nacos-server:v2.2.3-slim</span></span><br><span class="line">  <span class="attr">container_name:</span> <span class="string">nacos</span></span><br><span class="line">  <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">"8848:8848"</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">"9848:9848"</span></span><br><span class="line">  <span class="attr">environment:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">PREFER_HOST_MODE=hostname</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MODE=standalone</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">SPRING_DATASOURCE_PLATFORM=mysql</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_HOST=mysql</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_DB_NAME=nacos_config</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_PORT=3306</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_USER=root</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_PASSWORD=123456</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&amp;connectTimeout=1000&amp;socketTimeout=3000&amp;autoReconnect=true&amp;useSSL=false&amp;allowPublicKeyRetrieval=true</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">NACOS_AUTH_IDENTITY_KEY=2222</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">NACOS_AUTH_IDENTITY_VALUE=2xxx</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789</span></span><br><span class="line">  <span class="attr">networks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">my-network</span></span><br><span class="line">  <span class="attr">depends_on:</span></span><br><span class="line">    <span class="attr">mysql:</span></span><br><span class="line">      <span class="attr">condition:</span> <span class="string">service_healthy</span></span><br></pre></td></tr></table></figure>
+<p><strong><code>MYSQL_SERVICE_HOST=mysql</code></strong>：</p>
+<ul>
+<li><strong>含义</strong>：指定 MySQL 服务的主机名为 <code>mysql</code>。在 Docker Compose 中，服务之间可以通过服务名互相通信。因此，<code>mysql</code> 指的是同一 Docker Compose 文件中定义的名为 <code>mysql</code> 的服务。</li>
+</ul>
+<p><strong><code>networks: - my-network</code></strong>：</p>
+<ul>
+<li><strong>含义</strong>：将 Nacos 容器加入到名为 <code>my-network</code> 的 Docker 网络中。</li>
+</ul>
+<p><strong><code>depends_on: mysql</code></strong>：</p>
+<ul>
+<li><strong>含义</strong>：Nacos 服务依赖于名为 <code>mysql</code> 的服务，并且在 MySQL 服务健康（<code>service_healthy</code>）后才启动。</li>
+</ul>
+<p><strong><code>MYSQL_SERVICE_PORT=3306</code></strong>：</p>
+<ul>
+<li><strong>含义</strong>：指定 MySQL 服务的端口为 <code>3306</code>，这是 MySQL 的默认端口。</li>
+</ul>
+<h3 id="Dubbo-服务提供者-DubboService"><a href="#Dubbo-服务提供者-DubboService" class="headerlink" title="Dubbo 服务提供者(@DubboService)"></a>Dubbo 服务提供者(<code>@DubboService</code>)</h3><p>  <code>@DubboService</code> 是 <strong>Dubbo</strong> 提供的注解，用于标识一个类为 <strong>Dubbo 服务提供者</strong>。它相当于 <strong>Spring</strong> 中的 <code>@Service</code> 注解，但专门用于 <strong>Dubbo 服务的发布和注册</strong>。</p>
+<h4 id="主要功能"><a href="#主要功能" class="headerlink" title="主要功能"></a><strong>主要功能</strong></h4><ul>
+<li><strong>服务发布</strong>：将标注的类作为 Dubbo 服务提供者，自动将其注册到注册中心（如 Nacos、Zookeeper）。</li>
+<li><strong>配置服务属性</strong>：通过注解属性配置服务的版本、分组、超时、重试次数等参数。</li>
+<li><strong>支持多协议和多注册中心</strong>：允许在不同的协议和注册中心下发布服务实例。</li>
+</ul>
+<h4 id="常用属性"><a href="#常用属性" class="headerlink" title="常用属性"></a><strong>常用属性</strong></h4><ul>
+<li><strong><code>version</code></strong>：指定服务的版本号，用于区分不同版本的服务。</li>
+<li><strong><code>group</code></strong>：指定服务的分组，便于在同一个注册中心中管理不同组的服务。</li>
+<li><strong><code>interfaceName</code></strong>：指定服务接口的全限定名（不常用，通常通过接口类自动推断）。</li>
+<li><strong><code>timeout</code></strong>：调用超时时间，单位毫秒。</li>
+<li><strong><code>retries</code></strong>：失败重试次数。</li>
+<li><strong><code>protocol</code></strong>：指定服务使用的协议</li>
+</ul>
+<p>比如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@RestController</span>()</span><br><span class="line"><span class="meta">@CrossOrigin</span>(<span class="string">"*"</span>)</span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/api/v1/raffle/activity"</span>)</span><br><span class="line"><span class="meta">@DubboService</span>(</span><br><span class="line">    version = <span class="string">"1.0"</span>,</span><br><span class="line">    group = <span class="string">"user-group"</span>,</span><br><span class="line">    timeout = <span class="number">5000</span>,</span><br><span class="line">    retries = <span class="number">2</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RaffleActivityController</span> <span class="keyword">implements</span> <span class="title">IRaffleActivityService</span> </span>&#123;</span><br><span class="line"> 		 <span class="comment">/**/</span></span><br><span class="line"><span class="comment">&#125;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>自动注册</strong>：<code>@DubboService</code> 注解会自动将 <code>RaffleActivityController</code> 类注册为 Dubbo 服务，Dubbo 会根据配置将其信息发布到注册中心。</li>
+<li><strong>版本与分组</strong>：通过 <code>version</code> 和 <code>group</code> 属性，可以在同一注册中心中管理不同版本和不同组的服务，避免冲突和提高灵活性。</li>
+<li><strong>超时与重试</strong>：通过 <code>timeout</code> 和 <code>retries</code> 属性，控制服务调用的容错行为，提升系统的鲁棒性。</li>
+</ul>
+<h4 id="bug1-2"><a href="#bug1-2" class="headerlink" title="bug1"></a>bug1</h4><p>在我正确在<code>application-dev.yml</code> 中配置dubbo时，一开始出现了这个问题，spring无法扫描到我的配置信息。</p>
+<p><img src="/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/5.jpg" style="zoom:67%;"></p>
+<p>解决：这种问题很坑，一般不是我们的代码问题，单纯是idea没有刷新配置文件。我们清理缓存并重启即可。</p>
+<h3 id="Dubbo-服务消费者-DubboReference"><a href="#Dubbo-服务消费者-DubboReference" class="headerlink" title="Dubbo 服务消费者(@DubboReference)"></a>Dubbo 服务消费者(<code>@DubboReference</code>)</h3><p><code>@DubboReference</code> 是 <strong>Dubbo</strong> 提供的注解，用于注入 <strong>Dubbo 服务消费者</strong>，即引用远程的 Dubbo 服务。它相当于 <strong>Spring</strong> 中的 <code>@Autowired</code> 注解，但专门用于引用远程服务。</p>
+<ol>
+<li>在 测试项目中，引入注册到nacos中的包,然后编写测试类：</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@RunWith</span>(SpringRunner<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">@<span class="title">SpringBootTest</span></span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">class</span> <span class="title">ApiTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@DubboReference</span>(interfaceClass = IRaffleActivityService<span class="class">.<span class="keyword">class</span>, <span class="title">version</span> </span>= <span class="string">"1.0"</span>)</span><br><span class="line">    <span class="keyword">private</span> IRaffleActivityService raffleActivityService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_rpc</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ActivityDrawRequestDTO request = <span class="keyword">new</span> ActivityDrawRequestDTO();</span><br><span class="line">        request.setActivityId(<span class="number">100301L</span>);</span><br><span class="line">        request.setUserId(<span class="string">"xiaofuge"</span>);</span><br><span class="line">        Response&lt;ActivityDrawResponseDTO&gt; response = raffleActivityService.draw(request);</span><br><span class="line"></span><br><span class="line">        log.info(<span class="string">"请求参数：&#123;&#125;"</span>, JSON.toJSONString(request));</span><br><span class="line">        log.info(<span class="string">"测试结果：&#123;&#125;"</span>, JSON.toJSONString(response));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>@DubboReference</code>：<ul>
+<li><strong>作用</strong>：这是 <strong>Dubbo</strong> 提供的注解，用于注入远程服务的引用（即消费者）。</li>
+<li>属性说明：<ul>
+<li><strong><code>interfaceClass</code></strong>：指定要引用的远程服务接口类。</li>
+<li><strong><code>version</code></strong>：指定服务的版本，用于区分不同版本的服务实例。</li>
+</ul>
+</li>
+<li>优势：<ul>
+<li><strong>简化配置</strong>：通过注解方式注入远程服务，无需手动配置服务地址。</li>
+<li><strong>动态代理</strong>：Dubbo 自动生成代理对象，简化服务调用。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>注意</strong>：确保 <strong>Dubbo</strong> 已正确配置，且 <code>IRaffleActivityService</code> 接口在服务提供者和消费者中版本一致，且接口类在两端保持同步。</p>
+</blockquote>
+<h4 id="bug2"><a href="#bug2" class="headerlink" title="bug2"></a>bug2</h4><p>在大营销项目中，需要先 <code>mvn clean install</code>重新构建项目所有的包，这样测试项目中才能引入最新版本的包。否则会出现引用到过去没有serialize的DTO的报错<img src="/2024/11/18/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/5.jpg" style="zoom:67%;"></p>
+<h2 id="运营上踩得坑"><a href="#运营上踩得坑" class="headerlink" title="运营上踩得坑"></a>运营上踩得坑</h2><h3 id="本地构建docker-镜像的时候，消耗过多本地空间"><a href="#本地构建docker-镜像的时候，消耗过多本地空间" class="headerlink" title="本地构建docker 镜像的时候，消耗过多本地空间"></a>本地构建docker 镜像的时候，消耗过多本地空间</h3><p>可以通过❯<code>docker system df</code>查看docker占用了那些资源，一般来说，build cache可能会占用大量空间</p>
+<p>TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE<br>Images          4         2         771.4MB   287.5MB (37%)<br>Containers      2         2         0B        0B<br>Local Volumes   4         2         197.1MB   196.8MB (99%)<br>Build Cache     80        0         15.25GB   15.25GB</p>
+<p>可以使用 <code>docker system prune -a</code> 来删除缓存内容</p>
+<h3 id="构建不同平台的镜像"><a href="#构建不同平台的镜像" class="headerlink" title="构建不同平台的镜像"></a>构建不同平台的镜像</h3><p>我们写完Dockerfile之后，可以运行一个脚本来构建，比如：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">普通镜像构建，随系统版本构建 amd/arm</span></span><br><span class="line">docker build -t jasonxqh/big-market-xqh-app:1.0 -f ./Dockerfile .</span><br></pre></td></tr></table></figure></p>
+<p>如果要部署到云服务器，那么就要构建云服务器段的版本，我因为本地是mac，云端是amd64, 导致不兼容。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">只构建linux/amd64</span></span><br><span class="line">docker build --platform linux/amd64 -t jasonxqh/big-market-xqh-app:1.0 -f ./Dockerfile .</span><br></pre></td></tr></table></figure>
+<h3 id="1-运行dockerfile前的构建准备"><a href="#1-运行dockerfile前的构建准备" class="headerlink" title="1. 运行dockerfile前的构建准备"></a>1. 运行dockerfile前的构建准备</h3><h4 id="流程1-使用dockerhub"><a href="#流程1-使用dockerhub" class="headerlink" title="流程1:使用dockerhub"></a>流程1:使用dockerhub</h4><p>我们第一阶段的部署策略，是在我们的本地部署，然后利用docker把构建好的images推送到dockerhub上，然后在云主机上，运行docker compose文件将images拉取下来。这样做的缺点就是每次要迭代版本的时候，需要在本地构建、推送、云端拉取，时间会很长，而且有时候网络不好。</p>
+<h4 id="流程2：云主机端构建"><a href="#流程2：云主机端构建" class="headerlink" title="流程2：云主机端构建"></a>流程2：云主机端构建</h4><p>现在我们可以先用git把前后端项目都拉取到云主机，直接在云主机端构建images，可以方便得制定版本号，自由度更高，构建速度更快。</p>
+<h3 id="前端后端调用情况"><a href="#前端后端调用情况" class="headerlink" title="前端后端调用情况"></a>前端后端调用情况</h3><p>在云服务器上，前端调用后端时，不能再用<code>localhost:8091</code>了，而是要用公网IP</p>
+<h3 id="前端DockerFile模版"><a href="#前端DockerFile模版" class="headerlink" title="前端DockerFile模版"></a>前端DockerFile模版</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker build --platform linux/amd64 -t jasonxqh/big-market-frontend-xqh-app:1.0 .</span><br></pre></td></tr></table></figure>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node:<span class="number">18</span>-alpine AS base</span><br><span class="line"></span><br><span class="line"><span class="keyword">FROM</span> base AS deps</span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --no-cache libc6-compat</span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yarn config <span class="built_in">set</span> registry <span class="string">'https://registry.npmmirror.com/'</span></span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yarn install</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">FROM</span> base AS builder</span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=deps /app/node_modules ./node_modules</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> . .</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yarn build:no-lint</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">FROM</span> base AS runner</span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=builder /app/public ./public</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=builder /app/.next/standalone ./</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=builder /app/.next/static ./.next/static</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=builder /app/.next/server ./.next/server</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">3000</span></span><br><span class="line"><span class="keyword">ENV</span> PORT <span class="number">3000</span></span><br><span class="line"><span class="keyword">ENV</span> HOSTNAME <span class="string">"0.0.0.0"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">"node"</span>, <span class="string">"server.js"</span>]</span></span><br></pre></td></tr></table></figure>
+<h3 id="Dockerfile-解析"><a href="#Dockerfile-解析" class="headerlink" title="Dockerfile 解析"></a><strong>Dockerfile 解析</strong></h3><h4 id="1-第一阶段：base（基础镜像）"><a href="#1-第一阶段：base（基础镜像）" class="headerlink" title="1. 第一阶段：base（基础镜像）"></a><strong>1. 第一阶段：<code>base</code>（基础镜像）</strong></h4><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node:<span class="number">18</span>-alpine AS base</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用轻量级的 Node.js 18 Alpine 镜像作为基础镜像。</li>
+<li>该镜像体积小，适合生产环境使用。</li>
+</ul>
+<h4 id="2-第二阶段：deps（依赖安装阶段）"><a href="#2-第二阶段：deps（依赖安装阶段）" class="headerlink" title="2. 第二阶段：deps（依赖安装阶段）"></a><strong>2. 第二阶段：<code>deps</code>（依赖安装阶段）</strong></h4><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> </span><br><span class="line"><span class="keyword">FROM</span> base AS deps</span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --no-cache libc6-compat</span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yarn config <span class="built_in">set</span> registry <span class="string">'https://registry.npmmirror.com/'</span></span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yarn install</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>继承基础镜像</strong>：<ul>
+<li>在 <code>base</code> 基础上创建一个新的构建阶段 <code>deps</code>，用于安装依赖。</li>
+</ul>
+</li>
+<li><strong>安装兼容库</strong>：<ul>
+<li><code>apk add --no-cache libc6-compat</code>：安装 <code>glibc</code> 兼容库，用于运行某些需要特定依赖的 Node.js 程序。</li>
+</ul>
+</li>
+<li><strong>设置工作目录</strong>：<ul>
+<li><code>WORKDIR /app</code>：设置工作目录为 <code>/app</code>，之后的所有操作都在此目录下执行。</li>
+</ul>
+</li>
+<li><strong>复制依赖文件</strong>：<ul>
+<li><code>COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./</code>：将依赖文件复制到容器中。如果某些文件不存在，这一命令不会报错。</li>
+</ul>
+</li>
+<li><strong>设置 npm 镜像源</strong>：<ul>
+<li>使用 <code>https://registry.npmmirror.com/</code> 镜像源，加快依赖安装速度。</li>
+</ul>
+</li>
+<li><strong>安装依赖</strong>：<ul>
+<li><code>yarn install</code>：安装依赖。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h4 id="3-第三阶段：builder（构建阶段）"><a href="#3-第三阶段：builder（构建阶段）" class="headerlink" title="3. 第三阶段：builder（构建阶段）"></a><strong>3. 第三阶段：<code>builder</code>（构建阶段）</strong></h4><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"> </span><br><span class="line"><span class="keyword">FROM</span> base AS builder</span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=deps /app/node_modules ./node_modules</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> . .</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yarn build:no-lint</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>继承基础镜像</strong>：<ul>
+<li>在 <code>base</code> 基础上创建一个新的构建阶段 <code>builder</code>，用于构建应用程序。</li>
+</ul>
+</li>
+<li><strong>复制依赖</strong>：<ul>
+<li><code>COPY --from=deps /app/node_modules ./node_modules</code>：从 <code>deps</code> 阶段复制 <code>node_modules</code> 目录到当前工作目录，避免重复安装依赖。</li>
+</ul>
+</li>
+<li><strong>复制应用代码</strong>：<ul>
+<li><code>COPY . .</code>：将当前目录的所有文件复制到容器中。</li>
+</ul>
+</li>
+<li><strong>构建应用</strong>：<ul>
+<li><code>RUN yarn build:no-lint</code>：运行构建命令（假设 <code>build:no-lint</code> 是 <code>package.json</code> 中定义的一个构建脚本）。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h4 id="4-第四阶段：runner（运行阶段）"><a href="#4-第四阶段：runner（运行阶段）" class="headerlink" title="4. 第四阶段：runner（运行阶段）"></a><strong>4. 第四阶段：<code>runner</code>（运行阶段）</strong></h4><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> base AS runner</span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=builder /app/public ./public</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=builder /app/.next/standalone ./</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=builder /app/.next/static ./.next/static</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=builder /app/.next/server ./.next/server</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">3000</span></span><br><span class="line"><span class="keyword">ENV</span> PORT <span class="number">3000</span></span><br><span class="line"><span class="keyword">ENV</span> HOSTNAME <span class="string">"0.0.0.0"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">"node"</span>, <span class="string">"server.js"</span>]</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>继承基础镜像</strong>：<ul>
+<li>在 <code>base</code> 基础上创建一个运行阶段 <code>runner</code>，只包含运行所需的内容，确保最终镜像尽量小。</li>
+</ul>
+</li>
+<li><strong>设置工作目录</strong>：<ul>
+<li><code>WORKDIR /app</code>：设置工作目录为 <code>/app</code>。</li>
+</ul>
+</li>
+<li><strong>复制构建输出</strong>：<ul>
+<li><code>COPY --from=builder /app/public ./public</code>：复制 <code>public</code> 文件夹。</li>
+<li><code>COPY --from=builder /app/.next/standalone ./</code>：复制 <code>standalone</code> 文件夹（Next.js 独立运行模式的输出）。</li>
+<li><code>COPY --from=builder /app/.next/static ./.next/static</code>：复制静态文件。</li>
+<li><code>COPY --from=builder /app/.next/server ./.next/server</code>：复制服务器端文件。</li>
+</ul>
+</li>
+<li><strong>开放端口</strong>：<ul>
+<li><code>EXPOSE 3000</code>：声明服务运行在容器的 3000 端口。</li>
+</ul>
+</li>
+<li><strong>环境变量</strong>：<ul>
+<li><code>ENV PORT 3000</code>：设置服务的运行端口为 3000。</li>
+<li><code>ENV HOSTNAME &quot;0.0.0.0&quot;</code>：服务监听所有网络接口。</li>
+</ul>
+</li>
+<li><strong>启动命令</strong>：<ul>
+<li><code>CMD [&quot;node&quot;, &quot;server.js&quot;]</code>：运行应用服务器，启动 Next.js 应用。</li>
+</ul>
+</li>
+</ul>
+<h4 id="需注意"><a href="#需注意" class="headerlink" title="需注意"></a>需注意</h4><p>此外，还需要配置<code>next.config.ts</code>:</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="keyword">type</span> &#123; NextConfig &#125; <span class="keyword">from</span> <span class="string">"next"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> nextConfig: NextConfig = &#123;</span><br><span class="line">    <span class="comment">// 输出为 standalone 模式，支持 Docker 部署</span></span><br><span class="line">    output: <span class="string">"standalone"</span>,</span><br><span class="line">    target: <span class="string">'server'</span>,</span><br><span class="line">    <span class="comment">// 启用 SWC 编译器以提升构建速度</span></span><br><span class="line">    swcMinify: <span class="literal">true</span>,</span><br><span class="line">    <span class="comment">// 环境变量配置（示例）</span></span><br><span class="line">    env: &#123;</span><br><span class="line">        NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || <span class="string">"http://localhost:3000"</span>,</span><br><span class="line">        API_HOST_URL: process.env.API_HOST_URL</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> nextConfig;</span><br></pre></td></tr></table></figure>
+<p>以及<code>.eslintrc.json</code>来忽略一些typescript的报错信息：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"extends"</span>: [<span class="string">"next/core-web-vitals"</span>, <span class="string">"next/typescript"</span>],</span><br><span class="line">  <span class="attr">"rules"</span>: &#123;</span><br><span class="line">    <span class="attr">"@typescript-eslint/ban-ts-comment"</span>: [</span><br><span class="line">      <span class="string">"error"</span>, <span class="comment">// 或 "warn"，如果你想只显示警告</span></span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"ts-ignore"</span>: <span class="literal">false</span>, <span class="comment">// 允许使用 @ts-ignore</span></span><br><span class="line">        <span class="attr">"ts-nocheck"</span>: <span class="literal">true</span>, <span class="comment">// 根据需要决定是否允许 @ts-nocheck</span></span><br><span class="line">        <span class="attr">"ts-check"</span>: <span class="literal">true</span>,   <span class="comment">// 根据需要决定是否允许 @ts-check</span></span><br><span class="line">        <span class="attr">"ts-expect-error"</span>: <span class="literal">true</span> <span class="comment">// 保留 @ts-expect-error（如果你需要它）</span></span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="重构MyBatis时遇到错误"><a href="#重构MyBatis时遇到错误" class="headerlink" title="重构MyBatis时遇到错误"></a>重构MyBatis时遇到错误</h3><p>首先，如果在resource/mybatis文件夹下，如果我们的Mapper放在多个子文件夹中，我们需要再yml中冲顶定义mybatis的扫描路径：</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mybatis:</span></span><br><span class="line">  <span class="attr">mapper-locations:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">classpath:/mybatis/mapper/**/*.xml</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">classpath:/mybatis/mapper/*.xml</span></span><br><span class="line">  <span class="attr">config-location:</span>  <span class="string">classpath:/mybatis/config/mybatis-config.xml</span></span><br></pre></td></tr></table></figure>
+<p>否则会出现找不到mapper的错误</p>
+<p>当我移动了某个mybatis中的某个mapper到新文件夹的时候（原本在其他子文件夹中)，此时运行项目汇报如下错误：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Cause: java.lang.IllegalArgumentException: Result Maps collection already contains value for io.github.jasonxqh.infrastructure.dao.IUserAwardRecordDao.BaseResultMap</span><br></pre></td></tr></table></figure></p>
+<p>这是因为我们之前构建的时候，在已经把这个mapper放在了<code>target/classes/mybatis/mapper</code> 中的某个子文件夹中了，现在我们将其移动到新的文件夹的话，再次构建就会导致重复构建的错误。</p>
+<p>遇到这种情况我们可以用<code>mvn clean install</code> 来重新构建项目。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/big-market/" rel="tag"># big-market</a>
+              <a href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" rel="tag"># 一些思考</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/11/14/redis%E5%AE%9E%E7%8E%B0%E9%98%B2%E8%B6%85%E5%8D%96%E7%AD%96%E7%95%A5/" rel="prev" title="redis实现防超卖策略">
+      <i class="fa fa-chevron-left"></i> redis实现防超卖策略
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/11/20/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E5%AD%A6%E4%B9%A0/" rel="next" title="分库分表学习">
+      分库分表学习 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#大营销项目中遇到的bug与心得"><span class="nav-number">1.</span> <span class="nav-text">大营销项目中遇到的bug与心得</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#营销服务第11节-API实现"><span class="nav-number">1.1.</span> <span class="nav-text">营销服务第11节: API实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bug1-404-Not-Found"><span class="nav-number">1.1.1.</span> <span class="nav-text">bug1: 404 Not Found</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bug2-redis-DelayedQueue"><span class="nav-number">1.1.2.</span> <span class="nav-text">bug2: redis DelayedQueue</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bug3-redis-setValue-和-setAtomicLong"><span class="nav-number">1.1.3.</span> <span class="nav-text">bug3: redis setValue 和 setAtomicLong</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前端第3节：对接抽奖页面"><span class="nav-number">1.2.</span> <span class="nav-text">前端第3节：对接抽奖页面</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bug1"><span class="nav-number">1.2.1.</span> <span class="nav-text">bug1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#营销服务-第13节：引入分库分表路由组件"><span class="nav-number">1.3.</span> <span class="nav-text">营销服务 第13节：引入分库分表路由组件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bug1-1"><span class="nav-number">1.3.1.</span> <span class="nav-text">bug1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#营销服务第16节：引入mq"><span class="nav-number">1.4.</span> <span class="nav-text">营销服务第16节：引入mq</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#心德1：流程中为什么要引入MQ"><span class="nav-number">1.4.1.</span> <span class="nav-text">心德1：流程中为什么要引入MQ</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#营销服务第19节：中奖记录写入MQ和任务扫描补偿"><span class="nav-number">1.5.</span> <span class="nav-text">营销服务第19节：中奖记录写入MQ和任务扫描补偿</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#营销服务第20节"><span class="nav-number">1.6.</span> <span class="nav-text">营销服务第20节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#写API-controller的时候，如何定义API？"><span class="nav-number">1.6.1.</span> <span class="nav-text">写API controller的时候，如何定义API？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#营销服务第26节：积分领域调额服务"><span class="nav-number">1.7.</span> <span class="nav-text">营销服务第26节：积分领域调额服务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-锁的特点"><span class="nav-number">1.7.1.</span> <span class="nav-text">Redis 锁的特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-分布式锁"><span class="nav-number">1.7.2.</span> <span class="nav-text">1. 分布式锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-实现细节"><span class="nav-number">1.7.3.</span> <span class="nav-text">2. 实现细节</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-优势"><span class="nav-number">1.7.4.</span> <span class="nav-text">3. 优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-潜在缺点"><span class="nav-number">1.7.5.</span> <span class="nav-text">4. 潜在缺点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-最佳实践"><span class="nav-number">1.7.6.</span> <span class="nav-text">5. 最佳实践</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#营销服务第27节：串联case"><span class="nav-number">1.8.</span> <span class="nav-text">营销服务第27节：串联case</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RequestBody注解问题"><span class="nav-number">1.8.1.</span> <span class="nav-text">@RequestBody注解问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#第一个方法：creditPayExchangeSku"><span class="nav-number">1.8.1.1.</span> <span class="nav-text">第一个方法：creditPayExchangeSku</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第二个方法：queryUserCreditAccount"><span class="nav-number">1.8.1.2.</span> <span class="nav-text">第二个方法：queryUserCreditAccount</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么一个方法使用-RequestBody，另一个不使用"><span class="nav-number">1.8.2.</span> <span class="nav-text">为什么一个方法使用 @RequestBody，另一个不使用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#a-参数的复杂度和结构"><span class="nav-number">1.8.2.1.</span> <span class="nav-text">a. 参数的复杂度和结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#b-客户端发送数据的方式"><span class="nav-number">1.8.2.2.</span> <span class="nav-text">b. 客户端发送数据的方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dubbo-application"><span class="nav-number">1.8.2.3.</span> <span class="nav-text">dubbo.application</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dubbo-registry"><span class="nav-number">1.8.2.4.</span> <span class="nav-text">dubbo.registry</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dubbo-protocol"><span class="nav-number">1.8.2.5.</span> <span class="nav-text">dubbo.protocol</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dubbo-scan"><span class="nav-number">1.8.2.6.</span> <span class="nav-text">dubbo.scan</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动nacos"><span class="nav-number">1.8.3.</span> <span class="nav-text">启动nacos</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dubbo-服务提供者-DubboService"><span class="nav-number">1.8.4.</span> <span class="nav-text">Dubbo 服务提供者(@DubboService)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#主要功能"><span class="nav-number">1.8.4.1.</span> <span class="nav-text">主要功能</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常用属性"><span class="nav-number">1.8.4.2.</span> <span class="nav-text">常用属性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#bug1-2"><span class="nav-number">1.8.4.3.</span> <span class="nav-text">bug1</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dubbo-服务消费者-DubboReference"><span class="nav-number">1.8.5.</span> <span class="nav-text">Dubbo 服务消费者(@DubboReference)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#bug2"><span class="nav-number">1.8.5.1.</span> <span class="nav-text">bug2</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运营上踩得坑"><span class="nav-number">1.9.</span> <span class="nav-text">运营上踩得坑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#本地构建docker-镜像的时候，消耗过多本地空间"><span class="nav-number">1.9.1.</span> <span class="nav-text">本地构建docker 镜像的时候，消耗过多本地空间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构建不同平台的镜像"><span class="nav-number">1.9.2.</span> <span class="nav-text">构建不同平台的镜像</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-运行dockerfile前的构建准备"><span class="nav-number">1.9.3.</span> <span class="nav-text">1. 运行dockerfile前的构建准备</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#流程1-使用dockerhub"><span class="nav-number">1.9.3.1.</span> <span class="nav-text">流程1:使用dockerhub</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#流程2：云主机端构建"><span class="nav-number">1.9.3.2.</span> <span class="nav-text">流程2：云主机端构建</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#前端后端调用情况"><span class="nav-number">1.9.4.</span> <span class="nav-text">前端后端调用情况</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#前端DockerFile模版"><span class="nav-number">1.9.5.</span> <span class="nav-text">前端DockerFile模版</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dockerfile-解析"><span class="nav-number">1.9.6.</span> <span class="nav-text">Dockerfile 解析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-第一阶段：base（基础镜像）"><span class="nav-number">1.9.6.1.</span> <span class="nav-text">1. 第一阶段：base（基础镜像）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-第二阶段：deps（依赖安装阶段）"><span class="nav-number">1.9.6.2.</span> <span class="nav-text">2. 第二阶段：deps（依赖安装阶段）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-第三阶段：builder（构建阶段）"><span class="nav-number">1.9.6.3.</span> <span class="nav-text">3. 第三阶段：builder（构建阶段）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-第四阶段：runner（运行阶段）"><span class="nav-number">1.9.6.4.</span> <span class="nav-text">4. 第四阶段：runner（运行阶段）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#需注意"><span class="nav-number">1.9.6.5.</span> <span class="nav-text">需注意</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重构MyBatis时遇到错误"><span class="nav-number">1.9.7.</span> <span class="nav-text">重构MyBatis时遇到错误</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

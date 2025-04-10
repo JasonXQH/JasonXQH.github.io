@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="了解SparkSpark 最初是基于内存计算的批处理系统，逐步发展成为内外存同时使用的批处理系统，并增加了Spark Streaming支持实时流计算，以及Structured Streaming 支持批流融合。 设计思想MapReduce首先我们必须意识到，MapReduce虽然底层透明，部署简单，但是基础算子太少。比如，没有Join算子，需要自己实现。而且，Map段的结果需要先写入到本地磁盘，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="了解Spark">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="了解SparkSpark 最初是基于内存计算的批处理系统，逐步发展成为内外存同时使用的批处理系统，并增加了Spark Streaming支持实时流计算，以及Structured Streaming 支持批流融合。 设计思想MapReduce首先我们必须意识到，MapReduce虽然底层透明，部署简单，但是基础算子太少。比如，没有Join算子，需要自己实现。而且，Map段的结果需要先写入到本地磁盘，">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/12.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/19.png">
+<meta property="article:published_time" content="2022-03-31T05:08:45.000Z">
+<meta property="article:modified_time" content="2022-05-09T10:22:54.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="bigdata">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>了解Spark | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/03/31/%E4%BA%86%E8%A7%A3Spark/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          了解Spark
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-03-31 13:08:45" itemprop="dateCreated datePublished" datetime="2022-03-31T13:08:45+08:00">2022-03-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-05-09 18:22:54" itemprop="dateModified" datetime="2022-05-09T18:22:54+08:00">2022-05-09</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="了解Spark"><a href="#了解Spark" class="headerlink" title="了解Spark"></a>了解Spark</h1><p>Spark 最初是基于内存计算的批处理系统，逐步发展成为<strong>内外存同时使用</strong>的批处理系统，并增加了Spark Streaming支持实时流计算，以及Structured Streaming 支持批流融合。</p>
+<h2 id="设计思想"><a href="#设计思想" class="headerlink" title="设计思想"></a>设计思想</h2><h3 id="MapReduce"><a href="#MapReduce" class="headerlink" title="MapReduce"></a>MapReduce</h3><p>首先我们必须意识到，MapReduce虽然底层透明，部署简单，但是基础算子太少。比如，没有Join算子，需要自己实现。而且，Map段的结果需要先写入到本地磁盘，才能由Reduce来拉取。那么如果有多个MapReduce作业串行执行的话，就会使得数据不断在HDFS中写入读出，严重影响性能。</p>
+<p>因此我们可以总结一下MapReduce的局限性：</p>
+<ul>
+<li>编程框架的表达能力有限，无法直接用Join操作</li>
+<li>单个作业中需要Shuffle的数据以阻塞方式传输，磁盘IO开销大、延迟高。因为Shuffle数据需要先写磁盘</li>
+<li>多个作业之间衔接设计IO开销，应用程序的延迟高<ul>
+<li>特别是迭代计算，因为会导致迭代中间结果反复读写，使得整个应用程序的延迟非常高。</li>
+</ul>
+</li>
+</ul>
+<h3 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h3><p>在学MapReduce的时候，其数据结构是简单的键值对。而在Spark里面，数据模型是<strong>RDD(Resilient Distributed Dataset)</strong></p>
+<p>RDD 是一个<strong>数据集(Dataset)</strong>: 与MapReduce不同，Spark操作对象是抽象的数据集，而不是文件</p>
+<p>RDD是<strong>分布式的(Distributed)</strong>：每个RDD可分成多个分区，每个分区就是一个数据集片段，一个RDD的不同分区可以存到集群中的不同的节点上。</p>
+<p>RDD具有<strong>弹性(Resilient)</strong>: 具有可恢复的容错特性，就好比一个弹力球，变形了以后还能恢复。</p>
+<h4 id="RDD性质"><a href="#RDD性质" class="headerlink" title="RDD性质"></a>RDD性质</h4><p>RDD是<strong>只读的</strong>记录分区的集合</p>
+<ul>
+<li>其本质上就是一个只读的对象集合</li>
+<li>RDD经创建后，不能进行修改</li>
+</ul>
+<p>RDD不可变(Immutable)</p>
+<ul>
+<li>只能通过在其他RDD上执行确定的转换操作(如map、join、group by) 来得到新的RDD, 而不是改变原有的RDD</li>
+</ul>
+<p>遵循了函数式编程的特性</p>
+<ul>
+<li>变量的值是不可变的</li>
+</ul>
+<h3 id="计算模型"><a href="#计算模型" class="headerlink" title="计算模型"></a>计算模型</h3><p>在MapReduce里面其实只有两个算子：Map和Reduce。也就是一个非常简单的<strong>有向无环图</strong>。 但是在Spark中，算子比较多，大致上可以分成三大类：创建类、转换类、行动类</p>
+<h4 id="创建类算子"><a href="#创建类算子" class="headerlink" title="创建类算子"></a>创建类算子</h4><p>创建(create)类算子可以从本地内存或外部数据源创建RDD，提供了数据输入的功能</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>创建操作</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>parallelize(seq,[numSlices])</code></td>
+<td>从内存集合创建RDD</td>
+</tr>
+<tr>
+<td><code>textFile(path, [minPartitions])</code></td>
+<td>读取HDFS兼容的文件系统下的文件来创建RDD</td>
+</tr>
+<tr>
+<td><code>wholeTextFile(path, [minPartitions])</code></td>
+<td>读取HDFS兼容文件系统下的文件夹中的所有文件创建RDD</td>
+</tr>
+<tr>
+<td><code>hadoopFile(path,inputFormatClass,keyClass,valueClass,[minPartitions])</code></td>
+<td>读取HDFS兼容的文件系统下拥有任意inputFormat的文件来创建RDD</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="转换类算子"><a href="#转换类算子" class="headerlink" title="转换类算子"></a>转换类算子</h4><p>转换(Transformation)类算子描述了RDD的转换逻辑，提供对RDD进行变换的功能。现在我们列举一部分：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>转换操作</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>map(func)</code></td>
+<td>和MapReduce类似，每个记录都是用func进行转换，返回一个新的RDD</td>
+</tr>
+<tr>
+<td><code>filter(func)</code></td>
+<td>对滤除对RDD中的每个记录都是用func后返回值为true的记录，类似于数据库中的过滤</td>
+</tr>
+<tr>
+<td><code>flatMap(func)</code></td>
+<td>与map相似，但是对于RDD中的每个记录可以映射0个或多个新的参数，而map是1个</td>
+</tr>
+<tr>
+<td><code>mapPartitions(func)</code></td>
+<td>与map类似，但是是对每个分区进行操作</td>
+</tr>
+<tr>
+<td><code>union(otherRDD)</code></td>
+<td>两个RDD取并集得到一个新的RDD</td>
+</tr>
+<tr>
+<td><code>intersect(otherRDD)</code></td>
+<td>两个RDD取交集得到一个新的RDD</td>
+</tr>
+<tr>
+<td><code>groupByKey([numPartitions])</code></td>
+<td>类似于Shuffle，将键值对按键分组，返回一个<code>[K,Iterable&lt;V&gt;]</code> 组成的新RDD</td>
+</tr>
+<tr>
+<td><code>reducedByKey(func,[numPartitions])</code></td>
+<td>将键值对按键聚合在一起，对每一个键的所有值使用func，类似于Reduce操作</td>
+</tr>
+<tr>
+<td><code>sortByKey([ascending],[numPartitions])</code></td>
+<td>将键值对按键进行排序，返回一个新的RDD</td>
+</tr>
+<tr>
+<td><code>join(otherRDD,[numPartitions])</code></td>
+<td>join操作</td>
+</tr>
+<tr>
+<td><code>cogroup(otherRDD,[numPartitions])</code></td>
+<td>类似于笛卡尔积的操作</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="行动算子Action"><a href="#行动算子Action" class="headerlink" title="行动算子Action"></a>行动算子Action</h4><p>行动算子标志着转换结束，出发DAG生成。有点类似于输出的操作。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>行动操作</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reduce(func)</code></td>
+<td>对RDD中的记录按func聚合，这个func必须满足交换律和结合律</td>
+</tr>
+<tr>
+<td><code>collect()</code></td>
+<td>收集RDD中的所有记录到driver中，返回一个Array</td>
+</tr>
+<tr>
+<td><code>count()</code></td>
+<td>返回RDD中记录的个数</td>
+</tr>
+<tr>
+<td><code>take(n)</code></td>
+<td>返回RDD中的前n个记录</td>
+</tr>
+<tr>
+<td><code>saveAsTextFile(path)</code></td>
+<td>将RDD中的记录以文本文件的额形式写入本地文件系统，HDFS等兼容的文件系统</td>
+</tr>
+<tr>
+<td><code>countByKey()</code></td>
+<td>按key统计计数，返回一个由<code>[K,long]</code>组成的Map</td>
+</tr>
+<tr>
+<td><code>foreach(func)</code></td>
+<td>对RDD中的每个记录都使用func</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="Operator-DAG"><a href="#Operator-DAG" class="headerlink" title="Operator DAG"></a>Operator DAG</h4><p>在一个实际操作中，算子肯定不能像MapReduce那样组成一个非常简单的有向无环图，而是一个比较复杂的图,可能如下所示：</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/1.png"></p>
+<p>DAG主要以算子的角度来描述整个操作的过程，每一个节点都是一个算子。因此DAG的核心主要是以操作算子为描述对象</p>
+<h5 id="物理计算模型"><a href="#物理计算模型" class="headerlink" title="物理计算模型"></a>物理计算模型</h5><p>在分布式架构中，DAG中的操作算子实际上是由若干个实例任务(Task)来实现。</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/3.png"></p>
+<p>如上图，每个全都是一个task，一共有22个task</p>
+<h4 id="RDD-Lineage"><a href="#RDD-Lineage" class="headerlink" title="RDD Lineage"></a>RDD Lineage</h4><p>上面的DAG是以Operator为顶点、RDD为边的；现在我们可以将RDD作为顶点，Operator作为边，进行一个图的转换，这就是<strong>RDD Lineage</strong>，如下图所示：</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/2.png"></p>
+<p>首先，RDD读取外部数据源进行创建</p>
+<p>然后，RDD经过了一系列转换操作，每次都会产生不同的RDD，供给下一个转换操作使用。</p>
+<p>最后一个RDD经过行动操作进行转换，并输出到外部数据源</p>
+<h5 id="物理计算模型-1"><a href="#物理计算模型-1" class="headerlink" title="物理计算模型"></a>物理计算模型</h5><p>用RDD Lineage的角度来看更加清楚，每个Task通常负责处理RDD的一个分区，但事实上对于一个流水线的过程(如分区7-分区9-分区13),我们可以将其简化为一个task</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/4.png"></p>
+<h2 id="体系架构"><a href="#体系架构" class="headerlink" title="体系架构"></a>体系架构</h2><h3 id="抽象架构图"><a href="#抽象架构图" class="headerlink" title="抽象架构图"></a>抽象架构图</h3><p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/5.png"></p>
+<p>上图是Spark的抽象架构图。我们看到里面有三种节点</p>
+<h4 id="Cluster-Manager"><a href="#Cluster-Manager" class="headerlink" title="Cluster Manager"></a>Cluster Manager</h4><p>cluster manager是集群管理器，负责管理整个系统的资源、监控工作节点。就是说和MapReduce中的Job Tracker本质上是一样的。</p>
+<p>Cluster Manager是一个抽象的概念，在部署完成后并没有一个进程叫做cluster manager。而且根据Spark的部署方式的不同，Cluster Manager也不一样</p>
+<ul>
+<li>在Standalone方式(即不适用Yarn或Mesos等其他资源管理系统)中，集群管理器包含 Master和Worker<ul>
+<li>注：这个和MapReduce中的Standalone模式是不一样的，在MR中Standalone代表单机集中式部署</li>
+</ul>
+</li>
+<li>在Yarn方式中集群管理器包括：Resource Manager和Node  Manager</li>
+</ul>
+<h4 id="Executor"><a href="#Executor" class="headerlink" title="Executor"></a>Executor</h4><p>Executor是执行器，负责任务的执行</p>
+<p>Executor是运行在工作节点上的一个进程，它启动若干个线程Task或者线程组TaskSet来进行执行任务。</p>
+<p>在Standalone部署方式下，Executor进程的名称为：CoarseGrainedExecutorBackend</p>
+<p>这和MapReduce不一样，MapReduce中的Task是进程，因此其对资源的消耗往往要高于Spark</p>
+<h4 id="Driver"><a href="#Driver" class="headerlink" title="Driver"></a>Driver</h4><p>Driver是驱动器，负责启动应用程序的主方法并管理作业运行</p>
+<p>Spark的架构实现了资源管理和作业管理两大功能的分离</p>
+<ul>
+<li>Cluster Manager负责集群资源管理</li>
+<li>Driver负责作业管理</li>
+</ul>
+<p>在MapReduce中，JobTracker既负责资源管理，又负责作业管理</p>
+<h3 id="Standalone架构图"><a href="#Standalone架构图" class="headerlink" title="Standalone架构图"></a>Standalone架构图</h3><p>Standalone是不包含Yarn和Mesos的，其架构如下：</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/6.png"></p>
+<p>我们将其和抽象架构图作一个比较</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/7.png"></p>
+<h4 id="Standalone中的Driver"><a href="#Standalone中的Driver" class="headerlink" title="Standalone中的Driver"></a>Standalone中的Driver</h4><p>从图中我们看出，Standalone架构图中并没有出现Driver，那么Driver在哪里？</p>
+<p>从逻辑上来说，Driver是独立于主节点、从节点以及客户端的</p>
+<p>但是根据应用程序的Client或Cluster运行方式，Driver会以不同的形式存在</p>
+<ul>
+<li>Client方式：Driver和客户端以同一个进程存在</li>
+<li>Cluster方式：系统将由某一Worker启动一个进程作为Driver</li>
+</ul>
+<p>客户端提交应用程序时可以选择Client或Cluster方式</p>
+<ul>
+<li>Standalone Client模式(默认)</li>
+</ul>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/8.png"></p>
+<ul>
+<li>Standalone Cluster 模式</li>
+</ul>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/9.png"></p>
+<p>那么这两者有什么差别呢？</p>
+<p>由于我们申请的四台虚拟机都是在同一个云平台中的， 这时候Cluster模式和Client没有什么太大的区别。</p>
+<p>只有当客户端和Spark集群的物理距离非常远的时候，那么就应该使用Cluster模式，因为这样内网通信更快。如果使用Client模式，Driver管理不同设备的时候，就需要通过远程网络传输，这时候开销就很大了。</p>
+<h4 id="Spark-vs-MapReduce"><a href="#Spark-vs-MapReduce" class="headerlink" title="Spark vs MapReduce"></a>Spark vs MapReduce</h4><p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/10.png"></p>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/11.png"></p>
+<p>之前我们画的抽象结构图中，在driver部分并没有详细说。其实driver里面存在如上图的结构</p>
+<p>首先RDD对象会经过解析器，然后得到一个有向无环图，然后DAG会被拆分成Stage，并交给task调度器去执行。我们可以将其和数据库查询引擎做一个对比，SQL语言经过解析器之后会变成语法树。我们可以把DAG看做是逻辑方面的模型，而Stage则是物理方面的模型</p>
+<h3 id="Stage划分"><a href="#Stage划分" class="headerlink" title="Stage划分"></a>Stage划分</h3><h4 id="按依赖关系划分"><a href="#按依赖关系划分" class="headerlink" title="按依赖关系划分"></a>按依赖关系划分</h4><p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/12.jpeg"></p>
+<p>首先我们要搞清楚两种不同的依赖有何区别。宽依赖可以理解为多对多，类似于map reduce中的shuffle过程，窄依赖可以理解为子分区一对一、子分区一对多。</p>
+<p>因此，我们可以通过分析各个RDD的偏序关系来生成DAG，再通过分析各个RDD中的分区之间的依赖关系来决定如何划分Stage。</p>
+<p>具体划分方法如下：</p>
+<ul>
+<li>在DAG中进行反向解析，遇到宽依赖就断开</li>
+<li>遇到窄依赖就把当前的RDD加入到Stage中</li>
+</ul>
+<p>比如：还是以展开后的DAG为例，我们看到有明显的两处宽依赖的部分，A与B之间、F与G之间。我们就根据这个将算子划分为三个stage</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/13.png" style="zoom:67%;"></p>
+<p>我们把每个stage抽象出来，得到下面这张拓扑图，通过这张图可以还原出原来的DAG。</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/14.png" style="zoom:67%;"></p>
+<h4 id="Stage类型"><a href="#Stage类型" class="headerlink" title="Stage类型"></a>Stage类型</h4><p><strong>ShuffleMapStage</strong></p>
+<ul>
+<li><p>输入/输出</p>
+<ul>
+<li><p>输入可以是从外部获取数据，也可以是另一个ShuffleMapStage的输出</p>
+</li>
+<li><p>以Shuffle为输出，作为另一个Stage开始</p>
+</li>
+</ul>
+</li>
+<li><p>特点</p>
+<ul>
+<li><p>不是最终的Stage，在它之后还有其他Stage</p>
+</li>
+<li><p>它的输出一定需要经过Shuffle过程，并作为后续Stage的输入</p>
+</li>
+<li><p>在一个DAG里可能有该类型的Stage，也可能没有该类型Stage</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>ResultStage</strong></p>
+<ul>
+<li><p>输入/输出</p>
+<ul>
+<li><p>其输入可以是从外部获取数据，也可以是另一个ShuffleMapStage的输出</p>
+</li>
+<li><p>输出直接产生结果或存储</p>
+</li>
+</ul>
+</li>
+<li><p>特点</p>
+<ul>
+<li><p>最终的Stage</p>
+</li>
+<li><p>在一个DAG里必定有该类型Stage</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>判断方式也很容易，只要有输出结果的算子如saveAsTextFile，那么这个stage就是ResultStage。 因此，一个DAG含有一个或多个Stage，其中至少含有一个ResultStage</p>
+<h3 id="Stage-内部数据传输"><a href="#Stage-内部数据传输" class="headerlink" title="Stage 内部数据传输"></a>Stage 内部数据传输</h3><p><strong>问题是，为什么要将窄依赖尽可能划分在同一个stage里，而在宽依赖的时候将DAG断开</strong>？接下来两节我们就来解决这个问题。</p>
+<p>首先Spark和MapReduce是不一样的，他算子很多，自然不可能想MR一样每经过一个算子就将其压入文件系统，让下一个算子读取。因此Spark采用了<strong>流水线</strong>的方式,而不是阻塞方式：</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/15.png" style="zoom:67%;"></p>
+<p>如上图，我们把目光聚焦到Stage1，这里有10个分区，如果按照最笨的方法，就需要开启10个task。但事实上，我们可以采用流水线的方式，这样只用开启4个ShuffleMapTask就可以了</p>
+<p>那么流水线的过程是不是类似于MapReduce中的Shuffle过程呢？<strong>不同！</strong>，流水线方式不要求物化前序算子的所有计算结果</p>
+<p>分区7通过map操作生成的分区9，并不需要物化分区9，而且可以不用等待分区8到分区10这个map操作的计算结束，而是继续进行union操作，得到分区13</p>
+<p>如果采用MapReduce中的Shuffle方式，那么意味着分区7、8经map计算得到分区9、10并将这两个分区进行物化之后，才可以进行union</p>
+<h3 id="Stage之间数据传输"><a href="#Stage之间数据传输" class="headerlink" title="Stage之间数据传输"></a>Stage之间数据传输</h3><p>这时候我们再来看stage之间的划分依据，发现窄依赖的stage之间用流水线方式很方便，但<strong>在宽依赖的stage之间，采用流水线方式就不适用</strong>了。因此我们就需要在宽依赖的时候断开DAG。</p>
+<p>Stage之间的数据传输需要进行Shuffle，该过程与MapReduce中的Shuffle类。</p>
+<ul>
+<li><p>从Stage层面来看，Shuffle过程可能发生在两个ShuffleMapStage之间，或者ShuffleMapStage与ResultStage之间。</p>
+</li>
+<li><p>从Task层面来看，该过程表现为两组ShuffleMapTask之间，或一组ShuffleMapTask与一组ResultTask之间的数据传输</p>
+</li>
+</ul>
+<p>下面是两个宽依赖的stage之间的数据传输过程，也就是spark shuffle</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/16.png" style="zoom:67%;"></p>
+<p>其过程如下：</p>
+<ul>
+<li><p>在Shuffle Write阶段，会将数据进行Partition操作，ShuffleMapTask需要将输出RDD的记录按照partition函数划分到相应的bucket当中并<strong>物化到本地磁盘形成ShuffleblockFile</strong>，之后才可以在Shuffle Read阶段被拉取</p>
+</li>
+<li><p>在Shuffle Read阶段，ShuffleMapTask或ResultTask根据partiton函数读取相应的ShuffleblockFile，存入buffer并进行继续后续的计算 </p>
+</li>
+</ul>
+<p>因此</p>
+<ul>
+<li>在stage内部的信息传递不需要物化，采用pipeline 的形式</li>
+<li>在stage之间的信息传递是需要物化的，且是阻塞的，采用shuffle形式</li>
+</ul>
+<p>因此Spark相比于MapReduce，其改进也是有限的，特别是在Shuffle过程上，基本没有发生变化。因此从这一点来说，限制了Spark只能是一个批处理系统，而不能成为一个流处理系统</p>
+<h3 id="应用与作业"><a href="#应用与作业" class="headerlink" title="应用与作业"></a>应用与作业</h3><p>现在我们对Spark中的应用和作业做一个梳理</p>
+<p>Application:  用户编写的Spark应用程序</p>
+<p>Job: 一个Job包含多个RDD及作用于响应RDD转换操作，其中最后一个为action</p>
+<p>MapReduce VS Spark</p>
+<ul>
+<li>在MapReduce中，一个应用就是一个作业</li>
+<li>Spark中，一个应用可以由多个作业来构成</li>
+</ul>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/17.png" style="zoom:67%;"></p>
+<p>那么在Spark中，应用、作业和任务的关系又是什么？</p>
+<ul>
+<li>从逻辑执行角度<ul>
+<li>一个Application = 一个或者多个DAG</li>
+<li>一个DAG = 一个或多个Stage</li>
+<li>一个Stage = 若干窄依赖的RDD操作</li>
+</ul>
+</li>
+<li>从物理执行角度<ul>
+<li>一个Application = 一个或者多个Job(Job = DAG)</li>
+<li>一个Job = 一个或者多个TaskSet<ul>
+<li>一个Job会分为多组Task，每组Task被称为Stage，或者也被称为TaskSet</li>
+</ul>
+</li>
+<li>一个TaskSet = 多个没有Shuffle关系的Task</li>
+<li>一个Task：运行在Executor上的单元。</li>
+</ul>
+</li>
+</ul>
+<p>可总结为：</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/18.png" style="zoom:67%;"></p>
+<h2 id="容错机制"><a href="#容错机制" class="headerlink" title="容错机制"></a>容错机制</h2><h3 id="故障类型"><a href="#故障类型" class="headerlink" title="故障类型"></a>故障类型</h3><p>首先，Spark里面每个部分都有可能出现故障。</p>
+<ul>
+<li>Master故障：可以利用ZooKeeper配置多个Master，但这不再讨论范围之内。</li>
+<li>Worker故障</li>
+<li>Executor故障</li>
+<li>Driver故障： 这个无解，只能重启，因此不在讨论范围之内</li>
+</ul>
+<p>因此我们主要来解决Worker、Executor出现问题怎么办？主要有三种方式：RDD持久化、故障恢复、检查点</p>
+<h3 id="RDD持久化"><a href="#RDD持久化" class="headerlink" title="RDD持久化"></a>RDD持久化</h3><p>由于计算过程中会不断地产生新的RDD， 所以系统不能将所有的RDD都存在内存 。因此， 一旦达到相应存储空间的阈值，Spark会使 用置换算法（例如，LRU）将部分RDD的 内存空间腾出 。如果不做任何声明，这些RDD会被直接丢弃。但是，某些RDD在后续很可能会被再次使用，那么这时候就需要让RDD持久化</p>
+<p>在Spark里面提供了RDD持久化的接口</p>
+<p><code>persist(StorageLevel)</code></p>
+<ul>
+<li>接受StorageLevel类型参数，可配置各种级别 </li>
+<li>持久化后的RDD将会保留在工作节点的中，可重复使用</li>
+</ul>
+<p><code>cache()</code>： 缓存</p>
+<ul>
+<li>相当于<code>persist(MEMORY_ONLY)</code></li>
+</ul>
+<p>这边提供几个StorageLevel参数及其含义：</p>
+<ul>
+<li>MEMORY_ONLY： 在JVM中缓存Java的对象。如果内存不足，直接丢弃某些partition </li>
+<li>MEMORY_AND_DISK： 在JVM中缓存Java的对象。如果内存不足，则 将某些partitions写入到磁盘中 </li>
+<li><p>MEMORY_ONLY_SER： 在内存为每个partition存储一个byte数组，数组 内容为当前partition中Java对象的序列化结果</p>
+<ul>
+<li>序列化可以理解为对存储空间进行一个压缩</li>
+</ul>
+</li>
+<li><p>MEMORY_AND_DISK_SER： 与MEMORY_AND_DISK类似，但每个分区存 储的是Java对象序列化后组成的byte数组 </p>
+</li>
+<li>DISK_ONLY: 将每个分区的数据序列化到磁盘中</li>
+<li>MEMORY_ONLY_2： 与MEMORY_ONLY相同，但是每个分区备份 到两台机器上 </li>
+<li>MEMORY_AND_DISK_2: 与MEMORY_AND_DISK相同，但是每个分区备份到两台机器上</li>
+</ul>
+<h3 id="故障恢复"><a href="#故障恢复" class="headerlink" title="故障恢复"></a>故障恢复</h3><p> 通常，一个Worker/Executor出了问题，常常是RDD出了问题，因此我们回到RDD Lineage，来看看出了问题后该怎么办？ </p>
+<p>根据Lineage的机制， 如果是红色部分丢失，那么就需要重新计算紫色部分。这里宽依赖和窄依赖就有所不同了，对于窄依赖，只要能拿到其对应的一两个父RDD，就可以还原出来了。但是对于宽依赖，其涉及到的父RDD就很多了。</p>
+<p>因此宽依赖的恢复代价高、窄依赖的恢复代价低。</p>
+<p><img src="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/19.png" style="zoom:67%;"></p>
+<p>因此，基于RDD Lineage的恢复可被总结如下：</p>
+<ul>
+<li>利用RDD Lineage的故障恢复<ul>
+<li>重新计算丢失分区</li>
+<li>重算过程在不同节点之间可以并行 </li>
+</ul>
+</li>
+<li>Lineage 状态存放在哪里？<ul>
+<li>Lineage是存放在Driver里面的，Driver里面可以解析DAG得到Lineage。因此如果Driver出故障的话，那真的只能重启了</li>
+</ul>
+</li>
+<li>与数据库恢复的比较 <ul>
+<li>RDD Lineage：记录<strong>粗粒度</strong>的操作 ，并没有记录RDD那里做了修改，只是对RDD变化的<strong>过程</strong>做了记录</li>
+<li>数据复制或者日志：记录<strong>细粒度</strong>的操作</li>
+</ul>
+</li>
+</ul>
+<h3 id="检查点机制"><a href="#检查点机制" class="headerlink" title="检查点机制"></a>检查点机制</h3><ul>
+<li>前述机制的不足之处 <ul>
+<li>Lineage可能非常长 </li>
+<li>RDD持久化机制保存到集群内机器的磁盘，并 不完全可靠</li>
+</ul>
+</li>
+<li>检查点机制将RDD写入外部可靠的（本身 具有容错机制）分布式文件系统，例如 HDFS，这样更加可靠<ul>
+<li>在实现层面，写检查点的过程是一个独立的作业，在用户作业结束后运行</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/bigdata/" rel="tag"># bigdata</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/31/%E4%BA%86%E8%A7%A3%E4%BB%A5%E5%A4%AA%E5%9D%8A/" rel="prev" title="了解以太坊">
+      <i class="fa fa-chevron-left"></i> 了解以太坊
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/04/03/AI-Adversarial/" rel="next" title="AI-Adversarial">
+      AI-Adversarial <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#了解Spark"><span class="nav-number">1.</span> <span class="nav-text">了解Spark</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#设计思想"><span class="nav-number">1.1.</span> <span class="nav-text">设计思想</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MapReduce"><span class="nav-number">1.1.1.</span> <span class="nav-text">MapReduce</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据模型"><span class="nav-number">1.1.2.</span> <span class="nav-text">数据模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#RDD性质"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">RDD性质</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计算模型"><span class="nav-number">1.1.3.</span> <span class="nav-text">计算模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#创建类算子"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">创建类算子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#转换类算子"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">转换类算子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#行动算子Action"><span class="nav-number">1.1.3.3.</span> <span class="nav-text">行动算子Action</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Operator-DAG"><span class="nav-number">1.1.3.4.</span> <span class="nav-text">Operator DAG</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#物理计算模型"><span class="nav-number">1.1.3.4.1.</span> <span class="nav-text">物理计算模型</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RDD-Lineage"><span class="nav-number">1.1.3.5.</span> <span class="nav-text">RDD Lineage</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#物理计算模型-1"><span class="nav-number">1.1.3.5.1.</span> <span class="nav-text">物理计算模型</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#体系架构"><span class="nav-number">1.2.</span> <span class="nav-text">体系架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#抽象架构图"><span class="nav-number">1.2.1.</span> <span class="nav-text">抽象架构图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Cluster-Manager"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">Cluster Manager</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Executor"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">Executor</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Driver"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">Driver</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Standalone架构图"><span class="nav-number">1.2.2.</span> <span class="nav-text">Standalone架构图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Standalone中的Driver"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">Standalone中的Driver</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Spark-vs-MapReduce"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">Spark vs MapReduce</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工作原理"><span class="nav-number">1.3.</span> <span class="nav-text">工作原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Stage划分"><span class="nav-number">1.3.1.</span> <span class="nav-text">Stage划分</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#按依赖关系划分"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">按依赖关系划分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Stage类型"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">Stage类型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stage-内部数据传输"><span class="nav-number">1.3.2.</span> <span class="nav-text">Stage 内部数据传输</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stage之间数据传输"><span class="nav-number">1.3.3.</span> <span class="nav-text">Stage之间数据传输</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#应用与作业"><span class="nav-number">1.3.4.</span> <span class="nav-text">应用与作业</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容错机制"><span class="nav-number">1.4.</span> <span class="nav-text">容错机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#故障类型"><span class="nav-number">1.4.1.</span> <span class="nav-text">故障类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RDD持久化"><span class="nav-number">1.4.2.</span> <span class="nav-text">RDD持久化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#故障恢复"><span class="nav-number">1.4.3.</span> <span class="nav-text">故障恢复</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#检查点机制"><span class="nav-number">1.4.4.</span> <span class="nav-text">检查点机制</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

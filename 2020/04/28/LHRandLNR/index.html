@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="线性递推$LHR^2$ 方法 首先解特征方程，求出每一个根包括重根 如果根都是不重复的,比如 $a_n$ &#x3D; 6an-1-5an-2 解的 $r_1&#x3D;1$, $r_2&#x3D;5$ 那么   $a_n$ &#x3D; $\alpha_1(1)^n$+$\alpha_2(5)^n$ 然后把 $a_0,a_1$带入方程算出 $\alpha_1$和$\alpha_2$的值   如果根是重复的。比如 $a_n$ &#x3D; 6an">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LHRandLNR">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/04/28/LHRandLNR/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="线性递推$LHR^2$ 方法 首先解特征方程，求出每一个根包括重根 如果根都是不重复的,比如 $a_n$ &#x3D; 6an-1-5an-2 解的 $r_1&#x3D;1$, $r_2&#x3D;5$ 那么   $a_n$ &#x3D; $\alpha_1(1)^n$+$\alpha_2(5)^n$ 然后把 $a_0,a_1$带入方程算出 $\alpha_1$和$\alpha_2$的值   如果根是重复的。比如 $a_n$ &#x3D; 6an">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/28/LHRandLNR/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/28/LHRandLNR/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/28/LHRandLNR/3.png">
+<meta property="article:published_time" content="2020-04-28T05:36:34.000Z">
+<meta property="article:modified_time" content="2020-05-10T12:06:18.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="discrete mathematics">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/04/28/LHRandLNR/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/04/28/LHRandLNR/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>LHRandLNR | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/04/28/LHRandLNR/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          LHRandLNR
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-04-28 13:36:34" itemprop="dateCreated datePublished" datetime="2020-04-28T13:36:34+08:00">2020-04-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-05-10 20:06:18" itemprop="dateModified" datetime="2020-05-10T20:06:18+08:00">2020-05-10</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="线性递推"><a href="#线性递推" class="headerlink" title="线性递推"></a>线性递推</h1><h2 id="LHR-2"><a href="#LHR-2" class="headerlink" title="$LHR^2$"></a>$LHR^2$</h2><ul>
+<li>方法</li>
+<li>首先解特征方程，求出每一个根包括重根</li>
+<li>如果根都是不重复的,比如 $a_n$ = 6a<sub>n-1</sub>-5a<sub>n-2</sub><ul>
+<li>解的 $r_1=1$, $r_2=5$</li>
+<li>那么   $a_n$ = $\alpha_1(1)^n$+$\alpha_2(5)^n$</li>
+<li>然后把 $a_0,a_1$带入方程算出 $\alpha_1$和$\alpha_2$的值</li>
+</ul>
+</li>
+<li>如果根是重复的。比如 $a_n$ = 6a<sub>n-1</sub>-9a<sub>n-2</sub><ul>
+<li>解得 $r_1=3$, $r_2=3$</li>
+<li>那么    $a_n$ = $\alpha_1(3)^n$+$\alpha_2n(3)^n$</li>
+<li>也就是说，$\alpha$后出现了$n^0,n^1,n^2,n^3……$</li>
+<li>然后把 $a_0,a_1$带入方程算出 $\alpha_1$和$\alpha_2$的值</li>
+</ul>
+</li>
+</ul>
+<h2 id="LNR-2"><a href="#LNR-2" class="headerlink" title="$LNR^2$"></a>$LNR^2$</h2><ul>
+<li><p>方法</p>
+</li>
+<li><p>通项公式是 通解+ 特解</p>
+</li>
+<li><p>通解得算法就是抹掉常数项，然后解法和$LHR^2$一样</p>
+</li>
+<li><p>再计算特解</p>
+<ul>
+<li>这里需要分类<ul>
+<li>如果常数项是  C(常数)  那么对应的就是 <strong>A</strong></li>
+<li>如果常数项是  n  那么对应的就是    $A_1n+A_0$      </li>
+<li>如果常数项是  $n^2$ 那么对应的就是 $A_2n^2+A_1n+A_0$ （以此类推）</li>
+<li>如果常数项是   $r^n$   那么对应的就是 $Ar^n$      </li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>把F(n)化成一下格式再做判断 $F(n) =$ (b<sub>t</sub> $n^t$+b<sub>t-1</sub>n<sup>t-1</sup>+……+b<sub>1</sub>n+b<sub>0</sub>) $s^n$</p>
+</li>
+<li><p>If s is not a root of the characteristic equation of the associated LHR2, there is a particular solution of form. （待会会举例子）</p>
+<ul>
+<li>(p<sub>t</sub> $n^t$+p<sub>t-1</sub>n<sup>t-1</sup>+……+p<sub>1</sub>n+p<sub>0</sub>) $s^n$;</li>
+</ul>
+</li>
+<li><p>Else, s is a root of multiplicity m, the particular solution is of form</p>
+</li>
+<li><p>(p<sub>t</sub> $n^t$+p<sub>t-1</sub>n<sup>t-1</sup>+……+p<sub>1</sub>n+p<sub>0</sub>) $s^nn^m$  ;</p>
+</li>
+</ul>
+<ul>
+<li><p>例子1</p>
+<ul>
+<li><p><strong>$a_n$ = 3a<sub>n-1</sub>-2n</strong></p>
+</li>
+<li><p>step1: find the solution for LHR<sup>2</sup>. The associated linear homogeneous equation is <strong>a<sub>n</sub> = 3a<sub>n-1</sub></strong>. Its solution is    <strong>a<sub>n</sub><sup>(h)</sup> = $\alpha3^n$</strong>    ,where $\alpha$ is a constant.</p>
+</li>
+<li><p>上标代表了homogeneous，是齐次方程组的通解</p>
+</li>
+<li><p>step2: 因为常数项是2n所以对应表中的 $A_1n+A_0$,所以 令<strong>p<sub>n</sub> = cn+d</strong>，然后带入原方程，得到 了这个<strong>cn+d= 3（ c(n-1)+d)+2n</strong>  要让<strong>(2 + 2c)n +(2d - 3c) = 0</strong> 解得 <strong>c = -1 and d = -3/2</strong></p>
+</li>
+<li><p>$a_n = {a_n^p+a_n^h }=-n-1.5+  \alpha3^n$</p>
+</li>
+<li><p>最后带入求$\alpha$</p>
+</li>
+</ul>
+</li>
+<li><p>例子2</p>
+<ul>
+<li><strong>$a_n$ =  a<sub>n-1</sub> +n</strong></li>
+<li><p>step1:The associated linear homogeneous equation is <strong>a<sub>n</sub> =a<sub>n-1</sub></strong>. Its solution is <strong>a<sub>n</sub><sup>(h)</sup> = $\alpha1^n$</strong> =$\alpha$   where $\alpha$ is a constant.</p>
+</li>
+<li><p>step2: F(n) = n = n<em>(1)<sup>n</sup>,    s=1 是 LHR<sup>2</sup>的一个根，所以说，这里有变化， 原来的<strong>p<sub>n</sub> = cn+d</strong>变成了 <em>*n(cn+d)</em></em> </p>
+</li>
+<li>再带入原方程<strong>n(cn+d)= (n-1)(c(n-1)+d)+n  解得 c=d=0.5</strong>  </li>
+<li>$a_n = {a_n^p+a_n^h }=n(n+1)/2 +  \alpha $ </li>
+</ul>
+</li>
+<li><p>例子3</p>
+<ul>
+<li><strong>$a_n$ = 2a<sub>n-1</sub>+2<sup>n</sup></strong></li>
+<li>step1: <strong>a<sub>n</sub> =2a<sub>n-1</sub></strong>   so  <strong>a<sub>n</sub><sup>(h)</sup> = $\alpha(2)^n$</strong></li>
+<li>step2: 这里常数项是(1)*2<sup>n</sup> 根据表内，对应$Ar^n$ 但是 因为2是 LHR<sup>2</sup>的一个根，所以说，这里有变化，变成了 A2<sup>n</sup>n  </li>
+<li>带入原方程 A2<sup>n+1</sup>(n+1) -2A2<sup>n</sup>n = 2<sup>n</sup>   解得A = 0.5</li>
+<li>$a_n = {a_n^p+a_n^h }=\alpha2^n $+ <strong>n2<sup>n-1</sup> </strong></li>
+</ul>
+</li>
+<li><p>例子4</p>
+<ul>
+<li><strong>a<sub>n+2</sub>+3a<sub>n+1</sub>+2a<sub>n</sub> = 3<sup>n</sup></strong></li>
+<li>step1: r<sup>2</sup>+3r+2 = 0 (r+2)(r+1) =0; r = -1,r = -2    <strong>a<sub>n</sub><sup>(h)</sup></strong> = $\alpha_1(-2)^n$+$\alpha_2(-1)^n$</li>
+<li>step2: 这里常数项是(1)*3<sup>n</sup> 根据表内，对应$Ar^n$   因为3不是 LHR<sup>2</sup>的一个根，所以说，照常</li>
+<li><strong>A3<sup>n+2</sup>+3A3<sup>n+1</sup>+2A3<sup>n</sup> = 3<sup>n</sup>  $\Longrightarrow$  A = 1/20</strong></li>
+<li><strong>a<sub>n</sub><sup>(h)</sup></strong> = $\alpha_1(-2)^n$+$\alpha_2(-1)^n$+<strong>1/20(3<sup>n</sup>)</strong></li>
+</ul>
+</li>
+</ul>
+<h2 id="结合下面的例子，我们可以更清楚的了解"><a href="#结合下面的例子，我们可以更清楚的了解" class="headerlink" title="结合下面的例子，我们可以更清楚的了解"></a>结合下面的例子，我们可以更清楚的了解</h2><p><img src="/2020/04/28/LHRandLNR/1.png" alt></p>
+<p><img src="/2020/04/28/LHRandLNR/2.png" alt></p>
+<p><img src="/2020/04/28/LHRandLNR/3.png" alt></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/discrete-mathematics/" rel="tag"># discrete mathematics</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/27/%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98/" rel="prev" title="背包问题">
+      <i class="fa fa-chevron-left"></i> 背包问题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/28/901%E8%82%A1%E7%A5%A8%E4%BB%B7%E6%A0%BC%E8%B7%A8%E5%BA%A6/" rel="next" title="901股票价格跨度">
+      901股票价格跨度 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#线性递推"><span class="nav-number">1.</span> <span class="nav-text">线性递推</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#LHR-2"><span class="nav-number">1.1.</span> <span class="nav-text">$LHR^2$</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LNR-2"><span class="nav-number">1.2.</span> <span class="nav-text">$LNR^2$</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结合下面的例子，我们可以更清楚的了解"><span class="nav-number">1.3.</span> <span class="nav-text">结合下面的例子，我们可以更清楚的了解</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

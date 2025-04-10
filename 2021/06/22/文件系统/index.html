@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="文件系统文章转载自：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;cxuanBlog&#x2F;p&#x2F;12565601.html  所有的应用程序都需要存储和检索信息。进程运行时，它能够在自己的存储空间内存储一定量的信息。然而，存储容量受虚拟地址空间大小的限制。对于一些应用程序来说，存储空间的大小是充足的，但是对于其他一些应用程序，比如航空订票系统、银行系统、企业记账系统来说，这些容量又显得太小了。 第二个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="文件系统">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="文件系统文章转载自：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;cxuanBlog&#x2F;p&#x2F;12565601.html  所有的应用程序都需要存储和检索信息。进程运行时，它能够在自己的存储空间内存储一定量的信息。然而，存储容量受虚拟地址空间大小的限制。对于一些应用程序来说，存储空间的大小是充足的，但是对于其他一些应用程序，比如航空订票系统、银行系统、企业记账系统来说，这些容量又显得太小了。 第二个">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/0.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/24.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/25.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/26.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/27.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/28.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/29.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/30.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/31.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/32.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/33.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/34.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/35.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/36.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/37.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/38.png">
+<meta property="article:published_time" content="2021-06-22T08:41:02.000Z">
+<meta property="article:modified_time" content="2022-06-30T01:54:34.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/0.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>文件系统 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          文件系统
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-06-22 16:41:02" itemprop="dateCreated datePublished" datetime="2021-06-22T16:41:02+08:00">2021-06-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-06-30 09:54:34" itemprop="dateModified" datetime="2022-06-30T09:54:34+08:00">2022-06-30</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="文件系统"><a href="#文件系统" class="headerlink" title="文件系统"></a>文件系统</h1><p>文章转载自：<a href="https://www.cnblogs.com/cxuanBlog/p/12565601.html" target="_blank" rel="noopener">https://www.cnblogs.com/cxuanBlog/p/12565601.html</a></p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/0.png" style="zoom:67%;"></p>
+<p>所有的应用程序都需要<code>存储</code>和<code>检索</code>信息。进程运行时，它能够在自己的存储空间内存储一定量的信息。然而，存储容量受<code>虚拟地址空间</code>大小的限制。对于一些应用程序来说，存储空间的大小是充足的，但是对于其他一些应用程序，比如航空订票系统、银行系统、企业记账系统来说，这些容量又显得太小了。</p>
+<p>第二个问题是，当进程终止时信息会丢失。对于一些应用程序（例如数据库），信息会长久保留。在这些进程终止时，相关的信息应该保留下来，是不能丢失的。甚至这些应用程序崩溃后，信息也应该保留下来。</p>
+<p>第三个问题是，通常需要很多进程在同一时刻访问这些信息。解决这种问题的方式是把这些信息单独保留在各自的进程中。</p>
+<p>因此，对于长久存储的信息我们有三个基本需求：</p>
+<ul>
+<li><strong>必须要有可能存储的大量的信息</strong><ul>
+<li><strong>信息必须能够在进程终止时保留</strong></li>
+</ul>
+</li>
+<li><strong>必须能够使多个进程同时访问有关信息</strong></li>
+</ul>
+<p><code>磁盘(Magnetic disk)</code> 一直是用来长久保存信息的设备。近些年来，<code>固态硬盘</code>逐渐流行起来。</p>
+<p><strong>固态硬盘不仅没有易损坏的移动部件，而且能够提供快速的随机访问</strong>。相比而言，虽然磁带和光盘也被广泛使用，但是它们的<strong>性能相对较差</strong>，通常应用于备份。我们会在后面探讨磁盘，现在姑且把磁盘当作一种大小固定块的线性序列好了，并且支持如下操作</p>
+<ul>
+<li>读块 k</li>
+<li>写块 k</li>
+</ul>
+<p>事实上磁盘支持更多的操作，<strong>但是只要有了读写操作，原则上就能够解决长期存储的问题</strong>。</p>
+<p>然而，磁盘还有一些不便于实现的操作，特别是在有很多程序或者多用户使用的大型系统上（如服务器）。在这种情况下，很容易产生一些问题，例如</p>
+<ul>
+<li>你如何找到这些信息？</li>
+<li>你如何保证一个用户不会读取另外一个用户的数据？</li>
+<li>你怎么知道哪些块是空闲的？等等问题</li>
+</ul>
+<p>我们可以针对这些问题提出一个新的抽象 - <code>文件</code>。<strong>进程和线程的抽象、地址空间和文件都是操作系统的重要概念</strong>。如果你能真正深入了解这三个概念，那么你就走上了成为操作系统专家的道路。</p>
+<p><code>文件(Files)</code>是由进程创建的逻辑信息单元。一个磁盘会包含几千甚至几百万个文件，每个文件是独立于其他文件的。事实上，如果你能把每个文件都看作一个独立的地址空间，那么你就可以真正理解文件的概念了。</p>
+<p>进程能够读取已经存在的文件，并在需要时重新创建他们。存储在文件中的信息必须是<code>持久的</code>，这也就是说，不会因为进程的创建和终止而受影响。一个文件只能在当用户明确删除的时候才能消失。尽管读取和写入都是最基本的操作，但还有许多其他操作，我们将在下面介绍其中的一些。</p>
+<p>文件由操作系统进行管理，有关文件的构造、命名、访问、使用、保护、实现和管理方式都是操作系统设计的主要内容。从总体上看，操作系统中处理文件的部分称为 <code>文件系统(file system)</code>，这就是我们所讨论的。</p>
+<p>从用户角度来说，用户通常会关心文件是由什么组成的，如何给文件进行命名，如何保护文件，以及可以对文件进行哪些操作等等。尽管是用链表还是用位图记录内存空闲区并不是用户所关心的主题，而这些对系统设计人员来说至关重要。下面我们就来探讨一下这些主题</p>
+<h2 id="文件"><a href="#文件" class="headerlink" title="文件"></a>文件</h2><h3 id="文件命名"><a href="#文件命名" class="headerlink" title="文件命名"></a>文件命名</h3><p>文件是一种抽象机制，它提供了一种方式用来存储信息以及在后面进行读取。可能任何一种机制最重要的特性就是管理对象的命名方式。在创建一个文件后，它会给文件一个命名。当进程终止时，文件会继续存在，并且其他进程可以使用<code>名称访问该文件</code>。</p>
+<p>文件命名规则对于不同的操作系统来说是不一样的，但是所有现代操作系统都允许使用 1 - 8 个字母的字符串作为合法文件名。</p>
+<p>某些文件区分大小写字母，而大多数则不区分。<code>UNIX</code> 属于第一类；历史悠久的 <code>MS-DOS</code> 属于第二类（顺便说一句，尽管 MS-DOS 历史悠久，但 MS-DOS 仍在嵌入式系统中非常广泛地使用，因此它绝不是过时的）；因此，UNIX 系统会有三种不同的命名文件：<code>maria</code>、<code>Maria</code>、<code>MARIA</code> 。在 MS-DOS ，所有这些命名都属于相同的文件。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/3.png" style="zoom:67%;"></p>
+<p>这里可能需要在文件系统上预留一个位置。Windows 95 和 Windows 98 都使用了 MS-DOS 文件系统，叫做 <code>FAT-16</code>，因此继承了它的一些特征，例如有关文件名的构造方法。Windows 98 引入了对 FAT-16 的一些扩展，从而导致了 <code>FAT-32</code> 的生成，但是这两者很相似。另外，Windows NT，Windows 2000，Windows XP，Windows Vista，Windows 7 和 Windows 8 都支持 <code>FAT</code> 文件系统，这种文件系统有些过时。然而，这些较新的操作系统还具有更高级的<code>本机文件系统(NTFS)</code>，有不同的特性，那就是基于 <code>Unicode</code> 编码的文件名。事实上，Windows 8 还配备了另一种文件系统，简称 <code>ReFS(Resilient File System)</code>，但这个文件系统一般应用于 Windows 8 的服务器版本。下面除非我们特殊声明，否则我们在提到 MS-DOS 和 FAT 文件系统的时候，所指的就是 Windows 的 FAT-16 和 FAT-32。这里要说一下，有一种类似 FAT 的新型文件系统，叫做 <code>exFAT</code>。它是微软公司对闪存和大文件系统开发的一种优化的 FAT 32 扩展版本。ExFAT 是现在微软唯一能够满足 <code>OS X</code>读写操作的文件系统。</p>
+<p>许多操作系统支持两部分的文件名，它们之间用 <code>.</code> 分隔开，比如文件名 <code>prog.c</code>。原点后面的文件称为 <code>文件扩展名(file extension)</code> ，文件扩展名通常表示文件的一些信息。例如在 MS-DOS 中，文件名是 1 - 8 个字符，加上 1 - 3 个字符的可选扩展名组成。在 UNIX 中，如果有扩展名，那么扩展名的长度将由用户来决定，一个文件甚至可以包括两个或更多的扩展名，例如 <code>homepage.html.zip</code>，html 表示一个 web 网页而 .zip 表示文件<code>homepage.html</code> 已经采用 zip 程序压缩完成。一些常用的文件扩展名以及含义如下图所示</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>扩展名</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bak</td>
+<td>备份文件</td>
+</tr>
+<tr>
+<td>c</td>
+<td>c 源程序文件</td>
+</tr>
+<tr>
+<td>gif</td>
+<td>符合图形交换格式的图像文件</td>
+</tr>
+<tr>
+<td>hlp</td>
+<td>帮助文件</td>
+</tr>
+<tr>
+<td>html</td>
+<td>WWW 超文本标记语言文档</td>
+</tr>
+<tr>
+<td>jpg</td>
+<td>符合 JPEG 编码标准的静态图片</td>
+</tr>
+<tr>
+<td>mp3</td>
+<td>符合 MP3 音频编码格式的音乐文件</td>
+</tr>
+<tr>
+<td>mpg</td>
+<td>符合 MPEG 编码标准的电影</td>
+</tr>
+<tr>
+<td>o</td>
+<td>目标文件（编译器输出格式，尚未链接）</td>
+</tr>
+<tr>
+<td>pdf</td>
+<td>pdf 格式的文件</td>
+</tr>
+<tr>
+<td>ps</td>
+<td>PostScript 文件</td>
+</tr>
+<tr>
+<td>tex</td>
+<td>为 TEX 格式化程序准备的输入文件</td>
+</tr>
+<tr>
+<td>txt</td>
+<td>文本文件</td>
+</tr>
+<tr>
+<td>zip</td>
+<td>压缩文件</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>在 UNIX 系统中，文件扩展名只是一种约定，操作系统并不强制采用。</p>
+<p>名为 <code>file.txt</code> 的文件是文本文件，这个文件名更多的是提醒所有者，而不是给计算机传递信息。但是另一方面，C 编译器可能要求它编译的文件以<code>.c</code> 结尾，否则它会拒绝编译。然而，操作系统并不关心这一点。</p>
+<p>对于可以处理多种类型的程序，约定就显得及其有用。例如 C 编译器可以编译、链接多种文件，包括 C 文件和汇编语言文件。这时扩展名就很有必要，编译器利用它们区分哪些是 C 文件，哪些是汇编文件，哪些是其他文件。因此，扩展名对于编译器判断哪些是 C 文件，哪些是汇编文件以及哪些是其他文件变得至关重要。</p>
+<p>与 UNIX 相反，Windows 就会关注扩展名并对扩展名赋予了新的含义。<code>用户(或进程)</code> 可以在操作系统中注册<code>扩展名</code>，并且规定哪个程序能够拥有扩展名。当用户双击某个文件名时，拥有该文件名的程序就启动并运行文件。例如，双击 file.docx 启动了 Word 程序，并以 file.docx 作为初始文件。</p>
+<h3 id="文件结构"><a href="#文件结构" class="headerlink" title="文件结构"></a>文件结构</h3><p>文件的构造有多种方式。下图列出了常用的三种构造方式</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/4.png" style="zoom:67%;"></p>
+<p>上图中的 a 是一种无结构的字节序列，操作系统不关心序列的内容是什么，操作系统能看到的就是<code>字节(bytes)</code>。其文件内容的任何含义只在用户程序中进行解释。UNIX 和 Windows 都采用这种办法。</p>
+<p>把文件看成字节序列提供了最大的灵活性。用户程序可以向文件中写任何内容，并且可以通过任何方便的形式命名。操作系统不会为为用户写入内容提供帮助，当然也不会干扰阻塞你。对于想做特殊操作的用户来说，后者是十分重要的。所有的 UNIX 版本（包括 Linux 和 OS X）和 Windows 都使用这种文件模型。</p>
+<p>图 b 表示在文件结构上的第一部改进。在这个模型中，<strong>文件是具有固定长度记录的序列</strong>，每个记录都有其内部结构。 把文件作为记录序列的核心思想是：<strong>读操作返回一个记录，而写操作重写或者追加一个记录</strong>。</p>
+<p>第三种文件结构如上图 c 所示。在这种组织结构中，文件由一颗<code>记录树</code>构成，记录树的长度不一定相同，每个记录树都在记录中的固定位置包含一个<code>key</code> 字段。这棵树按 key 进行排序，从而可以对特定的 key 进行快速查找。</p>
+<p>在记录树的结构中，可以取出下一个记录，但是最关键的还是根据 key 搜索指定的记录。如上图 c 所示，用户可以读出指定的 <code>pony</code> 记录，而不必关心记录在文件中的确切位置。用户也可以在文件中添加新的记录。但是用户不能决定添加到何处位置，添加到何处位置是由<code>操作系统</code>决定的。</p>
+<h3 id="文件类型"><a href="#文件类型" class="headerlink" title="文件类型"></a>文件类型</h3><p>很多操作系统支持多种文件类型。例如，UNIX（同样包括 OS X）和 Windows 都具有常规的文件和目录。除此之外，UNIX 还具有<code>字符特殊文件(character special file)</code> 和 <code>块特殊文件(block special file)</code>。<code>常规文件(Regular files)</code> 是包含有用户信息的文件。用户一般使用的文件大都是常规文件，常规文件一般包括 <strong>可执行文件、文本文件、图像文件</strong>，从常规文件读取数据或将数据写入时，内核会根据文件系统的规则执行操作，是写入可能被延迟，记录日志或者接受其他操作。</p>
+<p><strong>字符特殊文件和输入/输出有关</strong>，用于串行 I/O 类设备，如终端、打印机、网络等。块特殊文件用于磁盘类设备。我们主要讨论的是常规文件。</p>
+<p><strong>常规文件</strong>一般分为<strong>ASCII 码文件</strong>或者<strong>二进制文件</strong>。ASCII 码文件由文本组成。在一些系统中，每行都会用回车符结束（ASCII码是13，控制字符 CR，转义字符<code>\r</code>。），另外一些则会使用换行符（ASCII码是10，控制字符LF，转义字符<code>\n</code>）。一些系统（比如 Windows）两者都会使用。</p>
+<p><strong>ASCII 文件的优点在于<code>显示</code> 和 <code>打印</code>，还可以用任何文本编辑器进行编辑。</strong>进一步来说，如果许多应用程序使用 ASCII 码作为输入和输出，那么很容易就能够把多个程序连接起来，一个程序的输出可能是另一个程序的输入，就像管道一样。</p>
+<p>其他与 ASCII 不同的是二进制文件。打印出来的二进制文件是无法理解的。下面是一个二进制文件的格式，它取自早期的 UNIX 。尽管从技术上来看这个文件只是字节序列，但是操作系统只有在文件格式正确的情况下才会执行。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/6.png" style="zoom:67%;"></p>
+<p>这个文件有五个段：<strong>文件头、正文、数据、重定位位和符号表</strong>。文件头以 <code>魔数(magic number)</code> 为开始，<strong>表明这个文件是一个可执行文件（以防止意外执行非此格式的文件）</strong>。然后是文件各个部分的大小，开始执行的标志以及一些标志位。程序本身的正文和数据在<code>文件头</code>后面，他们被加载到内存中或者重定位会根据<code>重定位位</code>进行判断。符号表则用于<code>调试</code>。</p>
+<p>二进制文件的另外一种形式是<code>存档文件</code>，它由<strong>已编译但没有链接的库过程（模块）组合而成</strong>。每个文件都以模块头开始，其中记录了<strong>名称、创建日期、所有者、保护码和文件大小</strong>。和可执行文件一样，模块头也都是二进制数，将它们复制到打印机将会产生乱码。</p>
+<p>所有的操作系统必须至少能够识别一种文件类型：它自己的可执行文件。以前的 TOPS-20 系统（用于DECsystem 20）甚至要检查要执行的任何文件的创建时间，为了定位资源文件来检查自动文件创建后是否被修改过。如果被修改过了，那么就会自动编译文件。在 UNIX 中，就是在 shell 中嵌入 <code>make</code> 程序。此时操作系统要求用户必须采用固定的文件扩展名，从而确定哪个源程序生成哪个二进制文件。</p>
+<blockquote>
+<p>什么是 make 程序？在软件发展过程中，make 程序是一个自动编译的工具，它通过读取称为 <code>Makefiles</code> 的文件来自动从源代码构建可执行程序和库，该文件指定了如何导出目标程序。尽管集成开发环境和特定于语言的编译器功能也可以用于管理构建过程，但 Make 仍被广泛使用，尤其是在 Unix 和类似 Unix 的操作系统中使用。</p>
+</blockquote>
+<p>当程序从文件中读写数据时，请求会转到<code>内核处理程序(kernel driver)</code>。如果文件是常规文件，则数据由文件系统驱动程序处理，并且通常存储在磁盘或其他存储介质上的某块区域中，从文件中读取的数据就是之前在该位置写入的数据。</p>
+<p>当数据读取或写入到设备文件时，请求会被设备驱动程序处理。每个设备文件都有一个关联的编号，该编号标示要使用的设备驱动程序。设备处理数据的工作是它自己的事儿。</p>
+<ul>
+<li><code>块设备</code> 也叫做块特殊文件，它的行为通常与普通文件相似：它们是字节数组，并且在给定位置读取的值是最后写入该位置的值。来自块设备的数据可以缓存在内存中，并从缓存中读取；写入可以被缓冲。块设备通常是可搜索的，<strong>块设备的概念是，相应的硬件可以一次读取或者写入整个块</strong>，例如磁盘上的一个扇区</li>
+<li><code>字符设备</code> 也称为字符特殊文件，它的行为类似于管道、串行端口。将字节写入字符设备可能会导致它在屏幕上显示，在串行端口上输出，转换为声音。</li>
+</ul>
+<p><code>目录(Directories)</code> 是管理文件系统结构的系统文件。它是用于在计算机上存储文件的位置。目录位于<code>分层文件系统</code>中，例如 Linux，MS-DOS 和 UNIX。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/7.png" style="zoom:67%;"></p>
+<p>它显示所有本地和子目录（例如，cdn 目录中的 big 目录）。当前目录是 C 盘驱动器的<code>根目录</code>。之所以称为根目录，是因为该目录下没有任何内容，而其他目录都在该目录下<code>分支</code>。</p>
+<h3 id="文件访问"><a href="#文件访问" class="headerlink" title="文件访问"></a>文件访问</h3><p>早期的操作系统<strong>只有一种访问方式</strong>：<code>序列访问(sequential access)</code>。在这些系统中，进程可以按照顺序读取所有的字节或文件中的记录，但是不能跳过并乱序执行它们。顺序访问文件是可以返回到起点的，需要时可以多次读取该文件。当存储介质是磁带而不是磁盘时，顺序访问文件很方便。</p>
+<p>在<strong>使用磁盘来存储文件时</strong>，可以不按照顺序读取文件中的字节或者记录，或者按照关键字而不是位置来访问记录。这种能够以任意次序进行读取的称为<code>随机访问文件(random access file)</code>。许多应用程序都需要这种方式。</p>
+<p>随机访问文件对许多应用程序来说都必不可少，例如，数据库系统。如果乘客打电话预定某航班机票，订票程序必须能够直接访问航班记录，而不必先读取其他航班的成千上万条记录。</p>
+<p>有两种方法可以指示从何处开始读取文件。第一种方法是直接使用 <code>read</code> 从头开始读取。另一种是用一个特殊的 <code>seek</code> 操作设置当前位置，在 seek 操作后，从这个当前位置顺序地开始读文件。UNIX 和 Windows 使用的是后面一种方式。</p>
+<h3 id="文件属性"><a href="#文件属性" class="headerlink" title="文件属性"></a>文件属性</h3><p>文件包括文件名和数据。除此之外，所有的操作系统还会保存其他与文件相关的信息，如文件创建的日期和时间、文件大小。我们可以称这些为文件的<code>属性(attributes)</code>。有些人也喜欢把它们称作 <code>元数据(metadata)</code>。文件的属性在不同的系统中差别很大。文件的属性只有两种状态：<code>设置(set)</code> 和 <code>清除(clear)</code>。下面是一些常用的属性</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>保护</td>
+<td>谁可以访问文件、以什么方式存取文件</td>
+</tr>
+<tr>
+<td>密码（口令）</td>
+<td>访问文件所需要的密码（口令）</td>
+</tr>
+<tr>
+<td>创建者</td>
+<td>创建文件者的 ID</td>
+</tr>
+<tr>
+<td>所有者</td>
+<td>当前所有者</td>
+</tr>
+<tr>
+<td>只读标志</td>
+<td>0 表示读/写，1 表示只读</td>
+</tr>
+<tr>
+<td>隐藏标志</td>
+<td>0 表示正常，1 表示不再列表中显示</td>
+</tr>
+<tr>
+<td>系统标志</td>
+<td>0 表示普通文件，1 表示系统文件</td>
+</tr>
+<tr>
+<td>存档标志</td>
+<td>0 表示已经备份，1 表示需要备份</td>
+</tr>
+<tr>
+<td>ASCII / 二进制标志</td>
+<td>0 表示 ASCII 文件，1 表示二进制文件</td>
+</tr>
+<tr>
+<td>随机访问标志</td>
+<td>0 表示只允许顺序访问，1 表示随机访问</td>
+</tr>
+<tr>
+<td>临时标志</td>
+<td>0 表示正常，1 表示进程退出时删除该文件</td>
+</tr>
+<tr>
+<td>加锁标志</td>
+<td>0 表示未加锁，1 表示加锁</td>
+</tr>
+<tr>
+<td>记录长度</td>
+<td>一个记录中的字节数</td>
+</tr>
+<tr>
+<td>键的位置</td>
+<td>每个记录中的键的偏移量</td>
+</tr>
+<tr>
+<td>键的长度</td>
+<td>键字段的字节数</td>
+</tr>
+<tr>
+<td>创建时间</td>
+<td>创建文件的日期和时间</td>
+</tr>
+<tr>
+<td>最后一次存取时间</td>
+<td>上一次访问文件的日期和时间</td>
+</tr>
+<tr>
+<td>最后一次修改时间</td>
+<td>上一次修改文件的日期和时间</td>
+</tr>
+<tr>
+<td>当前大小</td>
+<td>文件的字节数</td>
+</tr>
+<tr>
+<td>最大长度</td>
+<td>文件可能增长到的字节数</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>没有一个系统能够同时具有上面所有的属性，但每个属性都在某个系统中采用。</p>
+<p>前面四个属性（保护，口令，创建者，所有者）与文件保护有关，它们指出了谁可以访问这个文件，谁不能访问这个文件。</p>
+<blockquote>
+<p><code>保护（File Protection）</code>： 用于保护计算机上有价值数据的方法。文件保护是通过密码保护文件或者仅仅向特定用户或组提供权限来实现。</p>
+</blockquote>
+<p>在一些系统中，用户必须给出口令才能访问文件。<code>标志(flags)</code>是一些位或者短属性能够控制或者允许特定属性。</p>
+<ul>
+<li><code>隐藏文件位(hidden flag)</code>表示该文件不在文件列表中出现。</li>
+<li><code>存档标志位(archive flag)</code>用于记录文件是否备份过，由备份程序清除该标志位；若文件被修改，操作系统则设置该标志位。用这种方法，备份程序可以知道哪些文件需要备份。</li>
+<li><code>临时标志位(temporary flag)</code> 允许文件被标记为是否允许自动删除当进程终止时。</li>
+</ul>
+<p><code>记录长度(record-length)</code>、<code>键的位置(key-position)</code>和<code>键的长度(key-length)</code>等字段只能出现在用关键字查找记录的文件中。它们提供了查找关键字所需要的信息。</p>
+<p>不同的时间字段记录了文件的创建时间、最近一次访问时间以及最后一次修改时间，它们的作用不同。例如，目标文件生成后被修改的源文件需要重新编译生成目标文件。这些字段提供了必要的信息。</p>
+<p>当前大小字段指出了当前的文件大小，一些旧的大型机操作系统要求在创建文件时指定文件呢最大值，以便让操作系统提前保留最大存储值。但是一些服务器和个人计算机却不用设置此功能。</p>
+<h3 id="文件操作"><a href="#文件操作" class="headerlink" title="文件操作"></a>文件操作</h3><p>使用文件的目的是用来存储信息并方便以后的检索。对于存储和检索，不同的系统提供了不同的操作。以下是与文件有关的最常用的一些系统调用：</p>
+<ol>
+<li><code>Create</code>，创建不包含任何数据的文件。调用的目的是表示文件即将建立，并对文件设置一些属性。</li>
+<li><code>Delete</code>，当文件不再需要，必须删除它以释放内存空间。为此总会有一个系统调用来删除文件。</li>
+<li><code>Open</code>，在使用文件之前，必须先打开文件。这个调用的目的是允许系统将属性和磁盘地址列表保存到主存中，用来以后的快速访问。</li>
+<li><code>Close</code>，当所有进程完成时，属性和磁盘地址不再需要，因此应关闭文件以释放表空间。很多系统限制进程打开文件的个数，以此达到鼓励用户关闭不再使用的文件。磁盘以块为单位写入，关闭文件时会强制写入最后一<code>块</code>，即使这个块空间内部还不满。</li>
+<li><code>Read</code>，数据从文件中读取。通常情况下，读取的数据来自文件的当前位置。调用者必须指定需要读取多少数据，并且提供存放这些数据的缓冲区。</li>
+<li><code>Write</code>，向文件写数据，写操作一般也是从文件的当前位置开始进行。如果当前位置是文件的末尾，则会直接追加进行写入。如果当前位置在文件中，则现有数据被覆盖，并且永远消失。</li>
+<li><code>append</code>，使用 append 只能向文件末尾添加数据。</li>
+<li><code>seek</code>，对于随机访问的文件，要指定从何处开始获取数据。通常的方法是用 seek 系统调用把当前位置指针指向文件中的特定位置。seek 调用结束后，就可以从指定位置开始读写数据了。</li>
+<li><code>get attributes</code>，进程运行时通常需要读取文件属性。</li>
+<li><code>set attributes</code>，用户可以自己设置一些文件属性，甚至是在文件创建之后，实现该功能的是 set attributes 系统调用。</li>
+<li><code>rename</code>，用户可以自己更改已有文件的名字，rename 系统调用用于这一目的。</li>
+</ol>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><p>文件系统通常提供<code>目录(directories)</code> 或者 <code>文件夹(folders)</code> 用于记录文件的位置，在很多系统中目录本身也是文件，下面我们会讨论关于文件，他们的组织形式、属性和可以对文件进行的操作。</p>
+<h3 id="一级目录系统"><a href="#一级目录系统" class="headerlink" title="一级目录系统"></a>一级目录系统</h3><p>目录系统最简单的形式是有一个能够包含所有文件的目录。这种目录被称为<code>根目录(root directory)</code>，由于根目录的唯一性，所以其名称并不重要。在最早期的个人计算机中，这种系统很常见，部分原因是因为只有一个用户。下面是一个单层目录系统的例子</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/8.png" style="zoom:67%;"></p>
+<p>该目录中有四个文件。这种设计的优点在于简单，并且能够快速定位文件，毕竟只有一个地方可以检索。这种目录组织形式现在一般用于简单的嵌入式设备（如数码相机和某些便携式音乐播放器）上使用。</p>
+<h3 id="层次目录系统"><a href="#层次目录系统" class="headerlink" title="层次目录系统"></a>层次目录系统</h3><p>对于简单的应用而言，一般都用单层目录方式，但是这种组织形式并不适合于现代计算机，因为现代计算机含有成千上万个文件和文件夹。如果都放在根目录下，查找起来会非常困难。为了解决这一问题，出现了<code>层次目录系统(Hierarchical Directory Systems)</code>，也称为<code>目录树</code>。通过这种方式，可以用很多目录把文件进行分组。进而，如果多个用户共享同一个文件服务器，比如公司的网络系统，每个用户可以为自己的目录树拥有自己的私人根目录。这种方式的组织结构如下</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/9.png" style="zoom:67%;"></p>
+<p>根目录含有目录 A、B 和 C ，分别属于不同的用户，其中两个用户个字创建了<code>子目录</code>。用户可以创建任意数量的子目录，现代文件系统都是按照这种方式组织的。</p>
+<h3 id="路径名"><a href="#路径名" class="headerlink" title="路径名"></a>路径名</h3><p>当目录树组织文件系统时，需要有某种方法指明文件名。常用的方法有两种，第一种方式是每个文件都会用一个<code>绝对路径名(absolute path name)</code>，它由根目录到文件的路径组成。举个例子，<code>/usr/ast/mailbox</code> 意味着根目录包含一个子目录<code>usr</code>，usr 下面包含了一个 <code>mailbox</code>。绝对路径名总是以 <code>/</code> 开头，并且是唯一的。在UNIX中，路径的组件由<code>/</code>分隔。在Windows中，分隔符为<code>\</code>。 在 MULTICS 中，它是<code>&gt;</code>。 因此，在这三个系统中，相同的路径名将被编写如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Windows \usr\ast\mailbox </span><br><span class="line">UNIX &#x2F;usr&#x2F;ast&#x2F;mailbox </span><br><span class="line">MULTICS &gt;usr&gt;ast&gt;mailbox</span><br></pre></td></tr></table></figure>
+<p>不论使用哪种方式，<strong>如果路径名的第一个字符是分隔符，那就是绝对路径</strong>。</p>
+<p>另外一种指定文件名的方法是 <code>相对路径名(relative path name)</code>。它常常和 <code>工作目录(working directory)</code> （也称作 <code>当前目录(current directory)</code>）一起使用。用户可以指定一个目录作为当前工作目录。例如，如果当前目录是 <code>/usr/ast</code>，那么绝对路径 <code>/usr/ast/mailbox</code>可以直接使用 <code>mailbox</code> 来引用。也就是说，如果工作目录是 <code>/usr/ast</code>，则 UNIX 命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp &#x2F;usr&#x2F;ast&#x2F;mailbox  &#x2F;usr&#x2F;ast&#x2F;mailbox.bak</span><br></pre></td></tr></table></figure>
+<p>和命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp mailbox mailbox.bak</span><br></pre></td></tr></table></figure>
+<p>具有相同的含义。相对路径通常情况下更加方便和简洁。而它实现的功能和绝对路径安全相同。</p>
+<p>一些程序需要访问某个特定的文件而不必关心当前的工作目录是什么。在这种情况下，应该使用绝对路径名。</p>
+<p>支持层次目录结构的大多数操作系统在每个目录中有两个特殊的目录项<code>.</code> 和 <code>..</code>，长读作 <code>dot</code> 和 <code>dotdot</code>。dot 指的是当前目录，dotdot 指的是其父目录（在根目录中例外，在根目录中指向自己）。可以参考下面的进程树来查看如何使用。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/10.png" style="zoom:67%;"></p>
+<p>一个进程的工作目录是 <code>/usr/ast</code>，它可采用 <code>..</code> 沿树向上，例如，可用命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp ..&#x2F;lib&#x2F;dictionary .</span><br></pre></td></tr></table></figure>
+<p>把文件 <code>usr/lib/dictionary</code> 复制到自己的目录下，第一个路径告诉系统向上找（到 usr 目录），然后向下到 <code>lib</code> 目录，找到 dictionary 文件</p>
+<p>第二个参数 <code>.</code> 指定当前的工作目录，当 cp 命令用目录名作为最后一个参数时，则把全部的文件复制到该目录中。当然，对于上述复制，键入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp &#x2F;usr&#x2F;lib&#x2F;dictionary .</span><br></pre></td></tr></table></figure>
+<p>是更常用的方法。用户这里采用 <code>.</code> 可以避免键入两次 dictionary 。无论如何，键入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp &#x2F;usr&#x2F;lib&#x2F;dictionary dictionary</span><br></pre></td></tr></table></figure>
+<p>也可正常工作，就像键入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp &#x2F;usr&#x2F;lib&#x2F;dictionary &#x2F;usr&#x2F;lib&#x2F;dictionary</span><br></pre></td></tr></table></figure>
+<p>一样。所有这些命令都能够完成同样的工作。</p>
+<h3 id="目录操作"><a href="#目录操作" class="headerlink" title="目录操作"></a>目录操作</h3><p>不同文件中管理目录的系统调用的差别比管理文件的系统调用差别大。为了了解这些系统调用有哪些以及它们怎样工作，下面给出一个例子（取自 UNIX）。</p>
+<ol>
+<li><code>Create</code>，创建目录，除了目录项 <code>.</code> 和 <code>..</code> 外，目录内容为空。</li>
+<li><code>Delete</code>，删除目录，只有空目录可以删除。只包含 <code>.</code> 和 <code>..</code> 的目录被认为是空目录，这两个目录项通常不能删除</li>
+<li><code>opendir</code>，目录内容可被读取。例如，未列出目录中的全部文件，程序必须先打开该目录，然后读其中全部文件的文件名。与打开和读文件相同，在读目录前，必须先打开文件。</li>
+<li><code>closedir</code>，读目录结束后，应该关闭目录用于释放内部表空间。</li>
+<li><code>readdir</code>，系统调用 readdir 返回打开目录的下一个目录项。以前也采用 read 系统调用来读取目录，但是这种方法有一个缺点：程序员必须了解和处理目录的内部结构。相反，不论采用哪一种目录结构，readdir 总是以标准格式返回一个目录项。</li>
+<li><code>rename</code>，在很多方面目录和文件都相似。文件可以更换名称，目录也可以。</li>
+<li><code>link</code>，链接技术允许在多个目录中出现同一个文件。这个系统调用指定一个存在的文件和一个路径名，并建立从该文件到路径所指名字的链接。这样，可以在多个目录中出现同一个文件。有时也被称为<code>硬链接(hard link)</code>。</li>
+<li><code>unlink</code>，删除目录项。如果被解除链接的文件只出现在一个目录中，则将它从文件中删除。如果它出现在多个目录中，则只删除指定路径名的链接，依然保留其他路径名的链接。在 UNIX 中，用于删除文件的系统调用就是 unlink。</li>
+</ol>
+<h2 id="文件系统的实现"><a href="#文件系统的实现" class="headerlink" title="文件系统的实现"></a>文件系统的实现</h2><p>在对文件有了基本认识之后，现在是时候把目光转移到文件系统的<code>实现</code>上了。之前用户关心的一直都是文件是怎样命名的、可以进行哪些操作、目录树是什么，如何找到正确的文件路径等问题。而设计人员关心的是文件和目录是怎样存储的、磁盘空间是如何管理的、如何使文件系统得以流畅运行的问题，下面我们就来一起讨论一下这些问题。</p>
+<h3 id="文件系统布局"><a href="#文件系统布局" class="headerlink" title="文件系统布局"></a>文件系统布局</h3><p>文件系统存储在<code>磁盘</code>中。大部分的磁盘能够划分出一到多个分区，叫做<code>磁盘分区(disk partitioning)</code> 或者是<code>磁盘分片(disk slicing)</code>。每个分区都有独立的文件系统，每块分区的文件系统可以不同。磁盘的 0 号分区称为 <code>主引导记录(Master Boot Record, MBR)</code>，用来<code>引导(boot)</code> 计算机。在 MBR 的结尾是<code>分区表(partition table)</code>。每个分区表给出每个分区由开始到结束的地址。系统管理员使用一个称为分区编辑器的程序来创建，调整大小，删除和操作分区。这种方式的一个缺点是很难适当调整分区的大小，导致一个分区具有很多可用空间，而另一个分区几乎完全被分配。</p>
+<blockquote>
+<p>MBR 可以用在 DOS 、Microsoft Windows 和 Linux 操作系统中。从 2010 年代中期开始，大多数新计算机都改用 GUID 分区表（GPT）分区方案。</p>
+</blockquote>
+<p>下面是一个用 <code>GParted</code> 进行分区的磁盘，表中的分区都被认为是 <code>活动的(active)</code>。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/11.png" style="zoom:67%;"></p>
+<p>当计算机开始引 boot 时，BIOS 读入并执行 MBR。</p>
+<h4 id="引导块"><a href="#引导块" class="headerlink" title="引导块"></a>引导块</h4><p>MBR 做的第一件事就是<code>确定活动分区</code>，读入它的第一个块，称为<code>引导块(boot block)</code> 并执行。引导块中的程序<strong>将加载分区中的操作系统</strong>。为了一致性，<strong>每个分区都会从引导块开始，即使引导块不包含操作系统</strong>。引导块占据文件系统的前 4096 个字节，从磁盘上的字节偏移量 0 开始。引导块可用于启动操作系统。</p>
+<blockquote>
+<p>在计算机中，引导就是启动计算机的过程，它可以通过硬件（例如按下电源按钮）或者软件命令的方式来启动。开机后，电脑的 CPU 还不能执行指令，因为此时没有软件在主存中，所以一些软件必须先被加载到内存中，然后才能让 CPU 开始执行。也就是计算机开机后，首先会进行软件的装载过程。</p>
+<p>重启电脑的过程称为<code>重新引导(rebooting)</code>，从休眠或睡眠状态返回计算机的过程不涉及启动。</p>
+</blockquote>
+<p>除了从引导块开始之外，磁盘分区的布局是随着文件系统的不同而变化的。通常文件系统会包含一些属性，如下</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/12.png" style="zoom:67%;"></p>
+<h4 id="超级块"><a href="#超级块" class="headerlink" title="超级块"></a>超级块</h4><p>紧跟在引导块后面的是 <code>超级块(Superblock)</code>，超级块 的大小为 4096 字节，从磁盘上的字节偏移 4096 开始。<strong>超级块包含文件系统的所有关键参数</strong></p>
+<ul>
+<li>文件系统的大小</li>
+<li>文件系统中的<strong>数据块数</strong></li>
+<li>指示文件系统状态的标志</li>
+<li>分配组大小</li>
+</ul>
+<p>这些信息描述了文件系统的布局，在计算机启动或者文件系统首次使用时，超级块会被读入内存。</p>
+<h4 id="空闲空间块"><a href="#空闲空间块" class="headerlink" title="空闲空间块"></a>空闲空间块</h4><p>接着是文件系统中<code>空闲块</code>的信息，例如，<strong>可以用位图或者指针列表的形式</strong>给出。</p>
+<p><strong>BitMap 位图或者 Bit vector 位向量</strong></p>
+<p>位图或位向量是一系列位或位的集合，其中<strong>每个位对应一个磁盘块</strong>，该位可以采用两个值：0和1，<strong>0表示已分配该块，而1表示一个空闲块</strong>。下图中的磁盘上给定的磁盘块实例（分配了绿色块）可以用16位的位图表示为：0000111000000110。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/13.png" style="zoom:67%;"></p>
+<p><strong>使用链表进行管理</strong></p>
+<p>在这种方法中，空闲磁盘块链接在一起，即一个空闲块包含指向下一个空闲块的指针。第一个磁盘块的块号存储在磁盘上的单独位置，也缓存在内存中。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/14.png" style="zoom:67%;"></p>
+<h4 id="碎片"><a href="#碎片" class="headerlink" title="碎片"></a>碎片</h4><p>这里不得不提一个叫做<code>碎片(fragment)</code>的概念，也称为片段。一般零散的单个数据通常称为片段。 磁盘块可以进一步分为固定大小的分配单元，片段只是在驱动器上彼此不相邻的文件片段。如果你不理解这个概念就给你举个例子。比如你用 Windows 电脑创建了一个文件，你会发现这个文件可以存储在任何地方，比如存在桌面上，存在磁盘中的文件夹中或者其他地方。你可以打开文件，编辑文件，删除文件等等。你可能以为这些都在一个地方发生，但是实际上并不是，你的硬盘驱动器可能会将文件中的一部分存储在一个区域内，另一部分存储在另外一个区域，在你打开文件时，硬盘驱动器会迅速的将文件的所有部分汇总在一起，以便其他计算机系统可以使用它。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/15.png" style="zoom:67%;"></p>
+<h4 id="inode"><a href="#inode" class="headerlink" title="inode"></a>inode</h4><p>然后在后面是一个 <code>inode(index node)</code>，也称作索引节点。它是一个数组的结构，每个文件有一个 inode，inode 非常重要，它说明了文件的方方面面。<strong>每个索引节点都存储对象数据的属性和磁盘块位置</strong></p>
+<p>有一种简单的方法可以找到它们 <code>ls -lai</code> 命令。让我们看一下根文件系统：</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/16.png" style="zoom:67%;"></p>
+<p>inode 节点主要包括了以下信息</p>
+<ul>
+<li>模式/权限（保护）</li>
+<li>所有者 ID</li>
+<li>组 ID</li>
+<li>文件大小</li>
+<li>文件的硬链接数</li>
+<li>上次访问时间</li>
+<li>最后修改时间</li>
+<li>inode 上次修改时间</li>
+</ul>
+<p>文件分为两部分，索引节点和块。一旦创建后，每种类型的块数是固定的。你不能增加分区上 inode 的数量，也不能增加磁盘块的数量。</p>
+<p>紧跟在 inode 后面的是根目录，它存放的是文件系统目录树的根部。最后，磁盘的其他部分存放了其他所有的目录和文件。</p>
+<h3 id="文件的实现"><a href="#文件的实现" class="headerlink" title="文件的实现"></a>文件的实现</h3><p>最重要的问题是记录各个文件分别用到了哪些磁盘块。不同的系统采用了不同的方法。下面我们会探讨一下这些方式。分配背后的主要思想是<code>有效利用文件空间</code>和<code>快速访问文件</code> ，主要有三种分配方案</p>
+<ul>
+<li>连续分配</li>
+<li>链表分配</li>
+<li>索引分配</li>
+</ul>
+<h4 id="连续分配"><a href="#连续分配" class="headerlink" title="连续分配"></a>连续分配</h4><p>最简单的分配方案是把每个文件作为一连串连续数据块存储在磁盘上。因此，在具有 1KB 块的磁盘上，将为 50 KB 文件分配 50 个连续块。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/17.png" style="zoom:67%;"></p>
+<p>上面展示了 40 个连续的内存块。从最左侧的 0 块开始。初始状态下，还没有装载文件，因此磁盘是空的。接着，从磁盘开始处（块 0 ）处开始写入占用 4 块长度的内存 A 。然后是一个占用 6 块长度的内存 B，会直接在 A 的末尾开始写。</p>
+<p>注意每个文件都会在新的文件块开始写，所以如果文件 A 只占用了 <code>3 又 1/2</code> 个块，那么最后一个块的部分内存会被浪费。在上面这幅图中，总共展示了 7 个文件，每个文件都会从上个文件的末尾块开始写新的文件块。</p>
+<p>连续的磁盘空间分配有两个优点。</p>
+<ul>
+<li>第一，连续文件存储<strong>实现起来比较简单</strong>，只需要记住两个数字就可以：一个是第一个块的文件地址和文件的块数量。给定第一个块的编号，可以通过简单的加法找到任何其他块的编号。</li>
+<li>第二点是<strong>读取性能比较强</strong>，可以通过一次操作从文件中读取整个文件。只需要一次寻找第一个块。后面就不再需要寻道时间和旋转延迟，所以数据会以全带宽进入磁盘。</li>
+</ul>
+<p>因此，连续的空间分配具有<code>实现简单</code>、<code>高性能</code>的特点。</p>
+<p>不幸的是，连续空间分配也有很明显的不足。随着时间的推移，<strong>磁盘会变得很零碎</strong>。下图解释了这种现象</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/18.png" style="zoom:67%;"></p>
+<p>这里有两个文件 D 和 F 被删除了。当删除一个文件时，此文件所占用的块也随之释放，就会在磁盘空间中留下一些空闲块。磁盘并不会在这个位置挤压掉空闲块，因为这会复制空闲块之后的所有文件，可能会有上百万的块，这个量级就太大了。</p>
+<p>刚开始的时候，这个碎片不是问题，因为每个新文件都会在之前文件的结尾处进行写入。然而，磁盘最终会被填满，<strong>因此要么压缩磁盘、要么重新使用空闲块的空间</strong>。压缩磁盘的开销太大，因此不可行；后者会维护一个空闲列表，这个是可行的。但是这种情况又存在一个问题，为空闲块匹配合适大小的文件，需要知道该文件的<code>最终大小</code>。</p>
+<p>想象一下这种设计的结果会是怎样的。用户启动 word 进程创建文档。应用程序首先会询问最终创建的文档会有多大。这个问题必须回答，否则应用程序就不会继续执行。如果空闲块的大小要比文件的大小小，程序就会终止。因为所使用的磁盘空间已经满了。那么现实生活中，有没有使用连续分配内存的介质出现呢？</p>
+<p><code>CD-ROM</code> 就广泛的使用了连续分配方式。</p>
+<blockquote>
+<p><code>CD-ROM（Compact Disc Read-Only Memory）</code>即只读光盘，也称作只读存储器。是一种在电脑上使用的光碟。这种光碟只能写入数据一次，信息将永久保存在光碟上，使用时通过光碟驱动器读出信息。</p>
+</blockquote>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/19.png" style="zoom:67%;"></p>
+<p>然而 DVD 的情况会更加复杂一些。原则上，一个 <code>90分钟</code> 的电影能够被编码成一个独立的、大约 4.5 GB 的文件。但是文件系统所使用的 <code>UDF(Universal Disk Format)</code> 格式，使用一个 30 位的数来代表文件长度，从而把文件大小限制在 1 GB。所以，DVD 电影一般存储在 3、4个连续的 1 GB 空间内。这些构成单个电影中的文件块称为<code>扩展区(extends)</code>。</p>
+<p>就像我们反复提到的，<strong>历史总是惊人的相似</strong>，许多年前，连续分配由于其<code>简单</code>和<code>高性能</code>被实际使用在磁盘文件系统中。后来由于用户不希望在创建文件时指定文件的大小，于是放弃了这种想法。但是随着 CD-ROM 、DVD、蓝光光盘等光学介质的出现，连续分配又流行起来。从而得出结论，<code>技术永远没有过时性</code>，现在看似很老的技术，在未来某个阶段可能又会流行起来。</p>
+<h4 id="链表分配"><a href="#链表分配" class="headerlink" title="链表分配"></a>链表分配</h4><p>第二种存储文件的方式是<strong>为每个文件构造磁盘块链表</strong>，每个文件都是磁盘块的链接列表，就像下面所示</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/20.png" style="zoom:67%;"></p>
+<p>每个块的第一个字作为指向下一块的指针，块的其他部分存放数据。如果上面这张图你看的不是很清楚的话，可以看看整个的链表分配方案</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/21.png" style="zoom:67%;"></p>
+<p>与连续分配方案不同，这一方法可以充分利用每个磁盘块。除了最后一个磁盘块外，不会因为磁盘碎片而浪费存储空间。同样，在目录项中，只要存储了第一个文件块，那么其他文件块也能够被找到。</p>
+<p>另一方面，在链表的分配方案中，<strong>尽管顺序读取非常方便，但是随机访问却很困难</strong>（这也是数组和链表数据结构的一大区别）。</p>
+<p>还有一个问题是，由于指针会占用一些字节，每个磁盘块实际存储数据的字节数并不再是 2 的整数次幂。虽然这个问题并不会很严重，但是这种方式降低了程序运行效率。许多程序都是以长度为 2 的整数次幂来读写磁盘，由于每个块的前几个字节被指针所使用，所以要读出一个完成的块大小信息，就需要当前块的信息和下一块的信息拼凑而成，因此就引发了查找和拼接的开销。</p>
+<h4 id="使用内存表进行链表分配"><a href="#使用内存表进行链表分配" class="headerlink" title="使用内存表进行链表分配"></a>使用内存表进行链表分配</h4><p>由于连续分配和链表分配都有其不可忽视的缺点。所以提出了使用内存中的表来解决分配问题。取出每个磁盘块的指针字，<strong>把它们放在内存的一个表中</strong>，就可以解决上述链表的两个不足之处。下面是一个例子</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/22.png" style="zoom:67%;"></p>
+<p>上图表示了链表形成的磁盘块的内容。这两个图中都有两个文件，文件 A 依次使用了磁盘块地址 <strong>4、7、 2、 10、 12</strong>，文件 B 使用了<strong>6、3、11 和 14</strong>。也就是说，文件 A 从地址 4 处开始，顺着链表走就能找到文件 A 的全部磁盘块。同样，从第 6 块开始，顺着链走到最后，也能够找到文件 B 的全部磁盘块。你会发现，这两个链表都以不属于有效磁盘编号的特殊标记（-1）结束。内存中的这种表格称为 <code>文件分配表(File Application Table,FAT)</code>。</p>
+<p>使用这种组织方式，整个块都可以存放数据。进而，随机访问也容易很多。虽然仍要顺着链在内存中查找给定的偏移量，但是整个链都存放在内存中，所以不需要任何磁盘引用。与前面的方法相同，不管文件有多大，在目录项中只需记录一个整数（起始块号），按照它就可以找到文件的全部块。</p>
+<p>这种方式存在缺点，那就是<strong>必须要把整个链表放在内存中</strong>。对于 1TB 的磁盘和 1KB 的大小的块，那么这张表需要有 10 亿项。。。每一项对应于这 10 亿个磁盘块中的一块。每项至少 3 个字节，为了提高查找速度，有时需要 4 个字节。根据系统对空间或时间的优化方案，这张表要占用 3GB 或 2.4GB 的内存。FAT 的管理方式不能较好地扩展并应用于大型磁盘中。而这正是最初 MS-DOS 文件比较实用，并仍被各个 Windows 版本所安全支持。</p>
+<h4 id="inode-1"><a href="#inode-1" class="headerlink" title="inode"></a>inode</h4><p>最后一个记录各个文件分别包含哪些磁盘块的方法是给每个文件赋予一个称为 <code>inode(索引节点)</code> 的数据结构，每个文件都与一个 <code>inode</code> 进行关联，inode 由整数进行标识。</p>
+<p>下面是一个简单例子的描述。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/23.png" style="zoom:67%;"></p>
+<p>给出 inode 的长度，就能够找到文件中的所有块。</p>
+<p>相对于在内存中使用表的方式而言，这种机制具有很大的优势。即只有在文件打开时，其 inode 才会在内存中。如果每个 inode 需要 n 个字节，最多 k 个文件同时打开，那么 inode 占有总共打开的文件是 kn 字节。仅需预留这么多空间。</p>
+<p>这个数组要比我们上面描述的 <code>FAT(文件分配表)</code> 占用的空间小的多。原因是<strong>用于保存所有磁盘块的链接列表的表的大小与磁盘本身成正比</strong>。如果磁盘有 n 个块，那么这个表也需要 n 项。随着磁盘空间的变大，那么该表也随之<code>线性增长</code>。相反，inode 需要节点中的数组，<strong>其大小和可能需要打开的最大文件个数成正比</strong>。它与磁盘是 100GB、4000GB 还是 10000GB 无关。</p>
+<p>inode 的一个问题是如果每个节点都会有固定大小的磁盘地址，那么文件增长到所能允许的最大容量外会发生什么？一个解决方案是<strong>最后一个磁盘地址不指向数据块</strong>，而是<strong>指向一个包含额外磁盘块地址的地址</strong>，如上图所示。一个更高级的解决方案是：有两个或者更多包含磁盘地址的块，或者指向其他存放地址的磁盘块的磁盘块。Windows 的 NTFS 文件系统采用了相似的方法，所不同的仅仅是大的 inode 也可以表示小的文件。</p>
+<blockquote>
+<p>NTFS 的全称是 <code>New Technology File System</code>，是微软公司开发的专用系统文件，NTFS 取代 FAT(文件分配表) 和 <code>HPFS(高性能文件系统)</code> ，并在此基础上进一步改进。例如增强对元数据的支持，使用更高级的数据结构以提升性能、可靠性和磁盘空间利用率等。</p>
+</blockquote>
+<h3 id="目录的实现"><a href="#目录的实现" class="headerlink" title="目录的实现"></a>目录的实现</h3><p>文件只有打开后才能够被读取。在文件打开1后，操作系统会使用用户提供的路径名来定位磁盘中的目录。目录项提供了查找文件磁盘块所需要的信息。根据系统的不同，提供的信息也不同，可能提供的信息是整个文件的磁盘地址，或者是第一个块的数量（两个链表方案）或 inode的数量。不过不管用哪种情况，目录系统的主要功能就是 <strong>将文件的 ASCII 码的名称映射到定位数据所需的信息上</strong>。</p>
+<p>与此关系密切的问题是属性应该存放在哪里。每个文件系统包含不同的文件属性，例如文件的所有者和创建时间，需要存储的位置。一种显而易见的方法是直接<strong>把文件属性存放在目录中</strong>。有一些系统恰好是这么做的，如下。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/24.png" style="zoom:67%;"></p>
+<p>在这种简单的设计中，目录有一个固定大小的目录项列表，每个文件对应一项，其中包含一个固定长度的文件名，文件属性的结构体以及用以说明磁盘块位置的一个或多个磁盘地址。</p>
+<p>对于采用 inode 的系统，会把 inode 存储在属性中而不是目录项中。在这种情况下，目录项会更短：仅仅只有文件名称和 inode 数量。这种方式如下所示</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/25.png" style="zoom:67%;"></p>
+<p>到目前为止，我们已经假设文件具有较短的、固定长度的名字。在 MS-DOS 中，具有 1 - 8 个字符的基本名称和 1 - 3 个字符的可拓展名称。在 UNIX 版本 7 中，文件有 1 - 14 个字符，包括任何拓展。然而，几乎所有的现代操作系统都支持可变长度的扩展名。这是如何实现的呢？</p>
+<p>最简单的方式是给予文件名一个长度限制，比如 255 个字符，然后使用上图中的设计，并为每个文件名保留 255 个字符空间。这种处理很简单，但是浪费了大量的目录空间，因为只有很少的文件会有那么长的文件名称。所以，需要一种其他的结构来处理。</p>
+<p>一种可选择的方式是放弃所有目录项大小相同的想法。在这种方法中，每个目录项都包含一个固定部分，这个固定部分通常以目录项的长度开始，后面是固定格式的数据，通常包括<strong>所有者、创建时间、保护信息和其他属性</strong>。这个固定长度的头的后面是一个任意长度的实际文件名，如下图所示</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/26.png" style="zoom:67%;"></p>
+<p>上图是 SPARC 机器使用正序放置。</p>
+<blockquote>
+<p>处理机中的一串字符存放的顺序有<code>正序(big-endian)</code> 和<code>逆序(little-endian)</code> 之分。正序存放的就是高字节在前低字节在后，而逆序存放的就是低字节在前高字节在后。</p>
+</blockquote>
+<p>这个例子中，有三个文件，分别是 <code>project-budget</code>、<code>personnel</code> 和 <code>foo</code>。每个文件名以一个特殊字符（通常是 0 ）结束，用矩形中的叉进行表示。</p>
+<p>为了使每个目录项<strong>从字的边界开始</strong>，每个文件名被填充成整数个字，如下图所示</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/27.png" style="zoom:67%;"></p>
+<p>这个方法的缺点是当文件被移除后，就会留下一块固定长度的空间，而新添加进来的文件大小不一定和空闲空间大小一致。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/28.png" style="zoom:67%;"></p>
+<p>这个问题与我们上面探讨的连续磁盘文件的问题是一样的，由于整个目录在内存中，所以只有对目录进行<code>紧凑拼接</code>操作才可节省空间。另一个问题是，一个目录项可能会分布在多个页上，<strong>在读取文件名时可能发生缺页中断</strong>。</p>
+<p>处理可变长度文件名字的另外一种方法是，使目录项自身具有固定长度，而将文件名放在目录末尾的堆栈中。如上图所示的这种方式。这种方法的优点是当目录项被移除后，下一个文件将能够正常匹配移除文件的空间。当然，必须要对<code>堆</code>进行管理，因为在处理文件名的时候也会发生缺页异常。</p>
+<p>到目前为止的所有设计中，在需要查找文件名时，所有的方案都是线性的从头到尾对目录进行搜索。对于特别长的目录，线性搜索的效率很低。<strong>提高文件检索效率</strong>的一种方式是在每个目录上使用<code>哈希表(hash table)</code>，也叫做<strong>散列表</strong>。我们假设表的大小为 n，在输入文件名时，文件名被散列在 0 和 n - 1 之间，例如，它被 n 除，并取余数。或者对构成文件名字的字求和或类似某种方法。</p>
+<p>无论采用哪种方式，<strong>在添加一个文件时都要对与散列值相对 应的散列表进行检查</strong>。如果没有使用过，就会将一个指向目录项的指针指向这里。文件目录项紧跟着哈希表后面。如果已经使用过，就会构造一个链表（这种构造方式是不是和 HashMap 使用的数据结构一样？），链表的表头指针存放在表项中，并通过哈希值将所有的表项相连。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/29.png" style="zoom:67%;"></p>
+<p>查找文件的过程和添加类似:</p>
+<ol>
+<li>首先对文件名进行哈希处理</li>
+<li>在哈希表中查找是否有这个哈希值，<ol>
+<li>如果有的话，就检查这条链上所有的哈希项，查看文件名是否存在。</li>
+<li>如果哈希不在链上，那么文件就不在目录中。</li>
+</ol>
+</li>
+</ol>
+<p>使用哈希表的优势是<code>查找非常迅速</code>，缺点是<code>管理起来非常复杂</code>。只有在系统中会有成千上万个目录项存在时，才会考虑使用散列表作为解决方案。</p>
+<p>另外一种在大量目录中加快查找指令目录的方法是使用<code>缓存</code>，缓存查找的结果。在开始查找之前，会首先检查文件名是否在缓存中。如果在缓存中，那么文件就能立刻定位。当然，只有在较少的文件下进行多次查找，缓存才会发挥最大功效。</p>
+<h3 id="共享文件"><a href="#共享文件" class="headerlink" title="共享文件"></a>共享文件</h3><p>当多个用户在同一个项目中工作时，他们通常需要共享文件。如果这个共享文件同时出现在多个用户目录下，那么他们协同工作起来就很方便。下面的这张图我们在上面提到过，但是有一个更改的地方，就是 <strong>C 的一个文件也出现在了 B 的目录下</strong>。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/30.png" style="zoom:67%;"></p>
+<p>如果按照如上图的这种组织方式而言，那么 B 的目录与该共享文件的联系称为 <code>链接(link)</code>。那么文件系统现在就是一个 <code>有向无环图(Directed Acyclic Graph, 简称 DAG)</code>，而不是一棵树了。</p>
+<blockquote>
+<p>在图论中，如果一个有向图从任意顶点出发无法经过若干条边回到该点，则这个图是一个<code>有向无环图</code>，我们不会在此着重探讨关于图论的东西，大家可以自行 google。</p>
+</blockquote>
+<p>将文件系统组织成为有向无环图<strong>会使得维护复杂化</strong>，但也是必须要付出的代价。</p>
+<p><code>共享文件</code>很方便，但这也会带来一些问题。如果目录中包含磁盘地址，则当链接文件时，<strong>必须把 C 目录中的磁盘地址复制到 B 目录中</strong>。如果 B 或者 C 随后又向文件中添加内容，则仅在执行追加的用户的目录中显示新写入的数据块。这种变更将会对其他用户不可见，从而破坏了共享的目的。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/31.png" style="zoom:67%;"></p>
+<p>有两种方案可以解决这种问题。</p>
+<ul>
+<li>第一种解决方案，磁盘块不列入目录中，而是<strong>会把磁盘块放在与文件本身相关联的小型数据结构中。</strong>目录将指向这个小型数据结构。这是 <code>UNIX</code> 中使用的方式（小型数据结构就是 inode）。</li>
+<li>在第二种解决方案中，通过让系统建立一个类型为 <code>LINK</code> 的新文件，并把该文件放在用户 B 的目录下，使得 B 与 C 建立链接。新的文件中只包含了它所链接的文件的路径名。当 用户B 想要读取文件C 时，操作系统会检查 用户B 的目录下存在一个类型为 LINK 的文件，进而找到该链接的文件和路径名，然后再去用户A的目录下去读文件C，这种方式称为 <code>符号链接(symbolic linking)</code>。</li>
+</ul>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/32.png" style="zoom:67%;"></p>
+<p>上面的每一种方法都有各自的缺点，在第一种方式中，B 链接到共享文件时，inode 记录文件的所有者为 C。<strong>建立一个链接并不改变所有关系</strong>，如下图所示。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/33.png" style="zoom:67%;"></p>
+<p>第一开始的情况如图 a 所示，此时 C 的目录的所有者是 C ，当目录 B 链接到共享文件时，并不会改变 C 的所有者关系，只是把计数 + 1，所以此时 <strong>系统知道目前有多少个目录指向这个文件</strong>。然后 C 尝试删除这个文件，这个时候有个问题，如果 C 把文件移除并清除了 inode 的话，那么 B 会有一个目录项指向无效的节点。如果 inode 以后分配给另一个文件，则 B 的链接指向一个错误的文件。系统通过 inode 可知文件仍在被引用，但是没有办法找到该文件的全部目录项以删除它们。指向目录的指针不能存储在 inode 中，原因是有可能有无数个这样的目录。</p>
+<p>所以我们能做的就是删除 C 的目录项，但是将 inode 保留下来，并将计数设置为 1 ，如上图 c 所示。c 表示的是只有 B 有指向该文件的目录项，而该文件的前者是 C 。如果系统进行记账操作的话，那么 C 将继续为该文件付账直到 B 决定删除它，如果是这样的话，只有到计数变为 0 的时刻，才会删除该文件。</p>
+<p>对于<code>符号链接</code>，以上问题不会发生，只有真正的文件所有者才有一个指向 inode 的指针。链接到该文件上的用户只有路径名，没有指向 inode 的指针。当文件所有者删除文件时，该文件被销毁。以后若试图通过符号链接访问该文件将会失败，因为系统不能找到该文件。删除符号链接不会影响该文件。</p>
+<p>符号链接的问题是<strong>需要额外的开销</strong>。必须读取包含路径的文件，然后要一个部分接一个部分地扫描路径，直到找到 inode 。这些操作也许需要很多次额外的磁盘访问。此外，每个符号链接都需要额外的 inode ，以及额外的一个磁盘块用于存储路径，虽然如果路径名很短，作为一种优化，系统可以将它存储在 inode 中。符号链接有一个优势，即只要<strong>简单地提供一个机器的网络地址以及文件在该机器上驻留的路径</strong>，就可以连接全球任何地方机器上的文件。</p>
+<p>还有另一个由链接带来的问题，在符号链接和其他方式中都存在。如果允许链接，文件有两个或多个路径。查找一指定目录及其子目录下的全部文件的程序将多次定位到被链接的文件。例如，一个将某一目录及其子目录下的文件转存到磁带上的程序有可能多次复制一个被链接的文件。进而，如果接着把磁带读入另一台机器，除非转出程序具有智能，否则被链接的文件将被两次复制到磁盘上，而不是只是被链接起来。</p>
+<h3 id="日志结构文件系统"><a href="#日志结构文件系统" class="headerlink" title="日志结构文件系统"></a>日志结构文件系统</h3><p>技术的改变会给当前的文件系统带来压力。这种情况下，CPU 会变得越来越快，磁盘会变得越来越大并且越来越便宜（但不会越来越快）。内存容量也是以指数级增长。但是磁盘的寻道时间（除了固态盘，因为固态盘没有寻道时间）并没有获得提高。</p>
+<p>这些因素结合起来意味着许多系统文件中出现性能瓶颈。为此，<code>Berkeley</code> 设计了一种全新的文件系统，试图缓解这个问题，这个文件系统就是 <code>日志结构文件系统(Log-structured File System, LFS)</code>。</p>
+<p>日志结构文件系统由 <code>Rosenblum</code>和 <code>Ousterhout</code>于90年代初引入，旨在解决以下问题。</p>
+<ul>
+<li>不断增长的系统内存</li>
+<li>顺序 I/O 性能胜过随机 I/O 性能</li>
+<li>现有低效率的文件系统</li>
+<li>文件系统不支持 RAID（虚拟化）</li>
+</ul>
+<p>另一方面，当时的文件系统不论是 UNIX 还是 FFS，都有大量的随机读写（在 FFS 中创建一个新文件至少需要5次随机写），因此成为整个系统的性能瓶颈。同时因为 <code>Page cache</code>的存在，作者认为随机读不是主要问题：随着越来越大的内存，大部分的读操作都能被 cache，因此 LFS 主要要解决的是减少对硬盘的随机写操作。</p>
+<p>在这种设计中，inode 甚至具有与 UNIX 中相同的结构，但是现在它们分散在整个日志中，而不是位于磁盘上的固定位置。所以，inode 很定位。为了能够找到 inode ，维护了一个由 inode 索引的 <code>inode map(inode 映射)</code>。表项 i 指向磁盘中的第 i 个 inode 。这个映射保存在磁盘中，但是也保存在缓存中，因此，使用最频繁的部分大部分时间都在内存中。</p>
+<blockquote>
+<p>日志结构文件系统主要使用四种数据结构：Inode、Inode Map、Segment、Segment Usage Table。</p>
+</blockquote>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/34.png" style="zoom:67%;"></p>
+<p>到目前为止，所有写入最初都缓存在<code>内存</code>中，并且追加在<code>日志末尾</code>，所有缓存的写入都定期在单个段中写入磁盘。所以，现在打开文件也就意味着用映射定位文件的索引节点。一旦 inode 被定位后，磁盘块的地址就能够被找到。所有这些块本身都将位于日志中某处的分段中。</p>
+<p>真实情况下的磁盘容量是有限的，所以最终日志会占满整个磁盘空间，这种情况下就会出现没有新的磁盘块被写入到日志中。幸运的是，许多现有段可能具有不再需要的块。例如，如果一个文件被覆盖了，那么它的 inode 将被指向新的块，但是旧的磁盘块仍在先前写入的段中占据着空间。</p>
+<p>为了处理这个问题，LFS 有一个<code>清理(clean)</code>线程，它会循环扫描日志并对日志进行压缩。首先，通过查看日志中第一部分的信息来查看其中存在哪些索引节点和文件。它会检查当前 inode 的映射来查看 inode 否在在当前块中，是否仍在被使用。如果不是，该信息将被丢弃。如果仍然在使用，那么 inode 和块就会进入内存等待写回到下一个段中。然后原来的段被标记为空闲，以便日志可以用来存放新的数据。用这种方法，清理线程遍历日志，从后面移走旧的段，然后将有效的数据放入内存等待写到下一个段中。由此一来整个磁盘会形成一个大的<code>环形缓冲区</code>，写线程将新的段写在前面，而清理线程则清理后面的段。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/35.png" style="zoom:67%;"></p>
+<h3 id="日志文件系统"><a href="#日志文件系统" class="headerlink" title="日志文件系统"></a>日志文件系统</h3><p>虽然日志结构系统的设计很优雅，但是由于它们和现有的文件系统不相匹配，因此还没有广泛使用。不过，从日志文件结构系统衍生出来一种新的日志系统，叫做<code>日志文件系统</code>，<strong>它会记录系统下一步将要做什么的日志</strong>。微软的 <code>NTFS</code> 文件系统、Linux 的 <code>ext3</code> 就使用了此日志。 <code>OS X</code> 将日志系统作为可供选项。为了看清它是如何工作的，我们下面讨论一个例子，比如 <code>移除文件</code> ，这个操作在 UNIX 中需要三个步骤完成：</p>
+<ul>
+<li>在目录中删除文件</li>
+<li>释放 inode 到空闲 inode 池</li>
+<li>将所有磁盘块归还给空闲磁盘池。</li>
+</ul>
+<p>在 Windows 中，也存在类似的步骤。不存在系统崩溃时，这些步骤的执行顺序不会带来问题。但是一旦系统崩溃，就会带来问题。假如在第一步完成后系统崩溃。inode 和文件块将不会被任何文件获得，也不会再分配；它们只存在于废物池中的某个地方，并因此减少了可利用的资源。如果崩溃发生在第二步后，那么只有磁盘块会丢失。<code>日志文件系统</code>保留磁盘写入期间对文件系统所做的更改的日志或日志，该日志可用于快速重建可能由于系统崩溃或断电等事件而发生的损坏。</p>
+<blockquote>
+<p>一般文件系统崩溃后必须运行 <code>fsck（文件系统一致性检查）</code>实用程序。</p>
+</blockquote>
+<p>为了让日志能够正确工作，被写入的日志操作必须是 <code>幂等的(idempotent)</code>，它意味着只要有必要，它们就可以重复执行很多次，并不会带来破坏。像操作 <strong>更新位表并标记 inode k 或者块 n 是空闲的</strong> 可以重复执行任意次。同样地，查找一个目录并且删除所有叫 <code>foobar</code> 的项也是幂等的。相反，把从 inode k 新释放的块加入空闲表的末端不是幂等的，因为它们可能已经被释放并存放在那里了。</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/36.png" style="zoom:67%;"></p>
+<p>为了增加可靠性，一个文件系统可以引入数据库中 <code>原子事务(atomic transaction)</code> 的概念。使用这个概念，一组动作可以被界定在开始事务和结束事务操作之间。这样，文件系统就会知道它必须完成所有的动作，要么就一个不做。</p>
+<h3 id="虚拟文件系统"><a href="#虚拟文件系统" class="headerlink" title="虚拟文件系统"></a>虚拟文件系统</h3><p>即使在同一台计算机上或者在同一个操作系统下，都会使用很多不同的文件系统。Windows 中的主要文件系统是 <code>NTFS 文件系统</code>，但不是说 Windows 只有 NTFS 操作系统，它还有一些其他的例如旧的 <code>FAT -32</code> 或<code>FAT -16</code> 驱动器或分区，其中包含仍需要的数据，闪存驱动器，旧的 CD-ROM 或 DVD（每个都有自己的独特文件系统）。Windows 通过指定不同的盘符来处理这些不同的文件系统，比如 <code>C:</code>，<code>D:</code> 等。盘符可以显示存在也可以隐式存在，如果你想找指定位置的文件，那么盘符是显示存在；如果当一个进程打开一个文件时，此时盘符是隐式存在，所以 Windows 知道向哪个文件系统传递请求。</p>
+<p>相比之下，UNIX 采用了一种不同的方式，即 UNIX <strong>把多种文件系统整合到一个统一的结构中</strong>。一个 Linux 系统可以使用 <code>ext2</code> 作为根文件系统，<code>ext3</code> 分区装载在 <code>/usr</code> 下，另一块采用 <code>Reiser FS</code> 文件系统的硬盘装载到 <code>/home</code>下，以及一个 ISO 9660 的 CD - ROM 临时装载到 <code>/mnt</code> 下。从用户的观点来看，只有一个文件系统层级，但是事实上它们是由多个文件系统组合而成，对于用户和进程是不可见的。</p>
+<p>UNIX 操作系统使用一种 <code>虚拟文件系统(Virtual File System, VFS)</code> 来尝试将多种文件系统构成一个有序的结构。关键的思想是抽象出所有文件系统都共有的部分，并将这部分代码放在一层，这一层再调用具体文件系统来管理数据。下面是一个 VFS 的系统结构</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/37.png" style="zoom:67%;"></p>
+<p>还是那句经典的话，在计算机世界中，任何解决不了的问题都可以加个<code>代理</code>来解决。所有和文件相关的系统调用在最初的处理上都指向虚拟文件系统。这些来自用户进程的调用，都是标准的 <code>POSIX 系统调用</code>，比如 open、read、write 和 seek 等。VFS 对用户进程有一个 <code>上层</code> 接口，这个接口就是著名的 POSIX 接口。</p>
+<p>VFS 也有一个对于实际文件的 <code>下层</code> 接口，就是上图中标记为 VFS 的接口。这个接口包含许多功能调用，这样 VFS 可以使每一个文件系统完成任务。因此，要创建一个可以与 VFS 一起使用的新文件系统，新文件系统的设计者必须确保它提供了 VFS 要求的功能。一个明显的例子是从磁盘读取特定的块，然后将其放入文件系统的缓冲区高速缓存中，然后返回指向该块的指针的函数。 因此，VFS具有两个不同的接口：上一个到用户进程，下一个到具体文件系统。</p>
+<p>当系统启动时，根文件系统在 VFS 中注册。另外，当装载其他文件时，不管在启动时还是在操作过程中，它们也必须在 VFS 中注册。当一个文件系统注册时，根文件系统注册到 VFS。另外，在引导时或操作期间挂载其他文件系统时，它们也必须向 VFS 注册。当文件系统注册时，其基本作用是提供 VFS 所需功能的地址列表、调用向量表、或者 VFS 对象。因此一旦文件系统注册到 VFS，它就知道从哪里开始读取数据块。</p>
+<p>装载文件系统后就可以使用它了。比如，如果一个文件系统装载到 <code>/usr</code> 并且一个进程调用它：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">open("/usr/include/unistd.h",O_RDONLY)</span><br></pre></td></tr></table></figure>
+<p>当解析路径时， VFS 看到新的文件系统被挂载到 <code>/usr</code>，并且通过搜索已经装载文件系统的超级块来确定它的超块。然后它找到它所转载的文件的根目录，在那里查找路径 <code>include/unistd.h</code>。然后 VFS 创建一个 vnode 并调用实际文件系统，以返回所有的在文件 inode 中的信息。这个信息和其他信息一起复制到 vnode （内存中）。而这些其他信息中最重要的是指向包含调用 vnode 操作的函数表的指针，比如 read、write 和 close 等。</p>
+<p>当 vnode 被创建后，为了进程调用，VFS 在文件描述符表中创建一个表项，并将它指向新的 vnode，最后，VFS 向调用者返回文件描述符，所以调用者可以用它去 read、write 或者 close 文件。</p>
+<p>当进程用文件描述符进行一个读操作时，VFS 通过进程表和文件描述符确定 vnode 的位置，并跟随指针指向函数表，这样就调用了处理 read 函数，运行在实际系统中的代码并得到所请求的块。VFS 不知道请求时来源于本地硬盘、还是来源于网络中的远程文件系统、CD-ROM 、USB 或者其他介质，所有相关的数据结构欧如下图所示</p>
+<p><img src="/2021/06/22/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/38.png" style="zoom:67%;"></p>
+<p><strong>从调用者进程号和文件描述符开始，进而是 vnode，读函数指针，然后是对实际文件系统的访问函数定位</strong>。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"># 操作系统</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/06/21/IO%E7%AE%A1%E7%90%86/" rel="prev" title="IO管理">
+      <i class="fa fa-chevron-left"></i> IO管理
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/06/28/%E6%A6%82%E7%8E%87%E8%AE%BA-%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C/" rel="next" title="概率论-假设检验">
+      概率论-假设检验 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#文件系统"><span class="nav-number">1.</span> <span class="nav-text">文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件"><span class="nav-number">1.1.</span> <span class="nav-text">文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#文件命名"><span class="nav-number">1.1.1.</span> <span class="nav-text">文件命名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件结构"><span class="nav-number">1.1.2.</span> <span class="nav-text">文件结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件类型"><span class="nav-number">1.1.3.</span> <span class="nav-text">文件类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件访问"><span class="nav-number">1.1.4.</span> <span class="nav-text">文件访问</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件属性"><span class="nav-number">1.1.5.</span> <span class="nav-text">文件属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件操作"><span class="nav-number">1.1.6.</span> <span class="nav-text">文件操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#目录"><span class="nav-number">1.2.</span> <span class="nav-text">目录</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一级目录系统"><span class="nav-number">1.2.1.</span> <span class="nav-text">一级目录系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#层次目录系统"><span class="nav-number">1.2.2.</span> <span class="nav-text">层次目录系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#路径名"><span class="nav-number">1.2.3.</span> <span class="nav-text">路径名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#目录操作"><span class="nav-number">1.2.4.</span> <span class="nav-text">目录操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件系统的实现"><span class="nav-number">1.3.</span> <span class="nav-text">文件系统的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#文件系统布局"><span class="nav-number">1.3.1.</span> <span class="nav-text">文件系统布局</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#引导块"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">引导块</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#超级块"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">超级块</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#空闲空间块"><span class="nav-number">1.3.1.3.</span> <span class="nav-text">空闲空间块</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#碎片"><span class="nav-number">1.3.1.4.</span> <span class="nav-text">碎片</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#inode"><span class="nav-number">1.3.1.5.</span> <span class="nav-text">inode</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件的实现"><span class="nav-number">1.3.2.</span> <span class="nav-text">文件的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#连续分配"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">连续分配</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#链表分配"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">链表分配</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用内存表进行链表分配"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">使用内存表进行链表分配</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#inode-1"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">inode</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#目录的实现"><span class="nav-number">1.3.3.</span> <span class="nav-text">目录的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#共享文件"><span class="nav-number">1.3.4.</span> <span class="nav-text">共享文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日志结构文件系统"><span class="nav-number">1.3.5.</span> <span class="nav-text">日志结构文件系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日志文件系统"><span class="nav-number">1.3.6.</span> <span class="nav-text">日志文件系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟文件系统"><span class="nav-number">1.3.7.</span> <span class="nav-text">虚拟文件系统</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

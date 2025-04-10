@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="红黑树平衡二叉树(AVL树) 虽然可以保证再最坏的情况下，查找、插入和删除的时间复杂度为$O(\log n)$ ，但是插入和删除后重新调整平衡可能需要多达 $O(\log n)$ 次的旋转，频繁地调整平衡导致全树地整体拓扑结构地变化。AVL树地左右子树高度绝对差的绝对值不超过1，而红黑树在AVL树“适度平衡”的基础上，进一步放宽条件：红黑树的左右子树高度不超过两倍。 红黑树也是一种平衡二叉搜索树，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="红黑树">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="红黑树平衡二叉树(AVL树) 虽然可以保证再最坏的情况下，查找、插入和删除的时间复杂度为$O(\log n)$ ，但是插入和删除后重新调整平衡可能需要多达 $O(\log n)$ 次的旋转，频繁地调整平衡导致全树地整体拓扑结构地变化。AVL树地左右子树高度绝对差的绝对值不超过1，而红黑树在AVL树“适度平衡”的基础上，进一步放宽条件：红黑树的左右子树高度不超过两倍。 红黑树也是一种平衡二叉搜索树，">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/2.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/3.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/5.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/6.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/7.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/8.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/9.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/10.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/11.jpg">
+<meta property="article:published_time" content="2020-11-03T06:01:22.000Z">
+<meta property="article:modified_time" content="2022-12-08T13:13:48.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="Data_structure">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>红黑树 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          红黑树
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-11-03 14:01:22" itemprop="dateCreated datePublished" datetime="2020-11-03T14:01:22+08:00">2020-11-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-12-08 21:13:48" itemprop="dateModified" datetime="2022-12-08T21:13:48+08:00">2022-12-08</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="红黑树"><a href="#红黑树" class="headerlink" title="红黑树"></a>红黑树</h1><p>平衡二叉树(AVL树) 虽然可以保证再最坏的情况下，查找、插入和删除的时间复杂度为$O(\log n)$ ，但是插入和删除后重新调整平衡可能需要多达 $O(\log n)$ 次的旋转，频繁地调整平衡导致全树地整体拓扑结构地变化。AVL树地左右子树高度绝对差的绝对值不超过1，而红黑树在AVL树“适度平衡”的基础上，进一步放宽条件：<strong>红黑树的左右子树高度不超过两倍</strong>。</p>
+<p>红黑树也是一种平衡二叉搜索树，虽然和AVL树一样，<strong>查找、插入和删除的时间复杂度均为 </strong>$O(\log n)$ ，但其统计性能更好一些，不需要频繁调整平衡，且<strong>任何不平衡都能在3次旋转之内解决</strong>。因此红黑树在很多地方都广泛应用，例如在C++ STL中的 set，multiset，map，multimap 都应用了红黑树的变体。Java中的集合类 TreeMap 就是红黑树的实现。</p>
+<p>首先我们来介绍一个概念：<strong>黑高</strong>。 从<strong>某个节点x(不包含该节点) 到叶子的任意一条路径上黑色节点</strong>称为该节点的黑高</p>
+<p><strong>红黑树是满足以下性质的二叉搜索树</strong></p>
+<p>1) 每个节点都是红色或者是黑色的</p>
+<p>2) 根节点是黑色的 //<strong>旋转的时候需要维护</strong></p>
+<p>3) 每个叶子节点是黑色的(包括空孩子)</p>
+<p>4) 如果一个节点为红色，则其孩子节点、父节点必定为黑色。//<strong>旋转的时候需要维护</strong></p>
+<p>5) 从任一结点到其后代叶子的路径上，均包含相同数目的黑节点。这说明左右子树的黑高是相同的 //<strong>旋转的时候需要维护</strong></p>
+<ul>
+<li>因此，<strong>ps：红黑树的黑色节点越多红黑树就平衡，如果一颗红黑树全是黑色节点，那么这一定是一颗满二叉树。</strong></li>
+</ul>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/1.png" style="zoom:120%;"></p>
+<p>问题：红黑树没有AVL树那么平衡，为什么查找插入和删除的速度也是$O(\log n)$ 呢？</p>
+<p>这是因为含有n个内部节点的红黑树的高度不超过$O(\log n)$ </p>
+<p> 证明：假设红黑树的高度为h，根到叶子结点至少一半是黑色节点，根的黑高至少为 $h/2$ ，那么高为 $h/2$ 的二叉树节点数为 $2^{h/2}-1$ ，而除了这些节点，后面的 h/2 肯定还有节点存在，否则树高也不会为h。因此 $n\geq 2^{h/2}-1$, 即 $n+1\geq 2^{h/2}$ .两边同时取对数，得到 $h\leq 2log(n+1)=O(\log n)$</p>
+<h3 id="红黑树与4阶B树"><a href="#红黑树与4阶B树" class="headerlink" title="红黑树与4阶B树"></a>红黑树与4阶B树</h3><p>红黑树和4阶B树之间存在等价关系。如哦从红黑树的树根开始，自顶向下逐层检查，如果遇到红结点，则将该节点压缩到父节点一侧；如果遇到黑节点，则保留。因为<strong>红结点对黑高没有贡献</strong>，而黑结点对黑高有贡献。</p>
+<p>红黑树与4阶B树的4种等价方式：</p>
+<p>1） 两个黑孩子(黑黑)，如图所示：</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/2.png" style="zoom:150%;"></p>
+<p> 2）左黑右红(黑红)，如图所示：</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/3.png" style="zoom:150%;"></p>
+<p>3) 左红右黑(红黑) ，如图所示：</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/4.png" style="zoom:150%;"></p>
+<p>4）两个红孩子(红红)，如图所示</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/5.png" style="zoom:150%;"></p>
+<p>从红黑树与4阶B树的等价关系可以看出，4阶B树中的结点中必然含有一个黑节点。而且不会出现红色的父亲。每一个结点最多包含三个关键字：如果包含2个红关键字，则黑关键字必然在中间位置。</p>
+<p>我们可以尝试将这一棵红黑树进行压缩。</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/1.png" style="zoom:120%;"></p>
+<p>最后可以得到这样一棵4阶的B树</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/1.jpg" style="zoom:120%;"></p>
+<p> 那么既然红黑树和4阶B树是可以互相转化的，那么为什么还要用红黑树呢？这是因为红黑树和B树处理的方向不同。B树主要用于内外存的访问，旋转不是很容易，但是红黑树的旋转调平衡比较方便</p>
+<h3 id="红黑树的查找"><a href="#红黑树的查找" class="headerlink" title="红黑树的查找"></a>红黑树的查找</h3><p>红黑树的查找相当于二叉搜索树的查找。因为红黑树也要有中序有序性。</p>
+<h3 id="红黑树的插入"><a href="#红黑树的插入" class="headerlink" title="红黑树的插入"></a>红黑树的插入</h3><p>在红黑树中插入xx，首先要查找。如果查找成功，什么也不用做，直接返回即可。如果查找失败了，那么就在查找失败的位置创建x结点，并置红色(如果是树根，则置为黑色)</p>
+<p>那么，为什么插入的结点一定要置为红色呢？</p>
+<p>如果置为黑色有可能改变黑高，违反性质5。如果置红色，不会改变黑高，但是有可能违反性质4(红结点必然有黑孩子)</p>
+<p>插入分为两种情况：</p>
+<ul>
+<li>如果新插入的结点x的父亲为黑色，则仍然满足红黑树的条件，插入成功</li>
+<li>如果新插入的结点的父亲为红色，则出现“双红”(也就是说父亲和孩子都是红色的),此时需要修正，使其满足红黑树的条件。</li>
+</ul>
+<h4 id="双红修正："><a href="#双红修正：" class="headerlink" title="双红修正："></a>双红修正：</h4><p>将x的父亲和祖父记为p(parent) 、g(grandpa), x的叔叔记为 u（uncle).下面我们会说明修正过程，让大家明白红黑树中的结点为什么可以那么任性的变颜色。</p>
+<h5 id="u为黑色"><a href="#u为黑色" class="headerlink" title="u为黑色"></a>u为黑色</h5><p><strong>修正原理</strong>：当u为黑色，x及其父亲p出现”双红“，可以根据红黑树与4阶B树来进行转换实现。首先将红黑树通过压缩转换为4阶B树，此时4阶B树的结点中出现了两个红色的结点，则黑节点必然在中间。因此将中间结点p置为黑色，两旁的结点置为红色，然后再将其转为红黑树即可。</p>
+<p>如图所示：</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/6.png" style="zoom:150%;"></p>
+<p><strong>修正方法</strong></p>
+<p>修正的原理清楚了，那么该修正方法也可以看作是旋转和染色的过程。g到x的路径为LL，执行LL型旋转。将g右旋，然后将旋转后的根染黑，将其两个孩子染红，如图所示：</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/7.png" style="zoom:150%;"></p>
+<p>同样的道理，如果x是p的右孩子，也可以采用该方法来修正。如图所示：</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/8.png" style="zoom:150%;"></p>
+<p>通过旋转来解决的话，我们可以这样来做：</p>
+<p>通过x向左旋转，我们可以得到一个LL型的红黑树，然后就按照上面所说的方法将g右旋下来并进行染色即可</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/9.png" style="zoom:150%;"></p>
+<p>根据对称性，如果g的左右子树互换了位置，则又会出现两种情况(RR型或者RL型) ，如图所示:</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/10.png" style="zoom:150%;"></p>
+<p><strong>RR型</strong>:</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/2.jpg" style="zoom:120%;"></p>
+<p><strong>RL型：</strong></p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/3.jpg" style="zoom:120%;"></p>
+<h5 id="u为红色"><a href="#u为红色" class="headerlink" title="u为红色"></a>u为红色</h5><p>如果x的叔叔为红色，x及其父亲p出现”双红“。其修正方法也可以根据红黑树与4阶B树的转换实现。首先将红黑树通过压缩转换为4阶B树，此时4阶B树的节点中出现了4个结点，发生上溢，需要执行分裂操作。令g上升到g的父结点中，分裂后x、p均为红结点，而4阶B树结点中必然含有一个黑节点，因此可以保持x的红色，将p、u染黑，g染红(保持黑高不变，如果g为树根，则染黑)，然后将其转换为红黑树即可</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/11.png" style="zoom:100%;"></p>
+<p>由于g上升到父节点之后，仍然可能会发生上溢，因此我们可以将g看作是新插入的结点，采用同样的方法处理，上溢有可能一直向上传递到根，总的操作并不会超过树高。</p>
+<p><strong>修正方法</strong>：</p>
+<p>以上是红黑树的修正原理，我们理解了原理之后可以简单粗暴地直接染色：将<strong>父亲和叔叔染黑，祖父染红</strong>。即p、u变黑，g变红。因为g的父亲可能是红色，因此将g看作是新插入的结点，采用同样的方法处理，每处理一次，上升两层，一直到树根</p>
+<p>总结：</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/13.png" style="zoom:100%;"></p>
+<h3 id="构建实例"><a href="#构建实例" class="headerlink" title="构建实例"></a>构建实例</h3><p>下面我们用插画的形式来构建一颗红黑树，关键字为(12,16,2,30,28,20,60,29,85)</p>
+<p>1) 输入12，创建一个根节点，置为黑色. 如图所示：</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/4.jpg" style="zoom:20%;"></p>
+<p>2) 输入16，创建新节点，置为红色，按照二叉搜索树规则查找到插入位置，新节点的父亲为黑色，不违反红黑树的性质，直接插入即可</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/5.jpg" style="zoom:40%;"></p>
+<p>3) 插入2，创建新节点，置为红色，按照二叉搜索树的规则查找到插入位置，新节点的父亲为黑色， 未违反红黑树的性质，直接插入即可</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/6.jpg" style="zoom:40%;"></p>
+<p>4) 插入30，创建新结点，置为红色，按照二叉搜索树规则查找到插入的位置，新节点的父亲为红色，出现”双红”，且新节点的叔叔也是红色，符合第2中修正方案。直接染色：将父亲和叔叔染黑，祖父染红，但是因为祖父为树根，树根永远保持黑色。</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/7.jpg" style="zoom:40%;"></p>
+<p>5) 输入28，创建新节点，置为红色。按照二叉搜索树规则查找到插入位置，新节点的父亲为红色，出现了“双红”。且新节点的叔叔为黑色，符合第1中修正方案。16到28的路径为RL，执行RL型旋转。即先执行右旋再执行左旋。最后将根28染成黑色，其两个孩子16，30染红.</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/8.jpg" style="zoom:40%;"></p>
+<p>6) 输入20，创建新结点，置为红色，按照二叉搜索树规则查找到插入位置，新结点的父亲为红色 ，且新节点的叔叔也是红色，符合第2种修正方案。我们就 直接染色：将父亲和叔叔染黑，祖父染红。祖父染红后将该节点作为新的结点，向上检查，看是否再次出现“双红”，未出现，插入完成。</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/14.png" style="zoom:60%;"></p>
+<p>7）输入60，29 创建新结点，置为红色，按照二叉搜索树规则查找到插入位置，新节点的福清为黑色，未违反红黑树的性质，插入完成</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/9.jpg" style="zoom:40%;"></p>
+<p>8）输入85，创建新结点，置为红色 ，新结点的父亲和叔叔都是红色，将其染黑，并江爷爷30染红</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/10.jpg" style="zoom:60%;"></p>
+<p>但是，此时30的父亲为红色，出现了双红，且30的叔叔为黑色，符合第一种修正方案，12到30的路径为RR，执行RR型旋转，执行左旋后，将根28染黑，其两个孩子12、30染红。如图所示：</p>
+<p><img src="/2020/11/03/%E7%BA%A2%E9%BB%91%E6%A0%91/11.jpg" style="zoom:60%;"></p>
+<h3 id="红黑树的删除"><a href="#红黑树的删除" class="headerlink" title="红黑树的删除"></a>红黑树的删除</h3><p>在红黑树种中删除x，首先要通过查找。如果查找失败，什么也不做，直接返回即可。如果查找成功，则需要判断后处理：</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Data-structure/" rel="tag"># Data_structure</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/11/02/%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0%E4%B8%8E%E9%9D%9E%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0/" rel="prev" title="监督学习与非监督学习">
+      <i class="fa fa-chevron-left"></i> 监督学习与非监督学习
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/11/07/Tensorflow%E5%B8%B8%E9%87%8F%E5%8F%98%E9%87%8F%E4%B8%8E%E5%BC%A0%E9%87%8F/" rel="next" title="Tensorflow常量变量与张量">
+      Tensorflow常量变量与张量 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#红黑树"><span class="nav-number">1.</span> <span class="nav-text">红黑树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树与4阶B树"><span class="nav-number">1.0.1.</span> <span class="nav-text">红黑树与4阶B树</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树的查找"><span class="nav-number">1.0.2.</span> <span class="nav-text">红黑树的查找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树的插入"><span class="nav-number">1.0.3.</span> <span class="nav-text">红黑树的插入</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#双红修正："><span class="nav-number">1.0.3.1.</span> <span class="nav-text">双红修正：</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#u为黑色"><span class="nav-number">1.0.3.1.1.</span> <span class="nav-text">u为黑色</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#u为红色"><span class="nav-number">1.0.3.1.2.</span> <span class="nav-text">u为红色</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构建实例"><span class="nav-number">1.0.4.</span> <span class="nav-text">构建实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树的删除"><span class="nav-number">1.0.5.</span> <span class="nav-text">红黑树的删除</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

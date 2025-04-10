@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="注意力机制RNNs+attention在写 循环神经网络 这篇博客的时候，我曾简单讲过注意力机制的原理及其作用。现在我们来详细学习一下注意力机制。 首先，我们要知道注意力机制在RNN中的作用有哪些？  计算机视觉中的应用： 图片描述 自然语言处理中的应用：机器翻译  不使用注意力机制-图像识别 我们来讲不使用注意力机制的RNN是如何进行看图说话的。我们看到上图的左半侧是一个encoder，输入的是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="注意力机制">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="注意力机制RNNs+attention在写 循环神经网络 这篇博客的时候，我曾简单讲过注意力机制的原理及其作用。现在我们来详细学习一下注意力机制。 首先，我们要知道注意力机制在RNN中的作用有哪些？  计算机视觉中的应用： 图片描述 自然语言处理中的应用：机器翻译  不使用注意力机制-图像识别 我们来讲不使用注意力机制的RNN是如何进行看图说话的。我们看到上图的左半侧是一个encoder，输入的是">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/10.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/17.png">
+<meta property="article:published_time" content="2021-12-16T10:52:53.000Z">
+<meta property="article:modified_time" content="2021-12-27T12:24:42.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="cv">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>注意力机制 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          注意力机制
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-12-16 18:52:53" itemprop="dateCreated datePublished" datetime="2021-12-16T18:52:53+08:00">2021-12-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-12-27 20:24:42" itemprop="dateModified" datetime="2021-12-27T20:24:42+08:00">2021-12-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="注意力机制"><a href="#注意力机制" class="headerlink" title="注意力机制"></a>注意力机制</h1><h2 id="RNNs-attention"><a href="#RNNs-attention" class="headerlink" title="RNNs+attention"></a>RNNs+attention</h2><p>在写 <a href="https://jasonxqh.github.io/2021/12/16/循环神经网络/#其他例子">循环神经网络</a> 这篇博客的时候，我曾简单讲过注意力机制的原理及其作用。现在我们来详细学习一下注意力机制。</p>
+<p>首先，我们要知道注意力机制在RNN中的作用有哪些？</p>
+<ul>
+<li>计算机视觉中的应用： 图片描述</li>
+<li>自然语言处理中的应用：机器翻译</li>
+</ul>
+<h3 id="不使用注意力机制-图像识别"><a href="#不使用注意力机制-图像识别" class="headerlink" title="不使用注意力机制-图像识别"></a>不使用注意力机制-图像识别</h3><p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/1.png"></p>
+<p>我们来讲不使用注意力机制的RNN是如何进行看图说话的。我们看到上图的左半侧是一个encoder，输入的是图片$I$,  右半侧是decoder，输出的是文本</p>
+<p>首先，图像经过CNN卷积以后生成一张 feature map，也就是上面绿色的矩阵</p>
+<p>然后，我们将feature map 经过 MLP (multi-layer perceptron,多层感知机)后，变成一个D维的$h_0$。 同时，利用 $h_0$ 转化出一个 context vector c(为了方便其实一般就是将$c$设置为整个$h_0$),使其保留了图片中的特征信息，可以用来辅助文本预测。</p>
+<p>context vector 是可以作为选择性输入的，有没有都可以。如果将其作为一部分输入，那么神经元既有之前生成的文本信息，又有保留下来的图片信息，可以帮助RNN更好辅助生成单词。</p>
+<p>但是这样做是有一个缺陷的，就是我们生成的context vector虽然拥有图片的全部特征，但对于每一个神经元的输入，都是相等的。因此，这并不利于在不同时刻捕捉差异化的图片信息，神经网络说话的时候就”抓不住重点“，导致看图说话效果不好。   </p>
+<h3 id="使用注意力机制-图像识别"><a href="#使用注意力机制-图像识别" class="headerlink" title="使用注意力机制-图像识别"></a>使用注意力机制-图像识别</h3><p>因此，看图说话借鉴了机器翻译中的注意力机制来提升看图说话的准确性</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/2.png"></p>
+<ul>
+<li><p>首先，还是图片通过CNN 生成一张feature map，然后通过MLP生成隐层向量$h_0$ </p>
+</li>
+<li><p>用隐向量和feature map 相乘，生成一张 $H\times W$ 的对齐分数矩阵 $\boldsymbol e$。对齐分数越大，代表应该关注这部分特征越多。</p>
+</li>
+<li><p>对于对齐分数中的元素，利用 softmax 进行归一化，得到注意力分数矩阵 $\boldsymbol a$ , 这就代表了每一个部分应该被关注的概率</p>
+</li>
+<li><p>利用注意力分数矩阵和feature map 做对位相乘(加权聚合)，得到加权之后的整张图片的特征向量context vector, 形状为 $D\times 1$</p>
+<script type="math/tex; mode=display">
+c_t = \sum_{i,j} a_{t,i,j}z_{i,j}</script></li>
+<li><p>将 context vector 、输入值、以及上个隐层状态，共同作为下一个神经元的输入。接下来，每一步的$h_{i}$都会和feature map生成一个 context vector，告诉下一个神经元应该关注哪里。</p>
+</li>
+</ul>
+<p>通过这种方法，每个时刻 t 的 context vector 都是不一样的，是随着$h_{t-1}$  变化而来的。因此，每个时刻都可以根据前一时刻的隐层状态去关注图片的不同区域</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/3.png"></p>
+<p>结果如下：</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/4.png"></p>
+<h4 id="图像描述注意力计算"><a href="#图像描述注意力计算" class="headerlink" title="图像描述注意力计算"></a>图像描述注意力计算</h4><p>现在我们来具体看一下注意力分数是如何被计算出来的，如下图：</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/8.png"></p>
+<h3 id="不使用注意力机制-机器翻译"><a href="#不使用注意力机制-机器翻译" class="headerlink" title="不使用注意力机制-机器翻译"></a>不使用注意力机制-机器翻译</h3><p>机器翻译和图片识别的原理大致相同，只不过原本的encoder 是用来处理图片信息的，而现在是用来处理文字流的。因此我们不能使用CNN，而要使用RNN：</p>
+<p>在Encoder中，一个一个输入法语单词，生成一个隐向量，聚合后经过MLP得到decoder的初始隐向量$h_0$</p>
+<p>还可以保留一个 context vector 包含了这句法语中的所有特征，作为辅助输入来帮助文本预测，</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/5.png"></p>
+<p>但是因为没有引入attention机制，导致decoder没有关注重点，翻译不准确</p>
+<h3 id="使用注意力机制-机器翻译"><a href="#使用注意力机制-机器翻译" class="headerlink" title="使用注意力机制-机器翻译"></a>使用注意力机制-机器翻译</h3><p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/6.png"></p>
+<p>在机器翻译中引入注意力机制后，对于每一个输入层的隐向量$z<em>i$ ,都和$h</em>{t-1}$相乘得到对齐分数$\boldsymbol e$ ;</p>
+<ul>
+<li>再经过 softmax 计算注意力分数$a_{t,i}$,t代表第t个时刻</li>
+<li>用得到的$\boldsymbol a$和当前$z_i$ 聚合，得到context vector c， 作为下一层的输入。</li>
+</ul>
+<p>这样，在decoder中，每个时刻t 的context vector 都会随着$h_{t-1}$的变化而变化，即每个时刻都可以根据前一时刻的隐层状态关注输入文本的不同部分</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/7.png"></p>
+<h2 id="一般的注意力层结构"><a href="#一般的注意力层结构" class="headerlink" title="一般的注意力层结构"></a>一般的注意力层结构</h2><h3 id="一般注意力层"><a href="#一般注意力层" class="headerlink" title="一般注意力层"></a>一般注意力层</h3><p>之前我们介绍了如何在图像识别中进行注意力计算，现在我们来看看一般注意力层是如何计算的：</p>
+<p>首先，因为一般注意力层的输入并不是feature map，而是单个的向量，因此原来的MLP变成了现在的点积，事实证明用点积计算可以在 Transformer 中取得很好的效果</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/10.jpg"></p>
+<p>然而得到了对齐分数$e_i$，但是在向量长度很长的情况下，会造成对齐分数的方差很大(大的分数很大，小的分数很小)。这样的数据经过softmax层以后(指数运算)，会使得注意力分数只集中在少数几个输入向量上。因此，单单点积还是不够的，我们需要除以$\sqrt D$ 以减轻这种效应，其中$D$为向量长度。</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/11.png"></p>
+<p>接着，对 对齐分数进行softmax以后，得到了注意力分数。在将注意力分数和输入值$x$做整合：</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/9.png"></p>
+<p>但是，这种一般注意力层是存在缺点的：输入向量既 作为对齐运算的输入，又 做为注意力运算的输入，有点缺乏输入特征上的变化。</p>
+<h3 id="自注意力层"><a href="#自注意力层" class="headerlink" title="自注意力层"></a>自注意力层</h3><p>因此，我们可以通过在计算对齐分数和注意力分数的时候，分别用一个线性层对输入向量进行转化来解决这个问题。这样存在一定的变化之后，可以使得 $y_i$ 的大小和输入$x_i$的大小是不一样的。</p>
+<p>如下所示：</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/12.png"></p>
+<p>对于输入向量，我们可以将其乘以一个 $\boldsymbol W_k$矩阵将其变为 Key 向量，将其和Querie向量相乘得到对齐分数</p>
+<p>然后再将输入值 乘以 $\boldsymbol W_v$矩阵相乘，得到 Value 向量，将其和softmax过后的对齐分数聚得到注意力分数</p>
+<p>而且从RNN中我们也看到了，Queries 向量也是由输入向量经线性层得到的。</p>
+<p>用自己来生成query、key去做对齐分数的计算，再与由自己来生成的value聚合，这就是<strong>自注意力层</strong>命名由来</p>
+<p>简单来说，就是对一组输入向量的自我注意力运算，将中间的计算隐藏后，我们可以得到如下结构：</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/13.png"></p>
+<h3 id="位置编码"><a href="#位置编码" class="headerlink" title="位置编码"></a>位置编码</h3><p>运用自注意力层，可以完全抛弃循环神经网络中的迭代结构。因为在RNN中，context vectors是按照顺序，一个一个生成的，需要借助每一次循环的$h_{t-1}$ 。但是自注意力层只需要自己计算就可以得到 context vectors了。</p>
+<p>因此也会导致一个问题，就是生成的编码$y_i$很可能无法学到输入向量的排列顺序信息，这对于处理文本和图片都是不利的。因此，我们要想一个办法，在输入向量中加入其在序列中的位置信息。使其能够表示每个向量的绝对位置和相对位置。</p>
+<p>这就是位置编码 (positional encoding)的作用</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/14.png"></p>
+<p>关于位置编码$p_t$, 需要满足以下特性：</p>
+<ul>
+<li>唯一性： 每个时刻的编码是唯一的 </li>
+<li>一致性：对于所有输入长度，两个时刻之间的距离是一致的</li>
+<li>泛化性：对于所有输入长度都可以使用这套编码</li>
+</ul>
+<p>因此，用三角函数来表示时刻、位置信息就是一个很好地选择。</p>
+<script type="math/tex; mode=display">
+p_t^i = \begin{cases}\sin(\omega_k\cdot t)&\text{if i=2k} \\~\\\cos(\omega_k\cdot t) & \text{if~i=2k+1} \end{cases}</script><p>其中， $t\geq 0$ 代表时刻；$0\leq i&lt;D$ 代表编码的<strong>第i个位置</strong>; $\omega_k = \frac{1}{10000^{2K/D}}$ </p>
+<p>最终，对于在t时刻、长度为D的输入，会得到一个长度为D的位置编码：</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/15.png"></p>
+<p>因为我们对$\omega_k$ 取得值是很小的，t乘以10000之后，可能会开始循环，但 t 一般只取128、256、512、1024。因此 $p_t$ 所有sin、cos的值都是在一个周期之内的，满足唯一性。</p>
+<p>泛化性也很好理解，因为这套编码对任何长度的句子, 都是适用的</p>
+<p>对于一致性，两个时刻之间的距离是一致的吗？我们可以用一个简单的方式来证明：我们考虑位置编码中任意一对sin和cos，运算以下公式：</p>
+<script type="math/tex; mode=display">
+\begin{bmatrix}\cos(\omega_k\cdot\Delta t)&\sin(\omega_k\cdot \Delta t)\\-\sin(\omega_k\cdot\Delta t)&\cos(\omega_k\cdot \Delta t) \end{bmatrix}\cdot\begin{bmatrix}\sin(\omega_k\cdot t)\\ \cos(\omega_k\cdot t) \end{bmatrix} = \begin{bmatrix}\sin(\omega_k\cdot(t+\Delta t))\\\cos(\omega_k\cdot(t+\Delta t)) \end{bmatrix}</script><p>我们发现，其距离只和两个时刻有关，和输入长度无关。因此一致性也会满足</p>
+<h3 id="遮挡的自注意力层"><a href="#遮挡的自注意力层" class="headerlink" title="遮挡的自注意力层"></a>遮挡的自注意力层</h3><p>有了位置编码这个工具以后，输入向量就是由顺序性的。但现在又有一个问题，之前的注意力机制，输出结果的时候，后面的输入是看不到的。但现在有了位置编码之后，在输出$y_0$的时候却能看到后面的输入。</p>
+<p>这是不可以的，每一个位置的输入编码是<strong>不应该提前看到后面的输入</strong>的，否则会导致过拟合的情况</p>
+<p>因此，提出了<strong>遮挡的</strong>自注意力层。也就是说，在encode的时候，将当前向量后面的对齐分数设置为负无穷，在decode 的时候相应的注意力分数设置为0，如下图所示：</p>
+<p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/16.png"></p>
+<p>我们看到，对于第一个输入位置的$k_0$,我们把$k_1,k_2$的对齐分数置为$-\infty$；对于第二个位置输入的$k_1$,它可以看见$k_0$输入，但是$k_2$ 的对齐分数被设置为$-\infty$ </p>
+<h3 id="多头自注意力层"><a href="#多头自注意力层" class="headerlink" title="多头自注意力层"></a>多头自注意力层</h3><p><img src="/2021/12/16/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/17.png"></p>
+<p>用多组不同的 $k/q/v$ 来计算多组不同的注意力分数，每组注意力分数关注输入中的不同部分，以提高对子空间的特征捕捉能力。</p>
+<p>比如说我可以设置$h=8$，即8个head，每个 head 生成一组输出，最后将8组输出拼接</p>
+<h2 id="Transformers"><a href="#Transformers" class="headerlink" title="Transformers"></a>Transformers</h2><p>完全基于注意力机制的全新的神经网络结构</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cv/" rel="tag"># cv</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/12/16/%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" rel="prev" title="生成模型">
+      <i class="fa fa-chevron-left"></i> 生成模型
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/12/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E4%BC%98%E5%8C%96/" rel="next" title="计算机视觉-损失函数和优化">
+      计算机视觉-损失函数和优化 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#注意力机制"><span class="nav-number">1.</span> <span class="nav-text">注意力机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#RNNs-attention"><span class="nav-number">1.1.</span> <span class="nav-text">RNNs+attention</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#不使用注意力机制-图像识别"><span class="nav-number">1.1.1.</span> <span class="nav-text">不使用注意力机制-图像识别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用注意力机制-图像识别"><span class="nav-number">1.1.2.</span> <span class="nav-text">使用注意力机制-图像识别</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#图像描述注意力计算"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">图像描述注意力计算</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#不使用注意力机制-机器翻译"><span class="nav-number">1.1.3.</span> <span class="nav-text">不使用注意力机制-机器翻译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用注意力机制-机器翻译"><span class="nav-number">1.1.4.</span> <span class="nav-text">使用注意力机制-机器翻译</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一般的注意力层结构"><span class="nav-number">1.2.</span> <span class="nav-text">一般的注意力层结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一般注意力层"><span class="nav-number">1.2.1.</span> <span class="nav-text">一般注意力层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自注意力层"><span class="nav-number">1.2.2.</span> <span class="nav-text">自注意力层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#位置编码"><span class="nav-number">1.2.3.</span> <span class="nav-text">位置编码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#遮挡的自注意力层"><span class="nav-number">1.2.4.</span> <span class="nav-text">遮挡的自注意力层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多头自注意力层"><span class="nav-number">1.2.5.</span> <span class="nav-text">多头自注意力层</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Transformers"><span class="nav-number">1.3.</span> <span class="nav-text">Transformers</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

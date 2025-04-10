@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="深入了解计算机系统简介从helloworld入手首先我们来理解一下简单的hello world 程序是怎么被电脑执行的 1234567#include &lt;stdio.h&gt;int main()&amp;#123;printf(&quot;hello, world\n&quot;);return 0;&amp;#125; 这个hello.c 文件在被电脑执行之前需要比其他程序转化为一系列的低级机器语言指令。然后这些指令按照一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入了解计算机系统简介">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="深入了解计算机系统简介从helloworld入手首先我们来理解一下简单的hello world 程序是怎么被电脑执行的 1234567#include &lt;stdio.h&gt;int main()&amp;#123;printf(&quot;hello, world\n&quot;);return 0;&amp;#125; 这个hello.c 文件在被电脑执行之前需要比其他程序转化为一系列的低级机器语言指令。然后这些指令按照一">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/2.jpg">
+<meta property="article:published_time" content="2020-09-14T07:54:39.000Z">
+<meta property="article:modified_time" content="2020-09-14T15:22:34.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="CSAPP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>深入了解计算机系统简介 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          深入了解计算机系统简介
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-09-14 15:54:39 / Modified: 23:22:34" itemprop="dateCreated datePublished" datetime="2020-09-14T15:54:39+08:00">2020-09-14</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="深入了解计算机系统简介"><a href="#深入了解计算机系统简介" class="headerlink" title="深入了解计算机系统简介"></a>深入了解计算机系统简介</h1><h3 id="从helloworld入手"><a href="#从helloworld入手" class="headerlink" title="从helloworld入手"></a>从helloworld入手</h3><p>首先我们来理解一下简单的hello world 程序是怎么被电脑执行的</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"hello, world\n"</span>);</span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个hello.c 文件在被电脑执行之前需要比其他程序转化为一系列的低级机器语言指令。然后这些指令按照一种称为可执行目标程序的格式打好包，并以<strong>二进制磁盘文件</strong>的形式存放起来。目标程序也成为可执行目标文件。</p>
+<p>整个过程如下所示。</p>
+<p><img src="/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/1.png"></p>
+<ul>
+<li>首先是preprocessor 阶段，预处理器(cpp) 会以# 开头的命令修改原始的C程序。比如 <code>hello.c</code>中的第一行<code>#include &lt;stdio.h&gt;</code> 命令告诉预处理器读取系统头文件 <code>stdio.h</code> 的内容，并把它直接插入到程序文本当中，结果就得到了另一个C程序，通常是以<code>.i</code>作为文件扩展名</li>
+</ul>
+<p>我们在命令行中敲入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -E hello.c -o hello.i</span><br></pre></td></tr></table></figure>
+<p>预处理器就会读取头文件的内容然后直接插入到程序文本当中去。一共添加了了600多行，这里截取了最后一段。上面所有的内容都是头文件<code>stdio.h</code> 中包含的</p>
+<p><img src="/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/2.png"></p>
+<ul>
+<li>第二个阶段是编译阶段。编译器(ccl) 会将文本文件 <code>hello.i</code> 翻译成 <strong>文本文件</strong> <code>hello.s</code> 它包含一个汇编语言程序。该程序包含函数main的定义我们敲入命令行</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -S hello.i -o hello.s</span><br></pre></td></tr></table></figure>
+<p>随后文件夹下会多出一个<code>hello.s</code> 的文件，文件中的语言是汇编语言，是一种低级机器语言指令。文件中包含一个main函数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">   .file  &quot;hello.c&quot;</span><br><span class="line">   .def   __main;    .scl   2; .type  32;    .endef</span><br><span class="line">   .section .rdata,&quot;dr&quot;</span><br><span class="line">.LC0:</span><br><span class="line">   .ascii &quot;hello, world\0&quot;</span><br><span class="line">   .text</span><br><span class="line">   .globl main</span><br><span class="line">   .def   main;  .scl   2; .type  32;    .endef</span><br><span class="line">   .seh_proc  main</span><br><span class="line">main:</span><br><span class="line">   pushq  %rbp</span><br><span class="line">   .seh_pushreg   %rbp</span><br><span class="line">   movq   %rsp, %rbp</span><br><span class="line">   .seh_setframe  %rbp, 0</span><br><span class="line">   subq   $32, %rsp</span><br><span class="line">   .seh_stackalloc    32</span><br><span class="line">   .seh_endprologue</span><br><span class="line">   call   __main</span><br><span class="line">   leaq   .LC0(%rip), %rcx</span><br><span class="line">   call   puts</span><br><span class="line">   movl   $0, %eax</span><br><span class="line">   addq   $32, %rsp</span><br><span class="line">   popq   %rbp</span><br><span class="line">   ret</span><br><span class="line">   .seh_endproc</span><br><span class="line">   .ident &quot;GCC: (tdm64-1) 4.9.2&quot;</span><br><span class="line">   .def   puts;  .scl   2; .type  32;    .endef</span><br></pre></td></tr></table></figure>
+<p>汇编语言是非常有用的。它为不同的高级语言的不同编译器提供了通用的输出语言</p>
+<ul>
+<li>汇编阶段 是汇编器(as) 将hello.s 翻译成机器语言指令，把这些指令打包成一种可叫做 relocatable object program 的格式，并将结果保存在目标文件hello.o 当中。hello.o文件是一个二进制文件，它包含的17 个字节是函数main的指令编码。如果我们在文本编辑器中打开hello.o文件，将看到一堆乱码。</li>
+</ul>
+<p>在命令行中输入,文件夹下多出一个 hello.o 的文件 。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -c hello.s -o hello.o</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/3.png"></p>
+<ul>
+<li>最后一个是链接阶段。hello程序调用了printf函数，他是每个C编译器都提供的标准C库中的一个函数。printf函数存在于一个名为printf.o 的单独的预编译好了的目标文件中，而这个文件必须以某种方式合并到我们的hello.o 程序中。链接器(ld)就负责处理这种合并. 结果就得到了hello文件，它是一个可执行目标文件，可以加载到内存中并被系统调用</li>
+</ul>
+<h3 id="计算机是怎么运行hello程序的呢？"><a href="#计算机是怎么运行hello程序的呢？" class="headerlink" title="计算机是怎么运行hello程序的呢？"></a>计算机是怎么运行hello程序的呢？</h3><p>下面是一个冯诺依曼架构的计算机模型。里面分为好几个部分：主线，输入/输出，主存，处理器等。初始时，shell程序执行它的指令，等待我们输入一个命令当我们在键盘上输人字符串“./hello”后，shell 程序将字符逐一读入寄存器，再把它存放到内存中</p>
+<p><img src="/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/4.png"></p>
+<p>当我们按下回车键的时候，shell会执行一系列指令来加载可执行的hello文件，这些指令将hello目标文件中的代码和数据从磁盘复制到主存。数据包括最终会被输出的字符串 “hello,world\n”</p>
+<p><img src="/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/5.png"></p>
+<p>一旦目标文件hello 中的代码和数据被加载到主存，处理器就开始执行hello 程序的main 程序中的机器语言指令。这些指令将“hello, world\n 字符串中的字节从主存复制到寄存器文件(Register file)，再从寄存器文件中复制到显示设备，最终显示在屏幕上.</p>
+<p><img src="/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/6.png"></p>
+<h3 id="存储设备形成层次结构"><a href="#存储设备形成层次结构" class="headerlink" title="存储设备形成层次结构"></a>存储设备形成层次结构</h3><p>每个计算机系统中的存储设备都被组织成了一个存储器层次结构。在这个层次结构中，从上至下，设备的访<br>问速度越来越慢、容量越来越大，并且每字节的造价也越来越便宜。寄存器文件在层次结构中位于最顶部，也就是第0级或记为$L_0$ 这里我们展示的是三层高速缓存L1 到L3,占据存储器层次结构的第1层到第3层。主存在第4 层, 以此类推。</p>
+<p>存储器层次结构的主要思想是上一层的存储器作为低一层存储器的高速缓存。因此，寄存器文件就是L1 的高速缓存，L1 是L2 的高速缓存，L2 是L3 的高速缓存，L3 是主存 的高速缓存，而主存又是磁盘的高速缓存。在某些具有分布式文件系统的网络系统中，本地磁盘就是存储在其他系统中磁盘上的数据的高速缓存。</p>
+<p>程序员可以利用对整个存储器层次结构的理解来提高程序性能。</p>
+<p><img src="/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/7.png"></p>
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h3><ol>
+<li>测试自己的编程环境下，C语言是否允许void main()？如果出错，报什么类型的错误。<br>如果文件为.cpp 的话，void main()会出现报错’::main’ must return ‘int’ ，<br><img src="/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/1.jpg"></li>
+</ol>
+<p>但是如果是.c文件的话，void main() 是可以通过编译并且运行的。<br><img src="/2020/09/14/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E7%AE%80%E4%BB%8B/2.jpg"></p>
+<p>这是因为.cpp文件和.c文件的编译器是不同的。.c 文件的编译器是<code>gcc</code>，而<code>.cpp</code>文件的编译器是<code>g++</code>. </p>
+<ol>
+<li>尝试使用一个<code>int</code>型的4096x4096的二维数组，如果遇到错误，了解不同错误消息的具体含义。</li>
+</ol>
+<p>如果把这个二维数组定义在main() 函数当中, 那么是无法定义的。会遇到错误 ”Process finished with exit code -1073741571 (0xC00000FD)”，报错的提示是程序意外终止。查阅资料得到原因 StackOverflow也就是栈区溢出。Windows下栈区默认的大小为1024kb，但是4096x4096xsizeof(int) /1024/1024 =16 MB,所以导致了栈区溢出</p>
+<p>但是如果把二维数组设置为静态变量或者全局变量，那么编译器并不会给报错。这是因为它们存储在大小比规定栈的大小更大的静态储存区，因此能申请到更大的数据。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CSAPP/" rel="tag"># CSAPP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/09/03/%E7%A6%BB%E6%95%A3%E6%95%B0%E5%AD%A6%E4%B9%8B%E9%9B%86%E5%90%88%E4%B8%8E%E5%87%BD%E6%95%B0/" rel="prev" title="离散数学之集合与函数">
+      <i class="fa fa-chevron-left"></i> 离散数学之集合与函数
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/15/CSAPP%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8%E7%A4%BA%E5%92%8C%E5%AD%98%E5%82%A8/" rel="next" title="CSAPP信息的表示和存储">
+      CSAPP信息的表示和存储 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#深入了解计算机系统简介"><span class="nav-number">1.</span> <span class="nav-text">深入了解计算机系统简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#从helloworld入手"><span class="nav-number">1.0.1.</span> <span class="nav-text">从helloworld入手</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计算机是怎么运行hello程序的呢？"><span class="nav-number">1.0.2.</span> <span class="nav-text">计算机是怎么运行hello程序的呢？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#存储设备形成层次结构"><span class="nav-number">1.0.3.</span> <span class="nav-text">存储设备形成层次结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作业"><span class="nav-number">1.0.4.</span> <span class="nav-text">作业</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

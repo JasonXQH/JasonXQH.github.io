@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="计算机视觉-检测和分割在第一章我们了解过常见的CV任务，主要有：图像分类、语义分割、分类+定位、目标检测、实例分割  图像分类CV最常见的就是图像分类了，比如说利用AlexNet对图像进行分类，最后输出对图像的预测分数  在图像分类的基础上，延伸出来几个其他作用，下面一一介绍 语义分割语义分割就是对于输入的图片，将每一个像素划分成一个类别。如下：  方法那么语义分割怎么做呢？ 对于图像分类，是对图">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机视觉-检测和分割">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="计算机视觉-检测和分割在第一章我们了解过常见的CV任务，主要有：图像分类、语义分割、分类+定位、目标检测、实例分割  图像分类CV最常见的就是图像分类了，比如说利用AlexNet对图像进行分类，最后输出对图像的预测分数  在图像分类的基础上，延伸出来几个其他作用，下面一一介绍 语义分割语义分割就是对于输入的图片，将每一个像素划分成一个类别。如下：  方法那么语义分割怎么做呢？ 对于图像分类，是对图">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/2.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/3.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/24.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/26.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/25.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/27.png">
+<meta property="article:published_time" content="2021-12-23T05:12:16.000Z">
+<meta property="article:modified_time" content="2022-06-25T15:31:00.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="cv">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/1.jpg">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>计算机视觉-检测和分割 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机视觉-检测和分割
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-12-23 13:12:16" itemprop="dateCreated datePublished" datetime="2021-12-23T13:12:16+08:00">2021-12-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-06-25 23:31:00" itemprop="dateModified" datetime="2022-06-25T23:31:00+08:00">2022-06-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="计算机视觉-检测和分割"><a href="#计算机视觉-检测和分割" class="headerlink" title="计算机视觉-检测和分割"></a>计算机视觉-检测和分割</h1><p>在第一章我们了解过常见的CV任务，主要有：图像分类、语义分割、分类+定位、目标检测、实例分割</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/1.jpg" style="zoom:80%;"></p>
+<h2 id="图像分类"><a href="#图像分类" class="headerlink" title="图像分类"></a>图像分类</h2><p>CV最常见的就是图像分类了，比如说利用AlexNet对图像进行分类，最后输出对图像的预测分数</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/2.jpg" style="zoom:80%;"></p>
+<p>在图像分类的基础上，延伸出来几个其他作用，下面一一介绍</p>
+<h2 id="语义分割"><a href="#语义分割" class="headerlink" title="语义分割"></a>语义分割</h2><p>语义分割就是对于输入的图片，将每一个像素划分成一个类别。如下：</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/3.jpg" style="zoom:80%;"></p>
+<h4 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h4><p>那么语义分割怎么做呢？</p>
+<p>对于图像分类，是对图像整体进行类别预测，而对于语义分割，是对每一个像素进行分类。同时，不区分相同类别的个体。</p>
+<h4 id="Naive-Idea-滑窗"><a href="#Naive-Idea-滑窗" class="headerlink" title="Naive Idea: 滑窗"></a>Naive Idea: 滑窗</h4><p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/7.png" style="zoom:80%;"></p>
+<p>我们可以拿一个窗口再图像上滑动，每次滑动一个像素点，然后用CNN去判断这个滑窗属于什么类别，然后将滑窗的中心点划为这个类。</p>
+<p>虽然利用滑窗可以达到比较好的效果，但是这个方法的计算代价及其昂贵</p>
+<h4 id="对所有像素点同时进行预测"><a href="#对所有像素点同时进行预测" class="headerlink" title="对所有像素点同时进行预测"></a>对所有像素点同时进行预测</h4><p>我们可以对整个图像进行卷积</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/8.png" style="zoom:80%;"></p>
+<p>将损失函数定义为 对所有像素点进行分类的交叉熵之和，然后最小化损失函数得到预测结果。这个方法相比于滑窗效率有所提升，但是对内存的要求很大，卷积计算依然昂贵。</p>
+<p>因此我们要在中间过程中对feature map 进行下采样，得到隐层向量，然后再进行上采样复原图片，进行损失函数的计算。</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/9.png" style="zoom:80%;"></p>
+<h4 id="上采样"><a href="#上采样" class="headerlink" title="上采样"></a>上采样</h4><p>下采样是池化和卷积，上采样就是下采样的逆转方法——反池化和反卷积。</p>
+<p>比如说，反池化有几种选择：我们可以将一个元素的邻居都赋相同的值，也可以将只赋值给区域中的固定位置，其他位置设为0</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/10.png" style="zoom:80%;"></p>
+<p>当然，还有一种就是借鉴池化反向传播的方法，将值赋给池化时的对应位置</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/11.png" style="zoom:80%;"></p>
+<p>不管是max unpooling, nearest neigbor 还是Bed of Nails，都和池化一样是没有参数的。 还有一种上采样方法：deconvolution,则需要用参数，而且是可学习的。</p>
+<p>如下图， 我们将输入值乘以一个 $3\times 3$的”反卷积核” ，就相当于”扩张”了。如下图所示：</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/12.png" style="zoom:80%;"></p>
+<p>然后，对每个输入值乘以卷积核，并对重叠的位置进行累积(当然平均也可以)，得到上采样后的结果，可以得到如下图所示：</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/13.png" style="zoom:80%;"></p>
+<h2 id="分类-定位"><a href="#分类-定位" class="headerlink" title="分类+定位"></a>分类+定位</h2><p>分类加定位(单目标检测)，就是识别出一张图片最主要的对象，然后框起来。如下</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/4.jpg" style="zoom:80%;"></p>
+<h3 id="方法-1"><a href="#方法-1" class="headerlink" title="方法"></a>方法</h3><p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/14.png" style="zoom:80%;"></p>
+<p>和图像分类的区别就在于，经过卷积之后，需要做两个全连接层，一个全连接层做的工作是分类，另一个则是输出一个长度为4向量，代表了这个框的四个坐标。这样就完成了分类的预测和定位的预测。</p>
+<p>分类的预测用softmax 损失函数，定位的预测用L2损失函数(回归)，将这两个损失函数相加，共同优化，得到最终的结果。</p>
+<p>因此，理论上只要有固定数量的点位，我们都可以对其进行预测。这项技术可以用于姿态估计</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/15.png" style="zoom:80%;"></p>
+<h2 id="目标检测"><a href="#目标检测" class="headerlink" title="目标检测"></a>目标检测</h2><p>将分类+定位中的单个物体拓展为多个物体，就变成了目标检测任务</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/5.png" style="zoom: 50%;"></p>
+<h3 id="方法-2"><a href="#方法-2" class="headerlink" title="方法"></a>方法</h3><p>在进行分类+定位任务的时候，我们可以将问题简化为预测5个值(类别以及框的定位)；但是对于目标检测任务，由于一张图片中存在多个目标，我事先是不知道有多少物体的，因此需要预测很多数值以及很多类别。</p>
+<h4 id="Naive-idea"><a href="#Naive-idea" class="headerlink" title="Naive idea"></a>Naive idea</h4><p>一个朴素的额方法就是，用不同的大小、位置、长宽比的矩形区域对图片进行卷积计算，用来预测类别以及框框位置。但很显然这种方法的代价极其昂贵。</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/16.png" style="zoom: 100%;"></p>
+<h4 id="R-CNN"><a href="#R-CNN" class="headerlink" title="R-CNN"></a>R-CNN</h4><p>因此我们设想，可不可以预先寻找一些可能存在物体的区域？ 这就是 Region Proposals(RP)</p>
+<p>我们可以用 Selective Search 这种传统的图形学算法，来找到几个很可能存在物体的区域。通常速度为 2000区域/秒</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/17.png" style="zoom: 100%;"></p>
+<p>在一张图片中经过RP之后，会在图片上标记出一些区域，我们称其为(Regions of Interest,ROI) 由于区域大小存在差异，因此会先转换成大小统一的feature map</p>
+<p>然后经过CNN 对每一个区域进行分类以及利用回归来校正 ROI 的坐标</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/18.png" style="zoom: 100%;"></p>
+<p>虽然这个算法效果非常好，肯定包含了我们需要检测的目标，但是，这种方法也很慢，需要对至少好几千个ROI分别做卷积。</p>
+<h4 id="Fast-R-CNN"><a href="#Fast-R-CNN" class="headerlink" title="Fast R-CNN"></a>Fast R-CNN</h4><p>为了优化上面这个算法，我们可以先卷积，后RP，这就是所谓的 Fast R-CNN . 示意图如下：</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/19.png" style="zoom: 100%;"></p>
+<h4 id="Faster-R-CNN"><a href="#Faster-R-CNN" class="headerlink" title="Faster R-CNN"></a>Faster R-CNN</h4><p>比 Fast R-CNN更快的，是Faster R-CNN。 这种方法优化了RP方法，使用RPN来进行物体检测。其示意图如下：</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/20.png" style="zoom: 100%;"></p>
+<p>该方法使用了4个损失函数：</p>
+<ul>
+<li>RPN 是否包含物体</li>
+<li>RPN 边框坐标</li>
+<li>物体的最终类别</li>
+<li>边框的额最终目标</li>
+</ul>
+<p>RPN 不同于传统的图像算法，<strong>是基于数据驱动、会不断优化自己的</strong>。训练完成以后，当RPN得到了feature map，它会去<strong>预测</strong>到底哪些区域是存在目标物体的，而不是使用selective search的方法去检索。</p>
+<p>因此，到最后PR会被优化成一个线性计算，效率会非常高。</p>
+<p>那么，RPN 是怎么被训练的呢？</p>
+<p>首先，得到了一个 20x15 的feature map，我们就将其划分为20x15个block. </p>
+<p>接着，我们把每一个block 为中心，构建一个 anchor box. 如下图所示</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/23.png" style="zoom: 100%;"></p>
+<p>然后，我们去预测每个anchor box 里面是否包含物体。也就是输出 $1\times20\times15$ 个预测数据</p>
+<p>在预测是否包含物体的时候，还需要预测每一个anchor box的真是坐标，因此又要输出$4\times20\times15$个数据</p>
+<p>通常，每一个像素点，有k 个大小不同的anchor box 需要我们去预测，因此，还要在原来的基础上乘以 $K$ </p>
+<p>最后，我们会选取<strong>含物体概率最高</strong>的100个区域作为 Region  Proposal</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/22.png" style="zoom: 100%;"></p>
+<p>整个训练一共分为两个阶段</p>
+<ul>
+<li>第一阶段<ul>
+<li>CNN 提取 feature</li>
+<li>RPN</li>
+</ul>
+</li>
+<li>第二阶段<ul>
+<li>ROI Pooling</li>
+<li>分类</li>
+<li>回归(校正 ROI)</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/21.png" style="zoom: 100%;"></p>
+<h4 id="YOLO"><a href="#YOLO" class="headerlink" title="YOLO"></a>YOLO</h4><p>YOLO 是 You Only Look Once 的缩写。</p>
+<p>YOLO 是直接在图片上划分出base boxes(类似于anchor boxes),对每个base box进行回归，并预测这个框有多大概率真的包含目标物体(背景)。</p>
+<p>YOLO在实际项目中的效果是很好的，比faster R-CNN更快。但是由于没有提取feature map，所以精度会差一点</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/24.png" style="zoom: 100%;"></p>
+<p><a href="https://arxiv.org/pdf/1512.02325.pdf" target="_blank" rel="noopener">SSD: Single-Shot MultiBox Detector</a></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li><p>Feature 提取网络</p>
+<ul>
+<li>VGG 16</li>
+<li>ResNet-101</li>
+<li>Inception V2</li>
+<li>Inception V3</li>
+<li>Mobile Net</li>
+</ul>
+</li>
+<li><p>主体结构</p>
+<ul>
+<li>两阶段： Faster R-CNN</li>
+<li>一阶段: YOLO/SSD</li>
+<li>混合：R-FCN</li>
+</ul>
+</li>
+<li><p>经验总结</p>
+<ul>
+<li><p>Faster R-CNN 相对较慢但精度较高</p>
+</li>
+<li><p>YOLO/SSD 速度更快，但精度较低</p>
+</li>
+<li><p>Feature 提取可以使用更深更大的模型</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="实例分割"><a href="#实例分割" class="headerlink" title="实例分割"></a>实例分割</h2><p>在实例分割任务中，需要将检测到的目标用不同的颜色标注出来。但在语义分割里面，可能这些目标都是一个颜色的。</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/26.png"></p>
+<h3 id="方法-3"><a href="#方法-3" class="headerlink" title="方法"></a>方法</h3><p>实例分割就是将前面的一些方法整合起来。其中最经典的一个模型就是Mask R-CNN</p>
+<h4 id="Mask-R-CNN"><a href="#Mask-R-CNN" class="headerlink" title="Mask R-CNN"></a>Mask R-CNN</h4><p>Mask R-CNN前面的结构和Faster R-CNN 非常像</p>
+<p>先利用目标检测的方法，检测图片中那些区域可能存在物体</p>
+<p>再利用语义分割的方法，将这个区域里面的像素点进行分类</p>
+<p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/25.png"></p>
+<p><a href="https://openaccess.thecvf.com/content_ICCV_2017/papers/He_Mask_R-CNN_ICCV_2017_paper.pdf" target="_blank" rel="noopener">https://openaccess.thecvf.com/content_ICCV_2017/papers/He_Mask_R-CNN_ICCV_2017_paper.pdf</a></p>
+<h2 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h2><p><img src="/2021/12/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%A3%80%E6%B5%8B%E5%92%8C%E5%88%86%E5%89%B2/27.png"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cv/" rel="tag"># cv</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/12/22/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E5%9B%BE%E5%83%8F%E5%88%86%E7%B1%BB/" rel="prev" title="计算机视觉-图像分类">
+      <i class="fa fa-chevron-left"></i> 计算机视觉-图像分类
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/01/01/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/" rel="next" title="分布式数据库事务">
+      分布式数据库事务 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#计算机视觉-检测和分割"><span class="nav-number">1.</span> <span class="nav-text">计算机视觉-检测和分割</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#图像分类"><span class="nav-number">1.1.</span> <span class="nav-text">图像分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#语义分割"><span class="nav-number">1.2.</span> <span class="nav-text">语义分割</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#方法"><span class="nav-number">1.2.0.1.</span> <span class="nav-text">方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Naive-Idea-滑窗"><span class="nav-number">1.2.0.2.</span> <span class="nav-text">Naive Idea: 滑窗</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对所有像素点同时进行预测"><span class="nav-number">1.2.0.3.</span> <span class="nav-text">对所有像素点同时进行预测</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#上采样"><span class="nav-number">1.2.0.4.</span> <span class="nav-text">上采样</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分类-定位"><span class="nav-number">1.3.</span> <span class="nav-text">分类+定位</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#方法-1"><span class="nav-number">1.3.1.</span> <span class="nav-text">方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#目标检测"><span class="nav-number">1.4.</span> <span class="nav-text">目标检测</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#方法-2"><span class="nav-number">1.4.1.</span> <span class="nav-text">方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Naive-idea"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">Naive idea</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#R-CNN"><span class="nav-number">1.4.1.2.</span> <span class="nav-text">R-CNN</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Fast-R-CNN"><span class="nav-number">1.4.1.3.</span> <span class="nav-text">Fast R-CNN</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Faster-R-CNN"><span class="nav-number">1.4.1.4.</span> <span class="nav-text">Faster R-CNN</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#YOLO"><span class="nav-number">1.4.1.5.</span> <span class="nav-text">YOLO</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.4.2.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实例分割"><span class="nav-number">1.5.</span> <span class="nav-text">实例分割</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#方法-3"><span class="nav-number">1.5.1.</span> <span class="nav-text">方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Mask-R-CNN"><span class="nav-number">1.5.1.1.</span> <span class="nav-text">Mask R-CNN</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结-1"><span class="nav-number">1.6.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

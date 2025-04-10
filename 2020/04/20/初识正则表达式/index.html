@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="正则表达式的探索与发现-爬虫项目系列博客​    因为要实现爬虫的功能，正则表达式是必须要掌握和简单应用的。那么这对于从来没看到过正则表达式的小白来说，它无疑是头痛的，因为它的长这个样子 12var url_reg &#x3D; &#x2F;\&#x2F;(\d&amp;#123;4&amp;#125;)\&#x2F;(\d&amp;#123;2&amp;#125;)-(\d&amp;#123;2&amp;#125;)\&#x2F;(\d&amp;#123;7&amp;#125;).shtml&#x2F;;var re">
+<meta property="og:type" content="article">
+<meta property="og:title" content="初识正则表达式">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="正则表达式的探索与发现-爬虫项目系列博客​    因为要实现爬虫的功能，正则表达式是必须要掌握和简单应用的。那么这对于从来没看到过正则表达式的小白来说，它无疑是头痛的，因为它的长这个样子 12var url_reg &#x3D; &#x2F;\&#x2F;(\d&amp;#123;4&amp;#125;)\&#x2F;(\d&amp;#123;2&amp;#125;)-(\d&amp;#123;2&amp;#125;)\&#x2F;(\d&amp;#123;7&amp;#125;).shtml&#x2F;;var re">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b2.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b3.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b5.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b6.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b7.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/%E6%96%B0%E9%97%BB%E4%B8%BB%E9%A1%B5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/devtools.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/shubiao.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/cainiaogongju.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/%E6%AD%A3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/33.png">
+<meta property="article:published_time" content="2020-04-20T14:44:53.000Z">
+<meta property="article:modified_time" content="2020-06-21T04:52:56.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="JavaScript">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b1.jpg">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>初识正则表达式 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          初识正则表达式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-04-20 22:44:53" itemprop="dateCreated datePublished" datetime="2020-04-20T22:44:53+08:00">2020-04-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-06-21 12:52:56" itemprop="dateModified" datetime="2020-06-21T12:52:56+08:00">2020-06-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Regular-Expression/" itemprop="url" rel="index"><span itemprop="name">Regular Expression</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="正则表达式的探索与发现-爬虫项目系列博客"><a href="#正则表达式的探索与发现-爬虫项目系列博客" class="headerlink" title="正则表达式的探索与发现-爬虫项目系列博客"></a>正则表达式的探索与发现-爬虫项目系列博客</h1><p>​    因为要实现爬虫的功能，正则表达式是必须要掌握和简单应用的。那么这对于从来没看到过正则表达式的小白来说，它无疑是头痛的，因为它的长这个样子</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> url_reg = <span class="regexp">/\/(\d&#123;4&#125;)\/(\d&#123;2&#125;)-(\d&#123;2&#125;)\/(\d&#123;7&#125;).shtml/</span>;</span><br><span class="line"><span class="keyword">var</span> regExp = <span class="regexp">/((\d&#123;4&#125;|\d&#123;2&#125;)(\-|\/|\.)\d&#123;1,2&#125;\3\d&#123;1,2&#125;)|(\d&#123;4&#125;年\d&#123;1,2&#125;月\d&#123;1,2&#125;日)/</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">  * 正则表达式:也叫规则表达式,按照一定的规则组成的一个表达式,这个表达式的作用主要是匹配字符串的,</span></span><br><span class="line"><span class="comment">    * "我的电话:10086,他的电话:10010,你的电话:10000" 正则表达式,把这个字符串中的所有的数字找到</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 正则表达式的作用:匹配字符串的</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 在大多数编程语言中都可以使用</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 正则表达式的组成:是由元字符或者是限定符组成的一个式子</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 元字符:</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * .  表示的是:除了\n以外的任意的一个字符   "fdsfs238"</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * [] 表示的是:范围,  [0-9] 表示的是0到9之间的任意的一个数字,  "789" [0-9]</span></span><br><span class="line"><span class="comment">    * [1-7] 表示的是1到7之间的任意的一个数字</span></span><br><span class="line"><span class="comment">    * [a-z] 表示的是:所有的小写的字母中的任意的一个</span></span><br><span class="line"><span class="comment">    * [A-Z] 表示的是:所有的大写的字母中的任意的一个</span></span><br><span class="line"><span class="comment">    * [a-zA-Z] 表示的是:所有的字母的任意的一个</span></span><br><span class="line"><span class="comment">    * [0-9a-zA-Z] 表示的是: 所有的数字或者是字母中的一个</span></span><br><span class="line"><span class="comment">    * [] 另一个含义: 把正则表达式中元字符的意义干掉    [.] 就是一个.</span></span><br><span class="line"><span class="comment">    * | 或者     [0-9]|[a-z] 表示的是要么是一个数字,要么是一个小写的字母</span></span><br><span class="line"><span class="comment">    * () 分组 提升优先级   [0-9]|([a-z])|[A-Z]</span></span><br><span class="line"><span class="comment">    * ([0-9])([1-5])([a-z]) 三组, 从最左边开始计算</span></span><br><span class="line"><span class="comment">    * (()(()))有几个左括号就有几组</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 都是元字符,但是也可以叫限定符,下面的这些</span></span><br><span class="line"><span class="comment">    *    *   表示的是:前面的表达式出现了0次到多次</span></span><br><span class="line"><span class="comment">    *    [a-z][0-9]* 小写字母中的任意一个 后面是要么是没有数字的,要么是多个数字的</span></span><br><span class="line"><span class="comment">    *    "fdsfs3223323"  [a-z][0-9]* 这是能匹配的，s3223323能够匹配</span></span><br><span class="line"><span class="comment">    *     只要某一节字符串匹配，那么整个字符串都匹配</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *    +  表示的是:前面的表达式出现了1次到多次</span></span><br><span class="line"><span class="comment">    *    [a-z][9]+  小写字母一个后面最少一个9,或者多个9</span></span><br><span class="line"><span class="comment">    *    "fesfewww9fefds" 这也是可以匹配的，w9 能够匹配</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *    ?  表示的是:前面的表达式出现了0次到1次,最少是0次,最多1次 ,另一个含义:阻止贪婪模式</span></span><br><span class="line"><span class="comment">    *    [4][a-z]? "1231234ij"</span></span><br><span class="line"><span class="comment">    *  限定符:限定前面的表达式出现的次数</span></span><br><span class="line"><span class="comment">    *  &#123;&#125; 更加的明确前面的表达式出现的次数</span></span><br><span class="line"><span class="comment">    *  &#123;0,&#125; 表示的是前面的表达式出现了0次到多次,和 *一样的</span></span><br><span class="line"><span class="comment">    *  &#123;1,&#125; 表示的是前面的表达式出现了1次到多次,和 +一样的</span></span><br><span class="line"><span class="comment">    *  &#123;0,1&#125; 表示的是前面的表达式出现了0次到1次,和 ?一样的</span></span><br><span class="line"><span class="comment">    *  &#123;5,10&#125; 表示的是前面的表达式出现了5次到10次</span></span><br><span class="line"><span class="comment">    *  &#123;4&#125; 前面的表达式出现了4次</span></span><br><span class="line"><span class="comment">    *  &#123;,10&#125; 错误的========不能这么写</span></span><br><span class="line"><span class="comment">    *  ^ 表示的是以什么开始,或者是取非(取反)</span></span><br><span class="line"><span class="comment">    *  ^[0-9] 以数字开头</span></span><br><span class="line"><span class="comment">    *  ^[a-z] 以小写字母开始</span></span><br><span class="line"><span class="comment">    *  [^0-9] 取反,非数字</span></span><br><span class="line"><span class="comment">    *  [^a-z] 非小写字母</span></span><br><span class="line"><span class="comment">    *  [^0-9a-zA-Z_] _不是特舒符号</span></span><br><span class="line"><span class="comment">    *  $ 表示的是以什么结束   [0-9][a-z]$  必须以小写字母结束</span></span><br><span class="line"><span class="comment">    *  ^[0-9][a-z]$ 相当于是严格模式   "3f2432e"  "4f" ^限定开始，$限定结束 。有了^$,表示严格模式</span></span><br><span class="line"><span class="comment">    *   \d 数字中的任意一个,</span></span><br><span class="line"><span class="comment">    *   \D 非数字中的一个</span></span><br><span class="line"><span class="comment">    *   \s 空白符中的一个</span></span><br><span class="line"><span class="comment">    *   \S 非空白符</span></span><br><span class="line"><span class="comment">    *   \w 非特殊符号</span></span><br><span class="line"><span class="comment">    *   \W 特殊符号</span></span><br><span class="line"><span class="comment">    *   \b 单词的边界</span></span><br><span class="line"><span class="comment">    *   "what are you no sha lei"</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *    . 除了\n以外的任意一个单个字符</span></span><br><span class="line"><span class="comment">    *    []  范围</span></span><br><span class="line"><span class="comment">    *    () 分组,提升优先级</span></span><br><span class="line"><span class="comment">    *    | 或者</span></span><br><span class="line"><span class="comment">    *    * 0-多次</span></span><br><span class="line"><span class="comment">    *    + 1-多次</span></span><br><span class="line"><span class="comment">    *    ? 0-1次</span></span><br><span class="line"><span class="comment">    *    &#123;0,&#125; 和*一样</span></span><br><span class="line"><span class="comment">    *    &#123;1,&#125; 和+</span></span><br><span class="line"><span class="comment">    *    &#123;0,1&#125; 和?</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *    \d 数字中的一个</span></span><br><span class="line"><span class="comment">    *    \D 非数字</span></span><br><span class="line"><span class="comment">    *    \s 空白符</span></span><br><span class="line"><span class="comment">    *    \S 非空白符</span></span><br><span class="line"><span class="comment">    *     \W  特殊符号</span></span><br><span class="line"><span class="comment">    *     \w 非特殊符号 _ 等价于[A-Za-z0-9 ]</span></span><br><span class="line"><span class="comment">    *     ^ 取反,以什么开始</span></span><br><span class="line"><span class="comment">    *     $ 以什么结束</span></span><br><span class="line"><span class="comment">    *     \b 单词边界</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 写正则表达式,根据字符串来写正则表达式进行匹配</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 经验: 1.找规律 2.不要追求完美</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 身份证的正则表达式</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 15位或者18位</span></span><br><span class="line"><span class="comment">    * ([1-9][0-9]&#123;14&#125;)|([1-9][0-9]&#123;16&#125;[0-9xX])</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * ([1-9][0-9]&#123;14&#125;)([0-9]&#123;2&#125;[0-9xX])?//问号表示前面的（）有没有出现过，0或1次</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 练习:</span></span><br><span class="line"><span class="comment">    * 1.座机号码的正则表达式</span></span><br><span class="line"><span class="comment">    * 010-19876754</span></span><br><span class="line"><span class="comment">    * 0431-87123490</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * [0-9]&#123;3,4&#125;[-][0-9]&#123;8&#125;</span></span><br><span class="line"><span class="comment">    * \d&#123;3,4&#125;[-]\d&#123;8&#125;</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * \d&#123;3,4&#125;[-][0-9]&#123;8&#125; 这种方式不工整</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 2.qq号码的正则表达式</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * [1-9][0-9]&#123;4,10&#125;</span></span><br><span class="line"><span class="comment">    * \d&#123;5,11&#125;</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 3.手机号码的正则表达式</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 130 131 132 133 134 135 136 137 138 139</span></span><br><span class="line"><span class="comment">    * 143 147</span></span><br><span class="line"><span class="comment">    * 150 151 152 153 154 155 156 157 158 159</span></span><br><span class="line"><span class="comment">    * 170 171 173 176 177</span></span><br><span class="line"><span class="comment">    * 180 181 182 183 184 185 186 187 188 189</span></span><br><span class="line"><span class="comment">    * ([1][358][0-9][0-9]&#123;8&#125;)|([1][4][37][0-9]&#123;8&#125;)|([1][7][01367][0-9]&#123;8&#125;)</span></span><br><span class="line"><span class="comment">    * \d&#123;11&#125;</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * 邮箱的正则表达式,必须要记住的</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * sd2113_3.-fd@itcast.com.cn</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * [0-9a-zA-Z_.-]+[@][0-9a-zA-Z_.-]+([.][a-zA-Z]+)&#123;1,2&#125;有可能是.com 也有可能是.com.cn</span></span><br><span class="line"><span class="comment">    * + 表示一次到多次</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *[0-9a-zA-Z_.]+[@][0-9a-zA-Z._]+([.][a-zA-Z]+)&#123;1,2&#125;</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * */</span></span><br></pre></td></tr></table></figure>
+<p>​    </p>
+<p>翻阅了一下犀牛书，有看了几个网上的教学视频，总算有了点概念，接下来我先把书本的内容贴上来</p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b1.jpg" alt="示例"></p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b2.jpg" alt="示例"></p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b3.jpg" alt="示例"></p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b4.jpg" alt="示例"></p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b5.jpg" alt="示例"></p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b6.jpg" alt="示例"></p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/b7.jpg" alt="示例"></p>
+<h4 id="先来看看第一个正则表达式"><a href="#先来看看第一个正则表达式" class="headerlink" title="先来看看第一个正则表达式"></a>先来看看第一个正则表达式</h4><p>我们要知道，正则表达式不是我们凭空捏造出来的，而是在我们找到目标网页后，根据源代码中子内容的编写规律对应着写下来的，老师的代码爬取的式中国新闻网的内容，所以我们先打开中国新闻网的源代码页面。</p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/新闻主页.png" alt="示例"></p>
+<p>我们看到了这一行行的新闻标题，心想：这不就是我想要的嘛！！！怎么才能获得呢！？？</p>
+<p>不慌，按F12<del>进入坦克</del>进入DevTools</p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/devtools.png" alt="示例"></p>
+<p>那么如何才能定位呢？我们点击左上方的那个小按钮，对，就是那个有鼠标一样的小按钮</p>
+<p><del>新世界开启</del></p>
+<p>我们只要把我们的鼠标移动到任何一处，图片，链接，窗口等等，devtools中就会自动显示对应的链接，太可了！</p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/shubiao.png" alt="示例"></p>
+<p>这样看了几个新闻链接后，我们不难发现</p>
+<p><a href="http://www.chinanews.com/gn/2020/04-20/9162393.shtml" target="_blank" rel="noopener">http://www.chinanews.com/gn/2020/04-20/9162393.shtml</a></p>
+<p><a href="http://www.chinanews.com/gj/2020/04-20/9162621.shtml" target="_blank" rel="noopener">http://www.chinanews.com/gj/2020/04-20/9162621.shtml</a></p>
+<p><a href="http://www.chinanews.com/cj/2020/04-20/9162059.shtml" target="_blank" rel="noopener">http://www.chinanews.com/cj/2020/04-20/9162059.shtml</a></p>
+<p>好吧事不过三，我们发现这三个基本上具有相同的格式，只是中间的gn/gj/cn不同，日期可能不同和后边的编码不同，好，那么我们需要用正则表达式去匹配前面的www.chinanews.com嘛？其实并不需要，我们只需要找到这类链接的不同之处即可，否则就是浪费时间。那么再来分析一下我们的正则表达式</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> url_reg = <span class="regexp">/\/(\d&#123;4&#125;)\/(\d&#123;2&#125;)-(\d&#123;2&#125;)\/(\d&#123;7&#125;).shtml/</span>;</span><br><span class="line"><span class="comment">//  首尾两个/ 是在Js中的声明正则表达式的固定用法，可以略去</span></span><br><span class="line"><span class="comment">//  1.\ 是用来转义的 \/匹配的是/</span></span><br><span class="line"><span class="comment">//  2.(\d&#123;4&#125;)分成两个部分 ：\d 代表数字 &#123;4&#125;代表出现字数，这里很明显我们要匹配2020</span></span><br><span class="line"><span class="comment">// 	3.\/ 又是匹配/</span></span><br><span class="line"><span class="comment">// 	4.(\d&#123;2&#125;) 同理，这次我们来匹配月份，04</span></span><br><span class="line"><span class="comment">//	5. - 其实就是匹配04-20中的-</span></span><br><span class="line"><span class="comment">//	6. (\d&#123;2&#125;)匹配的是日期</span></span><br><span class="line"><span class="comment">// 	7. \/ 又是匹配/</span></span><br><span class="line"><span class="comment">//	8.(\d&#123;7&#125;) 匹配编号，不同网页都有独特的编号</span></span><br><span class="line"><span class="comment">// 	9  .shitml就是匹配 .shtml </span></span><br><span class="line"><span class="comment">// 值得注意的是，在这里.的意思是非\n的任意字符，包括了. 如果我们只要匹配 . 需要写[.]</span></span><br></pre></td></tr></table></figure>
+<p><strong>分析完毕，我们来测试一下他的具体性能吧</strong></p>
+<p><a href="https://c.runoob.com/front-end/854" target="_blank" rel="noopener">https://c.runoob.com/front-end/854</a> 这是一个在线测试正则表达式的网站，在写爬虫的时候先跑一下看看到底能不能过滤出有效的信息来</p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/cainiaogongju.png" alt="示例"></p>
+<p>可以看到这个正则表达式还是蛮厉害的，匹配到了200多条网页链接</p>
+<h4 id="再来看看第二个正则表达式"><a href="#再来看看第二个正则表达式" class="headerlink" title="再来看看第二个正则表达式"></a>再来看看第二个正则表达式</h4><ul>
+<li>我们来看看第二个正则表达式索要匹配的目标</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> regExp = <span class="regexp">/((\d&#123;4&#125;|\d&#123;2&#125;)(\-|\/|\.)\d&#123;1,2&#125;\3\d&#123;1,2&#125;)|(\d&#123;4&#125;年\d&#123;1,2&#125;月\d&#123;1,2&#125;日)/</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1.</span>&lt;span id=<span class="string">"pubtime_baidu"</span>&gt;<span class="number">2020</span><span class="number">-04</span><span class="number">-21</span> <span class="number">08</span>:<span class="number">53</span>:<span class="number">46</span>&lt;<span class="regexp">/span&gt;</span></span><br><span class="line"><span class="regexp">2. &lt;div class="left-t"&gt;2020年04月21日 09:08　来源：法制日报&lt;a href="#zw_cyhd" target="_self"&gt; </span></span><br><span class="line"><span class="regexp">3.也有可能是这种 20-03-11</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>其实我们要匹配的是这个出版时间,因为新闻嘛，总要讲究出版时间，所以我们要把他们都找出来</li>
+<li>因为出版时间有多种形式，有可能是19-08-19类的，有可能是2020/03/20，也有可能是2020年04月21日</li>
+</ul>
+<ol>
+<li>\d{4} 出现四个数字，也就是匹配年份</li>
+<li>\d{2}  出现两个数字，也是年份，只不过可能是19-xx-xx也有可能是 2019-xx-xx 所以在中间加个|表示或</li>
+<li>( \-|\/|\.)其实是最难的，因为信息量很大，其实她想说的就是中间连字符的种类，可能是 -，可能是/,可能是 .  中间两个| 就是表示或者的意思</li>
+<li>\d{1,2}是匹配月份的，有可能是 1，也有可能是01</li>
+<li>\3比较难理解，这个\3其实就是匹配左边开始数第三个左括号的，也就是( \-|\/|\.)，其实也是月和日之间的连接符</li>
+<li>\d{1,2}匹配的是日期</li>
+<li>前面完全是数字字符来表达年月日，不过也存在2020年4月21日这种情况，那么我们如何解决？| 就完事了</li>
+<li>| 后面匹配的就是2020年4月21日这类的日期表达</li>
+</ol>
+<p>下图就是\3 这类\后面加上数字的作用</p>
+<img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/3.png" class>
+<h4 id="最后来看看我的爬虫中的正则表达式"><a href="#最后来看看我的爬虫中的正则表达式" class="headerlink" title="最后来看看我的爬虫中的正则表达式"></a>最后来看看我的爬虫中的正则表达式</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/\/.\/.&#123;8&#125;\//</span></span><br></pre></td></tr></table></figure>
+<p>我要爬取的网站是 <a href="https://www.smzdm.com/" target="_blank" rel="noopener">https://www.smzdm.com/</a> 什么值得买网站（为了找我喜欢的咖啡具）</p>
+<p>然后我们来看看子网页</p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/正.png" alt="示例"></p>
+<p>按照上面的方法，我们来找找看子网页的url</p>
+<p><a href="https://post.smzdm.com/p/alpwnzve/" target="_blank" rel="noopener">https://post.smzdm.com/p/alpwnzve/</a></p>
+<p><a href="https://post.smzdm.com/p/awxqrv02/" target="_blank" rel="noopener">https://post.smzdm.com/p/awxqrv02/</a></p>
+<p>规律是很明显的，我们需要匹配的就是  /p/alpwnzve/ </p>
+<ol>
+<li>\/匹配的就是/</li>
+<li>.匹配的是任何字符（除了\n),当然也可以用[a-zA-Z]代替</li>
+<li>\/又匹配的是/</li>
+<li>.{8} 匹配的就是 连续八个字符，这里匹配的就是alpwnzve之类的</li>
+<li>\/匹配的还是/</li>
+</ol>
+<p>来看看我们的匹配结果</p>
+<p><img src="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/33.png" alt="示例"></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>写到这里，我们对正则表达式都有了一个基本的概念了，学会了正则表达式，在爬虫的项目中就解决了一个很大的难题。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/" rel="prev" title="用nodejs来制作一个简单的爬虫来爬取网页信息">
+      <i class="fa fa-chevron-left"></i> 用nodejs来制作一个简单的爬虫来爬取网页信息
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/21/%E9%93%BE%E5%BC%8F%E5%89%8D%E9%A1%B9%E6%98%9F%E7%9A%84%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%BA%94%E7%94%A8/" rel="next" title="链式前项星的概念与应用">
+      链式前项星的概念与应用 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#正则表达式的探索与发现-爬虫项目系列博客"><span class="nav-number">1.</span> <span class="nav-text">正则表达式的探索与发现-爬虫项目系列博客</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#先来看看第一个正则表达式"><span class="nav-number">1.0.0.1.</span> <span class="nav-text">先来看看第一个正则表达式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#再来看看第二个正则表达式"><span class="nav-number">1.0.0.2.</span> <span class="nav-text">再来看看第二个正则表达式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最后来看看我的爬虫中的正则表达式"><span class="nav-number">1.0.0.3.</span> <span class="nav-text">最后来看看我的爬虫中的正则表达式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.0.1.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

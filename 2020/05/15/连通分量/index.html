@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="连通分量1.连通图和连通分量：连通图：无向图中，如果顶点vi到vj有路径，则称vi和vj是联通的，如果图中任意两个顶点都是连通的，则称G为连通图。  连通分量：无向图G的极大连通子图称为G的连通分量。极大连通子图的意思是：该子图是G的连通子图，如果再加入一个顶点，该子图不连通。下图中该图有三个连通分量。 对于连通图，则其连通分量就是他自己，对于非连通图，则有2个以上的连通分量。   2.强连通图和">
+<meta property="og:type" content="article">
+<meta property="og:title" content="连通分量">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="连通分量1.连通图和连通分量：连通图：无向图中，如果顶点vi到vj有路径，则称vi和vj是联通的，如果图中任意两个顶点都是连通的，则称G为连通图。  连通分量：无向图G的极大连通子图称为G的连通分量。极大连通子图的意思是：该子图是G的连通子图，如果再加入一个顶点，该子图不连通。下图中该图有三个连通分量。 对于连通图，则其连通分量就是他自己，对于非连通图，则有2个以上的连通分量。   2.强连通图和">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/15.png">
+<meta property="og:image" content="https://logo-1302470102.cos.ap-shanghai.myqcloud.com/1.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/18.png">
+<meta property="og:image" content="https://logo-1302470102.cos.ap-shanghai.myqcloud.com/2.gif">
+<meta property="article:published_time" content="2020-05-15T15:42:35.000Z">
+<meta property="article:modified_time" content="2021-01-08T02:16:58.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="Data_structure">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>连通分量 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          连通分量
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-05-15 23:42:35" itemprop="dateCreated datePublished" datetime="2020-05-15T23:42:35+08:00">2020-05-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-08 10:16:58" itemprop="dateModified" datetime="2021-01-08T10:16:58+08:00">2021-01-08</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%9B%BE/" itemprop="url" rel="index"><span itemprop="name">图</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="连通分量"><a href="#连通分量" class="headerlink" title="连通分量"></a>连通分量</h1><h2 id="1-连通图和连通分量："><a href="#1-连通图和连通分量：" class="headerlink" title="1.连通图和连通分量："></a>1.连通图和连通分量：</h2><p>连通图：无向图中，如果顶点vi到vj有路径，则称vi和vj是联通的，如果图中任意两个顶点都是连通的，则称G为连通图。</p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/1.png" alt></p>
+<p>连通分量：无向图G的极大连通子图称为G的连通分量。极大连通子图的意思是：该子图是G的连通子图，如果再加入一个顶点，该子图不连通。下图中该图有三个连通分量。 对于连通图，则其连通分量就是他自己，对于非连通图，则有2个以上的连通分量。</p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/2.png" style="zoom:67%;"></p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/3.png" style="zoom:80%;"></p>
+<h2 id="2-强连通图和强连通分量"><a href="#2-强连通图和强连通分量" class="headerlink" title="2.强连通图和强连通分量"></a>2.强连通图和强连通分量</h2><p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/4.png" style="zoom:80%;"></p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/5.png" style="zoom:80%;"></p>
+<p>弱连通或者单向连通就是指只有一个方向相连.</p>
+<h2 id="3-无向图的桥与割点"><a href="#3-无向图的桥与割点" class="headerlink" title="3.无向图的桥与割点"></a>3.无向图的桥与割点</h2><p>在生活中，桥就是连接河两岸的交通要道，桥断了，河两岸不在连通。在图论中，桥有着同样的含义。如图所示，去掉该边（5，8）后图分裂成两个互不连通的子图，边（5，8）就为图G的桥，同样，边（5，7）也是图G的桥</p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/6.png" style="zoom:80%;"></p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/7.png" style="zoom:80%;"></p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/8.png" style="zoom:80%;"></p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/9.png" style="zoom:80%;"></p>
+<h2 id="4-无向图的双连通分量"><a href="#4-无向图的双连通分量" class="headerlink" title="4. 无向图的双连通分量"></a>4. 无向图的双连通分量</h2><ul>
+<li><p>如果无向图中不存在桥，则称它为边双连通图，边连通图中，任意两个点间，存在两条或以上的路径，且路径上的<strong>边不重复</strong></p>
+<ul>
+<li>比如说一个环路</li>
+</ul>
+</li>
+<li><p>如果无向图中不存在割点，则称它为点双连通图，点连通图中，如果顶点数大于2，则任意两个点间，存在两条或以上的路径，且路径上的边不重复</p>
+<ul>
+<li>比如一个环路</li>
+</ul>
+</li>
+<li><p>无向图的极大边双连通子图称为双连通分量，记为e-DCC</p>
+</li>
+<li><p>无向图的极大点双连通子图称为点双连通分量，记为v-DCC</p>
+</li>
+</ul>
+<p>二者统称为<strong>双连通分量DCC</strong></p>
+<h2 id="5-双连通分量的缩点"><a href="#5-双连通分量的缩点" class="headerlink" title="5. 双连通分量的缩点"></a>5. 双连通分量的缩点</h2><h3 id="e-DCC缩点"><a href="#e-DCC缩点" class="headerlink" title="e-DCC缩点"></a>e-DCC缩点</h3><p>把每一个边双连通分量e-DCC看作是一个点，把桥看作连接两个缩点的无向边，得到一个树，这种方法称为e-DCC缩点，如图，生成了一棵树</p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/11.png" style="zoom:80%;"></p>
+<p> <strong>注意：</strong>边双连通分量就是删除桥之后留下的连通块，但点双连通分量并不是删除割点后留下的连通块</p>
+<h3 id="v-DCC缩点"><a href="#v-DCC缩点" class="headerlink" title="v-DCC缩点"></a>v-DCC缩点</h3><p>把每一个点双连通分量v-DCC看作是一个点，把割点看成一个点，每个割点向包含他的v-DCC连接一条边，得到一个树， 如图， 这种方法称为v-DCC缩点。</p>
+<p>如图所示，图G的点双连通分量有4 个（没有割点才能叫点双连通分量)</p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/13.png" style="zoom: 67%;"></p>
+<p>那么，我们得到的树就是：</p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/12.png" style="zoom:80%;"></p>
+<h1 id="Tarjan算法"><a href="#Tarjan算法" class="headerlink" title="Tarjan算法"></a>Tarjan算法</h1><ol>
+<li>无向图的桥．</li>
+<li>无向图的割点</li>
+<li>有向图的强连通分量</li>
+</ol>
+<p>Tarjan 计算机科学家， 以LCA，强连通分量等算法闻名。Tarjan设计了求解应用领域的许多问题的广泛有效的算法和数拆结构。他以在数据结构和图论上的开创性工作而闻名， 他的 些著名的算法包括Tarjan最近公共祖先离线算法，Tarjan的强连通分量算法以及Link-Cut-Trees环法等。其中Hopcroft-!Tarjan平面嵌入算法是第一个线性时间平面算法。Tarjan 也开创了重要的数据结构，如斐波纳契堆和splay树， 另一项重大贡献是分析了并查集。 他是第一个证明了计算反阿克曼函数的乐观时间复杂度的科学家。</p>
+<p>在介绍算法之前，首先引入时间戳和追溯点的概念</p>
+<p><strong>时间戳</strong>：dfn[u]表示u结点深度优先遍历的序号</p>
+<p><strong>追溯点：</strong>low[u] 表示u结点或u的子孙能通过非父子边追溯到的dfn最小的节点序号。即回到最早的过去</p>
+<p>例如，在深度优先搜索中。每个点的时间戳和追溯点求解过程如下。</p>
+<p>初始时，dfn[u] = low[u] ,如果该节点的邻接点未被访问，则一直使用深度优先遍历，1-2-3-5-6-4，此时4的邻接点1已经被访问，且1不是4的父节点，4的父节点是6（深度优先搜索树上的父节点）</p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/14.png"></p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/15.png" style="zoom:;"></p>
+<p>深度优先搜索书，起点就是根</p>
+<h2 id="无向图的桥"><a href="#无向图的桥" class="headerlink" title="无向图的桥"></a>无向图的桥</h2><p>如何判断一条边是桥？</p>
+<p>无向边(x,y) 是桥， 当且仅当搜索树上存在x的一个子节点y ，满足：</p>
+<p>$low[y]&gt;dfn[x]$</p>
+<p>上图中边(5,7), 5的子节点7，满足$low[7]&gt;dfn[5]$ ，因此这条边为桥。</p>
+<h3 id="算法"><a href="#算法" class="headerlink" title="算法"></a>算法</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> maxn=<span class="number">1000</span>+<span class="number">5</span>;<span class="comment">//节点数</span></span><br><span class="line"><span class="keyword">int</span> n,m;</span><br><span class="line"><span class="keyword">int</span> head[maxn],cnt;<span class="comment">//头节点</span></span><br><span class="line"><span class="comment">//定义边</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Edge</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">int</span> to,next;</span><br><span class="line">&#125;e[maxn&lt;&lt;<span class="number">1</span>];</span><br><span class="line"><span class="comment">//定义low数组和dfn数组</span></span><br><span class="line"><span class="keyword">int</span> low[maxn],dfn[maxn],num;</span><br><span class="line"><span class="comment">//链式前向星</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> u,<span class="keyword">int</span> v)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	e[++cnt].next=head[u];</span><br><span class="line">	e[cnt].to=v;</span><br><span class="line">	head[u]=cnt;	</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">tarjan</span><span class="params">(<span class="keyword">int</span> u,<span class="keyword">int</span> fa)</span><span class="comment">//u是出发点，fa是u的父节点</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//num一开始是0，先把结点的dfn和low都等于1</span></span><br><span class="line">	dfn[u]=low[u]=++num;</span><br><span class="line">    <span class="comment">//访问u的所有邻接点（链式前向星）</span></span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=head[u];i;i=e[i].next)</span><br><span class="line">	&#123;</span><br><span class="line">        <span class="comment">//v是u的第一个邻接点</span></span><br><span class="line">		<span class="keyword">int</span> v=e[i].to;</span><br><span class="line">        <span class="comment">//如果v是u的父亲(无向图中，父亲也是他的邻接点).那么什么也不做(不走回头路)</span></span><br><span class="line">		<span class="keyword">if</span>(v==fa)</span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line">        <span class="comment">//否则没有被访问的话，那么就从v开始深度优先遍历</span></span><br><span class="line">		<span class="keyword">if</span>(!dfn[v])</span><br><span class="line">		&#123;</span><br><span class="line">			tarjan(v,u);</span><br><span class="line">      <span class="comment">//一定要更新u节点的low值，因为孩子的low值可以当作父亲的low值。取得最小的low值</span></span><br><span class="line">			low[u]=<span class="built_in">min</span>(low[u],low[v]);</span><br><span class="line">       <span class="comment">//当low[v]&gt;dfn[u]那么就说 u-v是桥</span></span><br><span class="line">			<span class="keyword">if</span>(low[v]&gt;dfn[u])</span><br><span class="line">				<span class="built_in">cout</span>&lt;&lt;u&lt;&lt;<span class="string">"—"</span>&lt;&lt;v&lt;&lt;<span class="string">"是桥"</span>&lt;&lt;<span class="built_in">endl</span>; </span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">			low[u]=<span class="built_in">min</span>(low[u],dfn[v]);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//初始化头节点数组，low数组，dfn数组</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">init</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">memset</span>(head,<span class="number">0</span>,<span class="keyword">sizeof</span>(head));</span><br><span class="line">	<span class="built_in">memset</span>(low,<span class="number">0</span>,<span class="keyword">sizeof</span>(low));</span><br><span class="line">	<span class="built_in">memset</span>(dfn,<span class="number">0</span>,<span class="keyword">sizeof</span>(dfn));</span><br><span class="line">	cnt=num=<span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">while</span>(<span class="built_in">cin</span>&gt;&gt;n&gt;&gt;m)<span class="comment">//输入节点和边的数量</span></span><br><span class="line">	&#123;</span><br><span class="line">		init();</span><br><span class="line">		<span class="keyword">int</span> u,v;</span><br><span class="line">		<span class="keyword">while</span>(m--)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="built_in">cin</span>&gt;&gt;u&gt;&gt;v;</span><br><span class="line">			add(u,v);</span><br><span class="line">			add(v,u);</span><br><span class="line">		&#125;</span><br><span class="line">        <span class="comment">//防止不连通节点的存在，查漏</span></span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;i++)</span><br><span class="line">			<span class="keyword">if</span>(!dfn[i])</span><br><span class="line">				tarjan(<span class="number">1</span>,<span class="number">0</span>);<span class="comment">//0是没有父亲的</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试数据：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>测试数据1</th>
+<th></th>
+<th>测试数据2</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7</td>
+<td>7</td>
+<td>10</td>
+<td>13</td>
+</tr>
+<tr>
+<td>1</td>
+<td>4</td>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>3</td>
+</tr>
+<tr>
+<td>2</td>
+<td>3</td>
+<td>1</td>
+<td>4</td>
+</tr>
+<tr>
+<td>3</td>
+<td>5</td>
+<td>2</td>
+<td>3</td>
+</tr>
+<tr>
+<td>5</td>
+<td>7</td>
+<td>2</td>
+<td>5</td>
+</tr>
+<tr>
+<td>5</td>
+<td>6</td>
+<td>5</td>
+<td>3</td>
+</tr>
+<tr>
+<td>6</td>
+<td>4</td>
+<td>5</td>
+<td>7</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>5</td>
+<td>6</td>
+</tr>
+<tr>
+<td>5-7是桥</td>
+<td></td>
+<td>5</td>
+<td>8</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>6</td>
+<td>4</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>8</td>
+<td>9</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>8</td>
+<td>10</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>9</td>
+<td>10</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>5-8是桥</td>
+<td>5-7是桥</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><img src="https://logo-1302470102.cos.ap-shanghai.myqcloud.com/1.gif" style="zoom:140%;"></p>
+<h2 id="割点判定法则"><a href="#割点判定法则" class="headerlink" title="割点判定法则"></a>割点判定法则</h2><p>若x不是根节点，则x是割点，当且仅当搜索树上存在<strong>x的一个子节点y</strong>，满足：</p>
+<p>$low[y]\geq dfn[x]$ (<strong>注意</strong>，刚才求桥的是大于符号，这里是大于等于符号)</p>
+<p>若x是根节点，则x是割点，当且仅当搜索树上存在<strong>至少两个子节点</strong>，满足上述条件。因为我们想一下，如果只有一个子节点满足上述条件，那么就如下图的1，2结点，那么1就不是割点。</p>
+<p>图中，5的子节点7，满足low[7]&gt;dfn[5]因此5是割点</p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/16.png" style="zoom: 67%;"></p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/17.png" style="zoom: 67%;"></p>
+<p>第二张图中，1是割点</p>
+<p><img src="/2020/05/15/%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/18.png" style="zoom: 67%;"></p>
+<h3 id="算法-1"><a href="#算法-1" class="headerlink" title="算法"></a>算法</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> maxn=<span class="number">1000</span>+<span class="number">5</span>;</span><br><span class="line"><span class="keyword">int</span> n,m;</span><br><span class="line"><span class="keyword">int</span> head[maxn],cnt,root;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Edge</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">int</span> to,next;</span><br><span class="line">&#125;e[maxn&lt;&lt;<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> low[maxn],dfn[maxn],num;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> u,<span class="keyword">int</span> v)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	e[++cnt].next=head[u];</span><br><span class="line">	e[cnt].to=v;</span><br><span class="line">	head[u]=cnt;	</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">tarjan</span><span class="params">(<span class="keyword">int</span> u,<span class="keyword">int</span> fa)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	dfn[u]=low[u]=++num;</span><br><span class="line">	<span class="keyword">int</span> count=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=head[u];i;i=e[i].next)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">int</span> v=e[i].to;</span><br><span class="line">		<span class="keyword">if</span>(v==fa)</span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line">		<span class="keyword">if</span>(!dfn[v])</span><br><span class="line">		&#123;</span><br><span class="line">			tarjan(v,u);</span><br><span class="line">			low[u]=<span class="built_in">min</span>(low[u],low[v]);</span><br><span class="line">			<span class="keyword">if</span>(low[v]&gt;=dfn[u])</span><br><span class="line">			&#123;</span><br><span class="line">				count++;</span><br><span class="line">				<span class="keyword">if</span>(u!=root||count&gt;<span class="number">1</span>)</span><br><span class="line">					<span class="built_in">cout</span>&lt;&lt;u&lt;&lt;<span class="string">"是割点"</span>&lt;&lt;<span class="built_in">endl</span>; </span><br><span class="line">			&#125;	</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">			low[u]=<span class="built_in">min</span>(low[u],dfn[v]);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">init</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">memset</span>(head,<span class="number">0</span>,<span class="keyword">sizeof</span>(head));</span><br><span class="line">	<span class="built_in">memset</span>(low,<span class="number">0</span>,<span class="keyword">sizeof</span>(low));</span><br><span class="line">	<span class="built_in">memset</span>(dfn,<span class="number">0</span>,<span class="keyword">sizeof</span>(dfn));</span><br><span class="line">	cnt=num=<span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">while</span>(<span class="built_in">cin</span>&gt;&gt;n&gt;&gt;m)</span><br><span class="line">	&#123;</span><br><span class="line">		init();</span><br><span class="line">		<span class="keyword">int</span> u,v;</span><br><span class="line">		<span class="keyword">while</span>(m--)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="built_in">cin</span>&gt;&gt;u&gt;&gt;v;</span><br><span class="line">			add(u,v);<span class="comment">//无向图等于双向图</span></span><br><span class="line">			add(v,u);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;i++)</span><br><span class="line">			<span class="keyword">if</span>(!dfn[i])</span><br><span class="line">			&#123;</span><br><span class="line">				root=i;</span><br><span class="line">				tarjan(i,<span class="number">0</span>);</span><br><span class="line">			 &#125; </span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="有向图的强连通分量"><a href="#有向图的强连通分量" class="headerlink" title="有向图的强连通分量"></a>有向图的强连通分量</h2><h3 id="算法步骤："><a href="#算法步骤：" class="headerlink" title="算法步骤："></a>算法步骤：</h3><ol>
+<li>深度优先遍历结点，第一次访问结点x时，将x入栈，且dfn[x] = low[x] =++num</li>
+<li>遍历x的所有邻接点y，<ul>
+<li>若y没有被访问，则递归访问y，返回时更新low[x] = min(low[x],low[y])</li>
+<li>若y已经被访问且在栈当中，则令low[x] = min(low[x],dfn[y]);</li>
+</ul>
+</li>
+<li>x回溯之前，判断如果low[x] = dfn[x] ，则从栈中不断弹出节点，一直到x出栈为止。弹出的结点就是一个强连通分量</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stack&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> maxn=<span class="number">1000</span>+<span class="number">5</span>;</span><br><span class="line"><span class="keyword">int</span> n,m;</span><br><span class="line"><span class="keyword">int</span> head[maxn],cnt;</span><br><span class="line"><span class="built_in">stack</span>&lt;<span class="keyword">int</span>&gt;s;</span><br><span class="line"><span class="keyword">bool</span> ins[maxn];</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Edge</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">int</span> to,next;</span><br><span class="line">&#125;e[maxn&lt;&lt;<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> low[maxn],dfn[maxn],num;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> u,<span class="keyword">int</span> v)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	e[++cnt].next=head[u];</span><br><span class="line">	e[cnt].to=v;</span><br><span class="line">	head[u]=cnt;	</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">tarjan</span><span class="params">(<span class="keyword">int</span> u)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	low[u]=dfn[u]=++num;</span><br><span class="line">    <span class="comment">//标记元素是否在栈中</span></span><br><span class="line">	ins[u]=<span class="literal">true</span>;</span><br><span class="line">    <span class="comment">//定义一个栈把u放到栈中</span></span><br><span class="line">	s.push(u);</span><br><span class="line">    <span class="comment">//访问u的所有邻接点(发出边)</span></span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=head[u];i;i=e[i].next)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">int</span> v=e[i].to;</span><br><span class="line">		<span class="keyword">if</span>(!dfn[v])</span><br><span class="line">		&#123;</span><br><span class="line">            <span class="comment">//如果没有被访问，继续深度优先遍历</span></span><br><span class="line">			tarjan(v);</span><br><span class="line">            <span class="comment">//更新low[u]	</span></span><br><span class="line">			low[u]=<span class="built_in">min</span>(low[u],low[v]);</span><br><span class="line">		&#125;</span><br><span class="line">        <span class="comment">//如果已经访问过了，那么看看是否v结点在栈中</span></span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span>(ins[v])</span><br><span class="line">			low[u]=<span class="built_in">min</span>(low[u],dfn[v]);<span class="comment">//更新low值</span></span><br><span class="line">        <span class="comment">//因为u结点不止一个孩子，所以如果u的low值已经被很小的一个更新了，那么再次遇到dfn[v]</span></span><br><span class="line">        <span class="comment">//不一定比 当前的low[u]要小</span></span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">//判断low[u]是否等于dfn[u]</span></span><br><span class="line">	<span class="keyword">if</span>(low[u]==dfn[u])</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">int</span> v;</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;<span class="string">"连通分量:"</span>;</span><br><span class="line">		<span class="keyword">do</span></span><br><span class="line">		&#123;</span><br><span class="line">			v=s.top();</span><br><span class="line">			s.pop();</span><br><span class="line">			<span class="built_in">cout</span>&lt;&lt;v&lt;&lt;<span class="string">" "</span>;</span><br><span class="line">			ins[v]=<span class="literal">false</span>;</span><br><span class="line">		&#125;<span class="keyword">while</span>(v!=u);<span class="comment">//一直到把u出栈就停止</span></span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">init</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">memset</span>(head,<span class="number">0</span>,<span class="keyword">sizeof</span>(head));</span><br><span class="line">	<span class="built_in">memset</span>(low,<span class="number">0</span>,<span class="keyword">sizeof</span>(low));</span><br><span class="line">	<span class="built_in">memset</span>(dfn,<span class="number">0</span>,<span class="keyword">sizeof</span>(dfn));</span><br><span class="line">	<span class="built_in">memset</span>(ins,<span class="number">0</span>,<span class="keyword">sizeof</span>(ins));</span><br><span class="line">	cnt=num=<span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">while</span>(<span class="built_in">cin</span>&gt;&gt;n&gt;&gt;m)</span><br><span class="line">	&#123;</span><br><span class="line">		init();</span><br><span class="line">		<span class="keyword">int</span> u,v;</span><br><span class="line">		<span class="keyword">while</span>(m--)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="built_in">cin</span>&gt;&gt;u&gt;&gt;v;</span><br><span class="line">			add(u,v);</span><br><span class="line">            add(v,u);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;i++)</span><br><span class="line">			<span class="keyword">if</span>(!dfn[i])</span><br><span class="line">				tarjan(i);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://logo-1302470102.cos.ap-shanghai.myqcloud.com/2.gif"></p>
+<p>gif来自：<a href="https://visualgo.net/zh/dfsbfs" target="_blank" rel="noopener">https://visualgo.net/zh/dfsbfs</a></p>
+<p>连通分量:    0</p>
+<p>连通分量:    1,2,3,4</p>
+<p>连通分量:    5,6,7</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Data-structure/" rel="tag"># Data_structure</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/15/%E6%96%AF%E6%89%98%E5%85%8B%E6%96%AF%E5%85%AC%E5%BC%8F/" rel="prev" title="斯托克斯公式">
+      <i class="fa fa-chevron-left"></i> 斯托克斯公式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/16/Mysql%E5%9F%BA%E7%A1%80/" rel="next" title="Mysql基础">
+      Mysql基础 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#连通分量"><span class="nav-number">1.</span> <span class="nav-text">连通分量</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-连通图和连通分量："><span class="nav-number">1.1.</span> <span class="nav-text">1.连通图和连通分量：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-强连通图和强连通分量"><span class="nav-number">1.2.</span> <span class="nav-text">2.强连通图和强连通分量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-无向图的桥与割点"><span class="nav-number">1.3.</span> <span class="nav-text">3.无向图的桥与割点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-无向图的双连通分量"><span class="nav-number">1.4.</span> <span class="nav-text">4. 无向图的双连通分量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-双连通分量的缩点"><span class="nav-number">1.5.</span> <span class="nav-text">5. 双连通分量的缩点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#e-DCC缩点"><span class="nav-number">1.5.1.</span> <span class="nav-text">e-DCC缩点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#v-DCC缩点"><span class="nav-number">1.5.2.</span> <span class="nav-text">v-DCC缩点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Tarjan算法"><span class="nav-number">2.</span> <span class="nav-text">Tarjan算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#无向图的桥"><span class="nav-number">2.1.</span> <span class="nav-text">无向图的桥</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#算法"><span class="nav-number">2.1.1.</span> <span class="nav-text">算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#割点判定法则"><span class="nav-number">2.2.</span> <span class="nav-text">割点判定法则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#算法-1"><span class="nav-number">2.2.1.</span> <span class="nav-text">算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#有向图的强连通分量"><span class="nav-number">2.3.</span> <span class="nav-text">有向图的强连通分量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#算法步骤："><span class="nav-number">2.3.1.</span> <span class="nav-text">算法步骤：</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

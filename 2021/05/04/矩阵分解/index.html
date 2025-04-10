@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="矩阵分解具有特殊结构和性质的矩阵数学中常见的具有特殊结构的矩阵方阵行数与列数都等于n 的叫做n阶方阵  只有方阵才可以计算行列式 方阵才有逆矩阵，且方阵有逆矩阵当且仅当方阵满秩 只有方阵才有伴随矩阵 只有方阵才有特征值与特征向量  对称矩阵矩阵A是对称矩阵当且仅当  A^T &#x3D; A正(半)定矩阵 对角矩阵非对角元素都为零元素的方阵叫做对角矩阵 三角矩阵三角矩阵是对角元下方或对角元上方全是0的方阵">
+<meta property="og:type" content="article">
+<meta property="og:title" content="矩阵分解">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/05/04/%E7%9F%A9%E9%98%B5%E5%88%86%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="矩阵分解具有特殊结构和性质的矩阵数学中常见的具有特殊结构的矩阵方阵行数与列数都等于n 的叫做n阶方阵  只有方阵才可以计算行列式 方阵才有逆矩阵，且方阵有逆矩阵当且仅当方阵满秩 只有方阵才有伴随矩阵 只有方阵才有特征值与特征向量  对称矩阵矩阵A是对称矩阵当且仅当  A^T &#x3D; A正(半)定矩阵 对角矩阵非对角元素都为零元素的方阵叫做对角矩阵 三角矩阵三角矩阵是对角元下方或对角元上方全是0的方阵">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/04/%E7%9F%A9%E9%98%B5%E5%88%86%E8%A7%A3/1.png">
+<meta property="article:published_time" content="2021-05-04T12:28:47.000Z">
+<meta property="article:modified_time" content="2021-06-29T14:07:20.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据科学">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/05/04/%E7%9F%A9%E9%98%B5%E5%88%86%E8%A7%A3/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/05/04/%E7%9F%A9%E9%98%B5%E5%88%86%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>矩阵分解 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/05/04/%E7%9F%A9%E9%98%B5%E5%88%86%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          矩阵分解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-05-04 20:28:47" itemprop="dateCreated datePublished" datetime="2021-05-04T20:28:47+08:00">2021-05-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-06-29 22:07:20" itemprop="dateModified" datetime="2021-06-29T22:07:20+08:00">2021-06-29</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="矩阵分解"><a href="#矩阵分解" class="headerlink" title="矩阵分解"></a>矩阵分解</h1><h2 id="具有特殊结构和性质的矩阵"><a href="#具有特殊结构和性质的矩阵" class="headerlink" title="具有特殊结构和性质的矩阵"></a>具有特殊结构和性质的矩阵</h2><h3 id="数学中常见的具有特殊结构的矩阵"><a href="#数学中常见的具有特殊结构的矩阵" class="headerlink" title="数学中常见的具有特殊结构的矩阵"></a>数学中常见的具有特殊结构的矩阵</h3><h4 id="方阵"><a href="#方阵" class="headerlink" title="方阵"></a>方阵</h4><p>行数与列数都等于n 的叫做n阶方阵</p>
+<ul>
+<li>只有方阵才可以计算行列式</li>
+<li>方阵才有逆矩阵，且方阵有逆矩阵当且仅当方阵满秩</li>
+<li>只有方阵才有伴随矩阵</li>
+<li>只有方阵才有特征值与特征向量</li>
+</ul>
+<h4 id="对称矩阵"><a href="#对称矩阵" class="headerlink" title="对称矩阵"></a>对称矩阵</h4><p>矩阵A是对称矩阵当且仅当</p>
+<script type="math/tex; mode=display">
+A^T = A</script><h4 id="正-半-定矩阵"><a href="#正-半-定矩阵" class="headerlink" title="正(半)定矩阵"></a>正(半)定矩阵</h4><p><img src="/2021/05/04/%E7%9F%A9%E9%98%B5%E5%88%86%E8%A7%A3/1.png" style="zoom:67%;"></p>
+<h4 id="对角矩阵"><a href="#对角矩阵" class="headerlink" title="对角矩阵"></a>对角矩阵</h4><p>非对角元素都为零元素的方阵叫做对角矩阵</p>
+<h4 id="三角矩阵"><a href="#三角矩阵" class="headerlink" title="三角矩阵"></a>三角矩阵</h4><p>三角矩阵是对角元下方或对角元上方全是0的方阵</p>
+<ul>
+<li>三角矩阵主对角线上元素均非零 $\Leftrightarrow$ 三角矩阵可逆</li>
+<li>上三角、下三角矩阵的乘积还是上、下三角矩阵</li>
+<li>上、下三角矩阵可逆则其逆矩阵也是上、下三角矩阵</li>
+<li>设矩阵 A 为三角矩阵，那么 矩阵 $A^k$ 主对角线上的元素满足 $(A^k)_{ii} =(A_ii)^k,i=1,2\cdots,n$</li>
+</ul>
+<h4 id="正交矩阵"><a href="#正交矩阵" class="headerlink" title="正交矩阵"></a>正交矩阵</h4><p>正交矩阵指行向量和列向量是分别标准正交的方阵即</p>
+<script type="math/tex; mode=display">
+A^TA = AA^T = I</script><p>所以,  $A^{-1} = A^T$</p>
+<ul>
+<li><p>如果矩阵 $U\in \mathbb R^{m\times m},V\in\mathbb R^{n\times n} $ 是正交矩阵， $M\in \mathbb R^{m\times n},x\in \mathbb R^m$ </p>
+<ul>
+<li><script type="math/tex; mode=display">
+||U||_2 =1, ||U||_F = \sqrt {m}</script></li>
+<li><script type="math/tex; mode=display">
+||Ux||_2 = ||x||_2, ||Ux||_F = ||x||_F</script></li>
+<li><script type="math/tex; mode=display">
+||UMV||_2 = ||M||_2,||UMV||_F = ||M||_F</script></li>
+</ul>
+</li>
+</ul>
+<h4 id="Dyads-并向量或单纯矩阵或秩1矩阵"><a href="#Dyads-并向量或单纯矩阵或秩1矩阵" class="headerlink" title="Dyads(并向量或单纯矩阵或秩1矩阵)"></a>Dyads(并向量或单纯矩阵或秩1矩阵)</h4><p>矩阵 $A\in \mathbb R^{m\times n}$ 具有如下形式：</p>
+<script type="math/tex; mode=display">
+ A = uv^T</script><p>其中向量 $u\in \mathbb R^m,v\in \mathbb R^n$ ，则称其为dyad，也称并向量或单纯矩阵。如果 u 和 v 不为0，则我们称其为 <strong>秩1矩阵</strong> </p>
+<h2 id="LU-分解"><a href="#LU-分解" class="headerlink" title="LU 分解"></a>LU 分解</h2><p><strong>LU 分解指将</strong>$n\times n$ <strong>的矩阵A分解成两个三角矩阵的乘积</strong></p>
+<p>其中， L 为 $n\times n$ 单位下三角矩阵(对角元素为1)，U 是  $n\times n$ 上三角矩阵。</p>
+<p>从秩1分解的角度分析 $A=LU$ , 可以将 A 写成若干个 秩1矩阵和的形式：</p>
+<script type="math/tex; mode=display">
+A = l_1u_1+\cdots+l_ru_r = \sum_{i=1}^r l_iu_i</script><p>其中r为矩阵A的秩，若A是满秩，则 $r=n$ 。 $l_i$ 是 $L$ 的第$i$列；$u_i$ 是 $U$ 的第$i$行。 $l_iu_i$ 都是秩为1的矩阵，并且这个矩阵的前 $i-1$行和前$i-1$列的元素都是0</p>
+<p>求矩阵A</p>
+<script type="math/tex; mode=display">
+A=\begin{pmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 10 \end{pmatrix}</script><p>的LU分解</p>
+<p>我们要像<strong>剥洋葱</strong>一样一层一层地分解矩阵A，同时要记得 L 的对角线都是1</p>
+<ul>
+<li>第一步</li>
+</ul>
+<p>令 $u<em>1$ 是 A 的第1行，$l_1$ 是A的第1列 除以 $u</em>{11}$ ,则：</p>
+<script type="math/tex; mode=display">
+l_1u_1 =\begin{pmatrix} 1 \\ 4 \\ 7  \end{pmatrix}\begin{pmatrix} 1 & 2 & 3\end{pmatrix} = \begin{pmatrix} 1 & 2 & 3 \\ 4 & 8 & 12 \\ 7 & 14 & 21 \end{pmatrix}\\~~\\
+A-l_1u_1 = \begin{pmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 10 \end{pmatrix}-\begin{pmatrix} 1 & 2 & 3 \\ 4 & 8 & 12 \\ 7 & 14 & 21 \end{pmatrix} = \begin{pmatrix} 0 & 0 & 0 \\ 0 & -3 & -6 \\ 0 & -6 & -11 \end{pmatrix}</script><ul>
+<li>第二步</li>
+</ul>
+<p>令 $u<em>2$ 是 $A-l_1 u_1$ 的第2行，$l_2$ 是 $A-l_1u_1$ 的第二列除以$u</em>{22}$ </p>
+<script type="math/tex; mode=display">
+l_2u_2 =\begin{pmatrix} 0 \\ 1 \\ 2  \end{pmatrix}\begin{pmatrix} 0 & -3 & -6\end{pmatrix} = \begin{pmatrix} 0 & 0 & 0 \\ 0 & -3 & -6 \\ 0 & -6 & -12 \end{pmatrix}\\~~\\
+A-l_1u_1-l_2u_2 = \begin{pmatrix} 0 & 0 & 0 \\ 0 & -3 & -6 \\ 0 & -6 & -11 \end{pmatrix}-\begin{pmatrix} 0 & 0 & 0 \\ 0 & -3 & -6 \\ 0 & -6 & -12 \end{pmatrix} = \begin{pmatrix} 0 & 0 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & 1 \end{pmatrix}</script><ul>
+<li>第三步</li>
+</ul>
+<p>令$u<em>3$ 是$A-l_1u_1-l_2u_2$  的第3行，$l_3$ 是 $A-l_1u_1-l_2u_2$ 的第3列除以$u</em>{33}$ 即</p>
+<script type="math/tex; mode=display">
+l_3 =\begin{pmatrix} 0 \\ 0 \\ 1  \end{pmatrix}, u_3 = \begin{pmatrix} 0 & 0 & 1 \end{pmatrix}</script><ul>
+<li>第四步，我们要把$l_1,l_2,l_3$ 相加得到$L$ ,$u_1,u_2,u_3$ 相加得到$U$ </li>
+</ul>
+<script type="math/tex; mode=display">
+A = LU = \begin{pmatrix} 1 & 0 & 0 \\ 4 & 1 & 0 \\ 7 & 2 & 1 \end{pmatrix}\begin{pmatrix} 1 & 2 & 3 \\ 0 & -3 & -6 \\ 0 & 0 & 1 \end{pmatrix}</script><h2 id="QR-分解"><a href="#QR-分解" class="headerlink" title="QR 分解"></a>QR 分解</h2><p>QR分解指将矩阵A分解成列正交矩阵和上三角矩阵的乘积，形式如下：</p>
+<script type="math/tex; mode=display">
+A = QR = \begin{pmatrix} q_1 & q_2 & q_3 \end{pmatrix} \begin{pmatrix} r_1 \\ r_2 \\ r_3 \end{pmatrix} = q_1r_1+q_2r_2+\cdots+q_nr_n</script><p>其中 Q 是列正交矩阵，R是上三角矩阵。 $q_i$ 是 $Q$ 的列向量，$r_i$ 是 $R$ 的行向量。 且 $q_ir_i$ 的前 $i-1$ 列都为0。</p>
+<p>矩阵的QR分解可以通过 <strong>Gram-Schmidt</strong> 正交化，<strong>Household</strong> 变换，<strong>Givens</strong>变换等方法实现</p>
+<h3 id="Gram-Schmidt-正交化法"><a href="#Gram-Schmidt-正交化法" class="headerlink" title="Gram-Schmidt 正交化法"></a>Gram-Schmidt 正交化法</h3><p>首先要求出单位化后的特征向量。我们定义投影操作为： $proj_u= \frac{<u,a>}{<u,u>}u$, 也就是获取<strong>a</strong>在<strong>u</strong>方向上的分量</u,u></u,a></p>
+<p>对于一个满秩矩阵：$A=[a_1,\cdots,a_n]$</p>
+<script type="math/tex; mode=display">
+u_1 = a_1, ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~e_1=\frac{u_1}{||u_1||}\\
+u_2 = a_2-proj_{u_1}a_2 ~~~~~~~~~~~~~~~~~~~~~e_2=\frac{u_2}{||u_2||}\\
+u_3=a_3-proj_{u_1}a_3-proj_{u_2}a_3~~e_3=\frac{u_3}{||u_3||}\\
+u_k = a_k-\sum_{j=1}^{k-1}proj_{u_j}a_k,~~~~~~~~~~~~~~e_k=\frac{u_k}{||u_k||}</script><p>矩阵A的QR分解就可以写为：</p>
+<script type="math/tex; mode=display">
+Q = [e_1,\cdots,e_n]</script><p>和</p>
+<script type="math/tex; mode=display">
+R=</script><h4 id="分解方阵"><a href="#分解方阵" class="headerlink" title="分解方阵"></a>分解方阵</h4><script type="math/tex; mode=display">
+a_1 = (0,1,1)^T ,a_2=(1,1,0)^T,a_3=(1,0,1)^T</script><p>我们先用正交化方法可得：其中$q_i$代表标准化后的 $b_i$ </p>
+<script type="math/tex; mode=display">
+b_1 = a_1 = (0,1,1)^T,~~|b_1| = \sqrt{2}\\
+b_2 = a_2-\frac{[a_2,b_1]}{[b_1,b_1]}b_1=(1,1,0)^T-\frac{1}{2}(0,1,1)^T = (1,\frac{1}{2},-\frac{1}{2})^T,|b_2| = \frac{\sqrt{6}}{2}\\
+b_3 = a_3-\frac{[a_3,b_2]}{[b_2,b_2]}b_1-\frac{[a_3,b_2]}{[b_2,b_2]}b_2 = (1,0,1)^T-\frac{1}{2}(0,1,1)^T-\frac{0.5}{1.5}(1,\frac{1}{2},-\frac{1}{2})^T = (\frac{2}{3},-\frac{2}{3},\frac{2}{3})^T \\</script><p>现在来计算标准化后的矩阵：</p>
+<script type="math/tex; mode=display">
+q_1 = \frac{1}{\sqrt 2}(0,1,1)^T\\
+q_2 = \frac{1}{\sqrt 6}(2,1,-1)^T\\
+q_3 = \frac{\sqrt 3}{2}(\frac{2}{3},-\frac{2}{3},\frac{2}{3})^T\\</script><p>因此， </p>
+<script type="math/tex; mode=display">
+Q = (q_1,q_2,q_3) = \begin{bmatrix} 0 & \dfrac{2}{\sqrt{6}} & \dfrac{1}{\sqrt{3}} \\ \dfrac{1}{\sqrt{2}} & \dfrac{1}{\sqrt{6}} & -\dfrac{1}{\sqrt{3}} \\ \dfrac{1}{\sqrt{2}} & \dfrac{-1}{\sqrt{6}} & \dfrac{1}{\sqrt{3}} \end{bmatrix}</script><script type="math/tex; mode=display">
+R =  \begin{bmatrix} |b_1| & [a_2,q_1] & [a_3,q_1] \\ 0 & |b_2| & [a_3,q_2] \\ 0 & 0 & |b_3| \end{bmatrix} =\begin{bmatrix} \sqrt{2} & \dfrac{1}{\sqrt{2}} & \dfrac{1}{\sqrt{2}} \\ 0 & \dfrac{\sqrt{6}}{2} & \dfrac{1}{\sqrt{6}} \\ 0 & 0 & \dfrac{2}{\sqrt{3}} \end{bmatrix}</script><h2 id="谱分解"><a href="#谱分解" class="headerlink" title="谱分解"></a>谱分解</h2><p>设对称矩阵A为n阶方阵，如果A可以被分解为$A=Q\Lambda Q^T$ , 其中 $Q=[q_1,q_2,\cdots,q_n]$ 是由特征向量 $q_1,q_2\cdots,q_n$ 组成的n阶方阵， $\Lambda = diag(\lambda_1,\lambda_2,\cdots,\lambda_n)$  是由特征值$\lambda_1,\lambda_2\cdots,\lambda_n$ 组成的n阶对角矩阵，则这种分解叫做对称矩阵的<strong>谱分解</strong>或者<strong>特征分解</strong></p>
+<p>求解对称方程 $A\in \mathbb R^{n\times n}$ 的特征分解步骤</p>
+<ul>
+<li><p>计算矩阵A的特征值$\lambda_1\cdots,\lambda_n$ 即 求特征方程 $|A-\lambda I| = 0$  的n个根</p>
+</li>
+<li><p>求特征值对应的n个相互正交的特征向量 $q_1,\cdots,q_n$即求解方程组并单位化</p>
+<script type="math/tex; mode=display">
+Aq_i = \lambda_iq_i,i=1,\cdots,n</script></li>
+<li><p>记矩阵 $Q=(q_1,\cdots,q_n)$ </p>
+</li>
+<li><p>最终得到矩阵A的特征分解为 </p>
+<script type="math/tex; mode=display">
+A = Q\begin{pmatrix} \lambda_1 &  &  \\  & \cdots &  \\ & & \lambda_n \end{pmatrix}Q^T</script></li>
+</ul>
+<p>求实对称矩阵的特征分解</p>
+<script type="math/tex; mode=display">
+A =\begin{bmatrix} 2& 1\\ 1 & 2 \end{bmatrix}</script><ol>
+<li>首先我们计算特征向量</li>
+</ol>
+<script type="math/tex; mode=display">
+|\lambda I-A| =\begin{bmatrix}\lambda-2& -1\\ -1 & \lambda-2 \end{bmatrix}=0\\</script><p>特征值：$\lambda_1=3,\lambda_2=1$</p>
+<p>带入求解并单位化： $q_1 = (\frac{1}{\sqrt 2},\frac{1}{\sqrt 2})^T,q_2 = (-\frac{1}{\sqrt2},\frac{1}{\sqrt2})^T$ </p>
+<ol>
+<li>写出左特征向量方阵Q和特征值方阵 $\Lambda$ </li>
+</ol>
+<script type="math/tex; mode=display">
+Q =[q_1,q_2] =\begin{bmatrix} \frac{1}{\sqrt2}& -\frac{1}{\sqrt 2}\\ \frac{1}{\sqrt 2} & \frac{1}{\sqrt2} \end{bmatrix},\Lambda =\begin{bmatrix} \lambda_1 & \\  & \lambda_2 \end{bmatrix} = \begin{bmatrix} 3 &\\ & 1 \end{bmatrix}</script><ol>
+<li>$p=(\alpha_1,\alpha_2,\alpha_3),(p^{-1})^T=(\beta_1,\beta_2,\beta_3)$ </li>
+</ol>
+<script type="math/tex; mode=display">
+G_1 = \alpha_1\beta_1^T+\alpha_2\beta_2^T\\~\\
+G_2 = \alpha_3\beta_3^T</script><p>A和$G_1,G_2$的关系就是谱分解</p>
+<h2 id="Cholesky-分解"><a href="#Cholesky-分解" class="headerlink" title="Cholesky 分解"></a>Cholesky 分解</h2><p>设 $A = (a_{ij})\in R^{n\times n}$是对称正定矩阵， $A=GG^T$称为矩阵A的Cholesky 分解。 其中，$G\in R^{n\times n}$  是一个具有正的对角线元素的下三角矩阵。</p>
+<script type="math/tex; mode=display">
+G =\begin{pmatrix} g_{11} &  & & \\ g_{21} & g_{22} & & \\ \cdots & \cdots & \cdots &\\g_{n1}&g_{n2}&\cdots&g_{nn} \end{pmatrix}</script><script type="math/tex; mode=display">
+l_{11}=\sqrt{a_{11}}\\~\\
+l_{i1} = \frac{a_{i1}}{l_{11}} ~(i=2,3,\cdots,n)</script><p>这样就得到了第一列元素</p>
+<p>假设已经算出L的前 $k-1$ 列元素，通过 $a<em>{kk} = \sum</em>{i=1}^k l^2_{ki}$</p>
+<p>得到：</p>
+<script type="math/tex; mode=display">
+l_{kk} = \sqrt{a_{kk}-\sum_{i=1}^{k-1}l_{ki}^2}</script><p>进一步再由：</p>
+<script type="math/tex; mode=display">
+a_{ik} = \sum_{j=1}^{k-1}l_{ij}l_{kj}+l_{ik}l_{kk}</script><p>得到：</p>
+<script type="math/tex; mode=display">
+l_{ik} = \frac{a_{ik}-\sum_{j=1}^{k-1}l_{ij}l_{kj}}{l_{kk}},(i = k+1,\cdots,n)</script><p>也就是可以通过L的前k-1列来求出第k列</p>
+<p>一般来说只会让我们求3阶的矩阵分解，这时候要求六个元素</p>
+<ol>
+<li>第一阶段，求 $l<em>{11}=\sqrt{a</em>{11}}$</li>
+<li>再求第一列的两个元素： $l<em>{21}=\frac{a</em>{21}}{l<em>{11}},l</em>{31}=\frac{a<em>{31}}{l</em>{11}}$</li>
+<li>第二阶段，求$l<em>{22} = \sqrt{a</em>{22}-l^2_{21}}$ </li>
+<li>求$l<em>{32}=\frac{a</em>{32}-l<em>{31}l</em>{21}}{l_{22}}$</li>
+<li>第三阶段，求 $l<em>{33}=\sqrt{a</em>{33}-(l<em>{31}^2+l^2</em>{32})}$</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6/" rel="tag"># 数据科学</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E8%BF%90%E8%BE%93%E5%B1%82%E6%80%BB%E7%BB%93/" rel="prev" title="计算机网络-运输层总结">
+      <i class="fa fa-chevron-left"></i> 计算机网络-运输层总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/05/05/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B/" rel="next" title="操作系统-进程">
+      操作系统-进程 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#矩阵分解"><span class="nav-number">1.</span> <span class="nav-text">矩阵分解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#具有特殊结构和性质的矩阵"><span class="nav-number">1.1.</span> <span class="nav-text">具有特殊结构和性质的矩阵</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数学中常见的具有特殊结构的矩阵"><span class="nav-number">1.1.1.</span> <span class="nav-text">数学中常见的具有特殊结构的矩阵</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#方阵"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">方阵</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对称矩阵"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">对称矩阵</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#正-半-定矩阵"><span class="nav-number">1.1.1.3.</span> <span class="nav-text">正(半)定矩阵</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对角矩阵"><span class="nav-number">1.1.1.4.</span> <span class="nav-text">对角矩阵</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#三角矩阵"><span class="nav-number">1.1.1.5.</span> <span class="nav-text">三角矩阵</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#正交矩阵"><span class="nav-number">1.1.1.6.</span> <span class="nav-text">正交矩阵</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dyads-并向量或单纯矩阵或秩1矩阵"><span class="nav-number">1.1.1.7.</span> <span class="nav-text">Dyads(并向量或单纯矩阵或秩1矩阵)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LU-分解"><span class="nav-number">1.2.</span> <span class="nav-text">LU 分解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#QR-分解"><span class="nav-number">1.3.</span> <span class="nav-text">QR 分解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Gram-Schmidt-正交化法"><span class="nav-number">1.3.1.</span> <span class="nav-text">Gram-Schmidt 正交化法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#分解方阵"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">分解方阵</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#谱分解"><span class="nav-number">1.4.</span> <span class="nav-text">谱分解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cholesky-分解"><span class="nav-number">1.5.</span> <span class="nav-text">Cholesky 分解</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Week12 TCP协议和IP协议分析1.实验目的 了解TCP协议的工作原理 学习TCP建立连接三次握手的过程 学习TCP断开连接四次挥手的过程 快速简单了解IP协议，特别是IP数据报 研究IP数据分片方法  2. 实验任务 使用 Wireshark 快速了解TCP协议 使用 Wireshark 快速了解 IP 协议  3. 实验过程3.1 Wireshark 抓取TCP包 TCP 协议   TC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络报告Week12">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Week12 TCP协议和IP协议分析1.实验目的 了解TCP协议的工作原理 学习TCP建立连接三次握手的过程 学习TCP断开连接四次挥手的过程 快速简单了解IP协议，特别是IP数据报 研究IP数据分片方法  2. 实验任务 使用 Wireshark 快速了解TCP协议 使用 Wireshark 快速了解 IP 协议  3. 实验过程3.1 Wireshark 抓取TCP包 TCP 协议   TC">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/2.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/3.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/5.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/6.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/7.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/8.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/21.png">
+<meta property="article:published_time" content="2021-05-30T13:01:30.000Z">
+<meta property="article:modified_time" content="2022-08-23T14:25:30.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/1.jpg">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>计算机网络报告Week12 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机网络报告Week12
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-05-30 21:01:30" itemprop="dateCreated datePublished" datetime="2021-05-30T21:01:30+08:00">2021-05-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-08-23 22:25:30" itemprop="dateModified" datetime="2022-08-23T22:25:30+08:00">2022-08-23</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Week12-TCP协议和IP协议分析"><a href="#Week12-TCP协议和IP协议分析" class="headerlink" title="Week12 TCP协议和IP协议分析"></a>Week12 TCP协议和IP协议分析</h1><h2 id="1-实验目的"><a href="#1-实验目的" class="headerlink" title="1.实验目的"></a>1.实验目的</h2><ul>
+<li>了解TCP协议的工作原理</li>
+<li>学习TCP建立连接三次握手的过程</li>
+<li>学习TCP断开连接四次挥手的过程</li>
+<li>快速简单了解IP协议，特别是IP数据报</li>
+<li>研究IP数据分片方法</li>
+</ul>
+<h2 id="2-实验任务"><a href="#2-实验任务" class="headerlink" title="2. 实验任务"></a>2. 实验任务</h2><ul>
+<li>使用 Wireshark 快速了解TCP协议</li>
+<li>使用 Wireshark 快速了解 IP 协议</li>
+</ul>
+<h2 id="3-实验过程"><a href="#3-实验过程" class="headerlink" title="3. 实验过程"></a>3. 实验过程</h2><h3 id="3-1-Wireshark-抓取TCP包"><a href="#3-1-Wireshark-抓取TCP包" class="headerlink" title="3.1 Wireshark 抓取TCP包"></a>3.1 Wireshark 抓取TCP包</h3><ul>
+<li>TCP 协议 </li>
+</ul>
+<p>TCP 被称为是面向连接的(connection oriented), 这是因为在一个应用进程可以开始向另一个应用进程发送数据之前，这两个进程必须互相先”握手”, 即它们必须相互发送某些预备报文段，以建立确保数据传输的参数。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/1.jpg" style="zoom: 50%;"></p>
+<ul>
+<li>Wireshark 相关知识详见 Exp6: DNS 报文分析和基于UDP的Socket编程</li>
+</ul>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/2.jpg" style="zoom: 50%;"></p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/3.jpg" style="zoom: 50%;"></p>
+<h4 id="Task1"><a href="#Task1" class="headerlink" title="Task1:"></a>Task1:</h4><p>利用Wireshark 抓取一个TCP抓取数据包， 查看其具体数据结构和实际的数据 (要求根据报文结构正确标识每个部分)， 请将实验结果附在实验报告中</p>
+<p>这里，注释的部分为该字段的名称以及实际数据</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">Transmission Control Protocol, Src Port: <span class="number">50177</span>, Dst Port: <span class="number">443</span>, Seq: <span class="number">1</span>, Ack: <span class="number">2</span>, Len: <span class="number">0</span></span><br><span class="line">    Source Port: <span class="number">50177</span>   					<span class="comment"># 源端口号   C4	01</span></span><br><span class="line">    Destination Port: <span class="number">443</span>					<span class="comment"># 目的端口号 01 bb</span></span><br><span class="line">    [Stream index: <span class="number">16</span>]					</span><br><span class="line">    [TCP Segment Len: <span class="number">0</span>]</span><br><span class="line">    Sequence Number: <span class="number">1</span>    (relative sequence number)		<span class="comment"># 序号 	12 2f f1 74</span></span><br><span class="line">    Sequence Number (raw): <span class="number">305131892</span>										</span><br><span class="line">    [Next Sequence Number: <span class="number">1</span>    (relative sequence number)] </span><br><span class="line">    Acknowledgment Number: <span class="number">2</span>    (relative ack number) 	<span class="comment"># 确认号 60 c2 55 c9</span></span><br><span class="line">    Acknowledgment number (raw): <span class="number">1623348681</span></span><br><span class="line">    <span class="number">0101</span> .... = Header Length: <span class="number">20</span> bytes (<span class="number">5</span>)		<span class="comment"># 首部长度 (长8个bit) 50</span></span><br><span class="line">    Flags: <span class="number">0x010</span> (ACK)</span><br><span class="line">        <span class="number">000.</span> .... .... = Reserved: Not set <span class="comment"># 保留未用 50 10</span></span><br><span class="line">        ..<span class="number">.0</span> .... .... = Nonce: Not set</span><br><span class="line">        .... <span class="number">0.</span>.. .... = Congestion Window Reduced (CWR): Not set</span><br><span class="line">        .... <span class="number">.0</span>.. .... = ECN-Echo: Not set</span><br><span class="line">        .... .<span class="number">.0</span>. .... = Urgent: Not set</span><br><span class="line">        .... ..<span class="number">.1</span> .... = Acknowledgment: Set <span class="comment"># Flag中的ACK已经被标记</span></span><br><span class="line">        .... .... <span class="number">0.</span>.. = Push: Not set			</span><br><span class="line">        .... .... <span class="number">.0</span>.. = Reset: Not set</span><br><span class="line">        .... .... .<span class="number">.0</span>. = Syn: Not set</span><br><span class="line">        .... .... ..<span class="number">.0</span> = Fin: Not set </span><br><span class="line">        <span class="comment"># 其余Flag均未被标记</span></span><br><span class="line">        [TCP Flags: ·······A····]</span><br><span class="line">    Window: <span class="number">4096</span> 									<span class="comment"># 接收窗口大小 10 00</span></span><br><span class="line">    [Calculated window size: <span class="number">4096</span>]</span><br><span class="line">    [Window size scaling factor: <span class="number">-1</span> (unknown)]</span><br><span class="line">    Checksum: <span class="number">0x5abf</span> [unverified]	<span class="comment"># 因特网检验和 5a bf</span></span><br><span class="line">    [Checksum Status: Unverified]</span><br><span class="line">    Urgent Pointer: <span class="number">0</span>							<span class="comment"># 紧急数据指针 00 00 (未设置)</span></span><br><span class="line">    [SEQ/ACK analysis]</span><br><span class="line">    [Timestamps]</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/1.png" style="zoom: 50%;"></p>
+<h3 id="3-2-TCP-三次握手"><a href="#3-2-TCP-三次握手" class="headerlink" title="3.2 TCP 三次握手"></a>3.2 TCP 三次握手</h3><p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/4.jpg"></p>
+<h4 id="Task2："><a href="#Task2：" class="headerlink" title="Task2："></a>Task2：</h4><p>根据TCP三次握手的交互图以及TCP报文段结构图逐步分析三次握手过程，请将实验结果附在实验报告中</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/9.png"></p>
+<p>这就是本地电脑和百度三次握手的过程。 每次握手的过程这里重复了两次，但内容是一样的</p>
+<h5 id="第一次握手"><a href="#第一次握手" class="headerlink" title="第一次握手"></a>第一次握手</h5><p>首先，是从本地客户端发向百度服务器的一个数据报。在这个数据报中，Seq=0，说明一开始是从序号为0的包好事发送的。我们看到这里SYN 这一位已经被设为1了，因为还没收到来自百度的确认信息，因此这里ACK为设为0</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/10.png"></p>
+<h5 id="第二次握手"><a href="#第二次握手" class="headerlink" title="第二次握手"></a>第二次握手</h5><p>这是百度服务器给本地电脑发送的报文，其中 Seq=0, ACK = 1 ,因为TCP是全双工通信的，因此从百度发送来的第一个报文段也是从 seq=0 开始的。但是这个报文段中包含了对我发给百度的包的确认信息，因此这里ACK被设置了，且值为1，这说明 1 以前的包我全部都收到了，请本地发送1以后的包</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/11.png"></p>
+<h5 id="第三次握手"><a href="#第三次握手" class="headerlink" title="第三次握手"></a>第三次握手</h5><p>第三次握手是本地发送给百度服务器的，此时， Seq=1, 说明这是本地发送的第二个包了(第一个包Seq=0) ； ACK = 1 说明已经收到了来自服务端的 1以前的所有包。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/12.png"></p>
+<p>至此，本地和服务端的三次握手已经结束，可以相互传递信息了</p>
+<h3 id="3-3-TCP-四次挥手"><a href="#3-3-TCP-四次挥手" class="headerlink" title="3.3 TCP 四次挥手"></a>3.3 TCP 四次挥手</h3><p>当通信双方完成数据传输，需要进行TCP连接的释放，由于TCP连接是全双工的，因此每个方向都必须单独进行关闭。这个原则是当一方完成它的数据发送任务后就能发送一个FIN来终止这个方向的连接。收到一个FIN只意味着这一方向上没有数据流动，一个TCP连接在收到一个FIN后仍然能发送数据。首先进行关闭的一方将执行主动关闭，而另一方执行被动关闭。因为正常关闭过程需要发送4个TCP帧，因此这个过程也叫四次挥手。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/5.jpg"></p>
+<h4 id="Task3"><a href="#Task3" class="headerlink" title="Task3:"></a>Task3:</h4><p>根据TCP四次挥手的交互图以及TCP报文段结构图逐步分析四次挥手过程，请将实验结果附在实验报告中。</p>
+<p>这是四次挥手的过程：</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/13.png"></p>
+<h5 id="第一次挥手"><a href="#第一次挥手" class="headerlink" title="第一次挥手"></a>第一次挥手</h5><p>第一次挥手是百度向本地发送的一个包， Seq=80634 Ack =6224. 同时，设定了Fin位，表示服务器单方面想和本地断开联系。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/14.png"></p>
+<h5 id="第二次挥手"><a href="#第二次挥手" class="headerlink" title="第二次挥手"></a>第二次挥手</h5><p>第二次挥手是本地收到了百度想要结束的Fin之后，返回了一个带有ACK的包。同时告诉服务器，ACK=80635,说明80635以前的数据段都已经收到了。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/15.png"></p>
+<h5 id="第三次挥手"><a href="#第三次挥手" class="headerlink" title="第三次挥手"></a>第三次挥手</h5><p>前两次挥手是主动关闭方断开连接，但是只是单方面关闭连接。现在要被动关闭方来断开连接，才能实现真正的断连。</p>
+<p>我们看到这个是 本地向百度发送的包，设置了Fin和ACK，注意到这个包的ACK和第二次挥手发送的ACk的值是一模一样的，因为在这两次挥手之间没有收到新的来自百度的包</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/16.png"></p>
+<h5 id="第四次挥手"><a href="#第四次挥手" class="headerlink" title="第四次挥手"></a>第四次挥手</h5><p>第四次挥手，是百度收到了本地发送的带有FIN 标志的包后，返回的确认报文。</p>
+<p>这个报文比较特殊，因为返回的报文只设置了RST位，没有设置 Seq，Ack。 RST位被设置以后，接收端收到之后不必发送ACK包。</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/17.png"></p>
+<h3 id="3-4-IP分片"><a href="#3-4-IP分片" class="headerlink" title="3.4 IP分片"></a>3.4 IP分片</h3><ul>
+<li>IP报文格式</li>
+</ul>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/6.jpg"></p>
+<ul>
+<li>根据上课学习知道IP报文要交给数据链路层封装后才能发送，理想状况下，每个IP报文正好能放在同一个物理帧中发送。如果一个数据包超过1500字节(以太网的帧中最多可容纳1500字节的数据). 就需要将该包进行分片发送，这个上限被称为物理网络的最大传输单元(MTU. Maxium Transfer Unit)</li>
+<li>TCP/IP 协议在发送IP数据报文时，一般选择一个合适的初始长度。当这个报文要从一个MTU大的子网发送一个MTU 小的网络时，IP协议就把这个报文的数据部分分割成能被目的子网锁容纳的较小的数据分片，组成较小的报文发送。每个较小的报文被称为一个分片。 每个分片都有一个IP 报文头，分片后的数据包的IP报头和原式IP报头分片偏移、MF标志位和校验字段不同外，其他都一样。</li>
+<li>下面通过使用ICMP 包，来产生IP分片数据包。使用ICMP包进行测试时，如果不指定包的大小，可能无法查看被分片的数据报。由于IP首部占用20个字节，ICMP首部占8个字节，所以捕获ICMP包大小最大为1472字节。但是在一般情况下，ping 命令默认的大小都不会唱过1472。 这样，发送的ICMP包就可以顺利通过，不需要经过分片再传输，如果想捕获到IP分片的包，需要指定发送的ICMP包必须大于1472 字节。</li>
+<li>可通过下方命令指定发送包的大小，如： <code>ping -s 3005 www.ecnu.edu.cn</code></li>
+</ul>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/7.jpg"></p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/8.jpg"></p>
+<h4 id="Task4"><a href="#Task4" class="headerlink" title="Task4"></a>Task4</h4><p>任取一个有IP协议的ICMP数据报并根据该报文分析IP协议的报文格式(正确标注每一个部分)， 请将实验结果附在实验报告中</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/18.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Internet Protocol Version <span class="number">4</span>, Src: <span class="number">192.168</span><span class="number">.31</span><span class="number">.15</span>, Dst: <span class="number">180.101</span><span class="number">.49</span><span class="number">.11</span> <span class="comment"># 源地址和目标地址</span></span><br><span class="line">    <span class="number">0100</span> .... = Version: <span class="number">4</span>	<span class="comment"># 版本号，一般是4   </span></span><br><span class="line">    .... <span class="number">0101</span> = Header Length: <span class="number">20</span> bytes (<span class="number">5</span>) <span class="comment"># 头部长度，为20 bytes</span></span><br><span class="line">    Differentiated Services Field: <span class="number">0x00</span> (DSCP: CS0, ECN: Not-ECT)</span><br><span class="line">    Total Length: <span class="number">84</span> <span class="comment">#总长度 16进制值为 00 54</span></span><br><span class="line">    Identification: <span class="number">0xe6a0</span> (<span class="number">59040</span>) <span class="comment"># 标志 </span></span><br><span class="line">    Flags: <span class="number">0x00</span>					<span class="comment"># 标识</span></span><br><span class="line">    Fragment Offset: <span class="number">0</span> <span class="comment"># 片偏移 和flag合起来是 0000</span></span><br><span class="line">    Time to Live: <span class="number">64</span>	 <span class="comment"># 生存时间 40</span></span><br><span class="line">    Protocol: ICMP (<span class="number">1</span>) <span class="comment"># 协议 01</span></span><br><span class="line">    Header Checksum: <span class="number">0xcee0</span> [validation disabled] <span class="comment"># 首部检验和 ce e0</span></span><br><span class="line">    [Header checksum status: Unverified]</span><br><span class="line">    Source Address: <span class="number">192.168</span><span class="number">.31</span><span class="number">.15</span>		<span class="comment"># 源地址 ce a8 1f 0f </span></span><br><span class="line">    Destination Address: <span class="number">180.101</span><span class="number">.49</span><span class="number">.11</span> <span class="comment"># 目标地址 b4 65 31 0b</span></span><br></pre></td></tr></table></figure>
+<h4 id="Task5"><a href="#Task5" class="headerlink" title="Task5"></a>Task5</h4><p>对截获的报文进行分析，将属于同一个ICMP报文的分片找出来，并分析其字节长度特点(如，每个分片的大小，片偏移等)，请将实验结果附在报告中</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/19.png"></p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/20.png"></p>
+<p>我想 www.ecnu.edu.cn ping 了一段长1500的报文，发现被分割成了两段。其中一段长 1514，一段长62</p>
+<p>点开第一段报文和第二段报文：</p>
+<p><img src="/2021/05/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8AWeek12/21.png"></p>
+<p>我们发现他们的 Identification 都是一样的，为 0x0bcd. 由此我们可以断定这两个分片属于同一个ICMP报文。</p>
+<p>第一段报文是只有IP层，没有ICMP层的。总长度为1500，即一个MTU。但是因为IP层头长度为20，所以data的总长度只有1480。 因为这是第一个报文，因此并没有数据偏移量，因此这时 <strong>Fragment Offset : 0</strong> ，同时在Flags中也有注明，说有其他分片。</p>
+<p>第二段报文报文的总长度为48，头长度为20，data是28，那么为什么不是20而是28呢？因为ICMP的头部占了8个字节。因为这是最后一段报文，因此Flag为0，前面只有一个满的报文，因此 <strong>Fragment Offset</strong>为1480. </p>
+<p>因为说不管ping的字节有多长，一定都是填满一个报文之后再分出来，所以其Offset 一定都是1480的整数倍。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"># 计算机网络</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/23/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A-rdt3-0/" rel="prev" title="计算机网络报告-rdt3.0">
+      <i class="fa fa-chevron-left"></i> 计算机网络报告-rdt3.0
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/" rel="next" title="计算机网络-网络层">
+      计算机网络-网络层 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Week12-TCP协议和IP协议分析"><span class="nav-number">1.</span> <span class="nav-text">Week12 TCP协议和IP协议分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-实验目的"><span class="nav-number">1.1.</span> <span class="nav-text">1.实验目的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-实验任务"><span class="nav-number">1.2.</span> <span class="nav-text">2. 实验任务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-实验过程"><span class="nav-number">1.3.</span> <span class="nav-text">3. 实验过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-Wireshark-抓取TCP包"><span class="nav-number">1.3.1.</span> <span class="nav-text">3.1 Wireshark 抓取TCP包</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Task1"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">Task1:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-TCP-三次握手"><span class="nav-number">1.3.2.</span> <span class="nav-text">3.2 TCP 三次握手</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Task2："><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Task2：</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#第一次握手"><span class="nav-number">1.3.2.1.1.</span> <span class="nav-text">第一次握手</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#第二次握手"><span class="nav-number">1.3.2.1.2.</span> <span class="nav-text">第二次握手</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#第三次握手"><span class="nav-number">1.3.2.1.3.</span> <span class="nav-text">第三次握手</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-TCP-四次挥手"><span class="nav-number">1.3.3.</span> <span class="nav-text">3.3 TCP 四次挥手</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Task3"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">Task3:</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#第一次挥手"><span class="nav-number">1.3.3.1.1.</span> <span class="nav-text">第一次挥手</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#第二次挥手"><span class="nav-number">1.3.3.1.2.</span> <span class="nav-text">第二次挥手</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#第三次挥手"><span class="nav-number">1.3.3.1.3.</span> <span class="nav-text">第三次挥手</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#第四次挥手"><span class="nav-number">1.3.3.1.4.</span> <span class="nav-text">第四次挥手</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-IP分片"><span class="nav-number">1.3.4.</span> <span class="nav-text">3.4 IP分片</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Task4"><span class="nav-number">1.3.4.1.</span> <span class="nav-text">Task4</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Task5"><span class="nav-number">1.3.4.2.</span> <span class="nav-text">Task5</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

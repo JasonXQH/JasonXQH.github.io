@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Optimal BST什么是最优二叉搜索树？假设我们在设计一个实现英语到法语的翻译，对英语文本中出现的每个单词查找对应的法语单词。 为了实现这个操作，我们可以创建一颗二叉搜索树，将n个英语单词作为关键词，对应的法语单词作为关联数据。 于对文本中的每个单词都要进行搜索， 我们希望花费在搜索上的总时间尽量少 我们知道平衡二叉搜索树或者红黑树的搜索时间是 $O(logn)$ 。但是，单词出现的频率是不同">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OptimalBST">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/11/26/OptimalBST/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Optimal BST什么是最优二叉搜索树？假设我们在设计一个实现英语到法语的翻译，对英语文本中出现的每个单词查找对应的法语单词。 为了实现这个操作，我们可以创建一颗二叉搜索树，将n个英语单词作为关键词，对应的法语单词作为关联数据。 于对文本中的每个单词都要进行搜索， 我们希望花费在搜索上的总时间尽量少 我们知道平衡二叉搜索树或者红黑树的搜索时间是 $O(logn)$ 。但是，单词出现的频率是不同">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/26/OptimalBST/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/26/OptimalBST/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/26/OptimalBST/3.png">
+<meta property="article:published_time" content="2020-11-26T07:30:07.000Z">
+<meta property="article:modified_time" content="2020-11-26T14:20:58.000Z">
+<meta property="article:author" content="Jason">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/11/26/OptimalBST/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/11/26/OptimalBST/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>OptimalBST | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/11/26/OptimalBST/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OptimalBST
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-11-26 15:30:07 / Modified: 22:20:58" itemprop="dateCreated datePublished" datetime="2020-11-26T15:30:07+08:00">2020-11-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DP/" itemprop="url" rel="index"><span itemprop="name">DP</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Optimal-BST"><a href="#Optimal-BST" class="headerlink" title="Optimal BST"></a>Optimal BST</h1><h2 id="什么是最优二叉搜索树？"><a href="#什么是最优二叉搜索树？" class="headerlink" title="什么是最优二叉搜索树？"></a>什么是最优二叉搜索树？</h2><p>假设我们在设计一个实现英语到法语的翻译，对英语文本中出现的每个单词查找对应的法语单词。</p>
+<p>为了实现这个操作，我们可以创建一颗二叉搜索树，将n个英语单词作为关键词，对应的法语单词作为关联数据。</p>
+<p>于对文本中的每个单词都要进行搜索， 我们希望花费在搜索上的总时间尽量少</p>
+<p>我们知道平衡二叉搜索树或者红黑树的搜索时间是 $O(logn)$ 。但是，单词出现的频率是不同的。</p>
+<p>像 “the” 这种频繁使用的单词有可能位于搜索树中远离根的位置上，搜索一次可能需要花费很多时间；而像 “machicolation” 这种很少使用的单词可能位于靠近根的位置上，搜索一次只要花很少的时间。</p>
+<p>这样的结构会减慢翻译的速度， 因为在二叉树搜索树中<strong>搜索一个关键字需要访问的结点数</strong>等于<strong>包含关键字的结点的深度加1</strong> , 我们希望文本中频繁出现的单词被置于靠近根的位置。更甚者，文本中的一些单词可能没有对应的法语单词，这些单词根本不应该出现在二叉搜索树中中。</p>
+<p>于是我们定义：<strong>在给定单词出现频率的前提下，我们应该如何组织一颗二叉搜索树，使得所有搜索操作访问的结点总数最少</strong>，就是一个最优二叉搜索树问题。</p>
+<p>抽象总结一下这个问题：</p>
+<p>给定一个n个不同关键字已排序的序列$K=<k_1,k_2,\cdots,k_n>$ 我们希望用这些关键字构造一棵二叉搜索树。对于每个关键字 $k<em>i$ ，都有一个概率 $p_i$ 表示其搜索频率。<br>有些要搜索的值可能不在k当中，因此我们还需要有n+1个”伪关键字” $d_0,d_1,\cdots d_n$ 表示<strong>不在K中的值</strong>：其中 $d_0$ 表示所有小于 $k_1$ 的值，$d_n$ 表示所有大于$k_n$ 的值，对 $i = 1,2,\cdots,n-1$ ，伪关键字 $d_i $ 表示所有在 $k_i$ 和 $k</em>{i+1}$ 之间的值。对每个伪关键字 $d_i$ ，也都有一个概率p表示对应的搜索频率。这些结点是整个二叉树的叶子结点</k_1,k_2,\cdots,k_n></p>
+<p>下图是对一个 n=5 个关键字的集合构造的两颗二叉搜索树。 每次搜索要么成功(找到关键字$k_i$)，要么失败(找到某个伪关键字$d_i$) </p>
+<p>因此 我们可以得到如下公式： $\sum<em>{i=1}^n p_i+\sum</em>{i=0}^n q_i = 1$ </p>
+<p><img src="/2020/11/26/OptimalBST/1.png" style="zoom: 120%;"></p>
+<p>对于 $p_i$ 和$q_i$ 的搜索概率如下：</p>
+<p><img src="/2020/11/26/OptimalBST/2.png" style="zoom: 120%;"></p>
+<p>由于我们知道每个关键字和伪关键字的搜索概率，因而可以确定一颗给定的二叉搜索树T中进行一次搜索的期望代价</p>
+<p>假定一次搜索的代价等于访问的节点数，即此次搜索找到的结点在T中的深度再加1，那么计算公式如下：</p>
+<p>$E[T中搜索代价] = \sum<em>{i=1}^n(depth_T(k_i)+1)*p_i+\sum</em>{i=0}^n(depth_T(d_i)+1)*q_i$ </p>
+<p>从这个公式我们可以算出，上图(a)树的期望搜索代价为2.80，而(b)树的期望搜索代价为2.75</p>
+<p>那么对于一个给定的概率集合，我们希望构造一棵期望搜索代价最小的二叉树，称之为最优二叉搜索树。对于上面这组概率来说，最优二叉搜索树是 (b)树。</p>
+<p>因此可见最优二叉搜索树并不一定是最矮的(b比a高)，而且概率最高的关键字也并不一定出现在二叉搜索树的根节点(概率最高应该是k5而最优二叉搜索树的根节点是$k_2$)。 </p>
+<p>关于这个问题，我们如果通过穷举法，肯定是不行的，因此我们采用动态规划的方法来求解：</p>
+<h2 id="动态规划方法求解"><a href="#动态规划方法求解" class="headerlink" title="动态规划方法求解"></a>动态规划方法求解</h2><h3 id="最优二叉搜索树的最优解"><a href="#最优二叉搜索树的最优解" class="headerlink" title="最优二叉搜索树的最优解"></a>最优二叉搜索树的最优解</h3><p>给定关键字序列 $k<em>i,\cdots,k_j$,其中某个关键字，比如说 $k_r(i\leq r\leq j)$, 是这些关键字的最优子树的<strong>根节点</strong>。那么 $k_r$ 的左子树就包含关键字 $k_i,\cdots,k</em>{r-1}$和伪关键字($d<em>{i-1},\cdots,d</em>{r-1}$) ；同理右子树包含关键字 $k<em>{r+1},\cdots ,k_j$ 和伪关键字 ($d_r,\cdots,d_j$). 只要我们检查所有可能的根节点 $k_r(i\leq r\leq j)$,并对每种情况分别求包含 $k_i,\cdots,k</em>{r-1}$ 以及包含$k_{r+1},\cdots ,k_j$ 的最优二叉搜索树，即可保证找到原问题的最优解。</p>
+<h3 id="递归算法"><a href="#递归算法" class="headerlink" title="递归算法"></a>递归算法</h3><p>我们定义 $e[i,j]$ 为在包含关键字 $k_i,\cdots,k_j$ 的最优二叉搜索树中进行一次搜索的期望代价。最终我们希望计算出 $e[1,n]$</p>
+<p>当 $j\geq i$ 的时候，我们需要从 $k<em>i,\cdots,k_j$中选择一个根节点 $k_r$ ，然后构造一颗包含关键字 $k_i,\cdots,k</em>{r-1}$ 的最优二叉搜索树作为其左子树，以及一颗包含关键字 $k_{r+1},\cdots,k_j$ 的二叉搜索树作为其右子树。</p>
+<p>由于当一颗子树成为一个结点的字数时，期望搜索代价的增加值应为所有的概率之和，因此对于包含关键字 $k<em>i,\cdots,k_j$ 的子树，所有概率之和为 $w(i,j) = \sum</em>{l=i}^jp<em>l+\sum</em>{l=i-1}^jq_l$ </p>
+<p>因此，若 $k_r$ 为包含关键字 $k_i,\cdots,k_j$ 的最优二叉搜索树的根节点，我们有如下公式</p>
+<p>$e[i,j] = p_r+(e[i,r-1]+w(i,r-1))+(e[r+1,j]+w(r+1,j))$ </p>
+<p>又因为 $w(i,j) = w(i,r-1)+p_r+w(r+1,j)$</p>
+<p>因此$e[i,j]$ 可以重写为 $e[i,j]=e[i,r-1]+e[r+1,j]+w(i,j)$ </p>
+<p>我们可以选取期望搜索代价最低者作为根节点，可以得到最终的递归公式</p>
+<p><img src="/2020/11/26/OptimalBST/3.png" style="zoom: 120%;"></p>
+<p>$e[i,j]$ 的值给出了最优二叉搜索树的期望搜索代价。为了记录最优二叉搜索树的结构，对于包含关键字 $k_i,\cdots,k_j(i\leq i\leq j\leq n)$ 的最优二叉搜索树，我们定义 $root[i,j]$ 保存根结点 $k_r$ 的下标r。</p>
+<h3 id="计算最优二叉搜索树的期望搜索代价"><a href="#计算最优二叉搜索树的期望搜索代价" class="headerlink" title="计算最优二叉搜索树的期望搜索代价"></a>计算最优二叉搜索树的期望搜索代价</h3><p>​                                                                </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/11/24/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E8%B7%AF%E7%90%86%E8%AE%BA/" rel="prev" title="卷积神经网路理论">
+      <i class="fa fa-chevron-left"></i> 卷积神经网路理论
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/12/01/CSAPP%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/" rel="next" title="CSAPP动态内存分配">
+      CSAPP动态内存分配 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Optimal-BST"><span class="nav-number">1.</span> <span class="nav-text">Optimal BST</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是最优二叉搜索树？"><span class="nav-number">1.1.</span> <span class="nav-text">什么是最优二叉搜索树？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动态规划方法求解"><span class="nav-number">1.2.</span> <span class="nav-text">动态规划方法求解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#最优二叉搜索树的最优解"><span class="nav-number">1.2.1.</span> <span class="nav-text">最优二叉搜索树的最优解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#递归算法"><span class="nav-number">1.2.2.</span> <span class="nav-text">递归算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计算最优二叉搜索树的期望搜索代价"><span class="nav-number">1.2.3.</span> <span class="nav-text">计算最优二叉搜索树的期望搜索代价</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

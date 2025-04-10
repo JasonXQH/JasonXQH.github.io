@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="B树概要​        二叉搜索树的搜索效率和树高成正比关系，通过减少二叉搜索树的高度，可以提高搜索效率今 平衡二叉树可以减少树高，但是仍然不够彻底，因为每个结点只含有—个关键字，树 高仍然是$O(\log n)$， 能否继续压缩树高， 使其更加扁平化呢?  ​        如果—个结点不限于存储—个关键字，可以包含多个关键字和多个子树，既保持二叉搜索树的特性，又具有平衡性，这样的搜索树称为多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="B树">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="B树概要​        二叉搜索树的搜索效率和树高成正比关系，通过减少二叉搜索树的高度，可以提高搜索效率今 平衡二叉树可以减少树高，但是仍然不够彻底，因为每个结点只含有—个关键字，树 高仍然是$O(\log n)$， 能否继续压缩树高， 使其更加扁平化呢?  ​        如果—个结点不限于存储—个关键字，可以包含多个关键字和多个子树，既保持二叉搜索树的特性，又具有平衡性，这样的搜索树称为多">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/27.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/28.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/29.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/30.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/32.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/33.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/24.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/34.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/35.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/25.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/26.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/36.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/37.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/38.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/39.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/40.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/41.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/42.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/43.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/44.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/45.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/46.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/47.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/48.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/49.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/50.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/51.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/52.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/53.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/54.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/55.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/56.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/57.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/58.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/59.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/60.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/61.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/63.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/64.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/65.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/66.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/67.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/68.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/69.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/70.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/71.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/72.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/73.png">
+<meta property="article:published_time" content="2020-06-17T08:00:16.000Z">
+<meta property="article:modified_time" content="2022-12-09T09:11:16.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="Data_structure">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>B树 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/06/17/B%E6%A0%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          B树
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-06-17 16:00:16" itemprop="dateCreated datePublished" datetime="2020-06-17T16:00:16+08:00">2020-06-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-12-09 17:11:16" itemprop="dateModified" datetime="2022-12-09T17:11:16+08:00">2022-12-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%A0%91/" itemprop="url" rel="index"><span itemprop="name">树</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="B树"><a href="#B树" class="headerlink" title="B树"></a>B树</h1><h2 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h2><p>​        二叉搜索树的搜索效率和树高成正比关系，通过减少二叉搜索树的高度，可以提高搜索效率今 平衡二叉树可以减少树高，但是仍然不够彻底，因为每个结点只含有—个关键字，树 高仍然是$O(\log n)$， 能否继续压缩树高， 使其更加扁平化呢? </p>
+<p>​        如果—个结点不限于存储—个关键字，可以包含多个关键字和多个子树，既保持二叉搜索树的特性，又具有平衡性，这样的搜索树称为<strong>多路平衡搜索树</strong> 如图所示平衡二叉搜索树比晋通的二叉搜索树高度<strong>低</strong>，而<strong>多路平衡搜索树的树高更低</strong>，更加扁平化， 搜索的效率更高。</p>
+<p><img src="/2020/06/17/B%E6%A0%91/1.png" style="zoom: 67%;"></p>
+<p>​        那么是不是越扁平就越好呢？再压缩下去， 就变成—个包含所有结点的树根了! 这样的效率反而会退化，因为这就相当于线性查找了，又退化成了 $O(n)$</p>
+<p>​        事实上并非如此，多路平衡搜索树主要用于大规模数据的分级存储搜索，将内存的 “ 高速度 ” 和外存的 ”大容量” 结合起来，提高搜索效率。众所周知，内存的访问速度是很快的， 而外存的访问速度则慢5-6个数量级， 数据规模巨大时，无法全部放入内存，数据全集往 往放在外存中，如果频繁地访问外存，则搜索的效率降低。如何减少外存操作呢?    </p>
+<p>​        外存访问时，访问一个数据和访问一段连续存储的数据，时间差别不大。因此可以用 “ 大结点 ” 代替多个单个结点， 一个 “ 大结点 ” 包含多个连续存储的数据，作为一个整体， 进行一次外存访问。将这个 “大结点 ” 调入内存后， 再进行多次内存操作， 例如顺序查找或折半 查找。 与外存访问相比， 内存操作的成本很小。</p>
+<p>​        一个“大节点”到底到底包含多少个数据元素合适呢？主要取决千不同外存的批量访问特性。例如，可以根据磁盘扇区的容量和数据元素的大小计算出一个一个“大节点”包含数据元素的个数。若一个大结点包含255 个数据元素，那么1G个数据元素，每次查找需要4-5次外存访问。而如果使用平衡二叉搜索树(AVL树) ，则每次查找需要30次外存访问</p>
+<p>​        多路平衡搜索树，又称为B-树，或者B树。一颗m阶B-树，或为空树，或满足以下特性</p>
+<ol>
+<li>每个结点最多有m棵子树</li>
+<li>根结点至少有两棵子树；</li>
+<li>内部结点（除根和叶子之外的结点）至少有$\lceil m/2\rceil$棵子树；</li>
+<li>终端结点（叶子）在同—层上，并且不带信息（空指针）， 通常称为失败结点。</li>
+<li>非终端结点的关键字个数比子树个数少 1</li>
+</ol>
+<p><img src="/2020/06/17/B%E6%A0%91/2.png" style="zoom: 67%;"></p>
+<p>​        例如，3阶B-树，其内部节点的子树个数$2\leq k\leq3$ ，所以又称为2-3树。也就是说每个节点有1-2个关键词，2-3棵子树，所有的叶子都在最后一层，如图</p>
+<p><img src="/2020/06/17/B%E6%A0%91/3.png" style="zoom: 67%;"></p>
+<p>注意指针的方向</p>
+<p><img src="/2020/06/17/B%E6%A0%91/4.png" style="zoom: 100%;"></p>
+<p>如果我们要查询20，那么比65小，左子树；比56小，左子树；比25小，那么说明查找失败-失败节点就是这么命名的</p>
+<p>B树具有平衡、有序、多路的特点，所有的叶子都在最后一层，因此左右子树的高差为0，体现了平衡的特性。B树具有<strong>中序有序</strong>性，即左子树&lt;根&lt;右子树。多路是指可以有多个分支，m阶B树的节点最多可以有m个分支。所以也可以成为m路平衡搜索树</p>
+<p>查找插入删除操作和树高成正比关系，因此线分析树高，然后详解B树的查找插入、删除等基本操作</p>
+<h2 id="树高与性能"><a href="#树高与性能" class="headerlink" title="树高与性能"></a>树高与性能</h2><p>一颗含有n个关键字的m阶B-树的最大高度是多少呢？</p>
+<p>首先我们要看每层至少有多少个结点，因为结点越少，高度越大。根据定义，根节点至少有2棵子树，那么第二层至少有2个节点，除了根之外，每个非叶子节点至少有 $\lceil m/2\rceil$  棵子树，每个子树对应一个节点，因此第三层至少有 $2\lceil m/2\rceil $（取上限）个节点，以此类推， 第 h+1层，至少有 $2\lceil m/2\rceil^{h-1}$ 个叶子节点</p>
+<p><img src="/2020/06/17/B%E6%A0%91/5.png" style="zoom: 80%;"></p>
+<p>叶子结点为查找失败的空指针，n个关键字又n+1种查找失败的情况，即：</p>
+<p><img src="/2020/06/17/B%E6%A0%91/6.png" style="zoom: 100%;"></p>
+<p>$\lceil O(\log_mn)\rceil$就是树高，后面分析的B树的查找、插入、删除等基本操作的时间复杂度时可以利用该结果进行分析</p>
+<p>比如说5阶B树，53个结点，最大的树高就是$O(\log_327)+1$ =4</p>
+<p>还可以算最小的树高，那么每个节点都包含$m-1$个结点，最多会有$m$个分支，那么第$h+1$层就有$m^h$ 个结点。所以 $n+1&lt;=m^h $ , 即 $\log_m(n+1)\leq h$  放到刚才的例子当中  $\log_554$ 向上取整，也就是3层</p>
+<p>因此，最短树高： $h = \lceil \log<em>m(n+1)\rceil$  , 最长树高： $h=\lfloor \log</em>{\lceil m/2\rceil} ((n+1)/2)+1\rfloor$ </p>
+<h2 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h2><p>​        B树的查找和二叉搜索树的查找类似，不同的是需要从外存调入结点，然后在结点内查找(—个结点可能包含多个关键字 ）<br>​        首先将根结点作为当前结点， 在当前结点的关键字中查找目标， 若查找成功， 则返回 。否则通过判断进入下—层的结点， 若该结点不是叶子（空指针）， 则将其从外存调入内存作为当前结点， 重复查找过程。在任何时刻，通常只有当前结点在内存中，其他结点放在外存中， 需要时才会调入内存。</p>
+<p><img src="/2020/06/17/B%E6%A0%91/7.png" style="zoom: 67%;"></p>
+<p>首先和65比，比65大，那么和右子树比，和75，90比，在中间，那么在中间的指针种查找，所以找到了80</p>
+<p>忽略掉内存查找的时间（内存的查找时间很短，可以忽略不计），我们执行了3次外存查找</p>
+<h3 id="算法分析"><a href="#算法分析" class="headerlink" title="算法分析"></a>算法分析</h3><p>B-树的查找时间包括将结点从外存调入内存和在内存中当前结点查找两个方面。结点间的跳转作为—次外存访问，结点内的查找作为多次内存操作，因为外存和内存操作时间相差巨大， 因此结点内的内存操作忽咯不计，只需要考察在查找的过程中，访问了多少个结点即可 查找最多从根边问到叶子， 即树的高度$O(\log_mn)$, 含有n个关键字的m阶B-树， 因此。m阶B-树查找的时间复杂度为$O(\log_mn)$</p>
+<h2 id="插入"><a href="#插入" class="headerlink" title="插入"></a>插入</h2><p>插入操作， 首先要在B-树中查找合适的插入位置。 因为关键字不允许重复， 如果查找成功，则不进行插入操作，返回。如果查找失败，则将关键字插入到失败结点的双亲结点中。<br>例如， 在 棵 3 阶 B-树中插入 59, 首先查找位置， 59 大于 58 小于 60, 而 58 和 60 之间的子树为空指针， 查找失败， 将 59 插入失败节点父亲的位置。 如图 10-35 所示。</p>
+<p><img src="/2020/06/17/B%E6%A0%91/8.png" style="zoom: 67%;"></p>
+<h3 id="上溢"><a href="#上溢" class="headerlink" title="上溢"></a>上溢</h3><p>​        但是m阶B-树主结点的关键字个数不能超过m-1, 插入关键字后， 如果仍然满足此条件， 那么插入操作完成。 如果插入后， 关键字个数为m （超过了m-1), 则发生了一次上溢。 帣要进行分裂操作解除上溢， 使该结点及整棵树重新满足m阶B-树的条件。（因为这是一个3阶B树，每个结点的关键字的个数为1，2。显然这个超过3个节点了，所以这就发生了上溢）<br>刚刚发生上溢的结点V, 插入之前满足条件（关键字个数小于等于m-1), 插入之后大于m-1, 因此V结点现在恰好有m个关键字。 将该关键字分裂操作：取V结点中间的关键字$K_s (s=m/2)$, 将$K_s$上升到其父结点P, 左右两部分作为$K_s$的左右孩子， 如图10-36所示。</p>
+<p><img src="/2020/06/17/B%E6%A0%91/9.png" style="zoom: 67%;"></p>
+<p>这里，把<strong>中间的关键字</strong>59往上提</p>
+<p><img src="/2020/06/17/B%E6%A0%91/10.png" style="zoom: 67%;"></p>
+<p>​        这里父亲没有发生上移，否则还要继续往上分裂，一直可以分裂到树根。最后让树高加一</p>
+<p>​        分裂操作将上溢结点的中间关键字位上升到其父结点，如果其父结点这时也发生上溢，则继续分裂操作，一直向上传递， 录远到达树根。</p>
+<p>位上升到其父结点P后， 可分为<strong>3种情况</strong>：</p>
+<h4 id="第一种情况"><a href="#第一种情况" class="headerlink" title="第一种情况"></a>第一种情况</h4><p>p结点未发生上溢， 修复完成</p>
+<p><img src="/2020/06/17/B%E6%A0%91/11.png" style="zoom: 67%;"></p>
+<h4 id="第二种情况"><a href="#第二种情况" class="headerlink" title="第二种情况"></a>第二种情况</h4><p>p结点发生上溢，执行分裂操作，一直向上传递，在到达树根前不再发生上溢， 或到达树根但树根未发生上溢， 修复完成。</p>
+<p><img src="/2020/06/17/B%E6%A0%91/12.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/13.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/14.png" style="zoom: 67%;"></p>
+<h4 id="第三种情况（特殊）"><a href="#第三种情况（特殊）" class="headerlink" title="第三种情况（特殊）"></a>第三种情况（特殊）</h4><p>上溢一直传递到树根，树根也发生上溢，那么将树根分裂，根节点中间关键字分裂成新的树根，修复完成，此时树的高度增加了1</p>
+<p><img src="/2020/06/17/B%E6%A0%91/15.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/16.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/17.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/18.png" style="zoom: 67%;"></p>
+<p>​        只有树根发生上溢的时候，B-树才会长高一层，其他情况，树高不变。树根分裂的时，新的树根只有一个关键字和两棵子树，这也是B-树定义中，特别是定义树根的原因</p>
+<h3 id="算法分析："><a href="#算法分析：" class="headerlink" title="算法分析："></a>算法分析：</h3><p>含有n个关键字的m阶B-树，插入操作除了查找插入位置(需要$O(\log_mn)$时间) 之外，如果发生上溢，需要分裂操作，分裂操作不会超过树的高度$O(log_mn)$,因此，插入操作的时间复杂度为$O(\log_mn)$ </p>
+<p>现在给我们一串数字，那么我们就可以先查找再看看有无上溢来新建一个m-阶B-树了</p>
+<p><img src="/2020/06/17/B%E6%A0%91/27.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/28.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/29.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/30.png" style="zoom: 67%;"></p>
+<h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><p>​        删除操作， 首先要在B-树中查找待删除关键字的位置。 如果查找失败，则不进行删除操作， 返回。如果查找成功，则执行以下删除操作。<strong>如果待删除关键字的子树非空</strong>，则需要像二叉搜索树一样， 令该关键字的直接前驱（或直接后继）代替待删除关键字， 然后删除其直接前驱（或直接后继）即可。直接前驱（或直接后继）的子树一定为空。因此只需要处理待删除关键字的子树为空的情况即可。</p>
+<p>​        例如，在一棵3阶B-树中删除75，首先查找75位置，75所在结点的子树非空，则令75的直接前驱70代替之，然后删除70即可。</p>
+<p><img src="/2020/06/17/B%E6%A0%91/19.png" style="zoom: 67%;"></p>
+<p>那么如果拿直接前驱去代替它，是可以的，但是我们一定要保证删除后的结点仍然至少拥有1个关键词，如上图，删掉了70还有68；但是如果删掉了节点以后该节点小于$\lceil m/2\rceil-1$，那么我们就发生了下溢, 需要相关操作解除下溢，使该结点及整棵树重新满足 m阶B-树的条件</p>
+<p><img src="/2020/06/17/B%E6%A0%91/19.png" style="zoom: 67%;"></p>
+<h3 id="下溢"><a href="#下溢" class="headerlink" title="下溢"></a>下溢</h3><p>考察下溢结点V的左右兄弟，下溢处理分为3种情况：左借、右借、合并</p>
+<h4 id="左借"><a href="#左借" class="headerlink" title="左借"></a>左借</h4><p><img src="/2020/06/17/B%E6%A0%91/21.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/22.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/32.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/33.png" style="zoom: 67%;"></p>
+<h4 id="右借"><a href="#右借" class="headerlink" title="右借"></a>右借</h4><p><img src="/2020/06/17/B%E6%A0%91/23.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/24.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/34.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/35.png" style="zoom: 67%;"></p>
+<h4 id="合并"><a href="#合并" class="headerlink" title="合并"></a>合并</h4><p><img src="/2020/06/17/B%E6%A0%91/25.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/26.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/36.png" style="zoom: 67%;"></p>
+<p>发生下溢结点的左兄弟只有一个关键字，不可以借，也没有右兄弟。需要执行合并操作。父节点中的90下来，将左兄弟及下溢结点粘合成一个新的结点，父节点下移一个关键字后仍然满足条件，下溢解除。</p>
+<p><img src="/2020/06/17/B%E6%A0%91/37.png" style="zoom: 67%;"></p>
+<h4 id="特殊情况，树高减一"><a href="#特殊情况，树高减一" class="headerlink" title="特殊情况，树高减一"></a>特殊情况，树高减一</h4><p><img src="/2020/06/17/B%E6%A0%91/38.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/39.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/40.png" style="zoom: 67%;"></p>
+<h3 id="算法分析-1"><a href="#算法分析-1" class="headerlink" title="算法分析"></a>算法分析</h3><p>含有n个关键字的m阶B-树，删除操作除了查找插入位置(需要$O(\log_mn)$时间) 之外，如果发生下溢，需要左借、右借或合并操作，合并操作不会超过树的高度$O(\log_mn)$,因此，删除操作的时间复杂度为$O(\log_mn)$ </p>
+<p><img src="/2020/06/17/B%E6%A0%91/41.png" style="zoom: 67%;"></p>
+<ul>
+<li>删除25，节点中还有30，符合条件，直接删除即可</li>
+</ul>
+<p><img src="/2020/06/17/B%E6%A0%91/42.png" style="zoom: 67%;"></p>
+<ul>
+<li>删除80， 节点为空，此时左兄弟有两个节点，可以实行左借策略，把70放上去，把75放在原来80的位置</li>
+</ul>
+<p><img src="/2020/06/17/B%E6%A0%91/43.png" style="zoom: 67%;"></p>
+<ul>
+<li>删除65，先用最大前驱60代替65的位置，然后删除60，节点数据个数符合条件，不用进行借、合并操作</li>
+</ul>
+<p><img src="/2020/06/17/B%E6%A0%91/44.png" style="zoom: 67%;"></p>
+<ul>
+<li>删除56，节点为空，右兄弟有两个(70,90), 执行右借，70提上去，60移到56的位置</li>
+</ul>
+<p><img src="/2020/06/17/B%E6%A0%91/45.png" style="zoom: 67%;"></p>
+<p>含有10亿个节点的3阶B-树的高度仅仅在19-30(根据上面提到的公式$\log_mn = \log_210^9 = 30$)之间，最多只需要访问30个结点就能够在10亿个键中进行任何查找、插入、和删除操作</p>
+<h2 id="习题"><a href="#习题" class="headerlink" title="习题"></a>习题</h2><ol>
+<li><p>具有n个关键词的m阶B树，应有多少叶节点？ 即考察我们查找失败的可能性，即 n+1种，因此，由n+1个叶子节点</p>
+</li>
+<li><p>考察节点数：高度为5的3阶B树至少有多少节点，至多有多少结点？这里是3阶B树，节点内的关键字最少1个最多2个，因此节点数最少的时候，3阶B树的形状类似于一个满二叉树。此时高度为5的B树至少有 $2^5-1=31$ 个节点； 由于每个节点最多又m棵子树，所以当节点数最多的时候，3阶B树的形状类似于满三叉树，节点数为$(3^5-1)/2 = 121$</p>
+</li>
+<li><p>含有n个非叶节点的m阶B树，至少包含又多少个关键词？m阶B树每个节点包含的关键词最少是 $\lceil m/2\rceil -1$ ，根节点至少包含两颗子树、一个关键词，因此至少包含$(n-1)(\lceil m/2\rceil -1)+1$ 个关键词</p>
+</li>
+<li><p>利用B树做文件索引的时候，若假设磁盘页块的大小是 4000 B, 指示磁盘地址的指针需要5B，现有20000000个记录构成的文件，每个记录为200B，其中包括关键词5B</p>
+<p>试问这个采用B树作索引的文件中，B树的阶数应为多少？ 假定文件数据部分 没有按照关键字有序排列，则索引部分需要占用多少磁盘页块？</p>
+<p>根据B树的概念，一个索引节点应适应操作系统一次读写的物理记录大小，其大小应取不超过、但最接近一个磁盘页块的大小。假设B树为m阶，一个B树节点最多存放m-1个关键词(5B) 和对应的物理地址(5B)、m个子树指针(5B) 和一个指示磁盘地址种的实际关键字个数的整数 (2B) ,则有：</p>
+<p>$(2(m-1)+m)\times 5 +2 \leq 400$  解得 $m\leq 267$ </p>
+<p>一个267阶B树的索引节点最多可以存放m-1=266 个索引项，最少可以存放 $\lceil m/2\rceil -1=133$ 个索引项。因此，一共$n=2\times10^7$ 个记录，每个记录占用200B，每个页块可以存放20个记录，则全部记录将会分布在$p = 1\times 10^6$ 个页块种，最多需要占用$1\times 10^6/133=7519$ 个磁盘页块作为B树索引，最少需要 $1\times 10^6/266 = 3760$ 个磁盘块作为B树的索引</p>
+</li>
+</ol>
+<h1 id="B-树"><a href="#B-树" class="headerlink" title="B+树"></a>B+树</h1><p>B+树是B-树的变种， 更适用于文件索引系统。 从严格定义上，B+树已经不属于树， 因为叶子之间有连接， 树是不允许同层结点有连接的。</p>
+<p>一棵m阶B+树， 或为空树， 或为满足以下特性：</p>
+<ul>
+<li>每个结点最多有m棵子树。（这一点和B树是一样的）</li>
+<li>根结点至少有两棵子树。（这一点和B树是一样的）</li>
+<li>内部结点（除根和叶子之外的结点）至少有$\lceil m/2\rceil$（取上限）棵子树。（这一点和B树是一样的）</li>
+<li>终端结点（叶子）在同—层上，并且不带信息（空指针）， 通常称为失败结点。 (<strong>很重要</strong>)</li>
+<li><strong>非终端结点的关键字个数与子树个数相同</strong>。（和B树不一样，B树的关键字个数比子树少一个）</li>
+<li><strong>倒数第二层结点(非空叶子)包含了全部的关键字</strong>， 结点内部有序且结点间按升序顺序链接。</li>
+<li>所有的非终端结点只作为索引部分， <strong>结点中仅含子树中的最大（或最小）关键字</strong></li>
+</ul>
+<p>例如，一棵3阶B+树，其内部节点的子树个数$2\leq k\leq 3$,关键字的个数也是 $2\leq n\leq3$ 如下图，一般有两个指针，一个指向树根，一个指向倒数第二层关键字的最小节点(最后一层全是空的!)</p>
+<p><img src="/2020/06/17/B%E6%A0%91/46.png" style="zoom: 67%;"></p>
+<h2 id="B-树的查找"><a href="#B-树的查找" class="headerlink" title="B+树的查找"></a>B+树的查找</h2><p>​        B+树可通过<strong>两种方式的查找</strong>，可以利用 t 指针从树根向下索引查找，也可以利用r指针从最小关键字向后顺序查找。尽管如此，仍不建议顺序查找，因为其时间复杂度为$O(n)$, 索引查找效率要高得多。</p>
+<p>​        若从树根向下查找，则首先在根结点中查找，然后在子树中查找，即使查找成功，也会继续向下，直到最后一层。也就是说，每次查找都要走一条从树根到叶子的路径，时间复杂度为树高$O(\log_mn)$</p>
+<p><img src="/2020/06/17/B%E6%A0%91/47.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/48.png" style="zoom: 67%;"></p>
+<p>B+树不仅支持单个关键字查找， 还支持范围查找。 例如， 查找范围在<code>[a, b]</code>之间的关键字， 首先查找a所在的位置， 从根到最后一层， 查找等于或大于a的关键字， 如果找到， 则继续在a所在的结点查找，如果未发现大于b的关键字，即可以沿该结点的最后一个指针查找下一个结点， 直到找到一个等于或大于b的关键字停止。</p>
+<p>例如，在一棵3阶B+树中查找<code>[60-80]</code>之间的关键字</p>
+<ul>
+<li>首先查找60所在的位置，从根到最后一层，查找等于或者大于60的关键字，未找到60；</li>
+<li>沿着60顺序查找，找到比它大的关键字65</li>
+<li>继续在该节点中查找，在下下个节点中找到了等于80的关键字，查找成功。</li>
+</ul>
+<p><img src="/2020/06/17/B%E6%A0%91/49.png" style="zoom: 67%;"></p>
+<h2 id="B-树的插入"><a href="#B-树的插入" class="headerlink" title="B+树的插入"></a>B+树的插入</h2><p>​        m阶B+树的插入， 仅在最后一层结点插入， 因为除了最后一层结点， 其他非终端结点都表示索引。 又因为m阶B+树的<strong>关键字个数要求不超过m</strong>, 如果插入后结点的关键字个数超过m, 则发生上溢, 要分裂操作。 只不过分裂时, 和B树的分裂不同, 上升到父结点的关键字, 子结点中仍然保留。<br>​        刚刚发生上溢的结点V,插入之前满足条件（关键字个数小于等于 m), 插入之后大于m, 因此 V结点现在恰好有 m+1 个关键字。 将该关键字分裂操作： 取V结点中间的关键字 $K_s(s=(m+l)/2)$ , 将$K_s$上升到其父结点 P, 左右两部分作为$K_s$的左右孩子，如图 10-61 所示。</p>
+<p><img src="/2020/06/17/B%E6%A0%91/50.png" style="zoom: 67%;"></p>
+<p>​        中间关键字上升到父结点后，需要检杳父结点是否发生上溢，如果发生上溢， 则继续分裂， 一直向上传递， 最远到达树根。 如果根结点发生上溢，则要以下特殊处理：</p>
+<p>​        树根分裂操作而要分裂的两个于结点的<strong>最大关键字一起上升</strong>，生成 个新的结点作为新树根， 此时树高增1。 如下所示。</p>
+<p><img src="/2020/06/17/B%E6%A0%91/51.png" style="zoom: 67%;"></p>
+<h3 id="未发生上溢"><a href="#未发生上溢" class="headerlink" title="未发生上溢"></a>未发生上溢</h3><p><img src="/2020/06/17/B%E6%A0%91/52.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/53.png" style="zoom: 67%;"></p>
+<h3 id="发生上溢"><a href="#发生上溢" class="headerlink" title="发生上溢"></a>发生上溢</h3><p><img src="/2020/06/17/B%E6%A0%91/54.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/55.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/56.png" style="zoom: 67%;"></p>
+<h3 id="特殊情况（树根分裂）"><a href="#特殊情况（树根分裂）" class="headerlink" title="特殊情况（树根分裂）"></a>特殊情况（树根分裂）</h3><p><img src="/2020/06/17/B%E6%A0%91/57.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/58.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/59.png" style="zoom: 67%;"></p>
+<h3 id="练习："><a href="#练习：" class="headerlink" title="练习："></a>练习：</h3><p><img src="/2020/06/17/B%E6%A0%91/60.png" style="zoom: 67%;"></p>
+<ul>
+<li><p>50 插入，不分裂</p>
+</li>
+<li><p>82插入，分裂，第二层变为70，80，85，98，再次发生分裂。树根变为 65 80 98</p>
+</li>
+</ul>
+<p><img src="/2020/06/17/B%E6%A0%91/61.png" style="zoom: 67%;"></p>
+<ul>
+<li>95插入，不分裂</li>
+</ul>
+<p><strong>记住，如果插入的关键字比较大，一定要更新一个索引</strong></p>
+<h2 id="B-树的删除"><a href="#B-树的删除" class="headerlink" title="B+树的删除"></a>B+树的删除</h2><p>m阶B+树的删除只在最后一层进行，首先通过查找确定待删除关键字的位置，删除之，然后判断该结点是否发生下溢，还要判断是否需要更新父结点的关键字。如果关键字个数小于 $\lceil m/2\rceil$ 时发生下溢。如果发生下溢则需要像B- 树那样左借、右借或合并操作解除下溢。解除下溢时要特别注意父结点中的最大关键字更新。</p>
+<h3 id="未发生下溢"><a href="#未发生下溢" class="headerlink" title="未发生下溢"></a>未发生下溢</h3><p>在一棵3阶B+树中删除85，首先查找到85的位置，删除之。删除后未发生下溢，但是该孩子节点的最大关键字为80，需要更新其父结点中该位置关键字为80.</p>
+<p><img src="/2020/06/17/B%E6%A0%91/63.png" style="zoom: 67%;"></p>
+<h3 id="发生下溢（右借或左借）"><a href="#发生下溢（右借或左借）" class="headerlink" title="发生下溢（右借或左借）"></a>发生下溢（右借或左借）</h3><p>在一棵3阶B+树中删除68，首先查找到68的位置，删除之。删除后该节点关键字个数小于2，因此发生下溢，左兄弟只有2个关键字不可以借，右兄弟有3 个关键字，向右兄弟可以借一个，然后更新父节点</p>
+<p><img src="/2020/06/17/B%E6%A0%91/64.png" style="zoom: 67%;"></p>
+<p>可以向右兄弟借一个关键字78.借后更新父节点该位置最大的关键字为78.如图</p>
+<p><img src="/2020/06/17/B%E6%A0%91/65.png" style="zoom: 67%;"></p>
+<h3 id="发生下溢-合并"><a href="#发生下溢-合并" class="headerlink" title="发生下溢(合并)"></a>发生下溢(合并)</h3><p><img src="/2020/06/17/B%E6%A0%91/66.png" style="zoom: 67%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/67.png" style="zoom: 67%;"></p>
+<p> <img src="/2020/06/17/B%E6%A0%91/68.png" style="zoom: 100%;"></p>
+<h3 id="发生下溢-树根"><a href="#发生下溢-树根" class="headerlink" title="发生下溢(树根)"></a>发生下溢(树根)</h3><p><img src="/2020/06/17/B%E6%A0%91/69.png" style="zoom: 100%;"></p>
+<h3 id="练习"><a href="#练习" class="headerlink" title="练习"></a>练习</h3><p><img src="/2020/06/17/B%E6%A0%91/70.png" style="zoom: 100%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/71.png" style="zoom: 100%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/72.png" style="zoom: 100%;"></p>
+<p><img src="/2020/06/17/B%E6%A0%91/73.png" style="zoom: 100%;"></p>
+<h2 id="算法分析-2"><a href="#算法分析-2" class="headerlink" title="算法分析"></a>算法分析</h2><p>含有 n个关键字的m阶B+树，查找、插入和删除操作的时间复杂度均为树的高度$O(\log_mn)$ </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Data-structure/" rel="tag"># Data_structure</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/16/%E5%BE%AE%E5%88%86%E6%96%B9%E7%A8%8B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/" rel="prev" title="微分方程基本概念">
+      <i class="fa fa-chevron-left"></i> 微分方程基本概念
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/17/BSTandAVL/" rel="next" title="BSTandAVL">
+      BSTandAVL <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#B树"><span class="nav-number">1.</span> <span class="nav-text">B树</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概要"><span class="nav-number">1.1.</span> <span class="nav-text">概要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#树高与性能"><span class="nav-number">1.2.</span> <span class="nav-text">树高与性能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查找"><span class="nav-number">1.3.</span> <span class="nav-text">查找</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#算法分析"><span class="nav-number">1.3.1.</span> <span class="nav-text">算法分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插入"><span class="nav-number">1.4.</span> <span class="nav-text">插入</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#上溢"><span class="nav-number">1.4.1.</span> <span class="nav-text">上溢</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#第一种情况"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">第一种情况</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第二种情况"><span class="nav-number">1.4.1.2.</span> <span class="nav-text">第二种情况</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第三种情况（特殊）"><span class="nav-number">1.4.1.3.</span> <span class="nav-text">第三种情况（特殊）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#算法分析："><span class="nav-number">1.4.2.</span> <span class="nav-text">算法分析：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#删除"><span class="nav-number">1.5.</span> <span class="nav-text">删除</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#下溢"><span class="nav-number">1.5.1.</span> <span class="nav-text">下溢</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#左借"><span class="nav-number">1.5.1.1.</span> <span class="nav-text">左借</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#右借"><span class="nav-number">1.5.1.2.</span> <span class="nav-text">右借</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#合并"><span class="nav-number">1.5.1.3.</span> <span class="nav-text">合并</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#特殊情况，树高减一"><span class="nav-number">1.5.1.4.</span> <span class="nav-text">特殊情况，树高减一</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#算法分析-1"><span class="nav-number">1.5.2.</span> <span class="nav-text">算法分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#习题"><span class="nav-number">1.6.</span> <span class="nav-text">习题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#B-树"><span class="nav-number">2.</span> <span class="nav-text">B+树</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#B-树的查找"><span class="nav-number">2.1.</span> <span class="nav-text">B+树的查找</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#B-树的插入"><span class="nav-number">2.2.</span> <span class="nav-text">B+树的插入</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#未发生上溢"><span class="nav-number">2.2.1.</span> <span class="nav-text">未发生上溢</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发生上溢"><span class="nav-number">2.2.2.</span> <span class="nav-text">发生上溢</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#特殊情况（树根分裂）"><span class="nav-number">2.2.3.</span> <span class="nav-text">特殊情况（树根分裂）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#练习："><span class="nav-number">2.2.4.</span> <span class="nav-text">练习：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#B-树的删除"><span class="nav-number">2.3.</span> <span class="nav-text">B+树的删除</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#未发生下溢"><span class="nav-number">2.3.1.</span> <span class="nav-text">未发生下溢</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发生下溢（右借或左借）"><span class="nav-number">2.3.2.</span> <span class="nav-text">发生下溢（右借或左借）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发生下溢-合并"><span class="nav-number">2.3.3.</span> <span class="nav-text">发生下溢(合并)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发生下溢-树根"><span class="nav-number">2.3.4.</span> <span class="nav-text">发生下溢(树根)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#练习"><span class="nav-number">2.3.5.</span> <span class="nav-text">练习</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算法分析-2"><span class="nav-number">2.4.</span> <span class="nav-text">算法分析</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

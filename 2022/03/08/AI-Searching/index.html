@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Searching搜索的方法有很多种，但是大体上可以分为两个大类——盲搜和有先验知识的搜索 Uninformed Search MethodsDepth-First SearchBreadth-First SearchInterative DeepeningUniform-Cost Search对于深搜和广搜我们都已经十分了解了，现在我们来学习另外一种搜索方式——代价一致性搜索，即Uniform-">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI-Searching">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Searching搜索的方法有很多种，但是大体上可以分为两个大类——盲搜和有先验知识的搜索 Uninformed Search MethodsDepth-First SearchBreadth-First SearchInterative DeepeningUniform-Cost Search对于深搜和广搜我们都已经十分了解了，现在我们来学习另外一种搜索方式——代价一致性搜索，即Uniform-">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/22.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/23.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/24.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/25.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/26.png">
+<meta property="article:published_time" content="2022-03-08T11:16:27.000Z">
+<meta property="article:modified_time" content="2022-04-03T07:25:34.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="AI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/03/08/AI-Searching/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/03/08/AI-Searching/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>AI-Searching | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/03/08/AI-Searching/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AI-Searching
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-03-08 19:16:27" itemprop="dateCreated datePublished" datetime="2022-03-08T19:16:27+08:00">2022-03-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-04-03 15:25:34" itemprop="dateModified" datetime="2022-04-03T15:25:34+08:00">2022-04-03</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Searching"><a href="#Searching" class="headerlink" title="Searching"></a>Searching</h1><p>搜索的方法有很多种，但是大体上可以分为两个大类——盲搜和有先验知识的搜索</p>
+<h2 id="Uninformed-Search-Methods"><a href="#Uninformed-Search-Methods" class="headerlink" title="Uninformed Search Methods"></a>Uninformed Search Methods</h2><h3 id="Depth-First-Search"><a href="#Depth-First-Search" class="headerlink" title="Depth-First Search"></a>Depth-First Search</h3><h3 id="Breadth-First-Search"><a href="#Breadth-First-Search" class="headerlink" title="Breadth-First Search"></a>Breadth-First Search</h3><h4 id="Interative-Deepening"><a href="#Interative-Deepening" class="headerlink" title="Interative Deepening"></a>Interative Deepening</h4><h3 id="Uniform-Cost-Search"><a href="#Uniform-Cost-Search" class="headerlink" title="Uniform-Cost Search"></a>Uniform-Cost Search</h3><p>对于深搜和广搜我们都已经十分了解了，现在我们来学习另外一种搜索方式——代价一致性搜索，即Uniform-Cost Search(UCS). 其示意图如下：</p>
+<p><img src="/2022/03/08/AI-Searching/1.png" style="zoom:67%;"></p>
+<p>首先，如果要使用UCS进行搜索，我们需要先定义一个 $g(n)$, 它代表了根到第n个节点的代价。UCS的代价就是，每次选择$g(n)$最小的节点进行展开，不管它它的目标状态有有多远。因此，UCS</p>
+<h4 id="算法流程"><a href="#算法流程" class="headerlink" title="算法流程"></a>算法流程</h4><p>(1）将起始点加入到frontier中，将与frontier相连的点进行探索，每个点的代价（后面用cost替代）是从起点到该点的距离，然后将所有的点加入到frontier里面</p>
+<p>(2) 从frontier里面挑出cost最小的点A，判断该点是不是终点，如果是终点算法结束。如果不是终点，探索与该点相连的所有点，每个点的cost是A点的cost加上A点到B点的路径的权重。如果B点是已经出现在frontier里面了，比较一下原来的cost与新生成的cost哪个更小，然后将最小的cost赋值给B点，并更新它的父节点。</p>
+<p>(3) 如果frontier为空还没有找到终点，则没有到达终点的最短路径</p>
+<h4 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h4><p><img src="/2022/03/08/AI-Searching/2.png"></p>
+<p>对于上面这张图，我们对其进行UCS搜索，找到S到G的最短路径。</p>
+<ol>
+<li>首先，S的邻接节点是d、e、p，他们的$g(n)$分别为： $g(d)=3,g(e)=9,g(p)=1$</li>
+<li>我们选择$g(n)$最小的节点p，并把p的邻接节点q加入到队列。现在的队列为：$g(d)=3,g(e)=9,g(q)=16$ </li>
+<li>选择$g(n)$最小的节点d，并把d的邻接节点b、c、e加入到队列。现在的队列为：$g(b)=4,g(c)=11,g(e)=5,g(q)=16$</li>
+<li>选择$g(n)$最小的节点b，并把b的邻接节点a加入队列。现在的队列为：$g(a)=6,g(c)=11,g(e)=5,g(q)=16$</li>
+<li>选择$g(n)$最小的节点e，并把e的邻接节点h、r 加入队列。现在的队列为：$g(a)=6,g(r)=7,g(c)=11,g(h)=13,g(q)=16$</li>
+<li>选择$g(n)$最小的节点a,但a没有邻接节点。因此选择次小节点r，并把r的邻接节点f加入队列。现在的队列为：$g(f)=8,g(c)=11,g(h)=13,g(q)=16$</li>
+<li>选择$g(n)$最小的节点f,把f的邻接节点加入队列。现在队列为$g(G)=10,g(c)=11,g(h)=13,g(q)=16$</li>
+<li>找到了$S$ 到 $G$ 的道路</li>
+</ol>
+<p><img src="/2022/03/08/AI-Searching/3.png"></p>
+<p>整个过程如上图所示。</p>
+<h4 id="算法分析"><a href="#算法分析" class="headerlink" title="算法分析"></a>算法分析</h4><p>既然UCS算法是根据当前节点的$g(n)$去进行搜索的，那么就需要一个数据结构来帮助我们存储这些节点的代价。这里我们选择的就是Priority Queue(优先级队列)</p>
+<p>由于我们的策略是选择优先队列中代价最小的节点，那么假设目标节点的代价为C*,每次搜索一条边的平均代价为$\varepsilon$.那么UCS的搜索深度就是 $C^*/\varepsilon$ .</p>
+<p>由BFS的空间和空间复杂度为$O(b^s)$可推得，UCS要找到目标节点的时间复杂度为: $O(b^{C^<em>/\varepsilon})$ ，空间复杂度也为$O(b^{C^</em>/\varepsilon})$</p>
+<p><img src="/2022/03/08/AI-Searching/4.png"></p>
+<p>那么UCS是complete的吗?（能够找到最优解)</p>
+<ul>
+<li>如果$C^*$ 是有限且$\varepsilon&gt;0$的话, 那么UCS是可以找到最优解的</li>
+</ul>
+<p>那么UCS是optimal的吗?（能够以最小的代价找到最优解)</p>
+<ul>
+<li>是的，我们将在接下来的$A^*$Search中对其证明</li>
+</ul>
+<h2 id="Informed-Search-Methods"><a href="#Informed-Search-Methods" class="headerlink" title="Informed Search Methods"></a>Informed Search Methods</h2><p>和之前的盲搜不同，Informed Search Methods是有一些先验知识的搜索方式。在这里我们主要介绍3种方式：启发式搜索、贪心搜索和A*搜索。</p>
+<h4 id="什么是启发-Heuristics"><a href="#什么是启发-Heuristics" class="headerlink" title="什么是启发(Heuristics)"></a>什么是启发(Heuristics)</h4><p>启发，是一个<strong>估计某一状态距离目标状态有多近的函数</strong>(不一定完全准确)， 它为特定的搜索问题而设计，无法保证最优性。</p>
+<p>我们举一个例子：翻煎饼问题。现在有大小不同的四张煎饼，它们以一种混乱的方式排列，我们的目标是将其从小到大排列好。其中，完成目标的代价是每次翻的时候翻了多少煎饼。比如说初始的状态如下所示：</p>
+<p><img src="/2022/03/08/AI-Searching/5.png"></p>
+<p>从初始状态可以一步到位变成最终状态，只需要反动三张煎饼即可。</p>
+<p>下图展示了在四张煎饼的情况下，各个状态互相转变所需要的代价：</p>
+<p><img src="/2022/03/08/AI-Searching/6.png"></p>
+<p>要找出某个状态到最终状态需花费的最小代价，可以用UCS，但是更好的方法是：告诉电脑以当前状态有多少煎饼不在正确的位置作为启发，并进行搜索。</p>
+<ul>
+<li><p>又比如，对于pacman小游戏来说，我要让吃豆人以最优的方法到达目标位置，可以告诉电脑当前吃豆人距离目标点的欧几里得距离或者是曼哈顿距离。</p>
+</li>
+<li><p>再比如，对于罗马尼亚旅行问题，我们可以以任意两个城市之间的直线距离作为启发。</p>
+<p><img src="/2022/03/08/AI-Searching/7.png"></p>
+</li>
+</ul>
+<h3 id="Greedy-Search"><a href="#Greedy-Search" class="headerlink" title="Greedy Search"></a>Greedy Search</h3><p>贪心就是一种启发式搜索，但是某些基于贪心的启发式可能会退化成dfs（如果这种贪心完全没有起效果，就等同于在dfs中任意选择下一个节点展开）</p>
+<p>启发式的搜索展开节点时，选择可能离目标状态“最近”的节点展开。（例如旅行问题中，展开直线距离离目标节点最小的节点）</p>
+<p>贪心法可能让我们获得一个比较好的解，但是无法保证获得的结果一定是最优的。如下图：机器人朝着一颗钻石挖去，挖到了，但是却忽视了更大的两颗钻石</p>
+<p><img src="/2022/03/08/AI-Searching/8.png"></p>
+<h3 id="A-Search"><a href="#A-Search" class="headerlink" title="A* Search"></a>A* Search</h3><p>A<em> 算法是UCS和贪心算法两者的结合。我们以龟兔赛跑为例，UCS是乌龟、贪心是兔子，结合两者的优点是A</em> 算法。</p>
+<p><img src="/2022/03/08/AI-Searching/9.png"></p>
+<p>比如说对于上面这张图，每条边都有权重。我们的目标就是，从S出发，找到一条到G的最佳路线。用树来表示，如下</p>
+<p><img src="/2022/03/08/AI-Searching/10.png" style="zoom:50%;"></p>
+<ul>
+<li><p>如果采用UCS：每次展开的是当前已花费代价最小的节点，即<strong>回首过去</strong></p>
+<ul>
+<li>从s出发，首先展开a， 现在$g(b)=2,g(e)=9,g(d)=4$</li>
+<li>展开$b$,现在$g(c)=3,g(d)=4,g(e)=9$ </li>
+<li>展开$c$, 发现没路了，而且没到终点，现在$g(d)=4,g(e)=9$</li>
+<li>展开$d$,$g(g) = 6,g(e)=9$</li>
+<li>展开$g$ ,到达终点</li>
+</ul>
+<p>路线为：$s\rightarrow a\rightarrow b\rightarrow c \rightarrow d\rightarrow g$ , 虽然找到了最有线路，但是绕了一个弯</p>
+</li>
+<li><p>如果采用贪心法：每次展开启发函数最小的节点，即<strong>展望未来</strong>。</p>
+<ul>
+<li>从s出发，首先展开a，$h(e)=1,h(d)=2,h(b)=6$ ，注意，这里的$h(e)=1$ 是通过某种启发算出来的，这里只是举个例子。</li>
+<li>展开$e$，$h(d)=2,h(b)=6$ </li>
+<li>展开$d$, $h(g)=0,h(b)=6$</li>
+<li>展开$g$, 到达终点</li>
+</ul>
+<p>路线为：$s\rightarrow a \rightarrow e \rightarrow d \rightarrow g$ ， 找错了线路</p>
+</li>
+<li><p>而使用A*算法，结合了ucs和greedy的优点，即回首过去+展望回来。令函数 $f(n) = g(n)+h(n)$ ,A* 算法中维护一个优先队列，按照$f(n)$ 的值从小到大进行维护。</p>
+</li>
+</ul>
+<ul>
+<li>从s出发，首先展开a，$,f(d)=4+2=6,f(b)=2+6 = 8,f(e) = 1+9=10$</li>
+<li>展开d，$f(g) = 6,f(b)=8,f(e)=10$</li>
+<li><p>展开g</p>
+<p>路线为：$s\rightarrow a\rightarrow d\rightarrow g$, 找到了最佳线路，而且花费的时间也最短。</p>
+</li>
+</ul>
+<h4 id="A-算法何时终止？"><a href="#A-算法何时终止？" class="headerlink" title="A*算法何时终止？"></a>A*算法何时终止？</h4><p>第一次遇见目标节点（遇见，就是指展开了目标节点的父节点，将目标节点加入队列）时不能退出（此时不一定最优）。只有把一个目标节点剔除队列的时候，才会让算法终止。</p>
+<p>记忆： enqueue不止，dequeue才止</p>
+<p><img src="/2022/03/08/AI-Searching/11.png" style="zoom: 100%;"></p>
+<ul>
+<li><p>从S出发，$f(B)=1+2=3, f(A) = 2+2=4$</p>
+</li>
+<li><p>展开B，如果之后选择G节点展开，但是s-b-g的代价比s-a-g的代价要大，所以不能退出</p>
+</li>
+<li>因为此时$f(A)&lt; f(G)$，所以这个时候展开A</li>
+<li>然后从A到G，找到最优的路线</li>
+<li>将G从队列中移除，停止算法</li>
+</ul>
+<h4 id="A-算法的最优性"><a href="#A-算法的最优性" class="headerlink" title="A*算法的最优性"></a>A*算法的最优性</h4><p>现在我们来讨论A*算法是不是最优的？</p>
+<p>要考虑这个问题，首先我们要想，A*算法是不是始终是正确的？一个很朴素的想法就是，如果我们的启发函数错误地估计了节点到目标节点的距离(比真实值大了很多)，那么这时候A*算法肯定不会选择这个节点作为下个展开的节点。</p>
+<p>这时候，我们要设定能使A*算法最优的一个前提：Admissible Heuristics（容许的启发）</p>
+<script type="math/tex; mode=display">
+0\le h\le h^*(n)</script><p>即启发式算法的估价应该在0和真实代价之间。如果h(n)大于真实代价，则可能找不到最优解，不能保证最优性。</p>
+<h5 id="证明"><a href="#证明" class="headerlink" title="证明"></a>证明</h5><p>在满足Admissible Heuristics时，A*搜索算法的最优性是可以被证明的：</p>
+<p><img src="/2022/03/08/AI-Searching/12.png"></p>
+<p>假设：</p>
+<ul>
+<li>A是最优目标节点 optimal goal node</li>
+<li>B是次优目标节点 suboptimal goal node</li>
+<li>h is admissible，估值满足$0\le h\le h^*(n)$</li>
+</ul>
+<p>证明思路</p>
+<ul>
+<li>A会在B之前被弹出（fringe）</li>
+<li>假设A的祖先n（n可以是A本身）、B，都在待展开的队列边缘（on the fringe），证明n会在B之前被展开</li>
+</ul>
+<p>证明过程：</p>
+<ul>
+<li>首先：我们要证明 $f(n)\leq f(A)$ 。 可以从定义入手：<ul>
+<li>$f(n)=g(n)+h(n)$ </li>
+<li>$g(A) = g(n)+h*(n)$ </li>
+<li>$f(A)=g(A)+0 $  (因为$h(A) = 0$) </li>
+<li>根据假设 $h(n)\leq h*(n)$ 可知， $f(n)\leq f(A)$ </li>
+</ul>
+</li>
+<li>然后，我们要证明 $f(A)\leq f(B)$ <ul>
+<li>$g(A)&lt;g(B)$  A是最优解，B是次优解。</li>
+<li>$f(A)&lt;f(B)$ 因为对于AB来说 ，$h(A)=h(B)=0$</li>
+</ul>
+</li>
+</ul>
+<p>因此，所有A的祖先(包括A自己) 都会在B之前被展开。这可以证明，当任意目标节点被dequeue时，最优路径已经被找到了。</p>
+<p>关于证明的细节：为什么不仅要证明A会在B之前被展开，还要证明A的祖先也会在B之前被展开？因为证明的假设是A和B都要在队列边缘（A和B都已经被遇见）。我们想证明的是，当B在队列边缘时，总有一个A或A的祖先也在队列边缘，并比B拥有更高的展开优先级。</p>
+<p>如果只证明A自身，那么当B在队列边缘时A也在队列边缘这一前提是无法被保证的。</p>
+<p>因此我们证明A或A的祖先在队列边缘的情况，应为这能保证在B弹出之前至少会有A或者A的祖先(甚至是根)在队列边缘</p>
+<h4 id="A-和UCS的比较"><a href="#A-和UCS的比较" class="headerlink" title="A*和UCS的比较"></a>A*和UCS的比较</h4><p><img src="/2022/03/08/AI-Searching/13.png" style="zoom: 50%;"></p>
+<p>然后我们来看一下在树形状态下，UCS和A*算法的比较。 </p>
+<p><img src="/2022/03/08/AI-Searching/15.png"></p>
+<p>最后我们看一下pacman游戏中，三种不同算法的查询过程比较：</p>
+<p><img src="/2022/03/08/AI-Searching/14.png"></p>
+<p>感性理解：A*算法避免了很多没有必要的搜索，A*算法是一种“对冲”，即基于启发式估计h对UCS算法进行“瘦身”。称之为“对冲”是因为启发式估计本身是不确定的，相信这个估计本身就是存在风险的。</p>
+<h2 id="怎么设计Heuristic"><a href="#怎么设计Heuristic" class="headerlink" title="怎么设计Heuristic"></a>怎么设计Heuristic</h2><p>原始问题通过松弛 relax 来进行处理。例如把整数解问题转换成实数解问题。</p>
+<p>设计heuristic的时候也可以先对原问题进行简单的松弛，例如：</p>
+<ul>
+<li>在旅行问题中，直接使用两点间距离</li>
+<li>在迷宫问题中，不考虑阻隔，直接使用曼哈顿距离</li>
+</ul>
+<h3 id="是否必须admissible"><a href="#是否必须admissible" class="headerlink" title="是否必须admissible"></a>是否必须admissible</h3><p>admissible：估值小于等于真实代价</p>
+<p>但如果估值比真实代价小太多，也不好。</p>
+<p><strong>如果admissible不满足呢？考虑真实代价为9，估值为0.01和估值为10两种情况。</strong></p>
+<p><strong>即使10不是admissible的，但起到的效果更好。</strong></p>
+<h3 id="具体案例"><a href="#具体案例" class="headerlink" title="具体案例"></a>具体案例</h3><h4 id="迷宫问题中的Heuristic"><a href="#迷宫问题中的Heuristic" class="headerlink" title="迷宫问题中的Heuristic"></a>迷宫问题中的Heuristic</h4><p><img src="/2022/03/08/AI-Searching/16.png"></p>
+<p>对于如何设计启发函数，我们可以提出这几个问题：</p>
+<ul>
+<li>状态是什么：可以当做由1-9九个数构成的向量（把灰色格子也看成一个数，比如9）。但是要考虑到每个数的位置，每个数只出现一次。</li>
+<li>状态数有多少: 整个状态数是 $9!$</li>
+<li>行为是什么：将一个数移动到相邻的灰色格子</li>
+<li>后继状态有多少：<ul>
+<li>灰色格子在角落：2</li>
+<li>灰色在边界上但不在角落：3</li>
+<li>灰色格子在中间：4</li>
+</ul>
+</li>
+<li>真实cost：隔板的真实移动次数。 </li>
+</ul>
+<p>我们并不知道真实值是多少，但我们可以用松弛的方法去进行估计。下面介绍了两种启发式 ，每周都是admissible的，因为估计的值小于真实值。</p>
+<p><strong>松弛1</strong>：想象直接把板子拆下来，再直接放到正确的位置上面，一共需要几次，<strong>也就是看有多少个隔板被错误放置</strong>。我们可以想象，这种方法是将原本需要多步移动的实际情况压缩成一步到位的估计情况。</p>
+<p>我们观察下面这个表格，在同样移动4步的情况下，UCS需要展开112个节点，而用TILES启发只需要展开13个节点。这种启发式估计相较于UCS展开的节点数明显减少了。</p>
+<p><img src="/2022/03/08/AI-Searching/17.png"></p>
+<p><strong>松弛2</strong>：不考虑其他隔板的影响（也就是假设移动的时候不会被挡住），基于曼哈顿距离。这种松弛比第一种松弛效果更好了，因为这是一个更接近真实值的松弛。因为用曼哈顿距离估计得到的步数肯定要大于等于1步.</p>
+<p>如下图，要把1移到它正确的位置，用曼哈顿距离作为启发的话，是3步，而实际上，肯定不止3步。因为先要移动6这个阻挡块。</p>
+<p><img src="/2022/03/08/AI-Searching/19.png"></p>
+<p><img src="/2022/03/08/AI-Searching/18.png"></p>
+<p>最理想的状态是把真实代价作为启发，但问题是不知道真实代价。</p>
+<p>对冲（hedge）：A*需要平衡【计算估计】和【展开节点】之间的代价，需要做一个平衡。</p>
+<h2 id="Semi-Lattice-of-Heuristics"><a href="#Semi-Lattice-of-Heuristics" class="headerlink" title="Semi-Lattice of Heuristics"></a>Semi-Lattice of Heuristics</h2><p>现在我们要学习启发式函数的<strong>半格</strong>特点</p>
+<p>启发式函数所满足的特点：</p>
+<ul>
+<li>支配性Dominance：如果</li>
+<li>Trivial heuristics：有一些状态的估计值是显然的。例如，目标节点的估计值就是0。</li>
+<li><strong>semi-lattice半格原理：$h(n)=\max(h_a(n),h_b(n))$，取max后依然admissible</strong></li>
+</ul>
+<p>我们用一个例子来说明一下这个半格原理：</p>
+<p><img src="/2022/03/08/AI-Searching/20.png"></p>
+<p>比如说，我现在设计了三个admissible的启发式函数$h(a),h(b),h(c)$ ，且 $h_a$ 是 Dominance $h_c$的，那么在这个情况下我们取一个新的启发式函数，即对于每个节点n，都取 $h(n) = \max(h_a(n),h_b(n))$ . 在这种情况下，$h(n)$ 依然是admissible的</p>
+<h2 id="Tree-Search-和-Graph-Search-对比"><a href="#Tree-Search-和-Graph-Search-对比" class="headerlink" title="Tree Search 和 Graph Search 对比"></a>Tree Search 和 Graph Search 对比</h2><p><strong>Tree search</strong>缺点：遇到有环的状态图时，会有重复展开的情况（不知道怎么规避已经展开过的节点）。如下图，我们看到e、a、p、q都是重复访问的节点。</p>
+<p><img src="/2022/03/08/AI-Searching/21.png"> </p>
+<p><strong>Graph search</strong>：不会展开同一个节点两次</p>
+<ul>
+<li><p>实现：tree search + 状态集合（记录已展开节点的集合）</p>
+<ul>
+<li>用集合记录是为了O(1)查询是否被展开过。使用列表的话，会额外增加搜寻所需要的时间。</li>
+</ul>
+</li>
+<li><p>A*用Graph search来做检索会有什么问题？</p>
+<p>重复状态不再展开。因此这时候就出问题了，如下图：</p>
+<p><img src="/2022/03/08/AI-Searching/22.png"></p>
+<ol>
+<li>因为$f(B) = 1+1=2&lt;f(A)=1+4$, 所以先展开 B</li>
+<li>B后面只有一个节点C，所以展开C，此时总体代价为3</li>
+<li>C后面只有一个节点G，所以展开G，此时总体代价为6</li>
+<li>第一次访问 <code>G(6+0)</code> 时，由于已经访问过一次，所以 <code>G</code> 就不会再被展开。</li>
+<li>然后发现，$f(a) = 1+4&lt;f(G)=6+0$ ，且A未被展开过，因此访问A</li>
+<li>A后面有一个节点C，且$f(C) = 2+1&lt;f(G)$ ，因此展开C</li>
+<li>现在C后面是G，但是G已经被访问过了，因此A* Graph Search在这个时候就会弹出G，算法结束，返回$g(G)=6$ ,我们发现这并不是个最优解。<ul>
+<li>但是使用A*  Tree Search的话，仍然会访问G,并返回 $g(G)=5$ ,此时是最优解</li>
+<li>A<em> Graph Search <em>*只保证完整性，但不保证最优性。</em></em></li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<h2 id="Consistency-和Admissbility"><a href="#Consistency-和Admissbility" class="headerlink" title="Consistency 和Admissbility"></a>Consistency 和Admissbility</h2><p>我们知道Admissible可以保证A<em>树搜索方法可以得到最优解。其中心思想就是：<strong>启发函数的估计值</strong> $\leq$ <em>*真实的代价</em></em></p>
+<p>如下图：$h(A) = 4$ ，它是小于等于A到G的真实代价4的。</p>
+<p><img src="/2022/03/08/AI-Searching/23.png"></p>
+<p> 那么为了保证A<em> Graph Search也可以保证得到最优解，我们提出Consistency。<em>*这是一个比Admissible更加严格的Heuristic</em></em>。其中心思想是：</p>
+<script type="math/tex; mode=display">
+h(A)-h(C)\leq \text{cost}(A\rightarrow C)</script><p>用汉语来说，就是估值的边权，需要小于等于真实的变权。我们举个例子：下图中，$h(A)=4,h(C)=1$ , 但是 ， $h(A)-h(C)=3&gt; 1$ 这就不满足 consistency的标准</p>
+<p><img src="/2022/03/08/AI-Searching/24.png"></p>
+<p>因此，如果要满足一致性，$h(A) $ 至少是小于等于2的。</p>
+<h3 id="Consistency-的最优性证明"><a href="#Consistency-的最优性证明" class="headerlink" title="Consistency 的最优性证明"></a>Consistency 的最优性证明</h3><p>前提：Consistency</p>
+<p><img src="/2022/03/08/AI-Searching/25.png"></p>
+<p>情况如上图，n和n’ 对应的是同一个点的不同路径状态，n比n’更优。</p>
+<p><strong>假设</strong>：p是n的祖先且p在队列中，n’已经被访问了。在n’被弹出时，p在队列但未弹出。</p>
+<p><strong>目标</strong>：通过反证法 证明n要先于n’被弹出</p>
+<ol>
+<li>因为$f(p) = g(p)+h(p)$, $f(n)=g(n)+h(n)$    $f(n) -f(p) = g(n)-g(p)+h(n)-h(p)$ </li>
+</ol>
+<p>我们知道，$g(n)-g(p)$ 就是三角形上n点到p点的距离.   另外，由Consistency可知，$h(p)-h(n)\leq Cost(p\rightarrow n)=g(n)-g(p)$ 。 </p>
+<p>因此$f(n)-f(p)&gt;0$ ,$f(p)&lt;f(n)$ .</p>
+<p>于是，由A*算法可知，p会先于n节点展开</p>
+<ol>
+<li>又因为n’是次优节点，因此$f(n)&lt;f’(n)$，所以$f(p)&lt;f’(n)$</li>
+</ol>
+<p>这种情况有矛盾出现：$f(p)&lt;f’(n)$，说明p应该在n’前被展开。</p>
+<p>这与假设里n’先于p被展开相悖，所以假设不成立。</p>
+<p><strong>这证明了对于任何一个点，它的最优节点一定是最先被展开的。</strong></p>
+<h2 id="A-算法总结"><a href="#A-算法总结" class="headerlink" title="A* 算法总结"></a>A* 算法总结</h2><h2 id="A-star算法总结"><a href="#A-star算法总结" class="headerlink" title="A-star算法总结"></a>A-star算法总结</h2><ul>
+<li>Tree search<ul>
+<li>当启发是admissible时，A*保证最优性</li>
+<li>当h=0时，A*退化成UCS算法</li>
+</ul>
+</li>
+<li>Graph search<ul>
+<li>当启发是consistent时，A*保证最优性</li>
+<li>当h=0时，同样A*退化成UCS算法</li>
+</ul>
+</li>
+<li><p>Consistency 包含了admissibility</p>
+</li>
+<li><p>从实践经验来说，大多数admissible的估计都可以做到consistency。</p>
+</li>
+</ul>
+<h2 id="Local-Search-algrithms"><a href="#Local-Search-algrithms" class="headerlink" title="Local Search algrithms"></a>Local Search algrithms</h2><p>在很多优化问题中，我们只要求找到目标状态，对找到目标状态的路径没有要求。比如：八皇后问题，TSP问题。</p>
+<p>局部搜索(local search)是解决这类问题的一个方法：从一个初始解出发，搜索当前解的邻域，如果有更优的解则移动至该解并继续搜索，迭代这个过程直到找到局部最优解。</p>
+<h3 id="Hill-climbing-爬山算法"><a href="#Hill-climbing-爬山算法" class="headerlink" title="Hill-climbing 爬山算法"></a>Hill-climbing 爬山算法</h3><p>代表性算法——爬山算法：</p>
+<ul>
+<li>找最好的邻居状态节点。如果比当前节点状态要大，就将其设为新的当前节点。</li>
+</ul>
+<p>怎么避免陷入局部最优？</p>
+<ul>
+<li>random restarts，多试几种起始点。</li>
+<li>random sideways moves，允许平移。可以逃离shoulder，但是逃离不了local maximum, flat local maximum。</li>
+<li>first choice，不一定要选择最高的邻居节点，而是随便选一个比当前状态高的。</li>
+</ul>
+<p><strong>总结：引入随机性</strong></p>
+<p><img src="/2022/03/08/AI-Searching/26.png"></p>
+<p><strong>爬山法用于八皇后问题</strong></p>
+<p>举例，八皇后问题中如果用“冲突数”评价状态会存在很多shoulder（邻域状态与当前状态冲突数相同）。因此有必要引入sideway move。</p>
+<h3 id="Simulated-annealing-模拟退火法"><a href="#Simulated-annealing-模拟退火法" class="headerlink" title="Simulated annealing 模拟退火法"></a>Simulated annealing 模拟退火法</h3><p>模拟退火本身的动机，在于让金属凉下来的方式达到一个low-energy的状态。</p>
+<p>基本想法：在一开始的时候允许它往值更低的方向走，一开始温度高允许算法出现错误的移动，希望它能够跳出局部的最优。随着时间的推移，温度下降 ，减少允许它错误移动的机会和次数。</p>
+<p>一句话总结，开始允许犯错，目的是为了跳出局部的最优，渐渐地不允许犯错了，希望找到全局的最优。</p>
+<p>t指的是温度，按照指数级别的方式降低。按照某一个概率允许向下移动，该概率随t减小概率逐渐降低。</p>
+<p>保证最优解，只要温度降低速度“足够慢”（按照指数级别下降exponentially slowly），就可以保证收敛到最佳状态（证明思路是模拟马尔可夫链）。</p>
+<h3 id="Local-Beam-Search集束搜索"><a href="#Local-Beam-Search集束搜索" class="headerlink" title="Local Beam Search集束搜索"></a>Local Beam Search集束搜索</h3><p>对local search算法进行k次拷贝，对当前的k个状态生成状态的所有后继节点进行展开，在其中选择最好的k个后继节点。</p>
+<p>与运行k次local search算法的区别在于Beam search每次只选择k个状态进行展开，选择的时候有做过对比，而退火算法是用纯粹random的方式进行选择。</p>
+<h3 id="Genetic-algorithms-遗传算法"><a href="#Genetic-algorithms-遗传算法" class="headerlink" title="Genetic algorithms 遗传算法"></a>Genetic algorithms 遗传算法</h3><p>仿照基因进化原理，保留最优状态。</p>
+<p>遗传算法实际上是随机束搜索的变形, 通过把两个父状态结合生成后继。</p>
+<p>种群：种群中的每个个体都是潜在解 ，可以看成所求问题解的集合。</p>
+<p>个体表示： 染色体， 实际就是状态的表示 ，每条染色体也可以看成所求解问题对应的一组解。</p>
+<p>适应度函数fitness：表示解的好坏程度 。</p>
+<p>选择selection（利用）：根据适应度选取比较好的解优先进行两两繁殖 。</p>
+<p>交叉cross-over（利用为主+探索）： 选取一个杂交点， 两边染色体互相交换 。</p>
+<p>变异mutation（探索）：每个位置都会小概率发生变异 。</p>
+<p>类比成兔子，遗传算法是一群吃了失忆药片随机分布在地球上的某些地方的兔子们。他们不知道自己的使命是什么。但是，如果你过几年就杀死一部分海拔低的兔子，多产的兔子们自己就会找到珠穆朗玛峰。这就是遗传算法。</p>
+<h3 id="在连续性的空间做局部搜索算法"><a href="#在连续性的空间做局部搜索算法" class="headerlink" title="在连续性的空间做局部搜索算法"></a>在连续性的空间做局部搜索算法</h3>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/AI/" rel="tag"># AI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/03/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%9F%BA%E7%A1%80-%E5%93%88%E5%B8%8C/" rel="prev" title="区块链基础-哈希">
+      <i class="fa fa-chevron-left"></i> 区块链基础-哈希
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/03/23/%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F-%E6%9F%A5%E8%AF%A2/" rel="next" title="高级数据库系统-查询">
+      高级数据库系统-查询 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Searching"><span class="nav-number">1.</span> <span class="nav-text">Searching</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Uninformed-Search-Methods"><span class="nav-number">1.1.</span> <span class="nav-text">Uninformed Search Methods</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Depth-First-Search"><span class="nav-number">1.1.1.</span> <span class="nav-text">Depth-First Search</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Breadth-First-Search"><span class="nav-number">1.1.2.</span> <span class="nav-text">Breadth-First Search</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Interative-Deepening"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">Interative Deepening</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Uniform-Cost-Search"><span class="nav-number">1.1.3.</span> <span class="nav-text">Uniform-Cost Search</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#算法流程"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">算法流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#例子"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">例子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#算法分析"><span class="nav-number">1.1.3.3.</span> <span class="nav-text">算法分析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Informed-Search-Methods"><span class="nav-number">1.2.</span> <span class="nav-text">Informed Search Methods</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#什么是启发-Heuristics"><span class="nav-number">1.2.0.1.</span> <span class="nav-text">什么是启发(Heuristics)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Greedy-Search"><span class="nav-number">1.2.1.</span> <span class="nav-text">Greedy Search</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#A-Search"><span class="nav-number">1.2.2.</span> <span class="nav-text">A* Search</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#A-算法何时终止？"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">A*算法何时终止？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#A-算法的最优性"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">A*算法的最优性</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#证明"><span class="nav-number">1.2.2.2.1.</span> <span class="nav-text">证明</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#A-和UCS的比较"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">A*和UCS的比较</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#怎么设计Heuristic"><span class="nav-number">1.3.</span> <span class="nav-text">怎么设计Heuristic</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#是否必须admissible"><span class="nav-number">1.3.1.</span> <span class="nav-text">是否必须admissible</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#具体案例"><span class="nav-number">1.3.2.</span> <span class="nav-text">具体案例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#迷宫问题中的Heuristic"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">迷宫问题中的Heuristic</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Semi-Lattice-of-Heuristics"><span class="nav-number">1.4.</span> <span class="nav-text">Semi-Lattice of Heuristics</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tree-Search-和-Graph-Search-对比"><span class="nav-number">1.5.</span> <span class="nav-text">Tree Search 和 Graph Search 对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Consistency-和Admissbility"><span class="nav-number">1.6.</span> <span class="nav-text">Consistency 和Admissbility</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Consistency-的最优性证明"><span class="nav-number">1.6.1.</span> <span class="nav-text">Consistency 的最优性证明</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#A-算法总结"><span class="nav-number">1.7.</span> <span class="nav-text">A* 算法总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#A-star算法总结"><span class="nav-number">1.8.</span> <span class="nav-text">A-star算法总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Local-Search-algrithms"><span class="nav-number">1.9.</span> <span class="nav-text">Local Search algrithms</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hill-climbing-爬山算法"><span class="nav-number">1.9.1.</span> <span class="nav-text">Hill-climbing 爬山算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Simulated-annealing-模拟退火法"><span class="nav-number">1.9.2.</span> <span class="nav-text">Simulated annealing 模拟退火法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Local-Beam-Search集束搜索"><span class="nav-number">1.9.3.</span> <span class="nav-text">Local Beam Search集束搜索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Genetic-algorithms-遗传算法"><span class="nav-number">1.9.4.</span> <span class="nav-text">Genetic algorithms 遗传算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在连续性的空间做局部搜索算法"><span class="nav-number">1.9.5.</span> <span class="nav-text">在连续性的空间做局部搜索算法</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Upper Confidence bound搬运、修改自 博客https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;3abeb6d4a1e5 引入： 如图所示，我们有几个单臂老虎机，组成一起我们就称作多臂老虎机，那么我们需要制定什么样的策略才能最大化得到的奖励。这里假设每个老虎机奖励的随机分布是不一样的。  比如第一个分布，D1这个老虎机的分布大概率落在中间这部分，很小概率在两头的地方。假设用户是知">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Upper_Confidence_bound">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Upper Confidence bound搬运、修改自 博客https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;3abeb6d4a1e5 引入： 如图所示，我们有几个单臂老虎机，组成一起我们就称作多臂老虎机，那么我们需要制定什么样的策略才能最大化得到的奖励。这里假设每个老虎机奖励的随机分布是不一样的。  比如第一个分布，D1这个老虎机的分布大概率落在中间这部分，很小概率在两头的地方。假设用户是知">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/14.png">
+<meta property="article:published_time" content="2020-10-29T02:29:46.000Z">
+<meta property="article:modified_time" content="2020-10-29T07:40:28.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Upper_Confidence_bound | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/10/29/Upper-Confidence-bound/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Upper_Confidence_bound
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-10-29 10:29:46 / Modified: 15:40:28" itemprop="dateCreated datePublished" datetime="2020-10-29T10:29:46+08:00">2020-10-29</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Upper-Confidence-bound"><a href="#Upper-Confidence-bound" class="headerlink" title="Upper Confidence bound"></a>Upper Confidence bound</h1><p>搬运、修改自 博客<a href="https://www.jianshu.com/p/3abeb6d4a1e5" target="_blank" rel="noopener">https://www.jianshu.com/p/3abeb6d4a1e5</a></p>
+<h2 id="引入："><a href="#引入：" class="headerlink" title="引入："></a>引入：</h2><p><img src="/2020/10/29/Upper-Confidence-bound/1.png" style="zoom:80%;"></p>
+<p>如图所示，我们有几个单臂老虎机，组成一起我们就称作多臂老虎机，那么我们需要制定什么样的策略才能最大化得到的奖励。这里假设每个老虎机奖励的随机分布是不一样的。</p>
+<p><img src="/2020/10/29/Upper-Confidence-bound/2.png" style="zoom:80%;"></p>
+<p>比如第一个分布，D1这个老虎机的分布大概率落在中间这部分，很小概率在两头的地方。假设用户是知道这些分布的，那么用户应当怎么选择？答案很简单，我们应当选择D5这个老虎机，因为它的平均值最高，而且有很大概率在靠右也就是正数范围内。但现在的问题是，用户实际上是不知道这些老虎机的概率分布的。那么我们需要一次次的尝试，尽可能快速的找到这五个老虎机的分布，并利用最佳的分布最大化收益。这个在机器学习上叫做，探索利用。</p>
+<p>探索和利用这两步实际上并不是那么的兼容，为了解释这个概念，这里引入一个定义，叫做遗憾。也就是我们知道D5的分布是最高的，那么最佳策略是应对不停的选择D5这个机器，但当我们不知道的时候，可能会选择其他的机器，当没有选择最佳机器时，都会得到一个得到的奖励和最佳奖励的差，这个差就是遗憾。</p>
+<p>那么现在可以解释为什么探索和利用为什么并不是那么兼容，比如我们探索很多，每个机器玩了一百次，对于每个机器都能得到很好的分布估计，但同时也会带来很多的遗憾。如果探索比较少，可能会找不到最佳的分布，探索得到的结论可能是错的。所以说，最佳的策略应该是，通过探索找到最佳分布的老虎机，并且以一种快速而高效的方法找到这个老虎机，且不断的利用它来获得最大化的奖励。</p>
+<p>在实际上生活或商业案例上也有很多相似的情形。比如可口可乐公司设计出了5个不同的广告，那么现在的问题就是不知道哪个广告是最好的，能带来最佳的用户转换率，即不知道哪一个投放后会吸引用户点击或购买产品。非常传统的方式就是把每个广告都投放到市场上几天，然后看看得到的结果。但这是很消耗人力和财力的，而且这本质上只进行了探索却没进行利用。因此我们需要对此进行利用，比如其中某个广告投放第一天就显然没有任何的效果，那么后面几天的投放的意义就不是很大了，可以考虑不再投放此广告来节省人力财力。即应用强化学习可以优化成本和支出，又可以得到最高的收益。</p>
+<h2 id="置信区间上界算法"><a href="#置信区间上界算法" class="headerlink" title="置信区间上界算法"></a>置信区间上界算法</h2><p><img src="/2020/10/29/Upper-Confidence-bound/3.png" style="zoom:100%;"></p>
+<p>下面来描述下这个算法,现在假设我们知道五台老虎机的分布，那么我们会不断的选择D5这个老虎机。假如说不知道这几个的概率分布，那么就要开始我们的算法。</p>
+<h4 id="1"><a href="#1" class="headerlink" title="1"></a>1</h4><p>在我们开始之前，假设每个老虎机的概率分布是相同的，即平均值或期望是相同的。如图红色虚线表示平均值或期望，纵轴表示老虎机可能带来的收益。这些彩色的横线代表每个老虎机实际的平均或期望，这些期望我们是不知道的，这个问题的核心就是我们要进行不断的尝试去估算出每个老虎机的平均期望。</p>
+<p> <img src="/2020/10/29/Upper-Confidence-bound/4.png" style="zoom:100%;"></p>
+<p>置信区间，Confidence Bound 对于每个老虎机，我们讲置信区间，用灰色的方框表示。对于每个老虎机，我们按的概率有很大的概率是在这个区间当中的。我们每一轮将要选择的就是拥有<strong>最大的区间上界</strong>的老虎机，也就是<strong>顶上的这条线最大的老虎机</strong>，我们要在每一轮中选择它并按下它。在第一轮中，他们的区间上界是一样的。</p>
+<h4 id="2"><a href="#2" class="headerlink" title="2"></a>2</h4><p>现在，比如选择3号老虎机，按下去，<strong>首先</strong>会发现区间所代表的方框下降了。因为按下去后我们会发现其给予的奖励，3号老虎机的实际期望比较低，那么观察得到的奖励也是比较低，那么重新计算观察到的所有平均值时，那么这个平均值就降低了。<strong>第二点</strong>，我们会发现这个置信区间变得更小了，因为比起上一轮的游戏，我们总共的观察次数变多了，也就是<strong>信心升高</strong>了，那么这个<strong>置信区间的长度就会变小</strong>。</p>
+<p> <img src="/2020/10/29/Upper-Confidence-bound/5.png" style="zoom:100%;"></p>
+<h4 id="3"><a href="#3" class="headerlink" title="3"></a>3</h4><p>那么此时第三个机器的置信区间上界比其他的要低，所以下一轮要选择其他四个机器，比如选择第四个，那么它的置信区间上界会变高，区间大小会变小。</p>
+<p><img src="/2020/10/29/Upper-Confidence-bound/12.png" style="zoom:100%;"></p>
+<p>但是这样的话，D4的置信区间上界就高于其他所有机子。如果这是最后一次迭代的话，我们的算法就会认为D4十表现最好的机子。但是这显然并不符合实际。那么这个算法的意义就丧失了。</p>
+<p>但是不要忘记，UCB的置信区间是 $[\overline r_i(n)-\Delta_i(n),\overline r_i(n)+\Delta_i(n)]$  其中 $\Delta_i(n) = \sqrt{\frac{3}{2}\cdot \frac{\log(n)}{N_i(n)}}$ ，$N_i$ 随着轮数增加会增加，所以 $\Delta_i$ 会减小，所以虽然 $\overline r_i(n)$ 增大了，但是置信区间却减少了，”资不抵债” ，最终它的置信空间上界还是变小了。</p>
+<p><img src="/2020/10/29/Upper-Confidence-bound/15.png" style="zoom:120%;"></p>
+<p><img src="/2020/10/29/Upper-Confidence-bound/11.png" style="zoom:100%;"></p>
+<h4 id="4"><a href="#4" class="headerlink" title="4"></a>4</h4><p>下一步，125三个机器的上界时一样的，因此可以在他们三个中间选一个，比如第一个，它的实际平均值比较低，但当我们按下老虎机的时候，它实际是个随机事件，因此可能高也可能低。虽然它的平均值，但假设此时运气比较好，投下去的钱翻倍了，那么他的区间上限变高，长度变小。</p>
+<p> <img src="/2020/10/29/Upper-Confidence-bound/6.png" style="zoom:100%;"></p>
+<p>再然后在25中间选择一个，比如第二个，此时他的置信区间上界变低，宽度变小。</p>
+<p><img src="/2020/10/29/Upper-Confidence-bound/7.png" style="zoom:100%;"></p>
+<p>那么最后按下第五个机器，这时得到一个非常高的观察值，那么上限变高，宽度变小。但由于D5实际上是最佳的机器，那么<strong>就算置信区间变小了，但它的上界依然比其他的都要高</strong>。</p>
+<p><img src="/2020/10/29/Upper-Confidence-bound/8.png" style="zoom:100%;"></p>
+<h4 id="5"><a href="#5" class="headerlink" title="5"></a>5</h4><p>那么我接下来选择的老虎机依然是它，当我们选择了一个最佳的解时，我们可能在这个选择上停留很多轮，但由于对他的信心会越来越高，因此这个区间会越来越小，此时的区间上界可能就会变成不是最高。</p>
+<p><img src="/2020/10/29/Upper-Confidence-bound/9.png" style="zoom:100%;"></p>
+<p>UCB算法有一个特点，当我们选择了一个机器很多次后，他的<strong>置信区间会变得很小</strong>，要给其他的机器一些机会，看看其他机器显示的观察结果所对应的新的置信区间上界是否会更高。这样经过很多轮后，最终D5的选择次数依然会很多很多，他的置信区间会越来越扁，一直到最终轮。</p>
+<p><img src="/2020/10/29/Upper-Confidence-bound/10.png" style="zoom:100%;"></p>
+<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><p>这里用一个商业案例来做例子。假设有一个汽车公司为了一个车做了十个广告ad1-ad10，这个公司需要知道哪个广告投放后，点击率最高。这组数据集是在模拟环境得到的，若值为<strong>1则指的是这个用户点击了这个广告</strong>。总结一下问题就是，我们有十个广告，要决定哪个广告有最高的点击率，并对逐步得到的信息来决定，第n个用户投放哪个广告得到最高的点击数。我们先看看如果对于每一个用户，我们随机抽选广告，会得到怎样的点击数。</p>
+<p>我们要用的数据集如下：</p>
+<p><img src="/2020/10/29/Upper-Confidence-bound/13.png" style="zoom:100%;"></p>
+<p>这里提供一个随机选择的算法，不是此次算法的重点。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Importing the libraries</span></span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"></span><br><span class="line"><span class="comment"># Importing the dataset</span></span><br><span class="line">dataset = pd.read_csv(<span class="string">'Ads_CTR_Optimisation.csv'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Implementing Random Selection</span></span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line">N = <span class="number">10000</span></span><br><span class="line">d = <span class="number">10</span></span><br><span class="line">ads_selected = []</span><br><span class="line">total_reward = <span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> n <span class="keyword">in</span> range(<span class="number">0</span>, N):</span><br><span class="line">    ad = random.randrange(d)</span><br><span class="line">    ads_selected.append(ad)</span><br><span class="line">    reward = dataset.values[n, ad]</span><br><span class="line">    total_reward = total_reward + reward</span><br><span class="line"></span><br><span class="line"><span class="comment"># Visualising the results</span></span><br><span class="line">plt.hist(ads_selected)</span><br><span class="line">plt.title(<span class="string">'Histogram of ads selections'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Ads'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Number of times each ad was selected'</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p>运行后得到的ads_selected代表对于每一个用户，哪一个广告被选择，total_reward指的是所有的点击数。得到的图像表示每个广告被点击的次数。每个广告的到点击次数是接近的，大致在1000左右。</p>
+<p><img src="/2020/10/29/Upper-Confidence-bound/16.png" style="zoom:100%;"></p>
+<p>这样，经过10000轮之后，最终得到的reward为 1257</p>
+<h3 id="Importing-the-libraries"><a href="#Importing-the-libraries" class="headerlink" title="Importing the libraries"></a>Importing the libraries</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br></pre></td></tr></table></figure>
+<h3 id="Importing-the-dataset"><a href="#Importing-the-dataset" class="headerlink" title="Importing the dataset"></a>Importing the dataset</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dataset = pd.read_csv(<span class="string">'Ads_CTR_Optimisation.csv'</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="Implementing-UCB"><a href="#Implementing-UCB" class="headerlink" title="Implementing UCB"></a>Implementing UCB</h3><p>对于UCB算法，我们没有直接的工具包来使用，因此需要自己实现，下面是算法逻辑：</p>
+<p><img src="/2020/10/29/Upper-Confidence-bound/15.png" style="zoom:120%;"></p>
+<p>首先我们设置 N (即用户的总数/运行轮数)，d是广告总数</p>
+<p>numbers_of_selections 和 sums_of_rewards 分别是 $N_i(n)$ 和 $R_i(n)$ , [0]*d  即初始化一个长度为十，初始值都为0的列表</p>
+<p>total_reward 是所有返回值的总和，当前没有任何奖励，所以设置其值为0</p>
+<p>接着就是进行一个循环了，n代表轮数，在每一轮中，ad(这一轮选择的广告)设置为0(即从第一个广告开始），最大上界设为0</p>
+<p>然后对于十只广告中的每一支，我们首先判断其被投放的次数是否大于0，若大于0则计算器 平均回报并计算其置信空间。如果不大于0，那么我们就先将其置信空间的上界设置为一个非常非常大的数。</p>
+<p>如果得到的上界是大于最大的置信空间上界，那么就更新最大的置信空间上界，并将当前的广告赋给ad。即这个广告是这一轮我们要投放的广告。所以前两轮下来，最大上界肯定是1e400，但是第三轮之后，最大上界就在不断更新和改变。</p>
+<p>跳出第二个循环，我们将本轮最终选的广告添加到ads_selected 列表当中去。并将这个广告的$N_i$ 加一。另外还要再dataset中查找这轮这条广告的reward并加到 $R_i$ 和total_reward 当中去</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> math</span><br><span class="line">N = <span class="number">10000</span></span><br><span class="line">d = <span class="number">10</span></span><br><span class="line">ads_selected = []</span><br><span class="line">numbers_of_selections = [<span class="number">0</span>] * d</span><br><span class="line">sums_of_rewards = [<span class="number">0</span>] * d</span><br><span class="line">total_reward = <span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> n <span class="keyword">in</span> range(<span class="number">0</span>, N):</span><br><span class="line">    ad = <span class="number">0</span></span><br><span class="line">    max_upper_bound = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>, d):</span><br><span class="line">        <span class="keyword">if</span> (numbers_of_selections[i] &gt; <span class="number">0</span>):</span><br><span class="line">            average_reward = sums_of_rewards[i] / numbers_of_selections[i]</span><br><span class="line">            delta_i = math.sqrt(<span class="number">3</span>/<span class="number">2</span> * math.log(n + <span class="number">1</span>) / numbers_of_selections[i])</span><br><span class="line">            upper_bound = average_reward + delta_i</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            upper_bound = <span class="number">1e400</span></span><br><span class="line">        <span class="keyword">if</span> upper_bound &gt; max_upper_bound:</span><br><span class="line">            max_upper_bound = upper_bound</span><br><span class="line">            ad = i</span><br><span class="line">    ads_selected.append(ad)</span><br><span class="line">    numbers_of_selections[ad] = numbers_of_selections[ad] + <span class="number">1</span></span><br><span class="line">    reward = dataset.values[n, ad]</span><br><span class="line">    sums_of_rewards[ad] = sums_of_rewards[ad] + reward</span><br><span class="line">    total_reward = total_reward + reward</span><br></pre></td></tr></table></figure>
+<h3 id="Visualizing-the-results"><a href="#Visualizing-the-results" class="headerlink" title="Visualizing the results"></a>Visualizing the results</h3><p>现在 ads_selected 数组是一个</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">plt.hist(ads_selected)</span><br><span class="line">plt.title(<span class="string">'Histogram of ads selections'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Ads'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Number of times each ad was selected'</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/10/29/Upper-Confidence-bound/14.png" style="zoom:100%;"></p>
+<p>查看ads_selected会发现编号4出现的次数最多，即第五个广告ad5。经过10000轮之后，最终的reward值为2178。和上面的随机算法相比，reward提升了很多很多</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/25/Apriori%E7%AE%97%E6%B3%95/" rel="prev" title="Apriori算法">
+      <i class="fa fa-chevron-left"></i> Apriori算法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/29/Thompson-Sampling%E7%AE%97%E6%B3%95/" rel="next" title="Thompson_Sampling算法">
+      Thompson_Sampling算法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Upper-Confidence-bound"><span class="nav-number">1.</span> <span class="nav-text">Upper Confidence bound</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#引入："><span class="nav-number">1.1.</span> <span class="nav-text">引入：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#置信区间上界算法"><span class="nav-number">1.2.</span> <span class="nav-text">置信区间上界算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1"><span class="nav-number">1.2.0.1.</span> <span class="nav-text">1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2"><span class="nav-number">1.2.0.2.</span> <span class="nav-text">2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3"><span class="nav-number">1.2.0.3.</span> <span class="nav-text">3</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4"><span class="nav-number">1.2.0.4.</span> <span class="nav-text">4</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5"><span class="nav-number">1.2.0.5.</span> <span class="nav-text">5</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代码实现"><span class="nav-number">1.3.</span> <span class="nav-text">代码实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Importing-the-libraries"><span class="nav-number">1.3.1.</span> <span class="nav-text">Importing the libraries</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Importing-the-dataset"><span class="nav-number">1.3.2.</span> <span class="nav-text">Importing the dataset</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implementing-UCB"><span class="nav-number">1.3.3.</span> <span class="nav-text">Implementing UCB</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Visualizing-the-results"><span class="nav-number">1.3.4.</span> <span class="nav-text">Visualizing the results</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

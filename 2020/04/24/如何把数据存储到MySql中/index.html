@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="如何把数据存储到MySql中写在前面 这篇博客主要记录了在学习了老师得课程之后如何把爬取下来的文件存储到MySql中去 数据库的安装和配置在这里略去不讲 目标如下：  数据库存储爬取的数据 爬取新闻页面之前先查询数据库，是否该url已经爬取过了 设置爬虫定时工作    用npm引入mysql模块1npm install mysql --save 给root用户授权从客户端访问在mysql中敲入 1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何把数据存储到MySql中">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="如何把数据存储到MySql中写在前面 这篇博客主要记录了在学习了老师得课程之后如何把爬取下来的文件存储到MySql中去 数据库的安装和配置在这里略去不讲 目标如下：  数据库存储爬取的数据 爬取新闻页面之前先查询数据库，是否该url已经爬取过了 设置爬虫定时工作    用npm引入mysql模块1npm install mysql --save 给root用户授权从客户端访问在mysql中敲入 1">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/4.png">
+<meta property="article:published_time" content="2020-04-24T13:49:44.000Z">
+<meta property="article:modified_time" content="2020-06-17T08:02:30.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="crawler">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>如何把数据存储到MySql中 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何把数据存储到MySql中
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-04-24 21:49:44" itemprop="dateCreated datePublished" datetime="2020-04-24T21:49:44+08:00">2020-04-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-06-17 16:02:30" itemprop="dateModified" datetime="2020-06-17T16:02:30+08:00">2020-06-17</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="如何把数据存储到MySql中"><a href="#如何把数据存储到MySql中" class="headerlink" title="如何把数据存储到MySql中"></a>如何把数据存储到MySql中</h1><h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><ul>
+<li>这篇博客主要记录了在学习了老师得课程之后如何把爬取下来的文件存储到MySql中去</li>
+<li>数据库的安装和配置在这里略去不讲</li>
+<li>目标如下：</li>
+<li><ol>
+<li>数据库存储爬取的数据</li>
+<li>爬取新闻页面之前先查询数据库，是否该url已经爬取过了</li>
+<li>设置爬虫定时工作</li>
+</ol>
+</li>
+</ul>
+<h3 id="用npm引入mysql模块"><a href="#用npm引入mysql模块" class="headerlink" title="用npm引入mysql模块"></a>用npm引入mysql模块</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install mysql --save</span><br></pre></td></tr></table></figure>
+<h3 id="给root用户授权从客户端访问"><a href="#给root用户授权从客户端访问" class="headerlink" title="给root用户授权从客户端访问"></a>给root用户授权从客户端访问</h3><p>在mysql中敲入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">alter user&#39;root&#39;@&#39;localhost&#39;identified with mysql_native_password by &#39;root&#39;;</span><br><span class="line">flush privileges;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>目的是让其他客户端，也能访问我的mysql </li>
+</ul>
+<p><img src="/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/1.png" alt="示例"></p>
+<h3 id="使用mysql创造一个数据库和一张用来存放数据的表"><a href="#使用mysql创造一个数据库和一张用来存放数据的表" class="headerlink" title="使用mysql创造一个数据库和一张用来存放数据的表"></a>使用mysql创造一个数据库和一张用来存放数据的表</h3><ul>
+<li>建库代码</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">create database crawl;(crawl就是新的数据库名字)</span><br><span class="line">use crawl;(切换数据库)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>建表代码，老师的最为详细，我一一来解释，同时也会附上我的建表码</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE &#96;fetches&#96; (</span><br><span class="line">    &#x2F;&#x2F;id_fetches 就是每段信息的标号，默认从1开始递增</span><br><span class="line">  &#96;id_fetches&#96; int(11)  NOT NULL AUTO_INCREMENT,</span><br><span class="line">    &#x2F;&#x2F;url 就是我们爬取个网站的链接</span><br><span class="line">  &#96;url&#96; varchar(200) DEFAULT NULL,</span><br><span class="line">    &#x2F;&#x2F;source_name 就是每个网站的题目，比如什么值得买，中国新闻网，网易等等</span><br><span class="line">  &#96;source_name&#96; varchar(200) DEFAULT NULL,</span><br><span class="line">    &#x2F;&#x2F;source_encoding 就是编码，可以实GBK，也可以是UTF-8，根据网站编码来定</span><br><span class="line">  &#96;source_encoding&#96; varchar(45) DEFAULT NULL,</span><br><span class="line">    &#x2F;&#x2F;title 就是标题</span><br><span class="line">  &#96;title&#96; varchar(200) DEFAULT NULL,</span><br><span class="line">    &#x2F;&#x2F;keywords 就是关键字</span><br><span class="line">  &#96;keywords&#96; varchar(200) DEFAULT NULL,</span><br><span class="line">    &#x2F;&#x2F; author 就是作者</span><br><span class="line">  &#96;author&#96; varchar(200) DEFAULT NULL,</span><br><span class="line">    &#x2F;&#x2F; publish_date 就是出版时间</span><br><span class="line">  &#96;publish_date&#96; date DEFAULT NULL,</span><br><span class="line">    &#x2F;&#x2F; crawltime 就是爬取信息的时间</span><br><span class="line">  &#96;crawltime&#96; datetime DEFAULT NULL,</span><br><span class="line">    &#x2F;&#x2F;content就是内容，主体</span><br><span class="line">  &#96;content&#96; longtext,</span><br><span class="line">    &#x2F;&#x2F; createtime就是创造这行数据所用的时间</span><br><span class="line">  &#96;createtime&#96; datetime DEFAULT CURRENT_TIMESTAMP,</span><br><span class="line">    &#x2F;&#x2F;下面是默认设置</span><br><span class="line">  PRIMARY KEY (&#96;id_fetches&#96;),&#x2F;&#x2F;primary key是主键的意思</span><br><span class="line">1，主键非空，也就是说被设定为主键的列在插入数据的时候就不能为空，如果为度空就会报错。</span><br><span class="line">2，主键是唯一的，一个表通过一个主键可以确定一条记录。</span><br><span class="line">3，有时可以用专两个字段来建立主键，这叫联合主键。这种情况出现在当一个字段无法唯一的时候要借助属另一个字段来确保唯一性的时候。</span><br><span class="line"> &#x2F;&#x2F;这里，把id设为主键，就是用来标号的，</span><br><span class="line">  UNIQUE KEY &#96;id_fetches_UNIQUE&#96; (&#96;id_fetches&#96;),&#x2F;&#x2F;就是说id是不能重复的</span><br><span class="line">  UNIQUE KEY &#96;url_UNIQUE&#96; (&#96;url&#96;)&#x2F;&#x2F;就是说url字段是不能重复的</span><br><span class="line">) ENGINE&#x3D;InnoDB DEFAULT CHARSET&#x3D;utf8;&#x2F;&#x2F;编码</span><br></pre></td></tr></table></figure>
+<ul>
+<li>我爬取的数据分类比较少，除了改动一行代码的名字之外，删了几行不需要的代码</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE &#96;fetches&#96; (</span><br><span class="line">  &#96;id_fetches&#96; int(11)  NOT NULL AUTO_INCREMENT,</span><br><span class="line">  &#96;url&#96; varchar(200) DEFAULT NULL,</span><br><span class="line">  &#96;source_name&#96; varchar(200) DEFAULT NULL,</span><br><span class="line">  &#96;source_encoding&#96; varchar(45) DEFAULT NULL,</span><br><span class="line">  &#96;interface_format&#96; longtext,&#x2F;&#x2F;这个其实就是存放标题的</span><br><span class="line">  &#96;crawltime&#96; datetime DEFAULT NULL,</span><br><span class="line">  &#96;content_format&#96; longtext,</span><br><span class="line">  &#96;createtime&#96; datetime DEFAULT CURRENT_TIMESTAMP,</span><br><span class="line">  PRIMARY KEY (&#96;id_fetches&#96;),</span><br><span class="line">  UNIQUE KEY &#96;id_fetches_UNIQUE&#96; (&#96;id_fetches&#96;),</span><br><span class="line">  UNIQUE KEY &#96;url_UNIQUE&#96; (&#96;url&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB DEFAULT CHARSET&#x3D;utf8;</span><br></pre></td></tr></table></figure>
+<h3 id="用node调用mysql"><a href="#用node调用mysql" class="headerlink" title="用node调用mysql"></a>用node调用mysql</h3><ul>
+<li>我们通过引用分文件的方式。也就是说新建一个mysql.js文件，在里面写上具体操作，然后在主爬虫程序中引入即可,我们还是通过讲解代码的方式来介绍。</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//在这个文件里真正引入了mysql模块</span></span><br><span class="line"><span class="keyword">var</span> mysql = <span class="built_in">require</span>(<span class="string">"mysql"</span>);</span><br><span class="line"><span class="comment">//定义了mysql的一些基本信息</span></span><br><span class="line"><span class="keyword">var</span> pool = mysql.createPool(&#123;</span><br><span class="line">    host: <span class="string">'127.0.0.1'</span>,<span class="comment">//本机</span></span><br><span class="line">    user: <span class="string">'root'</span>,<span class="comment">//用户名，这里是root</span></span><br><span class="line">    password: <span class="string">'root'</span>,<span class="comment">//密码，这里也是root</span></span><br><span class="line">    database: <span class="string">'crawl'</span><span class="comment">//database:要导入的数据库，这里是crawl数据库</span></span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">//下面是两种不同的链接数据库的方式，我们在没有系统学习mysql之前，略去不讲</span></span><br><span class="line"><span class="keyword">var</span> query = <span class="function"><span class="keyword">function</span>(<span class="params">sql, sqlparam, callback</span>) </span>&#123;</span><br><span class="line">    pool.getConnection(<span class="function"><span class="keyword">function</span>(<span class="params">err, conn</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (err) &#123;</span><br><span class="line">            callback(err, <span class="literal">null</span>, <span class="literal">null</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            conn.query(sql, sqlparam, <span class="function"><span class="keyword">function</span>(<span class="params">qerr, vals, fields</span>) </span>&#123;</span><br><span class="line">                conn.release(); <span class="comment">//释放连接 </span></span><br><span class="line">                callback(qerr, vals, fields); <span class="comment">//事件驱动回调 </span></span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">var</span> query_noparam = <span class="function"><span class="keyword">function</span>(<span class="params">sql, callback</span>) </span>&#123;</span><br><span class="line">    pool.getConnection(<span class="function"><span class="keyword">function</span>(<span class="params">err, conn</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (err) &#123;</span><br><span class="line">            callback(err, <span class="literal">null</span>, <span class="literal">null</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            conn.query(sql, <span class="function"><span class="keyword">function</span>(<span class="params">qerr, vals, fields</span>) </span>&#123;</span><br><span class="line">                conn.release(); <span class="comment">//释放连接 </span></span><br><span class="line">                callback(qerr, vals, fields); <span class="comment">//事件驱动回调 </span></span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;;</span><br><span class="line">exports.query = query;</span><br><span class="line">exports.query_noparam = query_noparam;</span><br></pre></td></tr></table></figure>
+<h3 id="改写主函数脚本—主要两方面"><a href="#改写主函数脚本—主要两方面" class="headerlink" title="改写主函数脚本—主要两方面"></a>改写主函数脚本—主要两方面</h3><h4 id="在文件开始"><a href="#在文件开始" class="headerlink" title="在文件开始"></a>在文件开始</h4><p>需要用var mysql = require(‘./mysql.js’）,前提是两个文件放在同一个文件夹下。关于js中调用同文件夹的语法，这里略去不讲</p>
+<h4 id="在newsGet函数的最后修改"><a href="#在newsGet函数的最后修改" class="headerlink" title="在newsGet函数的最后修改"></a>在newsGet函数的最后修改</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//因为老师的代码更为详细，所以那他的举例子，具体到我自己写的每个爬虫，只需要在原基础上删改即可</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//下面注释掉的是原来写入文件的操作，现在我们要把他写入数据库中</span></span><br><span class="line"><span class="comment">// var filename = source_name + "_" + (new Date()).toFormat("YYYY-MM-DD") +</span></span><br><span class="line"><span class="comment">//     "_" + myURL.substr(myURL.lastIndexOf('/') + 1) + ".json";</span></span><br><span class="line"><span class="comment">// 存储json</span></span><br><span class="line"><span class="comment">// fs.writeFileSync(filename, JSON.stringify(fetch));</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//INSERT INTO fetches就是要把信息写入我们建立出来的fetches表中</span></span><br><span class="line"><span class="comment">//后面跟着的就是我们要写入的数据种类，注意，要一一对应：括号内的类型，创建表的时候定义的类型，问号个数</span></span><br><span class="line"><span class="keyword">var</span> fetchAddSql = <span class="string">'INSERT INTO fetches(url,source_name,source_encoding,title,'</span> </span><br><span class="line">+<span class="string">'keywords,author,publish_date,crawltime,content) VALUES(?,?,?,?,?,?,?,?,?)'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//下面这个params数组中的值，就是要具体传给上面问号里的，所以也要一一对应</span></span><br><span class="line"><span class="keyword">var</span> fetchAddSql_Params = [fetch.url, fetch.source_name, fetch.source_encoding,</span><br><span class="line">            fetch.title, fetch.keywords, fetch.author, fetch.publish_date,</span><br><span class="line">            fetch.crawltime.toFormat(<span class="string">"YYYY-MM-DD HH24:MI:SS"</span>), fetch.content</span><br><span class="line">        ];</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//最后，执行sql，数据库中fetch表里的url属性是unique的，不会把重复的url内容写入数据库</span></span><br><span class="line">mysql.query(fetchAddSql, fetchAddSql_Params, <span class="function"><span class="keyword">function</span>(<span class="params">qerr, vals, fields</span>) </span>&#123;</span><br><span class="line">           <span class="keyword">if</span> (qerr) &#123;</span><br><span class="line">                <span class="built_in">console</span>.log(qerr);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;); <span class="comment">//mysql写入</span></span><br></pre></td></tr></table></figure>
+<h3 id="成果展示"><a href="#成果展示" class="headerlink" title="成果展示"></a>成果展示</h3><p>经过了上面的操作，我们来分别看看老师的爬虫和我的爬虫分别爬取到的信息吧！</p>
+<ul>
+<li>老师的爬虫</li>
+</ul>
+<p><img src="/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/3.png" alt="示例"></p>
+<ul>
+<li>我的爬虫</li>
+</ul>
+<p><img src="/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/4.png" alt="示例"></p>
+<h2 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h2><ul>
+<li>其实我真的只是想看看大佬们都买了那些咖啡玩具，QAQ</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+              <a href="/tags/crawler/" rel="tag"># crawler</a>
+              <a href="/tags/Mysql/" rel="tag"># Mysql</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/23/%E6%A8%A1%E4%BB%BF%E8%80%81%E5%B8%88%E7%9A%84%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E8%87%AA%E5%B7%B1%E7%9A%84%E7%88%AC%E8%99%AB%E9%A1%B9%E7%9B%AE/" rel="prev" title="模仿老师的代码开始自己的爬虫项目">
+      <i class="fa fa-chevron-left"></i> 模仿老师的代码开始自己的爬虫项目
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/26/%E5%A6%82%E4%BD%95%E7%94%A8%E8%A1%A8%E6%A0%BC%E6%98%BE%E7%A4%BA%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C/" rel="next" title="如何用表格显示查询结果">
+      如何用表格显示查询结果 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#如何把数据存储到MySql中"><span class="nav-number">1.</span> <span class="nav-text">如何把数据存储到MySql中</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#写在前面"><span class="nav-number">1.1.</span> <span class="nav-text">写在前面</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用npm引入mysql模块"><span class="nav-number">1.1.1.</span> <span class="nav-text">用npm引入mysql模块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#给root用户授权从客户端访问"><span class="nav-number">1.1.2.</span> <span class="nav-text">给root用户授权从客户端访问</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用mysql创造一个数据库和一张用来存放数据的表"><span class="nav-number">1.1.3.</span> <span class="nav-text">使用mysql创造一个数据库和一张用来存放数据的表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用node调用mysql"><span class="nav-number">1.1.4.</span> <span class="nav-text">用node调用mysql</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#改写主函数脚本—主要两方面"><span class="nav-number">1.1.5.</span> <span class="nav-text">改写主函数脚本—主要两方面</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#在文件开始"><span class="nav-number">1.1.5.1.</span> <span class="nav-text">在文件开始</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#在newsGet函数的最后修改"><span class="nav-number">1.1.5.2.</span> <span class="nav-text">在newsGet函数的最后修改</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#成果展示"><span class="nav-number">1.1.6.</span> <span class="nav-text">成果展示</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#写在最后"><span class="nav-number">1.2.</span> <span class="nav-text">写在最后</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="用nodejs来制作一个简单的爬虫来爬取网页信息写在前面——知其然也要知其所以然 像我这样连冲个咖啡豆要记笔记的人，怎么能写自己都看不懂的博客呢？所以我的目标是你读完了我的博客，也可以写出爬虫来。  这一篇是目录性质的博客，冰冻三尺非一日之寒，爬虫项目只写一篇博客是完全不够的，所以我打算用分而治之的框架来完成这篇博客的内容。我想把它分成几个部分，逐个击破，已达到融会贯通的地步（显然这是基本不可能的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="用nodejs来制作一个简单的爬虫来爬取网页信息">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="用nodejs来制作一个简单的爬虫来爬取网页信息写在前面——知其然也要知其所以然 像我这样连冲个咖啡豆要记笔记的人，怎么能写自己都看不懂的博客呢？所以我的目标是你读完了我的博客，也可以写出爬虫来。  这一篇是目录性质的博客，冰冻三尺非一日之寒，爬虫项目只写一篇博客是完全不够的，所以我打算用分而治之的框架来完成这篇博客的内容。我想把它分成几个部分，逐个击破，已达到融会贯通的地步（显然这是基本不可能的">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/17.png">
+<meta property="article:published_time" content="2020-04-20T14:33:38.000Z">
+<meta property="article:modified_time" content="2020-05-09T10:14:48.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="crawler">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/2.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>用nodejs来制作一个简单的爬虫来爬取网页信息 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          用nodejs来制作一个简单的爬虫来爬取网页信息
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-04-20 22:33:38" itemprop="dateCreated datePublished" datetime="2020-04-20T22:33:38+08:00">2020-04-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-05-09 18:14:48" itemprop="dateModified" datetime="2020-05-09T18:14:48+08:00">2020-05-09</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="用nodejs来制作一个简单的爬虫来爬取网页信息"><a href="#用nodejs来制作一个简单的爬虫来爬取网页信息" class="headerlink" title="用nodejs来制作一个简单的爬虫来爬取网页信息"></a>用nodejs来制作一个简单的爬虫来爬取网页信息</h1><h2 id="写在前面——知其然也要知其所以然"><a href="#写在前面——知其然也要知其所以然" class="headerlink" title="写在前面——知其然也要知其所以然"></a>写在前面——知其然也要知其所以然</h2><ul>
+<li><p>像我这样连冲个咖啡豆要记笔记的人，怎么能写自己都看不懂的博客呢？所以我的目标是你读完了我的博客，也可以写出爬虫来。</p>
+</li>
+<li><p>这一篇是目录性质的博客，冰冻三尺非一日之寒，爬虫项目只写一篇博客是完全不够的，所以我打算用分而治之的框架来完成这篇博客的内容。我想把它分成几个部分，逐个击破，已达到融会贯通的地步（显然这是基本不可能的）</p>
+</li>
+<li><p>最近学校的web编程课要求我们做一个爬虫来爬取网页信息，老师给出了一个新闻网站的爬取，但是因为缺少对JavaScript语言的认识和运用，用nodejs来写显得举步维艰。（水平过于低下）</p>
+</li>
+<li>前三个问题，注重于基础知识，是为正式的爬虫项目打基础、做准备的，罗马不是一天建成的，有了前面的基础知识，对爬虫有了初步了解，才能够有能力看得懂（我说只是有能力看懂）每一步的操作</li>
+</ul>
+<ol>
+<li><h6 id="对JavaScript语法的陌生"><a href="#对JavaScript语法的陌生" class="headerlink" title="对JavaScript语法的陌生"></a>对JavaScript语法的陌生</h6></li>
+<li><h6 id="对爬虫原理的陌生"><a href="#对爬虫原理的陌生" class="headerlink" title="对爬虫原理的陌生"></a>对爬虫原理的陌生</h6></li>
+<li><p>对正则表达式的陌生</p>
+</li>
+<li><p>爬虫项目中引用的包及其用法</p>
+</li>
+<li><p>如何选定一个网站，并模仿老师的代码开始我的爬虫项目？</p>
+</li>
+<li><p>用JSON格式存储时的重名问题</p>
+</li>
+<li><p>对爬取特定信息的格式问题</p>
+</li>
+<li><p>将数据存储到MySql时遇到的问题</p>
+</li>
+<li><p>如何用mysql查询已经爬取的数据</p>
+</li>
+<li><p>用网页发送请求到后端查询</p>
+</li>
+<li><p>用express构建网站访问mysql</p>
+</li>
+<li><p>用表格显示查询结果</p>
+</li>
+<li><p>爬虫定时工作</p>
+</li>
+<li><p>尝试其他的扩展（留给读者，或者无限期暂停更新）</p>
+</li>
+</ol>
+<ul>
+<li>所以，这篇文章列举了我在写爬虫项目时候的种种问题和解答，如果篇幅不长，我会直接在博文里介绍，如果篇幅过长，我会另写一篇博客，并在这里附上链接，以供读者方便切换阅读</li>
+</ul>
+<h3 id="1-对JavaScript语法的陌生"><a href="#1-对JavaScript语法的陌生" class="headerlink" title="1.对JavaScript语法的陌生"></a>1.对JavaScript语法的陌生</h3><h4 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h4><p>在大一下之前，我对JavaScript一脸茫然，甚至认为JavaScript和Java是一种语言，这显然是过于荒唐的一件事。认真学习JavaScript也是在网课进行了一个半月之后。</p>
+<h4 id="如何解决？"><a href="#如何解决？" class="headerlink" title="如何解决？"></a>如何解决？</h4><p>对于老师的每章节网课，我都有在博客上记笔记，可以看看我的JavaScript语法系列博客</p>
+<p><a href="https://jasonxqh.github.io/2020/04/20/JavaScript-4表达式和运算符/">Javascript表达式和运算符</a></p>
+<p><a href="https://jasonxqh.github.io/2020/04/21/Javascript-5语句/">Javascript语句</a></p>
+<p><a href="https://jasonxqh.github.io/2020/04/21/Javascript-6对象/">Javascript对象</a></p>
+<p><a href="https://jasonxqh.github.io/2020/04/21/Javascript-7数组/">Javascript数组</a></p>
+<p><a href="https://jasonxqh.github.io/2020/04/21/Javascript-8函数/">JavaScript函数</a></p>
+<p>在没有学习过Javascript语法的时候，就上手爬虫项目，无异于以卵击石，自不量力。对于每一句话，每一个函数，都在脑子中缓缓打出一个？</p>
+<h3 id="2-对爬虫原理的陌生"><a href="#2-对爬虫原理的陌生" class="headerlink" title="2.对爬虫原理的陌生"></a>2.对爬虫原理的陌生</h3><h4 id="起因-1"><a href="#起因-1" class="headerlink" title="起因"></a>起因</h4><p> 这方面对于没有学过爬虫原理的我来说要理解起来确实有点困难，但是幸好老师提供了几期视频来阐述，于是懵懵懂懂有个概念。</p>
+<h4 id="如何解决？-1"><a href="#如何解决？-1" class="headerlink" title="如何解决？"></a>如何解决？</h4><p>看了几遍老师的代码和讲解后，可以简单得将爬虫的思想列举一下</p>
+<ol>
+<li>首先我们搜索主页面，获取我们想要的子网页的URL<ul>
+<li>通过request请求，cheerio解析，each遍历</li>
+</ul>
+</li>
+<li>搜索出我们子网页页面中我们需要的信息：标题，正文等<ul>
+<li>通过request请求，cheerio解析</li>
+</ul>
+</li>
+<li>将这些我们需要的信息保存下来，通过各种形式访问到这种信息<ul>
+<li>建立fetch(文件对象)，输入文件信息，fs /mysql模块写入</li>
+</ul>
+</li>
+</ol>
+<p>读到这里，你只需要了解我们要一步步完成的目标就行，具体的工具我会在接下来的文章中一一讲述。</p>
+<h3 id="3-对正则表达式的陌生"><a href="#3-对正则表达式的陌生" class="headerlink" title="3.对正则表达式的陌生"></a>3.对正则表达式的陌生</h3><h4 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h4><p>没有接触过正则表达式，一开始看到的时候感叹——这像天书般的\/{}$.+-[]根本无从下手<br>有一说一，我就是因为看不懂这么几行正则表达式，才迟迟不开始爬虫作业（特别不好学）</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> url_reg = <span class="regexp">/\/(\d&#123;4&#125;)\/(\d&#123;2&#125;)-(\d&#123;2&#125;)\/(\d&#123;7&#125;).shtml/</span>;</span><br><span class="line"><span class="keyword">var</span> regExp = <span class="regexp">/((\d&#123;4&#125;|\d&#123;2&#125;)(\-|\/|\.)\d&#123;1,2&#125;\3\d&#123;1,2&#125;)|(\d&#123;4&#125;年\d&#123;1,2&#125;月\d&#123;1,2&#125;日)/</span></span><br></pre></td></tr></table></figure>
+<h4 id="如何解决？-2"><a href="#如何解决？-2" class="headerlink" title="如何解决？"></a>如何解决？</h4><p>显然，ddl是第一生产力。只剩下两周的时间了，我找了几期正则表达式的教学视频来补习了一下，也是勉强有了大概，并且用了这个页面上的正则表达式检测器练习了几遍。</p>
+<ul>
+<li><a href="https://c.runoob.com/front-end/854" target="_blank" rel="noopener">菜鸟工具</a></li>
+<li>咦，他叫自己菜鸟工具，正好，非常适合我。</li>
+<li>这里补充一下练习模式，就是在某一个网站上找源代码，然后找全部都是一种模式的网址或者图片。对着他写下你的正则表达式，然后把源代码复制到这个菜鸟工具中，检测一下是否把你想要的哪些网站都搜索出来了。</li>
+<li>笨方法才是好方法，要写自己看的懂的，不要用很巧妙的正则表达式，当然大佬自动忽略。</li>
+<li>程度，现在勉强可以看着网址写出他的正则表达式了</li>
+<li>关于我如何学习正则表达式和正则表达式的具体概念，参见我的另一篇博客 —初识正则表达式   </li>
+<li><a href="https://jasonxqh.github.io/2020/04/20/初识正则表达式/">初识正则表达式</a>  </li>
+</ul>
+<h3 id="4-爬虫项目中引用的包及其用法"><a href="#4-爬虫项目中引用的包及其用法" class="headerlink" title="4.爬虫项目中引用的包及其用法"></a>4.爬虫项目中引用的包及其用法</h3><h4 id="起因-2"><a href="#起因-2" class="headerlink" title="起因"></a>起因</h4><ul>
+<li>我们不能简单的把几个模块引用过来但不知道其具体作用</li>
+</ul>
+<h4 id="如何解决？-3"><a href="#如何解决？-3" class="headerlink" title="如何解决？"></a>如何解决？</h4><ul>
+<li><p>因此，我另写了篇博客来谈谈爬虫中需要引入的模块和它们的作用</p>
+</li>
+<li><p><a href="https://jasonxqh.github.io/2020/04/23/爬虫项目中引用的包及其用法/">爬虫项目中引用的包及其用法</a></p>
+</li>
+</ul>
+<h3 id="5-如何选定一个网站，并模仿老师的代码开始我的爬虫项目？"><a href="#5-如何选定一个网站，并模仿老师的代码开始我的爬虫项目？" class="headerlink" title="5.如何选定一个网站，并模仿老师的代码开始我的爬虫项目？"></a>5.如何选定一个网站，并模仿老师的代码开始我的爬虫项目？</h3><h4 id="起因-3"><a href="#起因-3" class="headerlink" title="起因"></a>起因</h4><p>读懂了老师的代码，才是开始自己爬虫的第一步。那么，是应该选择什么网站来开始我的爬虫项目呢？娱乐网站?新闻网站？购物网站？ 最后，作为练习时长大半年的<del>个人练习生</del> 吧台手和资深键盘咖啡师的我来说，还是选择了什么值得买网站作为我的第一个爬虫项目（想看看大家的开箱报告）</p>
+<h4 id="如何解决"><a href="#如何解决" class="headerlink" title="如何解决"></a>如何解决</h4><p>因为这里的空间不是很够，所以我会新建一篇博客详细讨论一下我是如何解决的</p>
+<p><a href="https://jasonxqh.github.io/2020/04/23/模仿老师的代码开始自己的爬虫项目/">模仿老师的代码开始自己的爬虫项目</a></p>
+<h3 id="6-用JSON格式存储时的重名问题"><a href="#6-用JSON格式存储时的重名问题" class="headerlink" title="6.用JSON格式存储时的重名问题"></a>6.用JSON格式存储时的重名问题</h3><p>我写完代码之后，已经成功地转码了</p>
+<ol>
+<li>但是却没有.json文件保存下来</li>
+<li>存储下来了，但不是JSON文件</li>
+</ol>
+<h4 id="如何解决-1"><a href="#如何解决-1" class="headerlink" title="如何解决"></a>如何解决</h4><h5 id="问题1"><a href="#问题1" class="headerlink" title="问题1"></a>问题1</h5><p>问了助教和老师之后，在大家一起努力下，找到了问题并成功解决了。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> filename = source_name + <span class="string">"_"</span> + (<span class="keyword">new</span> <span class="built_in">Date</span>()).toFormat(<span class="string">"YYYY-MM-DD"</span>) +</span><br><span class="line"><span class="string">"_"</span> + myURL.substr(myURL.lastIndexOf(<span class="string">'/'</span>) + <span class="number">1</span>) + <span class="string">".json"</span>;</span><br></pre></td></tr></table></figure>
+<p>一开始，我和老师命名文件的时候用的是同一行代码，但是很显然，这个存储方法不是放诸四海皆准的，我们需要结合网站的url和具体作用来具体分析，然后再选择一个不会让文件重名的命名方法.</p>
+<p>说白了，就是你怎样通过字符串拼接来给这么多文件取互不相同的名字？？</p>
+<p><strong>首先看看中国新闻网的（子网页）URL</strong></p>
+<p><a href="http://www.chinanews.com/gn/2020/04-23/9166028.shtml" target="_blank" rel="noopener">http://www.chinanews.com/gn/2020/04-23/9166028.shtml</a></p>
+<p> <strong>再来看看什么值得买 (子网页）的URL</strong></p>
+<p><a href="https://post.smzdm.com/p/531543/" target="_blank" rel="noopener">https://post.smzdm.com/p/531543/</a></p>
+<p>结合老师的命名方法，我们一步一步分析,</p>
+<ol>
+<li><p>source_name 是我们规定的，在老师的代码里，是”中国新闻网”，在我的代码里是”什么值得买“，到现在，所有文件的命名都是一样的</p>
+</li>
+<li><p>(new Date()).toFormat(“YYYY-MM-DD”) 是用一个新的Date()对象，然后转码成YYYY-MM-DD的形式，如果在这里我仍然和老师的代码一样，那么到这里，所有的文件命名也还是一样的</p>
+</li>
+<li><p>最关键的一点，老师的这部分 myURL.substr(myURL.lastIndexOf(‘/‘) + 1)，也就是说，他截取了URL的一部分，那么，是从什么时候开始截取 的呢？</p>
+<ol>
+<li><p>lastIndexOf()这个api在我的Javascript数组这篇博客中有些到，就是从尾部开始遍历数组或者字符串，返回’/‘出现的第一个索引，然后把他加1</p>
+</li>
+<li><p>substr是字符串截取函数，这里是从myURL.lastIndexOf(‘/‘) + 1处开始截取，一直到末尾结束</p>
+</li>
+<li><p>我们可以看到，根据上面那个例子最后一个’/‘+1之后的字符串为9166028.shtml，而这一部分对中国新闻网的每一个页面都是不同的</p>
+</li>
+</ol>
+</li>
+<li><p>但是我的URL呢？我们如果用myURL.substr(myURL.lastIndexOf(‘/‘) + 1)这个方法呢？</p>
+<ol>
+<li>从什么值得买子网页可以看出，最后一个‘/’就是字符串中的最后一位，所以再加一，再截取，那么我们根本截取不到任何东西！！！</li>
+</ol>
+</li>
+<li><p>所以这就出现了问题，老师在这一步已经完成了不同文件的命名，但我这时候所有的文件命名任然是一样的</p>
+</li>
+<li><p>最后只是加上后缀名’.json’,大家都一样</p>
+</li>
+</ol>
+<ul>
+<li><p>那么这就是问题的痛点了。我因为所有的文件名字都一样，所以电脑上更本无法保存，如何修改呢？？</p>
+</li>
+<li><p>通过老师的点拨，我对代码做了这样的修改</p>
+</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> filename = source_name + <span class="string">"_"</span> +(<span class="keyword">new</span> <span class="built_in">Date</span>()).valueOf()+<span class="string">"_"</span>+<span class="string">".json"</span>;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>我把新的Date()对象，使用了valueOf()的方法（返回的是毫秒数）</li>
+<li>因为爬取每个页面的时间精确到毫秒级别，所以单单提取秒数是远远不够的，所以我没有用getSeconds()方法，而用了valueOf()方法</li>
+<li><p>经过再操作，这个问题解决了！</p>
+<h5 id="问题2"><a href="#问题2" class="headerlink" title="问题2"></a>问题2</h5></li>
+</ol>
+<p>现在，我已经实现了保存文件，但是，却都是这样的</p>
+<p> <img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/2.png" alt="示例"></p>
+<p>他没有任何的文件类型，这是啥情况呢</p>
+<p><strong>返回代码本身，看看 .json 之前出了什么问题</strong></p>
+<p>果然，我们发现了一个多余的下划线，本来是在老师的代码里面连接9166028.shtml用的，我没有把他删掉，这样， 下划线和.json的. 相连接，不符合命名规范。所以无法存储</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> filename = source_name + <span class="string">"_"</span> +(<span class="keyword">new</span> <span class="built_in">Date</span>()).valueOf() +<span class="string">".json"</span>;</span><br></pre></td></tr></table></figure>
+<p>改成这样后，再运行，就完美了</p>
+<p><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/3.png" alt="示例"></p>
+<h3 id="7-对爬取特定信息的格式问题"><a href="#7-对爬取特定信息的格式问题" class="headerlink" title="7.对爬取特定信息的格式问题"></a>7.对爬取特定信息的格式问题</h3><h4 id="起因-4"><a href="#起因-4" class="headerlink" title="起因"></a>起因</h4><p>我准备爬取一个title和文章的内容，但是一开始只有文章内容被保留了下来，title并没有被爬取到</p>
+<h4 id="如何解决？-4"><a href="#如何解决？-4" class="headerlink" title="如何解决？"></a>如何解决？</h4><p>助教一阵见血的指出了我的错误</p>
+<ul>
+<li>原来，本来我的代码是这样的：</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> interface_format = <span class="string">"$('.edit_interface').text()"</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>然而，网站里的源代码竟然是这样的</li>
+</ul>
+<p><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/4.png" alt="示例"></p>
+<p>我们看见\<span class="edit_interface"> \</span> 这一行代码没有任何东西！</p>
+<p>所以，我们爬取下来的文件，变成了这样：</p>
+<p><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/5.png" alt="示例"></p>
+<p>当我们改成下面代码的时候，一切都好起来了</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> interface_format = <span class="string">"$('h1.item-name').text()"</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/6.png" alt="示例"></p>
+<h3 id="8-如何把数据存储到MySql中？"><a href="#8-如何把数据存储到MySql中？" class="headerlink" title="8.如何把数据存储到MySql中？"></a>8.如何把数据存储到MySql中？</h3><h4 id="起因-5"><a href="#起因-5" class="headerlink" title="起因"></a>起因</h4><p>如果说只能把内容存储到json文件中，那管理起来很麻烦。我们可以通过修改一下代码，让内容存储到数据库当中</p>
+<h4 id="如何解决-2"><a href="#如何解决-2" class="headerlink" title="如何解决"></a>如何解决</h4><p>看了老师的视频之后，在问过助教之后，最终解决了</p>
+<p>具体怎么解决，请看我的子博文：如何把数据存储到MySql中</p>
+<p><a href="https://jasonxqh.github.io/2020/04/24/如何把数据存储到MySql中/">如何把数据存储到MySql中？</a></p>
+<h3 id="9-如何用mysql查询已经爬取的数据"><a href="#9-如何用mysql查询已经爬取的数据" class="headerlink" title="9.如何用mysql查询已经爬取的数据"></a>9.如何用mysql查询已经爬取的数据</h3><h4 id="起因-6"><a href="#起因-6" class="headerlink" title="起因"></a>起因</h4><ul>
+<li>已经爬取到了那么多数据，并且存放到了Mysql中了，那么怎么才能访问、查询他们呢？</li>
+</ul>
+<h4 id="如何解决-3"><a href="#如何解决-3" class="headerlink" title="如何解决"></a>如何解决</h4><ul>
+<li>大量搜寻： <ul>
+<li>select title,url from fetches                 //title，url可以换成任意种类，但这样所有的数据都会呈现</li>
+<li>select title,url from fetches limit 20  //这样，呈现的信息就被限制在了20条</li>
+<li>因为这样搜索的结果已经在<a href="https://jasonxqh.github.io/2020/04/24/如何把数据存储到MySql中/">如何把数据存储到MySql中?</a>这篇博文中有所展示，因此不予赘述</li>
+</ul>
+</li>
+<li>关键词搜寻<ul>
+<li>select title,author,publish_date from fetches where title like ‘%新冠%’；</li>
+<li>结果如下</li>
+<li><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/7.png" alt="示例"></li>
+<li>select interface_format,url,crawltime from fetches where interface_format like ‘%咖啡%’;</li>
+<li>结果如下</li>
+<li><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/8.png" alt="示例"></li>
+</ul>
+</li>
+<li>利用js文件搜寻</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> mysql = <span class="built_in">require</span>(<span class="string">'./mysql_coffee.js'</span>);</span><br><span class="line"><span class="keyword">var</span> title = <span class="string">'咖啡'</span>;</span><br><span class="line"><span class="keyword">var</span> select_Sql = <span class="string">"select  interface_format,url,crawltime  from fetches where interface_format like '%"</span> + title + <span class="string">"%'"</span>;</span><br><span class="line"></span><br><span class="line">mysql.query(select_Sql, <span class="function"><span class="keyword">function</span>(<span class="params">qerr, vals, fields</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(vals);</span><br><span class="line">&#125;);</span><br><span class="line">------------------------------------------------------------------------------</span><br><span class="line"><span class="keyword">var</span> mysql = <span class="built_in">require</span>(<span class="string">'./mysql.js'</span>);</span><br><span class="line"><span class="keyword">var</span> title = <span class="string">'新冠'</span>;</span><br><span class="line"><span class="keyword">var</span> select_Sql = <span class="string">"select title,author,publish_date from fetches where title like '%"</span> + title + <span class="string">"%'"</span>;</span><br><span class="line"></span><br><span class="line">mysql.query(select_Sql, <span class="function"><span class="keyword">function</span>(<span class="params">qerr, vals, fields</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(vals);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">//第一部分是老师的文件，第二部分是我的搜索文件</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">首先，是引用的文件不一样，一个是引用了mysql_coffee.js，另一个是mysql.js这决定了查询的数据库不同</span></span><br><span class="line"><span class="comment">其次，我的关键词是咖啡，老师的关键词是新冠</span></span><br><span class="line"><span class="comment">再然，我搜索的是标题、链接和爬取时间，老师搜索的是标题，作者，出版时间</span></span><br><span class="line"><span class="comment">注意： 不管是前面多么不一样 最后的  '%" + title + "%' 始终是一样的，这个title不是存储类型</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>来看看结果</li>
+<li>老师的结果</li>
+<li><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/9.png" alt="示例"></li>
+<li>我的结果</li>
+<li><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/10.png" alt="示例"></li>
+</ul>
+<h3 id="10-如何用网页发送请求到后端查询"><a href="#10-如何用网页发送请求到后端查询" class="headerlink" title="10.如何用网页发送请求到后端查询"></a>10.如何用网页发送请求到后端查询</h3><h4 id="起因："><a href="#起因：" class="headerlink" title="起因："></a>起因：</h4><ul>
+<li>怎么样在网页上查询关键词，并在我的后端返回结果呢？</li>
+</ul>
+<h4 id="解决方法："><a href="#解决方法：" class="headerlink" title="解决方法："></a>解决方法：</h4><ul>
+<li>首先，我们创建一个html前端</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">"http://127.0.0.1:8080/7.02.html"</span> <span class="attr">method</span>=<span class="string">"GET"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">br</span>&gt;</span> 标题：<span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"text"</span> <span class="attr">name</span>=<span class="string">"title"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"submit"</span> <span class="attr">value</span>=<span class="string">"Submit"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>具体样式如下</li>
+</ul>
+<p><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/11.png" alt="示例"></p>
+<ul>
+<li>随后，我们建立一个后端，这里用了http模块，而没有用其他框架</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> http = <span class="built_in">require</span>(<span class="string">'http'</span>);</span><br><span class="line"><span class="keyword">var</span> fs = <span class="built_in">require</span>(<span class="string">'fs'</span>);</span><br><span class="line"><span class="keyword">var</span> url = <span class="built_in">require</span>(<span class="string">'url'</span>);</span><br><span class="line"><span class="keyword">var</span> mysql = <span class="built_in">require</span>(<span class="string">'./mysql.js'</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">http.createServer(<span class="function"><span class="keyword">function</span>(<span class="params">request, response</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> pathname = url.parse(request.url).pathname;</span><br><span class="line">    <span class="keyword">var</span> params = url.parse(request.url, <span class="literal">true</span>).query; </span><br><span class="line">    <span class="comment">//先去读取文件</span></span><br><span class="line">    fs.readFile(pathname.substr(<span class="number">1</span>), <span class="function"><span class="keyword">function</span>(<span class="params">err, data</span>) </span>&#123;</span><br><span class="line">        response.writeHead(<span class="number">200</span>, &#123; <span class="string">'Content-Type'</span>: <span class="string">'text/html; charset=utf-8'</span> &#125;);</span><br><span class="line">        <span class="comment">//如果文件非空，那么先把文件给打印出来</span></span><br><span class="line">        <span class="keyword">if</span> ((params.title === <span class="literal">undefined</span>) &amp;&amp; (data !== <span class="literal">undefined</span>))</span><br><span class="line">            response.write(data.toString());</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//否则，我们去数据库寻找，并打印出来</span></span><br><span class="line">            response.write(<span class="built_in">JSON</span>.stringify(params));</span><br><span class="line">            <span class="comment">//数据库查找语言：title,author,publish_date这些都是存储的数据类型</span></span><br><span class="line">            <span class="comment">//where title like title就是要查询的关键词所在的数据类型，一般都是title</span></span><br><span class="line">            <span class="comment">// params.title 就是我们在网站上搜寻的关键词</span></span><br><span class="line">            <span class="keyword">var</span> select_Sql = <span class="string">"select title,author,publish_date from fetches where title like '%"</span> +</span><br><span class="line">                params.title + <span class="string">"%'"</span>;</span><br><span class="line">            mysql.query(select_Sql, <span class="function"><span class="keyword">function</span>(<span class="params">qerr, vals, fields</span>) </span>&#123;</span><br><span class="line">                <span class="comment">//把这些打印出来</span></span><br><span class="line">                <span class="built_in">console</span>.log(vals);</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">        response.end();</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;).listen(<span class="number">8080</span>);</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'Server running at http://127.0.0.1:8080/7.02.html'</span>);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>我们可以看到，老师的代码运行后，在搜索框中写入  新冠 后是这样一个结果</li>
+</ul>
+<p><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/12.png" alt="示例"></p>
+<ul>
+<li>而我们对这个代码稍加修改，马上可以爬取到自己想要的文件</li>
+<li>比如，我想在什么值得买 表格中搜寻 ：咖啡 </li>
+</ul>
+<p><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/13.png" alt="示例"></p>
+<ul>
+<li>又比如，我想在新浪网 表格上搜寻： 切尔西</li>
+</ul>
+<p><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/14.png" alt="示例"></p>
+<ul>
+<li>再比如，我想在东方财富 表格上搜寻： 股市</li>
+</ul>
+<p><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/15.png" alt="示例"></p>
+<p>可以看出，这个问题就算是解决了。</p>
+<h3 id="11-如何用express构建网站访问mysql"><a href="#11-如何用express构建网站访问mysql" class="headerlink" title="11.如何用express构建网站访问mysql"></a>11.如何用express构建网站访问mysql</h3><h4 id="起因-7"><a href="#起因-7" class="headerlink" title="起因"></a>起因</h4><ul>
+<li>在后端显示其实意义不大，我们要在前端显示，才能体现搜寻效果，那么怎么才能前端现实呢？</li>
+</ul>
+<h4 id="如何解决-4"><a href="#如何解决-4" class="headerlink" title="如何解决"></a>如何解决</h4><ul>
+<li>我们用express框架来构建</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    //唯一不同的是，把7.02html改成了process_get</span><br><span class="line">    <span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">"http://127.0.0.1:8080/process_get"</span> <span class="attr">method</span>=<span class="string">"GET"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">br</span>&gt;</span> 标题：<span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"text"</span> <span class="attr">name</span>=<span class="string">"title"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"submit"</span> <span class="attr">value</span>=<span class="string">"Submit"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>然后我们用express来写后端，虽然功能更丰富，但是代码更为简洁</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>);</span><br><span class="line"><span class="keyword">var</span> mysql = <span class="built_in">require</span>(<span class="string">'./mysql.js'</span>)</span><br><span class="line"><span class="keyword">var</span> app = express();</span><br><span class="line"><span class="comment">//app.use(express.static('public'));</span></span><br><span class="line">app.get(<span class="string">'/7.03.html'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">    res.sendFile(__dirname + <span class="string">"/"</span> + <span class="string">"7.03.html"</span>);</span><br><span class="line">&#125;)</span><br><span class="line">app.get(<span class="string">'/process_get'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">    <span class="comment">//先设置编码</span></span><br><span class="line">    res.writeHead(<span class="number">200</span>, &#123; <span class="string">'Content-Type'</span>: <span class="string">'text/html;charset=utf-8'</span> &#125;); <span class="comment">//设置res编码为utf-8</span></span><br><span class="line">    <span class="comment">//sql字符串和参数，和上面的代码相同</span></span><br><span class="line">    <span class="keyword">var</span> fetchSql = <span class="string">"select url,source_name,title,author,publish_date from fetches where title like '%"</span> +</span><br><span class="line">        req.query.title + <span class="string">"%'"</span>;</span><br><span class="line">    <span class="comment">//然后把这些参数放到result中</span></span><br><span class="line">    mysql.query(fetchSql, <span class="function"><span class="keyword">function</span>(<span class="params">err, result, fields</span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(result);</span><br><span class="line">        <span class="comment">//json字符串话</span></span><br><span class="line">        res.end(<span class="built_in">JSON</span>.stringify(result));</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> server = app.listen(<span class="number">8080</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"访问地址为 http://127.0.0.1:8080/7.03.html"</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>通过简单的修改，我们可以查询到自己想要的文件</li>
+<li>比如我想再什么值得买中搜寻咖啡</li>
+</ul>
+<p><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/16.png" alt="示例"></p>
+<ul>
+<li>比如我想在虎扑上搜寻球</li>
+</ul>
+<p><img src="/2020/04/20/%E7%94%A8nodejs%E6%9D%A5%E5%88%B6%E4%BD%9C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%88%AC%E8%99%AB%E6%9D%A5%E7%88%AC%E5%8F%96%E7%BD%91%E9%A1%B5%E4%BF%A1%E6%81%AF/17.png" alt="示例"></p>
+<ul>
+<li>到这里，这个问题也解决了</li>
+</ul>
+<h3 id="12-如何用表格显示查询结果"><a href="#12-如何用表格显示查询结果" class="headerlink" title="12.如何用表格显示查询结果"></a>12.如何用表格显示查询结果</h3><h4 id="起因-8"><a href="#起因-8" class="headerlink" title="起因"></a>起因</h4><p>向上面的那种显示方法，还是缺少美观性，那么我们试试用表格显示查询结果</p>
+<h4 id="如何解决？-5"><a href="#如何解决？-5" class="headerlink" title="如何解决？"></a>如何解决？</h4><p>这里的空间不是很够，请移步我的子博文： <a href="https://jasonxqh.github.io/2020/04/26/如何用表格显示查询结果/">如何用表格显示查询结果</a></p>
+<h3 id="13-爬虫定时工作"><a href="#13-爬虫定时工作" class="headerlink" title="13.爬虫定时工作"></a>13.爬虫定时工作</h3><h4 id="起因：-1"><a href="#起因：-1" class="headerlink" title="起因："></a>起因：</h4><p>每次手动爬取太麻烦，怎么样才能定时操控爬虫呢？</p>
+<h4 id="解决方法：-1"><a href="#解决方法：-1" class="headerlink" title="解决方法："></a>解决方法：</h4><ul>
+<li>引入第三方包 node-schedule;</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install node-schedule;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>爬虫代码中引入</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> schedule = <span class="built_in">require</span>(<span class="string">'node-schedule'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//定时执行</span></span><br><span class="line"><span class="keyword">var</span> rule = <span class="keyword">new</span> schedul.RecurrenceRule();</span><br><span class="line"><span class="keyword">var</span> times = [<span class="number">0</span>,<span class="number">12</span>];<span class="comment">//每天两次自动执行</span></span><br><span class="line"><span class="keyword">var</span> times2 = <span class="number">5</span>		<span class="comment">//分钟</span></span><br><span class="line">rule.hour = times;</span><br><span class="line">rule.minute = times2;</span><br><span class="line"><span class="comment">// 定时执行httpGet()函数</span></span><br><span class="line">schedule.scheduleJob(rule,<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">   seedget(); </span><br><span class="line">&#125;);</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">seedget</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    request(seedURL, <span class="function"><span class="keyword">function</span>(<span class="params">err, res, body</span>) </span>&#123; <span class="comment">//读取种子页面</span></span><br><span class="line"><span class="comment">//  	.........</span></span><br><span class="line">    &#125;);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="13-尝试其他的扩展（留给读者，或者无限期暂停更新）"><a href="#13-尝试其他的扩展（留给读者，或者无限期暂停更新）" class="headerlink" title="13.尝试其他的扩展（留给读者，或者无限期暂停更新）"></a>13.尝试其他的扩展（留给读者，或者无限期暂停更新）</h3><ul>
+<li>对查询结果进行分页显示</li>
+<li>对查询结果按每个字段进行排序</li>
+<li>对多个查询条件进行复合查询</li>
+<li>其他功能和性能的提升</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>山再高，也得往上攀。浪波涛，也得去划船。我们在学习过程中需要有程序员精神。就是不断地发现问题，解决问题，虽然水平不高，但是大佬的水平也是在一次次的解决问题中提高的。 曾经自己认为高难度的作业也会一点一点被自己征服。</p>
+<p>完成一个比较大的项目，一定要把它拆分成很多小问题，这也是一种很实用的编程思维。分而治之，逐个击破。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(项目未完成) </span><br><span class="line">&#123; </span><br><span class="line">    <span class="keyword">if</span>(出现了问题)</span><br><span class="line">    &#123;</span><br><span class="line">     学习 | | 问老师； </span><br><span class="line">        问题解决了没？ 项目继续：学习+寻求更多帮助；</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="鸣谢"><a href="#鸣谢" class="headerlink" title="鸣谢"></a>鸣谢</h2><ul>
+<li>我初次尝试爬虫项目的时候，是助教高瑞卿学姐热心帮我解答了很多疑难问题，还帮我检查了代码中的错误。所以在博客的最后，特此感谢学姐的无私帮助。</li>
+<li><p>在了解了我们的学习进度之后，王晔老师放宽了ddl，并且在视频中加入了很多在写爬虫时候的细节。并且也解答了我一部分问题，特此感谢。</p>
+</li>
+<li><p>前人栽树后人乘凉。感谢我的好朋友们，是你们在一些问题上的经验帮我规避了很多难题；感谢一些同学们写的博客，是看了你们的博客之后我才有了这篇博客的思路于灵感。</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+              <a href="/tags/crawler/" rel="tag"># crawler</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/20/17-09%E7%AC%ACk%E4%B8%AA%E6%95%B0/" rel="prev" title="17.09第k个数">
+      <i class="fa fa-chevron-left"></i> 17.09第k个数
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/20/%E5%88%9D%E8%AF%86%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" rel="next" title="初识正则表达式">
+      初识正则表达式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#用nodejs来制作一个简单的爬虫来爬取网页信息"><span class="nav-number">1.</span> <span class="nav-text">用nodejs来制作一个简单的爬虫来爬取网页信息</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#写在前面——知其然也要知其所以然"><span class="nav-number">1.1.</span> <span class="nav-text">写在前面——知其然也要知其所以然</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#对JavaScript语法的陌生"><span class="nav-number">1.1.0.0.0.1.</span> <span class="nav-text">对JavaScript语法的陌生</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#对爬虫原理的陌生"><span class="nav-number">1.1.0.0.0.2.</span> <span class="nav-text">对爬虫原理的陌生</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-对JavaScript语法的陌生"><span class="nav-number">1.1.1.</span> <span class="nav-text">1.对JavaScript语法的陌生</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#起因"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何解决？"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">如何解决？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-对爬虫原理的陌生"><span class="nav-number">1.1.2.</span> <span class="nav-text">2.对爬虫原理的陌生</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#起因-1"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何解决？-1"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">如何解决？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-对正则表达式的陌生"><span class="nav-number">1.1.3.</span> <span class="nav-text">3.对正则表达式的陌生</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#原因"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何解决？-2"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">如何解决？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-爬虫项目中引用的包及其用法"><span class="nav-number">1.1.4.</span> <span class="nav-text">4.爬虫项目中引用的包及其用法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#起因-2"><span class="nav-number">1.1.4.1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何解决？-3"><span class="nav-number">1.1.4.2.</span> <span class="nav-text">如何解决？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-如何选定一个网站，并模仿老师的代码开始我的爬虫项目？"><span class="nav-number">1.1.5.</span> <span class="nav-text">5.如何选定一个网站，并模仿老师的代码开始我的爬虫项目？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#起因-3"><span class="nav-number">1.1.5.1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何解决"><span class="nav-number">1.1.5.2.</span> <span class="nav-text">如何解决</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-用JSON格式存储时的重名问题"><span class="nav-number">1.1.6.</span> <span class="nav-text">6.用JSON格式存储时的重名问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#如何解决-1"><span class="nav-number">1.1.6.1.</span> <span class="nav-text">如何解决</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#问题1"><span class="nav-number">1.1.6.1.1.</span> <span class="nav-text">问题1</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#问题2"><span class="nav-number">1.1.6.1.2.</span> <span class="nav-text">问题2</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-对爬取特定信息的格式问题"><span class="nav-number">1.1.7.</span> <span class="nav-text">7.对爬取特定信息的格式问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#起因-4"><span class="nav-number">1.1.7.1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何解决？-4"><span class="nav-number">1.1.7.2.</span> <span class="nav-text">如何解决？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-如何把数据存储到MySql中？"><span class="nav-number">1.1.8.</span> <span class="nav-text">8.如何把数据存储到MySql中？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#起因-5"><span class="nav-number">1.1.8.1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何解决-2"><span class="nav-number">1.1.8.2.</span> <span class="nav-text">如何解决</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-如何用mysql查询已经爬取的数据"><span class="nav-number">1.1.9.</span> <span class="nav-text">9.如何用mysql查询已经爬取的数据</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#起因-6"><span class="nav-number">1.1.9.1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何解决-3"><span class="nav-number">1.1.9.2.</span> <span class="nav-text">如何解决</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-如何用网页发送请求到后端查询"><span class="nav-number">1.1.10.</span> <span class="nav-text">10.如何用网页发送请求到后端查询</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#起因："><span class="nav-number">1.1.10.1.</span> <span class="nav-text">起因：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解决方法："><span class="nav-number">1.1.10.2.</span> <span class="nav-text">解决方法：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-如何用express构建网站访问mysql"><span class="nav-number">1.1.11.</span> <span class="nav-text">11.如何用express构建网站访问mysql</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#起因-7"><span class="nav-number">1.1.11.1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何解决-4"><span class="nav-number">1.1.11.2.</span> <span class="nav-text">如何解决</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-如何用表格显示查询结果"><span class="nav-number">1.1.12.</span> <span class="nav-text">12.如何用表格显示查询结果</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#起因-8"><span class="nav-number">1.1.12.1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何解决？-5"><span class="nav-number">1.1.12.2.</span> <span class="nav-text">如何解决？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#13-爬虫定时工作"><span class="nav-number">1.1.13.</span> <span class="nav-text">13.爬虫定时工作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#起因：-1"><span class="nav-number">1.1.13.1.</span> <span class="nav-text">起因：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解决方法：-1"><span class="nav-number">1.1.13.2.</span> <span class="nav-text">解决方法：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#13-尝试其他的扩展（留给读者，或者无限期暂停更新）"><span class="nav-number">1.1.14.</span> <span class="nav-text">13.尝试其他的扩展（留给读者，或者无限期暂停更新）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">1.2.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#鸣谢"><span class="nav-number">1.3.</span> <span class="nav-text">鸣谢</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

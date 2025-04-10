@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="dubbo和nacos在大营销项目中的应用Dubbo配置流程以及踩坑情况引入dubbo和nacos 在项目根pom文件中引入nacos：  123456789101112131415&lt;dependency&gt;    &lt;groupId&gt;org.apache.dubbo&lt;&#x2F;groupId&gt;    &lt;artifactId&gt;dubbo&lt;&#x2F;artifact">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dubbo和nacos在大营销项目中的应用">
+<meta property="og:url" content="https://jasonxqh.github.io/2024/12/23/dubbo%E5%92%8Cnacos%E5%9C%A8%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="dubbo和nacos在大营销项目中的应用Dubbo配置流程以及踩坑情况引入dubbo和nacos 在项目根pom文件中引入nacos：  123456789101112131415&lt;dependency&gt;    &lt;groupId&gt;org.apache.dubbo&lt;&#x2F;groupId&gt;    &lt;artifactId&gt;dubbo&lt;&#x2F;artifact">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/12/23/dubbo%E5%92%8Cnacos%E5%9C%A8%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/Samsung_T5/JasonXQH.github.io/source/_posts/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/5.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2024/12/23/dubbo%E5%92%8Cnacos%E5%9C%A8%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/Samsung_T5/JasonXQH.github.io/source/_posts/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/5.jpg">
+<meta property="article:published_time" content="2024-12-23T05:08:11.000Z">
+<meta property="article:modified_time" content="2024-12-24T04:36:31.630Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="分布式系统">
+<meta property="article:tag" content="dubbo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2024/12/23/dubbo%E5%92%8Cnacos%E5%9C%A8%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/Samsung_T5/JasonXQH.github.io/source/_posts/%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84bug%E4%B8%8E%E5%BF%83%E5%BE%97/5.jpg">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2024/12/23/dubbo%E5%92%8Cnacos%E5%9C%A8%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>dubbo和nacos在大营销项目中的应用 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2024/12/23/dubbo%E5%92%8Cnacos%E5%9C%A8%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          dubbo和nacos在大营销项目中的应用
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-12-23 13:08:11" itemprop="dateCreated datePublished" datetime="2024-12-23T13:08:11+08:00">2024-12-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-12-24 12:36:31" itemprop="dateModified" datetime="2024-12-24T12:36:31+08:00">2024-12-24</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="dubbo和nacos在大营销项目中的应用"><a href="#dubbo和nacos在大营销项目中的应用" class="headerlink" title="dubbo和nacos在大营销项目中的应用"></a>dubbo和nacos在大营销项目中的应用</h1><h2 id="Dubbo配置流程以及踩坑情况"><a href="#Dubbo配置流程以及踩坑情况" class="headerlink" title="Dubbo配置流程以及踩坑情况"></a>Dubbo配置流程以及踩坑情况</h2><h3 id="引入dubbo和nacos"><a href="#引入dubbo和nacos" class="headerlink" title="引入dubbo和nacos"></a>引入dubbo和nacos</h3><ol>
+<li>在项目根pom文件中引入nacos：</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.dubbo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>dubbo<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.0.9<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.dubbo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>dubbo-spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.0.9<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.nacos<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>nacos-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.1.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>配置<code>application-dev.xml</code></li>
+</ol>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">dubbo:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">big-market</span></span><br><span class="line">    <span class="attr">version:</span> <span class="number">1.0</span></span><br><span class="line">  <span class="attr">registry:</span></span><br><span class="line">    <span class="attr">id:</span> <span class="string">nacos-registry</span></span><br><span class="line">    <span class="attr">address:</span> <span class="string">nacos://127.0.0.1:8848</span></span><br><span class="line">  <span class="attr">protocol:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">dubbo</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">-1</span></span><br><span class="line">  <span class="attr">scan:</span></span><br><span class="line">    <span class="attr">base-packages:</span> <span class="string">io.github.jasonxqh.api</span></span><br></pre></td></tr></table></figure>
+<h4 id="dubbo-application"><a href="#dubbo-application" class="headerlink" title="dubbo.application"></a>dubbo.application</h4><p><strong><code>name</code></strong>:</p>
+<ul>
+<li><strong>作用</strong>：定义 Dubbo 应用的名称。这个名称在服务注册中心（如 Nacos）中用于标识该应用。</li>
+<li><strong>意义</strong>：便于在注册中心中区分不同的 Dubbo 应用，尤其在微服务架构中有多个应用时。</li>
+</ul>
+<p><strong><code>version</code></strong>:</p>
+<ul>
+<li><strong>作用</strong>：指定应用的版本号。</li>
+<li><strong>意义</strong>：用于服务版本管理，可以在同一个接口的不同版本之间进行区分和兼容。例如，不同版本的服务可以同时存在，消费者可以选择调用特定版本的服务。</li>
+</ul>
+<h4 id="dubbo-registry"><a href="#dubbo-registry" class="headerlink" title="dubbo.registry"></a>dubbo.registry</h4><p><strong><code>id</code></strong>:</p>
+<ul>
+<li><strong>作用</strong>：给注册中心实例指定一个唯一标识符。</li>
+<li><strong>意义</strong>：在配置多个注册中心时，通过 <code>id</code> 区分不同的注册中心实例。</li>
+</ul>
+<p><strong><code>address</code></strong>:</p>
+<ul>
+<li><strong>作用</strong>：指定注册中心的地址和协议。</li>
+<li><strong>值</strong>： <code>nacos://127.0.0.1:8848</code><ul>
+<li><strong><code>nacos</code></strong>：表示使用 <strong>Nacos</strong> 作为注册中心。</li>
+<li><strong><code>127.0.0.1:8848</code></strong>：Nacos 注册中心的地址和端口。</li>
+</ul>
+</li>
+<li><strong>意义</strong>：Dubbo 服务提供者和消费者通过这个地址与 Nacos 进行通信，实现服务的注册与发现。</li>
+</ul>
+<h4 id="dubbo-protocol"><a href="#dubbo-protocol" class="headerlink" title="dubbo.protocol"></a>dubbo.protocol</h4><ul>
+<li><strong><code>name</code></strong>:<ul>
+<li><strong>作用</strong>：指定使用的通信协议。</li>
+<li><strong>值</strong>：<code>dubbo</code>，表示使用 <strong>Dubbo</strong> 协议。</li>
+<li><strong>意义</strong>：Dubbo 支持多种协议（如 <code>dubbo</code>、<code>rmi</code>、<code>http</code> 等），选择合适的协议以满足不同的性能和兼容性需求。</li>
+</ul>
+</li>
+<li><strong><code>port</code></strong>:<ul>
+<li><strong>作用</strong>：指定服务提供者监听的端口号。</li>
+<li><strong>值</strong>：<code>-1</code> 表示自动分配端口。</li>
+<li><strong>意义</strong>：<ul>
+<li><strong>自动分配</strong>：在开发或测试环境中，使用自动分配端口可以避免端口冲突，简化配置。</li>
+<li><strong>固定端口</strong>：在生产环境中，建议指定固定端口，便于服务的管理和监控。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="dubbo-scan"><a href="#dubbo-scan" class="headerlink" title="dubbo.scan"></a>dubbo.scan</h4><p><strong><code>base-packages</code></strong>:</p>
+<ul>
+<li><strong>作用</strong>：指定 Dubbo 扫描注解的基础包路径。</li>
+<li><strong>值</strong>：<code>io.github.jasonxqh.api</code></li>
+<li><strong>意义</strong>：<ul>
+<li><strong>自动扫描</strong>：Dubbo 会自动扫描指定包及其子包下的类，查找并注册带有 Dubbo 注解（如 <code>@DubboService</code>、<code>@DubboReference</code>）的服务提供者和消费者。</li>
+<li><strong>简化配置</strong>：无需在每个类上单独配置注册信息，提升开发效率。</li>
+</ul>
+</li>
+</ul>
+<h3 id="启动nacos"><a href="#启动nacos" class="headerlink" title="启动nacos"></a>启动nacos</h3><p>首先，要在</p>
+<p>在<code>docker-compose-environment</code>中配置nacos信息，运行后 拉取镜像，即可启动</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># http://127.0.0.1:8848/nacos 【账号：nacos 密码：nacos】</span></span><br><span class="line"><span class="attr">nacos:</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">nacos/nacos-server:v2.2.3-slim</span></span><br><span class="line">  <span class="attr">container_name:</span> <span class="string">nacos</span></span><br><span class="line">  <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">"8848:8848"</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">"9848:9848"</span></span><br><span class="line">  <span class="attr">environment:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">PREFER_HOST_MODE=hostname</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MODE=standalone</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">SPRING_DATASOURCE_PLATFORM=mysql</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_HOST=mysql</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_DB_NAME=nacos_config</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_PORT=3306</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_USER=root</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_PASSWORD=123456</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&amp;connectTimeout=1000&amp;socketTimeout=3000&amp;autoReconnect=true&amp;useSSL=false&amp;allowPublicKeyRetrieval=true</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">NACOS_AUTH_IDENTITY_KEY=2222</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">NACOS_AUTH_IDENTITY_VALUE=2xxx</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789</span></span><br><span class="line">  <span class="attr">networks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">my-network</span></span><br><span class="line">  <span class="attr">depends_on:</span></span><br><span class="line">    <span class="attr">mysql:</span></span><br><span class="line">      <span class="attr">condition:</span> <span class="string">service_healthy</span></span><br></pre></td></tr></table></figure>
+<p><strong><code>MYSQL_SERVICE_HOST=mysql</code></strong>：</p>
+<ul>
+<li><strong>含义</strong>：指定 MySQL 服务的主机名为 <code>mysql</code>。在 Docker Compose 中，服务之间可以通过服务名互相通信。因此，<code>mysql</code> 指的是同一 Docker Compose 文件中定义的名为 <code>mysql</code> 的服务。</li>
+</ul>
+<p><strong><code>networks: - my-network</code></strong>：</p>
+<ul>
+<li><strong>含义</strong>：将 Nacos 容器加入到名为 <code>my-network</code> 的 Docker 网络中。</li>
+</ul>
+<p><strong><code>depends_on: mysql</code></strong>：</p>
+<ul>
+<li><strong>含义</strong>：Nacos 服务依赖于名为 <code>mysql</code> 的服务，并且在 MySQL 服务健康（<code>service_healthy</code>）后才启动。</li>
+</ul>
+<p><strong><code>MYSQL_SERVICE_PORT=3306</code></strong>：</p>
+<ul>
+<li><strong>含义</strong>：指定 MySQL 服务的端口为 <code>3306</code>，这是 MySQL 的默认端口。</li>
+</ul>
+<h3 id="Dubbo-服务提供者-DubboService"><a href="#Dubbo-服务提供者-DubboService" class="headerlink" title="Dubbo 服务提供者(@DubboService)"></a>Dubbo 服务提供者(<code>@DubboService</code>)</h3><p>  <code>@DubboService</code> 是 <strong>Dubbo</strong> 提供的注解，用于标识一个类为 <strong>Dubbo 服务提供者</strong>。它相当于 <strong>Spring</strong> 中的 <code>@Service</code> 注解，但专门用于 <strong>Dubbo 服务的发布和注册</strong>。</p>
+<h4 id="主要功能"><a href="#主要功能" class="headerlink" title="主要功能"></a><strong>主要功能</strong></h4><ul>
+<li><strong>服务发布</strong>：将标注的类作为 Dubbo 服务提供者，自动将其注册到注册中心（如 Nacos、Zookeeper）。</li>
+<li><strong>配置服务属性</strong>：通过注解属性配置服务的版本、分组、超时、重试次数等参数。</li>
+<li><strong>支持多协议和多注册中心</strong>：允许在不同的协议和注册中心下发布服务实例。</li>
+</ul>
+<h4 id="常用属性"><a href="#常用属性" class="headerlink" title="常用属性"></a><strong>常用属性</strong></h4><ul>
+<li><strong><code>version</code></strong>：指定服务的版本号，用于区分不同版本的服务。</li>
+<li><strong><code>group</code></strong>：指定服务的分组，便于在同一个注册中心中管理不同组的服务。</li>
+<li><strong><code>interfaceName</code></strong>：指定服务接口的全限定名（不常用，通常通过接口类自动推断）。</li>
+<li><strong><code>timeout</code></strong>：调用超时时间，单位毫秒。</li>
+<li><strong><code>retries</code></strong>：失败重试次数。</li>
+<li><strong><code>protocol</code></strong>：指定服务使用的协议</li>
+</ul>
+<p>比如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@RestController</span>()</span><br><span class="line"><span class="meta">@CrossOrigin</span>(<span class="string">"*"</span>)</span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/api/v1/raffle/activity"</span>)</span><br><span class="line"><span class="meta">@DubboService</span>(</span><br><span class="line">    version = <span class="string">"1.0"</span>,</span><br><span class="line">    group = <span class="string">"user-group"</span>,</span><br><span class="line">    timeout = <span class="number">5000</span>,</span><br><span class="line">    retries = <span class="number">2</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RaffleActivityController</span> <span class="keyword">implements</span> <span class="title">IRaffleActivityService</span> </span>&#123;</span><br><span class="line"> 		 <span class="comment">/**/</span></span><br><span class="line"><span class="comment">&#125;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>自动注册</strong>：<code>@DubboService</code> 注解会自动将 <code>RaffleActivityController</code> 类注册为 Dubbo 服务，Dubbo 会根据配置将其信息发布到注册中心。</li>
+<li><strong>版本与分组</strong>：通过 <code>version</code> 和 <code>group</code> 属性，可以在同一注册中心中管理不同版本和不同组的服务，避免冲突和提高灵活性。</li>
+<li><strong>超时与重试</strong>：通过 <code>timeout</code> 和 <code>retries</code> 属性，控制服务调用的容错行为，提升系统的鲁棒性。</li>
+</ul>
+<h4 id="bug1"><a href="#bug1" class="headerlink" title="bug1"></a>bug1</h4><p>在我正确在<code>application-dev.yml</code> 中配置dubbo时，一开始出现了这个问题，spring无法扫描到我的配置信息。</p>
+<p><img src="/2024/12/23/dubbo%E5%92%8Cnacos%E5%9C%A8%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/Samsung_T5/JasonXQH.github.io/source/_posts/大营销项目中遇到的bug与心得/5.jpg" style="zoom:67%;"></p>
+<p>解决：这种问题很坑，一般不是我们的代码问题，单纯是idea没有刷新配置文件。我们清理缓存并重启即可。</p>
+<h3 id="Dubbo-服务消费者-DubboReference"><a href="#Dubbo-服务消费者-DubboReference" class="headerlink" title="Dubbo 服务消费者(@DubboReference)"></a>Dubbo 服务消费者(<code>@DubboReference</code>)</h3><p><code>@DubboReference</code> 是 <strong>Dubbo</strong> 提供的注解，用于注入 <strong>Dubbo 服务消费者</strong>，即引用远程的 Dubbo 服务。它相当于 <strong>Spring</strong> 中的 <code>@Autowired</code> 注解，但专门用于引用远程服务。</p>
+<ol>
+<li>在 测试项目中，引入注册到nacos中的包,然后编写测试类：</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@RunWith</span>(SpringRunner<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">@<span class="title">SpringBootTest</span></span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">class</span> <span class="title">ApiTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@DubboReference</span>(interfaceClass = IRaffleActivityService<span class="class">.<span class="keyword">class</span>, <span class="title">version</span> </span>= <span class="string">"1.0"</span>)</span><br><span class="line">    <span class="keyword">private</span> IRaffleActivityService raffleActivityService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test_rpc</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ActivityDrawRequestDTO request = <span class="keyword">new</span> ActivityDrawRequestDTO();</span><br><span class="line">        request.setActivityId(<span class="number">100301L</span>);</span><br><span class="line">        request.setUserId(<span class="string">"xiaofuge"</span>);</span><br><span class="line">        Response&lt;ActivityDrawResponseDTO&gt; response = raffleActivityService.draw(request);</span><br><span class="line"></span><br><span class="line">        log.info(<span class="string">"请求参数：&#123;&#125;"</span>, JSON.toJSONString(request));</span><br><span class="line">        log.info(<span class="string">"测试结果：&#123;&#125;"</span>, JSON.toJSONString(response));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>@DubboReference</code>：<ul>
+<li><strong>作用</strong>：这是 <strong>Dubbo</strong> 提供的注解，用于注入远程服务的引用（即消费者）。</li>
+<li>属性说明：<ul>
+<li><strong><code>interfaceClass</code></strong>：指定要引用的远程服务接口类。</li>
+<li><strong><code>version</code></strong>：指定服务的版本，用于区分不同版本的服务实例。</li>
+</ul>
+</li>
+<li>优势：<ul>
+<li><strong>简化配置</strong>：通过注解方式注入远程服务，无需手动配置服务地址。</li>
+<li><strong>动态代理</strong>：Dubbo 自动生成代理对象，简化服务调用。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>注意</strong>：确保 <strong>Dubbo</strong> 已正确配置，且 <code>IRaffleActivityService</code> 接口在服务提供者和消费者中版本一致，且接口类在两端保持同步。</p>
+</blockquote>
+<h4 id="bug2"><a href="#bug2" class="headerlink" title="bug2"></a>bug2</h4><p>在大营销项目中，需要先 <code>mvn clean install</code>重新构建项目所有的包，这样测试项目中才能引入最新版本的包。否则会出现引用到过去没有serialize的DTO的报错<img src="/2024/12/23/dubbo%E5%92%8Cnacos%E5%9C%A8%E5%A4%A7%E8%90%A5%E9%94%80%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/Samsung_T5/JasonXQH.github.io/source/_posts/大营销项目中遇到的bug与心得/5.jpg" style="zoom:67%;"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag"># 分布式系统</a>
+              <a href="/tags/dubbo/" rel="tag"># dubbo</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/12/16/%E5%A4%A7%E8%90%A5%E9%94%80-%E6%9B%B4%E6%96%B0%E6%97%A5%E5%BF%97/" rel="prev" title="大营销-更新日志">
+      <i class="fa fa-chevron-left"></i> 大营销-更新日志
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/12/23/zookeeper%E5%AD%A6%E4%B9%A0/" rel="next" title="zookeeper学习">
+      zookeeper学习 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#dubbo和nacos在大营销项目中的应用"><span class="nav-number">1.</span> <span class="nav-text">dubbo和nacos在大营销项目中的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Dubbo配置流程以及踩坑情况"><span class="nav-number">1.1.</span> <span class="nav-text">Dubbo配置流程以及踩坑情况</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#引入dubbo和nacos"><span class="nav-number">1.1.1.</span> <span class="nav-text">引入dubbo和nacos</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#dubbo-application"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">dubbo.application</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dubbo-registry"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">dubbo.registry</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dubbo-protocol"><span class="nav-number">1.1.1.3.</span> <span class="nav-text">dubbo.protocol</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dubbo-scan"><span class="nav-number">1.1.1.4.</span> <span class="nav-text">dubbo.scan</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动nacos"><span class="nav-number">1.1.2.</span> <span class="nav-text">启动nacos</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dubbo-服务提供者-DubboService"><span class="nav-number">1.1.3.</span> <span class="nav-text">Dubbo 服务提供者(@DubboService)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#主要功能"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">主要功能</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常用属性"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">常用属性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#bug1"><span class="nav-number">1.1.3.3.</span> <span class="nav-text">bug1</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dubbo-服务消费者-DubboReference"><span class="nav-number">1.1.4.</span> <span class="nav-text">Dubbo 服务消费者(@DubboReference)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#bug2"><span class="nav-number">1.1.4.1.</span> <span class="nav-text">bug2</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

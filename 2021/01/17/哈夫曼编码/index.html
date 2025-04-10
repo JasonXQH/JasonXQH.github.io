@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="哈夫曼编码通常的编码方法有固定长度和不等长度编码两种。 最优的编码方案的目的是使总码长度最短。利用字符的使用频率来编码使不等长编码方法，使得经常使用的字符编码较短，不常使用的字符编码较长。 不等长编码方法需要解决的两个关键问题： 1） 编码尽可能的短 使用频率高的字符编码较短，使用频率低的编码较长，可提高压缩率，节省空间，也能提高运算和通信速率。 即出现频率越高，编码越短 2)  编码不能有二义性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="哈夫曼编码">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="哈夫曼编码通常的编码方法有固定长度和不等长度编码两种。 最优的编码方案的目的是使总码长度最短。利用字符的使用频率来编码使不等长编码方法，使得经常使用的字符编码较短，不常使用的字符编码较长。 不等长编码方法需要解决的两个关键问题： 1） 编码尽可能的短 使用频率高的字符编码较短，使用频率低的编码较长，可提高压缩率，节省空间，也能提高运算和通信速率。 即出现频率越高，编码越短 2)  编码不能有二义性">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/2.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/3.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/4.png">
+<meta property="article:published_time" content="2021-01-17T08:08:13.000Z">
+<meta property="article:modified_time" content="2021-01-17T11:59:46.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="Data_structure">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>哈夫曼编码 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          哈夫曼编码
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-01-17 16:08:13 / Modified: 19:59:46" itemprop="dateCreated datePublished" datetime="2021-01-17T16:08:13+08:00">2021-01-17</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="哈夫曼编码"><a href="#哈夫曼编码" class="headerlink" title="哈夫曼编码"></a>哈夫曼编码</h1><p>通常的编码方法有固定长度和不等长度编码两种。</p>
+<p>最优的编码方案的目的是使总码长度最短。利用字符的使用频率来编码使不等长编码方法，使得经常使用的字符编码较短，不常使用的字符编码较长。</p>
+<p>不等长编码方法需要解决的两个关键问题：</p>
+<p>1） 编码尽可能的短</p>
+<p>使用频率高的字符编码较短，使用频率低的编码较长，可提高压缩率，节省空间，也能提高运算和通信速率。 即出现频率越高，编码越短</p>
+<p>2)  编码不能有二义性</p>
+<p>解决方法是：任何一个字符的编码不能是另一个字符编码的前缀，即前缀码特性 </p>
+<p>于是我们可以通过二叉树编码，频率高的可以离根近一点，频率低的就可以离根远一点。而且，每一个字符都是一个叶子结点，这样就可以避免二义性，因为叶子是绝对不会有孩子的。</p>
+<p>我们可以构造一颗哈夫曼树，这是一棵将所要编码的字符作为叶子结点，该字符在文件中的使用频率作为叶子结点的权值，以自底向上的方式，通过n-1次的合并运算后构造的树。其核心思想是让权值大的叶子离根最近。</p>
+<p>哈夫曼采取的贪心策略是：每次从树的集合中取出没有双亲且权值最小的两颗树作为左右子树，并一次构建一颗新的树。新书根节点的权值为其左右孩子节点权值之和，将新树插入到树的集合中</p>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p><img src="/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/1.png"></p>
+<p>为了方便起见，我们可以将频率同时扩大100倍。</p>
+<ol>
+<li>我们选择没有双亲且权值最小的两个结点，$t_1,t_2$</li>
+<li>将$t_1,t_2$作为左右子树构建一颗新的树,这里是a和d</li>
+<li>将他们组合成一个新的树，他们的父结点的权重为12，这个12也需要加入到集合中作比较</li>
+</ol>
+<p><img src="/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/1.jpg" style="zoom:50%;"></p>
+<ol>
+<li>接下来，f 和新结点组合生成了新的树</li>
+</ol>
+<p><img src="/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/2.jpg" style="zoom:50%;"></p>
+<p>但是现在问题来了，当前的集合中，最小是c，次小为e和新的结点。我们该选哪个？ 答案是选择 e。因为新产生的结点会放在集合的后面。我们碰到一样权重的节点的时候，选择前面那个。</p>
+<p>最后，我们的哈夫曼树如下：</p>
+<p><img src="/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/3.jpg" style="zoom:50%;"></p>
+<p>一般我们在程序中将最小的元素设置成左孩子，次小的设置成右孩子。</p>
+<h2 id="程序设计"><a href="#程序设计" class="headerlink" title="程序设计"></a>程序设计</h2><h3 id="确定合适的数据结构"><a href="#确定合适的数据结构" class="headerlink" title="确定合适的数据结构"></a>确定合适的数据结构</h3><ul>
+<li>哈夫曼树中没有度为1的结点，则一颗n个叶子结点的哈夫曼树共有 2n-1 个结点(n-1次的合并，每次产生一个新的结点)</li>
+<li>构成哈夫曼树之后，为求编码需从叶子节点出发走一条<strong>从叶子到根的路径</strong>，是左孩子就编成0，是右孩子就编成1。</li>
+<li>译码需要从根出发走一条从根到叶子的路径，那么对于每个结点而言，我们要知道每个结点的权值、双亲、左孩子和右孩子和节点的信息</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">double</span> weight;</span><br><span class="line">	<span class="keyword">int</span> parent;</span><br><span class="line">	<span class="keyword">int</span> lchild;</span><br><span class="line">	<span class="keyword">int</span> rchild;</span><br><span class="line">	<span class="keyword">char</span> value;<span class="comment">//该结点表示的字符</span></span><br><span class="line">&#125;HNodeType;</span><br></pre></td></tr></table></figure>
+<p>下面我们来写出哈夫曼树的构建数组</p>
+<p><img src="/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/2.png"></p>
+<p> 最终这张表如下图所示：</p>
+<p><img src="/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/3.png"></p>
+<p>构建哈夫曼树的过程就是填写这张表的过程</p>
+<p>编写哈夫曼编码的过程就是读表的过程</p>
+<p>对于编码的存储，我们可以用这样一个struct数组：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">int</span> <span class="built_in">bit</span>[MAXBIT];<span class="comment">//存储编码的数组，从后往前存</span></span><br><span class="line">	<span class="keyword">int</span> start;		<span class="comment">//编码开始下标 </span></span><br><span class="line">&#125;HCodeType;</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/4.png"></p>
+<h3 id="哈夫曼树带权路径长度"><a href="#哈夫曼树带权路径长度" class="headerlink" title="哈夫曼树带权路径长度"></a>哈夫曼树带权路径长度</h3><p>WPL = 每个叶子的权值X该叶子到根的路径长度之和。 哈夫曼树带权路径长度之和等于各新生成节点的权值之和 </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;bits/stdc++.h&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXBIT    100</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXVALUE  10000</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXLEAF   30</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXNODE   MAXLEAF*2 -1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">double</span> weight;</span><br><span class="line">    <span class="keyword">int</span> parent;</span><br><span class="line">    <span class="keyword">int</span> lchild;</span><br><span class="line">    <span class="keyword">int</span> rchild;</span><br><span class="line">    <span class="keyword">char</span> value;</span><br><span class="line">&#125; HNodeType;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">bit</span>[MAXBIT];</span><br><span class="line">    <span class="keyword">int</span> start;</span><br><span class="line">&#125; HCodeType;</span><br><span class="line">HNodeType HuffNode[MAXNODE];<span class="comment">//定义一个结点结构体数组</span></span><br><span class="line">HCodeType HuffCode[MAXLEAF];<span class="comment">//定义一个编码结构体数组</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">HuffmanTree</span> <span class="params">(HNodeType HuffNode[MAXNODE],  <span class="keyword">int</span> n)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i, j, x1, x2;<span class="comment">//最小值的下标和次小值得下标</span></span><br><span class="line">    <span class="keyword">double</span> m1,m2;<span class="comment">//最小值和次小值的权值</span></span><br><span class="line">    <span class="keyword">for</span> (i=<span class="number">0</span>; i&lt;<span class="number">2</span>*n<span class="number">-1</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        HuffNode[i].weight=<span class="number">0</span>;</span><br><span class="line">        HuffNode[i].parent=<span class="number">-1</span>;</span><br><span class="line">        HuffNode[i].lchild=<span class="number">-1</span>;</span><br><span class="line">        HuffNode[i].rchild=<span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (i=<span class="number">0</span>; i&lt;n; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="string">"Please input value and weight of leaf node "</span>&lt;&lt;i+<span class="number">1</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">        <span class="built_in">cin</span>&gt;&gt;HuffNode[i].value&gt;&gt;HuffNode[i].weight;<span class="comment">//输入值和weight</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (i=<span class="number">0</span>; i&lt;n<span class="number">-1</span>; i++)<span class="comment">//n-1次合并</span></span><br><span class="line">    &#123;</span><br><span class="line">        m1=m2=MAXVALUE;</span><br><span class="line">        x1=x2=<span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (j=<span class="number">0</span>;j&lt;n+i;j++)<span class="comment">//找最小，每次要加上新的结点</span></span><br><span class="line">        &#123;<span class="comment">//满足的条件就是比m_1还小并且还没有父亲</span></span><br><span class="line">            <span class="keyword">if</span> (HuffNode[j].weight&lt;m1&amp;&amp;HuffNode[j].parent==<span class="number">-1</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                m2 = m1;</span><br><span class="line">                x2 = x1;</span><br><span class="line">                m1 = HuffNode[j].weight;</span><br><span class="line">                x1 = j;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//或者比次小值还小，并且没有父亲结点</span></span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (HuffNode[j].weight &lt; m2 &amp;&amp; HuffNode[j].parent==<span class="number">-1</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                m2=HuffNode[j].weight;</span><br><span class="line">                x2=j;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//更新节点的信息</span></span><br><span class="line">        HuffNode[x1].parent  = n+i;</span><br><span class="line">        HuffNode[x2].parent  = n+i;</span><br><span class="line">        HuffNode[n+i].weight = m1+m2;</span><br><span class="line">        HuffNode[n+i].lchild = x1;</span><br><span class="line">        HuffNode[n+i].rchild = x2;</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="string">"x1.weight and x2.weight in round "</span>&lt;&lt;i+<span class="number">1</span>&lt;&lt;<span class="string">"\t"</span>&lt;&lt;HuffNode[x1].weight&lt;&lt;<span class="string">"\t"</span>&lt;&lt;HuffNode[x2].weight&lt;&lt;<span class="built_in">endl</span>; </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">HuffmanCode</span><span class="params">(HCodeType HuffCode[MAXLEAF],  <span class="keyword">int</span> n)</span></span>&#123;</span><br><span class="line">    HCodeType cd;<span class="comment">//定义一个临时变量来存放求解编码时候的信息</span></span><br><span class="line">    <span class="keyword">int</span> i,j,c,p;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;n;i++)<span class="comment">//从0号结点开始，为n个结点依次编码</span></span><br><span class="line">    &#123;</span><br><span class="line">        cd.start=n<span class="number">-1</span>; </span><br><span class="line">        c=i;</span><br><span class="line">        p=HuffNode[c].parent;</span><br><span class="line">        <span class="keyword">while</span>(p!=<span class="number">-1</span>)<span class="comment">//从叶子向上找</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(HuffNode[p].lchild==c)</span><br><span class="line">                cd.<span class="built_in">bit</span>[cd.start]=<span class="number">0</span>;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                cd.<span class="built_in">bit</span>[cd.start]=<span class="number">1</span>;</span><br><span class="line">            cd.start--;<span class="comment">//start指向标前移一位</span></span><br><span class="line">            c=p;<span class="comment">//更新当前得结点以及它的父结点</span></span><br><span class="line">            p=HuffNode[c].parent;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (j=cd.start+<span class="number">1</span>; j&lt;n; j++)<span class="comment">//将cd中的数组赋值给Huffcode</span></span><br><span class="line">           HuffCode[i].<span class="built_in">bit</span>[j]=cd.<span class="built_in">bit</span>[j];</span><br><span class="line">        HuffCode[i].start=cd.start;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i,j,n;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"Please input n:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;n;</span><br><span class="line">    HuffmanTree(HuffNode,n);  </span><br><span class="line">    HuffmanCode(HuffCode,n);</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;HuffNode[i].value&lt;&lt;<span class="string">": Huffman code is: "</span>;</span><br><span class="line">        <span class="keyword">for</span>(j=HuffCode[i].start+<span class="number">1</span>;j&lt;n;j++)</span><br><span class="line">            <span class="built_in">cout</span>&lt;&lt;HuffCode[i].<span class="built_in">bit</span>[j];</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Data-structure/" rel="tag"># Data_structure</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/01/17/%E7%AE%97%E6%B3%95%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/" rel="prev" title="算法期末复习">
+      <i class="fa fa-chevron-left"></i> 算法期末复习
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/01/22/malloc-lab/" rel="next" title="malloc_lab">
+      malloc_lab <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#哈夫曼编码"><span class="nav-number">1.</span> <span class="nav-text">哈夫曼编码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#例子"><span class="nav-number">1.0.1.</span> <span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#程序设计"><span class="nav-number">1.1.</span> <span class="nav-text">程序设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#确定合适的数据结构"><span class="nav-number">1.1.1.</span> <span class="nav-text">确定合适的数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#哈夫曼树带权路径长度"><span class="nav-number">1.1.2.</span> <span class="nav-text">哈夫曼树带权路径长度</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

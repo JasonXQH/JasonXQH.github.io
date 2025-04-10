@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="malloc lab隐式空闲链表(书本)基本设计在博客CSAPP动态内存分配 中，我们已经详细介绍了隐式空闲链表的分配原理了。那么我们这次就来手动实现一个简单的分配器 首先我们来介绍一下分配器需要输出给应用程序的三个函数：  extern int mm_init(void)  这个函数的作用是初始化分配器，如果成功，那么就返回0；否则就返回-1 extern void *mm_malloc(siz">
+<meta property="og:type" content="article">
+<meta property="og:title" content="malloc_lab">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/01/22/malloc-lab/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="malloc lab隐式空闲链表(书本)基本设计在博客CSAPP动态内存分配 中，我们已经详细介绍了隐式空闲链表的分配原理了。那么我们这次就来手动实现一个简单的分配器 首先我们来介绍一下分配器需要输出给应用程序的三个函数：  extern int mm_init(void)  这个函数的作用是初始化分配器，如果成功，那么就返回0；否则就返回-1 extern void *mm_malloc(siz">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/22/malloc-lab/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/22/malloc-lab/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/22/malloc-lab/3.png">
+<meta property="article:published_time" content="2021-01-22T08:10:40.000Z">
+<meta property="article:modified_time" content="2021-01-31T13:23:20.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="CSAPP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/01/22/malloc-lab/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/01/22/malloc-lab/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>malloc_lab | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/01/22/malloc-lab/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          malloc_lab
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-01-22 16:10:40" itemprop="dateCreated datePublished" datetime="2021-01-22T16:10:40+08:00">2021-01-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-31 21:23:20" itemprop="dateModified" datetime="2021-01-31T21:23:20+08:00">2021-01-31</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="malloc-lab"><a href="#malloc-lab" class="headerlink" title="malloc lab"></a>malloc lab</h1><h2 id="隐式空闲链表-书本"><a href="#隐式空闲链表-书本" class="headerlink" title="隐式空闲链表(书本)"></a>隐式空闲链表(书本)</h2><h3 id="基本设计"><a href="#基本设计" class="headerlink" title="基本设计"></a>基本设计</h3><p>在博客<a href="https://jasonxqh.github.io/2020/12/01/CSAPP动态内存分配/">CSAPP动态内存分配</a> 中，我们已经详细介绍了隐式空闲链表的分配原理了。那么我们这次就来手动实现一个简单的分配器</p>
+<p>首先我们来介绍一下分配器需要输出给应用程序的三个函数： </p>
+<p><code>extern int mm_init(void)</code>  这个函数的作用是初始化分配器，如果成功，那么就返回0；否则就返回-1</p>
+<p><code>extern void *mm_malloc(size_t size)</code>  这个函数就是分配空间</p>
+<p><code>extern void mm_free(void *ptr)</code>    这个函数是释放空间</p>
+<p>我们要申请的块格式如下，具有头部和尾部，最小的块大小为16字节：</p>
+<p><img src="/2021/01/22/malloc-lab/1.png" style="zoom:80%;"></p>
+<p>整一个隐式空闲链表如下图所示：</p>
+<p><img src="/2021/01/22/malloc-lab/2.png" style="zoom:80%;"></p>
+<p>第一个字是一个双字边界对齐的不使用的填充字。填充后面紧跟着一个特殊的序言块。这是一个8字节的已分配块，只由头部和尾部组成。序言块是在初始化的时候创建的，并且是永不释放的。在序言块的后面紧跟着的是零个或者多个由mallock或者free调用创建的普通块。在结尾处，是一个大小为0的已分配块，只由一个头部组成。</p>
+<p>序言块和结尾块是一种消除合并时边界条件的技巧。</p>
+<h3 id="宏介绍"><a href="#宏介绍" class="headerlink" title="宏介绍"></a>宏介绍</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ALIGNMENT 8<span class="comment">//首先是ALIGNMENT，也就是我们要8字节对齐，向8的倍数舍入。</span></span></span><br><span class="line"><span class="comment">/* rounds up to the nearest multiple of ALIGNMENT */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ALIGN(size) (((size) + (ALIGNMENT - 1)) &amp; ~0x7)</span></span><br><span class="line"><span class="comment">//这是为size找到比它大又是最小的8的倍数</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SIZE_T_SIZE (ALIGN(sizeof(size_t)))</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> WSIZE 4				<span class="comment">//单字长度</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DSIZE 8             <span class="comment">/*Double word size*/</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CHUNKSIZE (1 &lt;&lt; 12) <span class="comment">/*the page size in bytes is 4K*/</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX(x, y) ((x) &gt; (y) ? (x) : (y))<span class="comment">//两个数中取最大值</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PACK(size, alloc) ((size) | (alloc)) <span class="comment">//将分配大小和标记位合并</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> GET(p) (*(unsigned int *)(p)) <span class="comment">//读取和返回参数p引用的字</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PUT(p, val) (*(unsigned int *)(p) = (val))<span class="comment">//将val存放在p指向的字中</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> GET_SIZE(p) (GET(p) &amp; ~0x7)<span class="comment">// 从地址p处的头部或者脚部返回大小</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> GET_ALLOC(p) (GET(p) &amp; 0x1)<span class="comment">// 返回已分配位</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HDRP(bp) ((char *)(bp)-WSIZE)<span class="comment">//给定块指针，返回它的头部指针</span></span></span><br><span class="line"><span class="comment">//此bp是从有效载荷开始的，因此指向块的头部，得减去一个4字节</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> FTRP(bp) ((char *)(bp) + GET_SIZE(HDRP(bp)) - DSIZE)<span class="comment">//给定快指针，返回它的脚部指针</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NEXT_BLKP(bp) ((char *)(bp) + GET_SIZE(((char *)(bp)-WSIZE)))</span></span><br><span class="line"><span class="comment">//下一个块的有效载荷处</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PREV_BLKP(bp) ((char *)(bp)-GET_SIZE(((char *)(bp)-DSIZE)))</span></span><br><span class="line"><span class="comment">//指向前面的块的块指针</span></span><br></pre></td></tr></table></figure>
+<h3 id="mm-init"><a href="#mm-init" class="headerlink" title="mm_init"></a>mm_init</h3><p>mm_init函数从内存系统得到4个字，并将其初始化，创建一个<strong>空的空闲链表</strong>。然后它调用extend_heap函数。这个函数将堆扩展<code>CHUNKSIZE</code> 字节，并且创建初始的空闲块。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">mm_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ((heap_listp = mem_sbrk(<span class="number">4</span> * WSIZE)) == (<span class="keyword">void</span> *)<span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    PUT(heap_listp, <span class="number">0</span>); <span class="comment">//哨头</span></span><br><span class="line">    PUT(heap_listp + (<span class="number">1</span> * WSIZE), PACK(DSIZE, <span class="number">1</span>));</span><br><span class="line">    <span class="comment">//序言头块，在此地址上写上块大小的数据</span></span><br><span class="line">    PUT(heap_listp + (<span class="number">2</span> * WSIZE), PACK(DSIZE, <span class="number">1</span>));</span><br><span class="line">    <span class="comment">//序言尾块，在此地址上写上块大小的数据</span></span><br><span class="line">    PUT(heap_listp + (<span class="number">3</span> * WSIZE), PACK(<span class="number">0</span>, <span class="number">1</span>)); <span class="comment">//结束块</span></span><br><span class="line">    heap_listp += (<span class="number">2</span> * WSIZE);</span><br><span class="line">    <span class="comment">// 为我们的链表创造CHUNKSIZE的空间</span></span><br><span class="line">    <span class="keyword">if</span> (extend_heap(CHUNKSIZE / WSIZE) == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在，分配器已经初始化了，并且准备好接受来自应用的分配和释放请求</p>
+<h3 id="extend-heap"><a href="#extend-heap" class="headerlink" title="extend_heap"></a>extend_heap</h3><p>这个函数当堆被初始化的时候或者当<code>mm_malloc</code> 不能找到一个合适的分配块的时候。为了保持对齐，extend_heap会将其请求大小向上舍入为最接近的2字(8字节)的倍数，然后向内存系统请求额外的堆空间</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> *<span class="title">extend_heap</span><span class="params">(<span class="keyword">size_t</span> words)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *bp;</span><br><span class="line">    <span class="keyword">size_t</span> <span class="built_in">size</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">size</span> = (words % <span class="number">2</span>) ? (words + <span class="number">1</span>) * WSIZE : words * WSIZE;<span class="comment">//向上舍入</span></span><br><span class="line">    <span class="keyword">if</span> ((<span class="keyword">long</span>)(bp = mem_sbrk(<span class="built_in">size</span>)) == (<span class="keyword">void</span> *)<span class="number">-1</span>)<span class="comment">//向内存要空间</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    PUT(HDRP(bp), PACK(<span class="built_in">size</span>, <span class="number">0</span>));</span><br><span class="line">    PUT(FTRP(bp), PACK(<span class="built_in">size</span>, <span class="number">0</span>));</span><br><span class="line">    PUT(HDRP(NEXT_BLKP(bp)), PACK(<span class="number">0</span>, <span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> coalesce(bp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="mm-free-函数"><a href="#mm-free-函数" class="headerlink" title="mm_free 函数"></a>mm_free 函数</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">mm_free</span><span class="params">(<span class="keyword">void</span> *bp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (bp == <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">size_t</span> <span class="built_in">size</span> = GET_SIZE(HDRP(bp));</span><br><span class="line"></span><br><span class="line">    PUT(HDRP(bp), PACK(<span class="built_in">size</span>, <span class="number">0</span>));</span><br><span class="line">    PUT(FTRP(bp), PACK(<span class="built_in">size</span>, <span class="number">0</span>));</span><br><span class="line">    coalesce(bp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>free函数可以释放一个以前分配的块，这个函数释放所请求的块bp,然后我们将<strong>其与邻接的空闲块合并</strong>起来</p>
+<h3 id="coalesce函数"><a href="#coalesce函数" class="headerlink" title="coalesce函数"></a>coalesce函数</h3><p>coalesce函数就是将空闲块合并起来的函数，其函数示意图如下</p>
+<p><img src="/2021/01/22/malloc-lab/3.png" style="zoom:100%;"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> *<span class="title">coalesce</span><span class="params">(<span class="keyword">void</span> *bp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">size_t</span> prev_alloc = GET_ALLOC(FTRP(PREV_BLKP(bp)));<span class="comment">//首先我们获得前后块的分配位</span></span><br><span class="line">    <span class="keyword">size_t</span> next_alloc = GET_ALLOC(HDRP(NEXT_BLKP(bp)));</span><br><span class="line">    <span class="keyword">size_t</span> <span class="built_in">size</span> = GET_SIZE(HDRP(bp));</span><br><span class="line">	<span class="comment">//如果前面和后面都是已分配的，那么就直接返回bp</span></span><br><span class="line">    <span class="keyword">if</span> (prev_alloc &amp;&amp; next_alloc)</span><br><span class="line">        <span class="keyword">return</span> bp;</span><br><span class="line">    <span class="comment">//如果前面的块已分配，后面的块没有分配，那么Size就等于当前块加上后面的块的大小</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (prev_alloc &amp;&amp; !next_alloc)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">size</span> += GET_SIZE(HDRP(NEXT_BLKP(bp)));</span><br><span class="line">        PUT(HDRP(bp), PACK(<span class="built_in">size</span>, <span class="number">0</span>));</span><br><span class="line">        PUT(FTRP(bp), PACK(<span class="built_in">size</span>, <span class="number">0</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果后面的块已分配，前面的块没分配，那么size就等于当前块加上前面的块的大小</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (!prev_alloc &amp;&amp; next_alloc)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">size</span> += GET_SIZE(HDRP(PREV_BLKP(bp)));</span><br><span class="line">        PUT(FTRP(bp), PACK(<span class="built_in">size</span>, <span class="number">0</span>));</span><br><span class="line">        PUT(HDRP(PREV_BLKP(bp)), PACK(<span class="built_in">size</span>, <span class="number">0</span>));</span><br><span class="line">        bp = PREV_BLKP(bp);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果都是空的，那么size就等于前后中三个块的大小，然后修改指针</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">size</span> += GET_SIZE(FTRP(NEXT_BLKP(bp))) + GET_SIZE(HDRP(PREV_BLKP(bp)));</span><br><span class="line">        PUT(FTRP(NEXT_BLKP(bp)), PACK(<span class="built_in">size</span>, <span class="number">0</span>));</span><br><span class="line">        PUT(HDRP(PREV_BLKP(bp)), PACK(<span class="built_in">size</span>, <span class="number">0</span>));</span><br><span class="line">        bp = PREV_BLKP(bp);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> bp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="mm-malloc函数"><a href="#mm-malloc函数" class="headerlink" title="mm_malloc函数"></a>mm_malloc函数</h3><p>应用会通过调用<code>mm_malloc</code>函数来向内存请求大小为size字节的块。在检查完请求的真假之后，分配器必须调整请求快的大小，从而为头部和脚部留有空间并满足双字对齐的要求。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">mm_malloc</span><span class="params">(<span class="keyword">size_t</span> <span class="built_in">size</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">size_t</span> asize;</span><br><span class="line">    <span class="keyword">size_t</span> extendsize;</span><br><span class="line">    <span class="keyword">char</span> *bp;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">size</span> == <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">size</span> &lt;= DSIZE)<span class="comment">//强行限制了最小块大小为16字节；8字节用来满足对齐要求，8字节用来放头部尾部</span></span><br><span class="line">        asize = <span class="number">2</span> * (DSIZE);</span><br><span class="line">    <span class="keyword">else</span><span class="comment">//向上舍入到最接近8的整数倍</span></span><br><span class="line">        asize = (DSIZE) * ((<span class="built_in">size</span> + (DSIZE) + (DSIZE - <span class="number">1</span>)) / (DSIZE));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((bp = find_fit(asize)) != <span class="literal">NULL</span>)<span class="comment">//找到合适的block存放</span></span><br><span class="line">    &#123;</span><br><span class="line">        place(bp, asize);</span><br><span class="line">        <span class="keyword">return</span> bp;</span><br><span class="line">    &#125;</span><br><span class="line">    extendsize = MAX(asize, CHUNKSIZE);<span class="comment">//如果没有合适的，那么我们就要extend_size了</span></span><br><span class="line">    <span class="keyword">if</span> ((bp = extend_heap(extendsize / WSIZE)) == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    place(bp, asize);</span><br><span class="line">    <span class="keyword">return</span> bp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="find-fit函数"><a href="#find-fit函数" class="headerlink" title="find_fit函数"></a>find_fit函数</h3><p>这里，我们采取的方法是first_fit,也就是找到第一个符合条件的block来放置。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> *<span class="title">find_fit</span><span class="params">(<span class="keyword">size_t</span> <span class="built_in">size</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">void</span> *bp;</span><br><span class="line">    <span class="keyword">for</span> (bp = heap_listp; GET_SIZE(HDRP(bp)) &gt; <span class="number">0</span>; bp = NEXT_BLKP(bp))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (!GET_ALLOC(HDRP(bp)) &amp;&amp; (<span class="built_in">size</span> &lt;= GET_SIZE(HDRP(bp))))</span><br><span class="line">            <span class="keyword">return</span> bp;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="最佳适配"><a href="#最佳适配" class="headerlink" title="最佳适配"></a>最佳适配</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> *<span class="title">best_fit</span><span class="params">(<span class="keyword">size_t</span> asize)</span></span>&#123;</span><br><span class="line">	<span class="keyword">void</span> *bp = heap_listp;</span><br><span class="line">	<span class="keyword">size_t</span> <span class="built_in">size</span>;</span><br><span class="line">	<span class="keyword">void</span> *best = <span class="literal">NULL</span>;</span><br><span class="line">	<span class="keyword">size_t</span> min_size = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span>((<span class="built_in">size</span> = GET_SIZE(HDRP(bp))) != <span class="number">0</span>)&#123;</span><br><span class="line">		<span class="keyword">if</span>(<span class="built_in">size</span> &gt;= asize &amp;&amp; !GET_ALLOC(HDRP(bp)) &amp;&amp; (min_size == <span class="number">0</span> || min_size&gt;<span class="built_in">size</span>))&#123;	</span><br><span class="line">            <span class="comment">//记录最小的合适的空闲块</span></span><br><span class="line">			min_size = <span class="built_in">size</span>;</span><br><span class="line">			best = bp;</span><br><span class="line">		&#125;</span><br><span class="line">		bp = NEXT_BLKP(bp);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> best;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="place函数"><a href="#place函数" class="headerlink" title="place函数"></a>place函数</h3><p>place函数就是将此适配的块的头部和尾部进行修改，如果剩下的尺寸超过16，则将其重新加入空闲块中，避免内部碎片;</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">place</span><span class="params">(<span class="keyword">void</span> *bp, <span class="keyword">size_t</span> asize)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">size_t</span> csize = GET_SIZE(HDRP(bp));</span><br><span class="line">    <span class="keyword">if</span> ((csize - asize) &gt;= (<span class="number">2</span> * DSIZE))</span><br><span class="line">    &#123; </span><br><span class="line">        PUT(HDRP(bp), PACK(asize, <span class="number">1</span>));</span><br><span class="line">        PUT(FTRP(bp), PACK(asize, <span class="number">1</span>));</span><br><span class="line">        bp = NEXT_BLKP(bp);</span><br><span class="line">        PUT(HDRP(bp), PACK(csize - asize, <span class="number">0</span>));</span><br><span class="line">        PUT(FTRP(bp), PACK(csize - asize, <span class="number">0</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        PUT(HDRP(bp), PACK(csize, <span class="number">1</span>));</span><br><span class="line">        PUT(FTRP(bp), PACK(csize, <span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="mm-realloc函数"><a href="#mm-realloc函数" class="headerlink" title="mm_realloc函数"></a>mm_realloc函数</h3><p><code>realloc</code> 函数就是将旧的块中的内容复制到新的块当中去</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">mm_realloc</span><span class="params">(<span class="keyword">void</span> *ptr, <span class="keyword">size_t</span> <span class="built_in">size</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">size_t</span> oldsize;</span><br><span class="line">    <span class="keyword">void</span> *newptr;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* If size == 0 then this is just free, and we return NULL. */</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">size</span> == <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        mm_free(ptr);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* If oldptr is NULL, then this is just malloc. */</span></span><br><span class="line">    <span class="keyword">if</span> (ptr == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> mm_malloc(<span class="built_in">size</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    newptr = mm_malloc(<span class="built_in">size</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* If realloc() fails the original block is left untouched  */</span></span><br><span class="line">    <span class="keyword">if</span> (!newptr)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Copy the old data. */</span></span><br><span class="line">    oldsize = GET_SIZE(HDRP(ptr));</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">size</span> &lt; oldsize)</span><br><span class="line">        oldsize = <span class="built_in">size</span>;</span><br><span class="line">    <span class="built_in">memcpy</span>(newptr, ptr, oldsize);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Free the old block. */</span></span><br><span class="line">    mm_free(ptr);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> newptr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CSAPP/" rel="tag"># CSAPP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/01/17/%E5%93%88%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81/" rel="prev" title="哈夫曼编码">
+      <i class="fa fa-chevron-left"></i> 哈夫曼编码
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/01/25/HTMLandCSS%E5%9F%BA%E7%A1%801/" rel="next" title="HTMLandCSS基础1">
+      HTMLandCSS基础1 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#malloc-lab"><span class="nav-number">1.</span> <span class="nav-text">malloc lab</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#隐式空闲链表-书本"><span class="nav-number">1.1.</span> <span class="nav-text">隐式空闲链表(书本)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本设计"><span class="nav-number">1.1.1.</span> <span class="nav-text">基本设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#宏介绍"><span class="nav-number">1.1.2.</span> <span class="nav-text">宏介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mm-init"><span class="nav-number">1.1.3.</span> <span class="nav-text">mm_init</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#extend-heap"><span class="nav-number">1.1.4.</span> <span class="nav-text">extend_heap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mm-free-函数"><span class="nav-number">1.1.5.</span> <span class="nav-text">mm_free 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#coalesce函数"><span class="nav-number">1.1.6.</span> <span class="nav-text">coalesce函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mm-malloc函数"><span class="nav-number">1.1.7.</span> <span class="nav-text">mm_malloc函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#find-fit函数"><span class="nav-number">1.1.8.</span> <span class="nav-text">find_fit函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#最佳适配"><span class="nav-number">1.1.8.1.</span> <span class="nav-text">最佳适配</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#place函数"><span class="nav-number">1.1.9.</span> <span class="nav-text">place函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mm-realloc函数"><span class="nav-number">1.1.10.</span> <span class="nav-text">mm_realloc函数</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

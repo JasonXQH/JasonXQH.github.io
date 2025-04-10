@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Week 13 : 利用Wireshark分析ARP协议1.  实验目的 掌握Wireshark软件的过滤语法 掌握ARP 的工作原理  2. 实验任务 学会利用Wireshark 抓包分析ARP协议  3. 实验过程3.1 预备知识 ARP(Address Resolution Protocol) 协议，即地址解析协议。该协议的功能就是将IP地址解析成MAC地址。ARP的基本功能就是负责将一个已">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络报告week13">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Week 13 : 利用Wireshark分析ARP协议1.  实验目的 掌握Wireshark软件的过滤语法 掌握ARP 的工作原理  2. 实验任务 学会利用Wireshark 抓包分析ARP协议  3. 实验过程3.1 预备知识 ARP(Address Resolution Protocol) 协议，即地址解析协议。该协议的功能就是将IP地址解析成MAC地址。ARP的基本功能就是负责将一个已">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/2.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/3.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/5.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/4.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/7.png">
+<meta property="article:published_time" content="2021-06-03T08:03:36.000Z">
+<meta property="article:modified_time" content="2022-08-23T14:22:22.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/1.jpg">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>计算机网络报告week13 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机网络报告week13
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-06-03 16:03:36" itemprop="dateCreated datePublished" datetime="2021-06-03T16:03:36+08:00">2021-06-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-08-23 22:22:22" itemprop="dateModified" datetime="2022-08-23T22:22:22+08:00">2022-08-23</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Week-13-利用Wireshark分析ARP协议"><a href="#Week-13-利用Wireshark分析ARP协议" class="headerlink" title="Week 13 : 利用Wireshark分析ARP协议"></a>Week 13 : 利用Wireshark分析ARP协议</h1><h2 id="1-实验目的"><a href="#1-实验目的" class="headerlink" title="1.  实验目的"></a>1.  实验目的</h2><ul>
+<li>掌握Wireshark软件的过滤语法</li>
+<li>掌握ARP 的工作原理</li>
+</ul>
+<h2 id="2-实验任务"><a href="#2-实验任务" class="headerlink" title="2. 实验任务"></a>2. 实验任务</h2><ul>
+<li>学会利用Wireshark 抓包分析ARP协议</li>
+</ul>
+<h2 id="3-实验过程"><a href="#3-实验过程" class="headerlink" title="3. 实验过程"></a>3. 实验过程</h2><h3 id="3-1-预备知识"><a href="#3-1-预备知识" class="headerlink" title="3.1 预备知识"></a>3.1 预备知识</h3><ul>
+<li>ARP(Address Resolution Protocol) 协议，即地址解析协议。该协议的功能就是将IP地址解析成MAC地址。ARP的基本功能就是负责将一个已知的IP地址解析成MAC地址，以便主机间能正常进行通信。</li>
+</ul>
+<p><img src="/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/1.jpg" style="zoom:67%;"></p>
+<ul>
+<li>ARP 协议的解析过程只使用了两种数据包： 一个ARP请求和一个ARP响应，如下图所示：</li>
+</ul>
+<p><img src="/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/2.jpg" style="zoom:67%;"></p>
+<ul>
+<li>其详细工作原理是：<ol>
+<li>当主机A想要给主机B发送数据时，主机A会首先在自己的本地ARP缓存表中检查与主机B匹配的MAC地址。</li>
+<li>如果主机A在自己的缓存表中没有找到主机B的相关条目，那么它就要想办法获取主机B的MAC地址。这就需要将ARP的请求帧广播到网络上所有主机中。这个请求帧包含有主机A的IP地址和MAC地址，以及主机B的IP地址。网络中凡是收到请求帧的主机都会检查自己的IP地址是否与请求地址一致，如果不一致，则会丢弃该请求帧。对于上图来说，主机C和主机D会丢弃主机A发出的请求帧。</li>
+<li>主机B确定ARP请求中的IP地址和自己的IP地址一致，那么就会将主机A的IP地址和MAC地址添加到本地的缓存列表中</li>
+<li>主机B将包含有自己MAC地址的ARP响应消息直接回复给主机A(单播)</li>
+<li>主机A收到从主机B发来的ARP响应消息之后，会将主机B的IP地址和MAC地址添加到自己的ARP缓存表中。接下来，主机A就可以向主机B发送消息了</li>
+</ol>
+</li>
+<li>如果想要查看ARP缓存表，可以打开cmd ，输入”arp -a”</li>
+</ul>
+<p><img src="/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/3.jpg" style="zoom:67%;"></p>
+<h3 id="3-2-分析-ARP-数据包"><a href="#3-2-分析-ARP-数据包" class="headerlink" title="3.2 分析 ARP 数据包"></a>3.2 分析 ARP 数据包</h3><ul>
+<li>选择一个ARP缓存表中没有的地址进行分析，如： <code>ping 192.168.1.110</code></li>
+</ul>
+<p><img src="/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/5.jpg" style="zoom:67%;"></p>
+<ul>
+<li>利用Wireshark 抓取 ARP 包，并进行分析，再次通过 arp -a 命令可以发现该IP地址对应的mac信息已添加在缓存表中了</li>
+</ul>
+<p><img src="/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/4.jpg" style="zoom:67%;"></p>
+<h4 id="task1"><a href="#task1" class="headerlink" title="task1"></a>task1</h4><p>如上图所示，分析当ARP缓存表不存在某个IP信息时，数据发送是的请求和应答数据报信息，截图并标注具体ARP字段数据，请在实验报告中附上结果截图</p>
+<p>我在笔记本上开了一个虚拟机，地址是 <code>192.168.31.100</code>, </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Address Resolution Protocol (request) </span><br><span class="line">    Hardware type: Ethernet (1)  	# 硬件类型</span><br><span class="line">    Protocol type: IPv4 (0x0800) 	# 上层协议类型</span><br><span class="line">    Hardware size: 6						 	# MAC 地址长度</span><br><span class="line">    Protocol size: 4							# IP 地址长度</span><br><span class="line">    Opcode: request (1)						# 操作类型，这里是request	</span><br><span class="line">    Sender MAC address: BeijingX_2e:de:27 (50:d2:f5:2e:de:27) # 源MAC地址</span><br><span class="line">    Sender IP address: 192.168.31.1														# 源IP地址 </span><br><span class="line">    Target MAC address: 00:00:00_00:00:00 (00:00:00:00:00:00) # 目的 mac 地址</span><br><span class="line">    Target IP address: 192.168.31.100		# 目的 ip 地址</span><br></pre></td></tr></table></figure>
+<p>我们发现，在还没有加入缓存的时候，我们发送的ARP请求包中是不知道目标主机的mac地址的，因此默认为：<code>00:00:00:00:00:00</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Address Resolution Protocol (reply)</span><br><span class="line">    Hardware type: Ethernet (1) 			# 硬件类型</span><br><span class="line">    Protocol type: IPv4 (0x0800) 			# 上层协议类型</span><br><span class="line">    Hardware size: 6 									#  MAC 地址长度</span><br><span class="line">    Protocol size: 4									#  IP 地址长度</span><br><span class="line">    Opcode: reply (2)									#  操作类型，reply	</span><br><span class="line">    Sender MAC address: IntelCor_75:21:32 (38:00:25:75:21:32)	# 源MAC地址</span><br><span class="line">    Sender IP address: 192.168.31.100													# 源IP地址 </span><br><span class="line">    Target MAC address: Apple_e2:a1:2e (4c:20:b8:e2:a1:2e)		# 目的 mac 地址</span><br><span class="line">    Target IP address: 192.168.31.15													# 目的 ip 地址</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/6.png" style="zoom:67%;"></p>
+<h4 id="task2"><a href="#task2" class="headerlink" title="task2"></a>task2</h4><p>分析当ARP缓存表存在某个Ip信息时，ARP请求和接收MAC地址分析，(只截图，写出目的MAC地址和源MAC地址)，并分析与task1中数据包存在的区别，在实验报告中附上截图</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Address Resolution Protocol (request)</span><br><span class="line">    Hardware type: Ethernet (1)</span><br><span class="line">    Protocol type: IPv4 (0x0800)</span><br><span class="line">    Hardware size: 6</span><br><span class="line">    Protocol size: 4</span><br><span class="line">    Opcode: request (1)</span><br><span class="line">    Sender MAC address: Apple_e2:a1:2e (4c:20:b8:e2:a1:2e)</span><br><span class="line">    Sender IP address: 192.168.31.15</span><br><span class="line">    Target MAC address: IntelCor_75:21:32 (38:00:25:75:21:32)</span><br><span class="line">    Target IP address: 192.168.31.100</span><br></pre></td></tr></table></figure>
+<p>但是当ARP中已经包含了该主机的mac地址后，在发送ARP请求包时，在<code>Target MAC address</code> 中直接填入目标主机的mac地址了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Address Resolution Protocol (reply)</span><br><span class="line">    Hardware type: Ethernet (1)</span><br><span class="line">    Protocol type: IPv4 (0x0800)</span><br><span class="line">    Hardware size: 6</span><br><span class="line">    Protocol size: 4</span><br><span class="line">    Opcode: reply (2)</span><br><span class="line">    Sender MAC address: IntelCor_75:21:32 (38:00:25:75:21:32)</span><br><span class="line">    Sender IP address: 192.168.31.100</span><br><span class="line">    Target MAC address: Apple_e2:a1:2e (4c:20:b8:e2:a1:2e)</span><br><span class="line">    Target IP address: 192.168.31.15</span><br></pre></td></tr></table></figure>
+<p>但是 ARP 响应包，前后都是一样的。</p>
+<p><img src="/2021/06/03/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8Aweek13/7.png" style="zoom:67%;"></p>
+<p>这时候我们已经发现，刚才ping 的 192.168.31.100 的mac地址已经添加到arp缓存表中去了，而且我们发现，这个地址和我开虚拟机的电脑的地址是一模一样的。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"># 计算机网络</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/06/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E7%BD%91%E7%BB%9C%E5%B1%82/" rel="prev" title="计算机网络-网络层">
+      <i class="fa fa-chevron-left"></i> 计算机网络-网络层
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/06/05/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E6%9C%9F%E6%9C%AB%E5%A4%A7%E4%BD%9C%E4%B8%9A/" rel="next" title="计算机网络-期末大作业">
+      计算机网络-期末大作业 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Week-13-利用Wireshark分析ARP协议"><span class="nav-number">1.</span> <span class="nav-text">Week 13 : 利用Wireshark分析ARP协议</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-实验目的"><span class="nav-number">1.1.</span> <span class="nav-text">1.  实验目的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-实验任务"><span class="nav-number">1.2.</span> <span class="nav-text">2. 实验任务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-实验过程"><span class="nav-number">1.3.</span> <span class="nav-text">3. 实验过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-预备知识"><span class="nav-number">1.3.1.</span> <span class="nav-text">3.1 预备知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-分析-ARP-数据包"><span class="nav-number">1.3.2.</span> <span class="nav-text">3.2 分析 ARP 数据包</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#task1"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">task1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task2"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">task2</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

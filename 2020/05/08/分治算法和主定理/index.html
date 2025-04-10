@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="分治算法和主定理问题引入$T(n) &#x3D; 3T(\frac{n}{2})+O(n)$ 那么一直分到最底层，也就是第k层，那么k &#x3D; logn,这颗树的高度就是logn 那么根据$a^{logb_n}&#x3D;n^{log_ba} -&gt; O(3^{log_2n})&#x3D; O(n^{log_23})$ 所以第一层复杂度是O(n),公比为 3&#x2F;2 ，到最后一层复杂度为$(n^{log_23})$ 累加得 $O(">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分治算法和主定理">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="分治算法和主定理问题引入$T(n) &#x3D; 3T(\frac{n}{2})+O(n)$ 那么一直分到最底层，也就是第k层，那么k &#x3D; logn,这颗树的高度就是logn 那么根据$a^{logb_n}&#x3D;n^{log_ba} -&gt; O(3^{log_2n})&#x3D; O(n^{log_23})$ 所以第一层复杂度是O(n),公比为 3&#x2F;2 ，到最后一层复杂度为$(n^{log_23})$ 累加得 $O(">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/5.png">
+<meta property="article:published_time" content="2020-05-08T11:12:38.000Z">
+<meta property="article:modified_time" content="2021-01-18T00:42:52.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="discrete mathematics">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>分治算法和主定理 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分治算法和主定理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-05-08 19:12:38" itemprop="dateCreated datePublished" datetime="2020-05-08T19:12:38+08:00">2020-05-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-18 08:42:52" itemprop="dateModified" datetime="2021-01-18T08:42:52+08:00">2021-01-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DC/" itemprop="url" rel="index"><span itemprop="name">DC</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="分治算法和主定理"><a href="#分治算法和主定理" class="headerlink" title="分治算法和主定理"></a>分治算法和主定理</h1><h3 id="问题引入"><a href="#问题引入" class="headerlink" title="问题引入"></a>问题引入</h3><p>$T(n) = 3T(\frac{n}{2})+O(n)$</p>
+<p>那么一直分到最底层，也就是第k层，那么k = logn,这颗树的高度就是logn</p>
+<p>那么根据$a^{logb_n}=n^{log_ba} -&gt; O(3^{log_2n})= O(n^{log_23})$</p>
+<p>所以第一层复杂度是O(n),公比为 3/2 ，到最后一层复杂度为$(n^{log_23})$</p>
+<p>累加得 $O(n^{1.59})$</p>
+<h3 id="DC与DP的区别"><a href="#DC与DP的区别" class="headerlink" title="DC与DP的区别"></a>DC与DP的区别</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>DC</th>
+<th>DP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>子问题的相关性</td>
+<td>相互独立</td>
+<td>相互联系</td>
+</tr>
+<tr>
+<td>例子</td>
+<td>二分搜索，归并排序</td>
+<td>背包问题，编辑问题</td>
+</tr>
+<tr>
+<td>是否要记笔记</td>
+<td>不需要</td>
+<td>需要</td>
+</tr>
+<tr>
+<td>方法</td>
+<td>Top-down</td>
+<td>Bottom-up</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="Theorem"><a href="#Theorem" class="headerlink" title="Theorem"></a>Theorem</h3><p>如果f满足 $f(n) = af(\frac{n}{b})+c$</p>
+<p>那么</p>
+<p>当 $a&gt;1$时 $ f(n) = O(n^{log_ba})$</p>
+<p>当 $a=1$时 $f(n) = O(log_bn)$</p>
+<p>那么，如果当 n = b^k  并且 a != 1,  k 是一个正整数,$f (n) = C_1n^{log_ba} + C_2;$<br>where $C_1 = f (1) + c=(a-1) $and $C_2 = -c/(a - 1)$</p>
+<p>那么当在Conquer的时候C不是一个常数，又会怎么样呢？</p>
+<h3 id="主定理"><a href="#主定理" class="headerlink" title="主定理"></a>主定理</h3><h4 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h4><p><img src="/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/1.png" alt></p>
+<h4 id="证明"><a href="#证明" class="headerlink" title="证明"></a>证明</h4><p><img src="/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/1.jpg" alt></p>
+<p>我们可以总结出一个规律</p>
+<p>$a^kc(n/b^k)^d = cn^d(a/b^d)^k$</p>
+<p>因此 </p>
+<p>$T(n) = ca^{log<em>bn}+\sum</em>{k=0}^{log_b{n-1}}cn^d(\frac{a}{b^d})^k$</p>
+<h5 id="Case1"><a href="#Case1" class="headerlink" title="Case1"></a>Case1</h5><p>当$a/b^d = 1$的时候，$a=b^d，d= log_ba$</p>
+<p>$T(n) = cn^{log<em>ba}+cn^d\sum</em>{k=0}^{log_b{a-1}}(\frac{a}{b^d})^k$</p>
+<p>$= cn^d+cn^d\sum_{k=0}^{log_bn-1}1=cn^d+cn^dlog_bn$</p>
+<p>$= O(n^dlog_n)$</p>
+<h5 id="Case2"><a href="#Case2" class="headerlink" title="Case2"></a>Case2</h5><p>当$a/b^d &lt; 1$的时候，$a<b^d，d> log_ba$</b^d，d></p>
+<p>$T(n) = cn^{log<em>ba}+cn^d\sum</em>{k=0}^{log_b{a-1}}(\frac{a}{b^d})^k$</p>
+<p>$&lt; cn^d+cn^d\sum_{k=0}^{log_bn-1}(\frac{a}{b^d})^k=cn^d+cn^dlog_bn$</p>
+<p>$&lt; cn^d+cn^d\sum_{k=0}^{\infty}(\frac{a}{b^d})^k=cn^d(1+\frac1{1-a/b^d})$</p>
+<p>$=O(n^d)$</p>
+<h5 id="Case3"><a href="#Case3" class="headerlink" title="Case3"></a>Case3</h5><p>当$a/b^d &gt; 1$的时候，$a&gt;b^d，d&lt; log_ba$</p>
+<p>$T(n) = cn^{log<em>ba}+cn^d\sum</em>{k=0}^{log_b{a-1}}(\frac{a}{b^d})^k &lt; cn^d + cn^d\frac{(a/b^d)^{log_bn}-1}{(a/b^d)-1}$</p>
+<p><img src="/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/2.png" alt></p>
+<p>所以这里有几个例子</p>
+<p><img src="/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/3.png" style="zoom:80%;"></p>
+<h3 id="作业题选"><a href="#作业题选" class="headerlink" title="作业题选"></a>作业题选</h3><h4 id="1"><a href="#1" class="headerlink" title="1"></a>1</h4><p>Suppose that each person in a group of n people votes for exactly two people from a slate of candidates to fill two positions on a committee. The top two finishers both win positions as long as each receives more than n/2 votes. </p>
+<p>​    a) Devise a divide-and-conquer algorithm that determines whether the two candidates who received the most votes each received at least n/2 votes and, if so, determine who these two candidates are.</p>
+<p>​     b) Use the master theorem to give a big-O estimate for the number of comparisons needed by the algorithm you devised in part (a).</p>
+<h4 id="2"><a href="#2" class="headerlink" title="2."></a>2.</h4><p>a) Set up a divide-and-conquer recurrence relation for the number of multiplications to compute $x^n$,where x is a real number and n is a positive integer.<br>b) Use the recurrence relation you find in part (a) to construct a big-O estimate for the number of multiplications used to compute $x^n$ using the recursive algorithm.</p>
+<p><img src="/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/4.png" style="zoom:80%;"></p>
+<p>现在总共有2n张选票，分成两个子列表，每个子列表有n张选票。我们要选择总票数大于n/2的人选，那么在每个子列表当中，就要选择总票数大于n/4的人选。否则，如果这个人的票数在每个子列表当中，都是小于n/4的，那么加起来必然不可能大于n/2。所以在子列表中最多有3个人的选票可能会超过n/4(如果4个人的话就爆了)，这样，每个子列表会选出至多3个候选人。</p>
+<p>然后我们在这6个候选人(可重复)中再选出票数大于n/2的最高的两个。那么怎么才能选出票数最高的，当然就是对每个候选人的id，在这整个列表进行遍历，求出他的票数。这样，每个人需要2n次比较，一共12n次。</p>
+<p>同样，对于子列表的子列表（每个列表一共n/2张选票），那么我们就要选出每个列表中选票大于n/8的人，这样两个“孙子”列表才可能选出大于n/4的人选递交给第二级列表（总票数为n的列表）。</p>
+<p>当我们发现，两个孙子列表提交的6个候选人当中（可重复，且已经统计完成各自票数），top3都是大于n/4的，那么我们就把他们都递交给子列表，否则只返回大于n/4的人，可能为1个，可能为2个，没有的话，就是没有了呗。</p>
+<p>同样，我们在两个子列表提交的6个候选人当中（可重复，且已经统计完成各自票数），那么就看头两个是不是有超过n/2张选票，如果超过了的话，那么这两个就是big winner，否则该有几个就是几个</p>
+<p><img src="/2020/05/08/%E5%88%86%E6%B2%BB%E7%AE%97%E6%B3%95%E5%92%8C%E4%B8%BB%E5%AE%9A%E7%90%86/5.png" style="zoom:80%;">   </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/discrete-mathematics/" rel="tag"># discrete mathematics</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/07/pyspider%E6%A1%86%E6%9E%B6/" rel="prev" title="pyspider框架">
+      <i class="fa fa-chevron-left"></i> pyspider框架
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/09/hashtable/" rel="next" title="hashtable">
+      hashtable <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#分治算法和主定理"><span class="nav-number">1.</span> <span class="nav-text">分治算法和主定理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#问题引入"><span class="nav-number">1.0.1.</span> <span class="nav-text">问题引入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DC与DP的区别"><span class="nav-number">1.0.2.</span> <span class="nav-text">DC与DP的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Theorem"><span class="nav-number">1.0.3.</span> <span class="nav-text">Theorem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#主定理"><span class="nav-number">1.0.4.</span> <span class="nav-text">主定理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#结论"><span class="nav-number">1.0.4.1.</span> <span class="nav-text">结论</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#证明"><span class="nav-number">1.0.4.2.</span> <span class="nav-text">证明</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Case1"><span class="nav-number">1.0.4.2.1.</span> <span class="nav-text">Case1</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Case2"><span class="nav-number">1.0.4.2.2.</span> <span class="nav-text">Case2</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Case3"><span class="nav-number">1.0.4.2.3.</span> <span class="nav-text">Case3</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作业题选"><span class="nav-number">1.0.5.</span> <span class="nav-text">作业题选</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1"><span class="nav-number">1.0.5.1.</span> <span class="nav-text">1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2"><span class="nav-number">1.0.5.2.</span> <span class="nav-text">2.</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

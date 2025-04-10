@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="机器学习-朴素贝叶斯概要 朴素贝叶斯法是典型的生成学习方法生成方法由训练数据学习联合概率分布$P(X,Y)$  然后求得后验概率分布$P(Y |X)$. 具体来说, 利用训练数据学习 $P(X|Y)$ 和 $P(Y)$ 的估计，得到联合概率分布:   P(X,Y)&#x3D; P(Y)P(X|Y)概率估计方法可以是极大似然估计 或者是 贝叶斯估计  朴素贝叶斯法的基本假设是条件独立性   P(X&#x3D;x|Y&#x3D;c">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机器学习-朴素贝叶斯">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="机器学习-朴素贝叶斯概要 朴素贝叶斯法是典型的生成学习方法生成方法由训练数据学习联合概率分布$P(X,Y)$  然后求得后验概率分布$P(Y |X)$. 具体来说, 利用训练数据学习 $P(X|Y)$ 和 $P(Y)$ 的估计，得到联合概率分布:   P(X,Y)&#x3D; P(Y)P(X|Y)概率估计方法可以是极大似然估计 或者是 贝叶斯估计  朴素贝叶斯法的基本假设是条件独立性   P(X&#x3D;x|Y&#x3D;c">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF/1.png">
+<meta property="article:published_time" content="2022-01-02T15:21:43.000Z">
+<meta property="article:modified_time" content="2022-01-04T17:24:28.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>机器学习-朴素贝叶斯 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          机器学习-朴素贝叶斯
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-01-02 23:21:43" itemprop="dateCreated datePublished" datetime="2022-01-02T23:21:43+08:00">2022-01-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-05 01:24:28" itemprop="dateModified" datetime="2022-01-05T01:24:28+08:00">2022-01-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="机器学习-朴素贝叶斯"><a href="#机器学习-朴素贝叶斯" class="headerlink" title="机器学习-朴素贝叶斯"></a>机器学习-朴素贝叶斯</h1><h2 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h2><ol>
+<li>朴素贝叶斯法是典型的生成学习方法生成方法由训练数据<strong>学习联合概率分布</strong>$P(X,Y)$  然后求得后验概率分布$P(Y |X)$. 具体来说, 利用训练数据学习 $P(X|Y)$ 和 $P(Y)$ 的估计，得到联合概率分布:</li>
+</ol>
+<script type="math/tex; mode=display">
+P(X,Y)= P(Y)P(X|Y)</script><p>概率估计方法可以是<strong>极大似然估计</strong> 或者是 <strong>贝叶斯估计</strong></p>
+<ol>
+<li>朴素贝叶斯法的基本假设是条件独立性</li>
+</ol>
+<script type="math/tex; mode=display">
+P(X=x|Y=c_k)=P(X^{(1)}=x^{(1)},\cdots,X^{(n)}=x^{(n)}|Y=c_k)\\
+=\prod_{j=1}^nP(X^{(j)}=x^{(j)}|Y=c_k)</script><p>这是一个较强的假设.由于这一假设，模型包含的条件概率的数量大为减少，朴素贝叶斯法的学习与预测大为简化.因而朴素贝叶斯法高效，且易于实现.其缺点是分类的性能不一定很高.</p>
+<ol>
+<li>朴素贝叶斯法利用贝叶斯定理与学到的联合概率模型进行分类预测</li>
+</ol>
+<script type="math/tex; mode=display">
+P(Y|X) = \frac{P(X,Y)}{P(X)} = \frac{P(Y)P(X|Y)}{\sum_YP(Y)P(X|Y)}</script><p>将输入x 分到后验概率最大的类y</p>
+<script type="math/tex; mode=display">
+y = \arg\max_{c_{k}} P(Y=c_k)\prod_{j=1}^nP(X_j=x^{(j)}|Y=c_k)</script><p>后验概率等价于0-1损失函数时的期望风险最小化.</p>
+<h2 id="朴素贝叶斯学习与分类"><a href="#朴素贝叶斯学习与分类" class="headerlink" title="朴素贝叶斯学习与分类"></a>朴素贝叶斯学习与分类</h2><h3 id="基本方法"><a href="#基本方法" class="headerlink" title="基本方法"></a>基本方法</h3><h4 id="训练过程"><a href="#训练过程" class="headerlink" title="训练过程"></a>训练过程</h4><p>对于训练数据集：输入为特征向量 $x\in\mathcal X\subseteq \boldsymbol R^n$ ，输出位类标记 $y\in \mathcal Y ={c_1,c_2\cdots,c_k}$ </p>
+<script type="math/tex; mode=display">
+T = \{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N) \}</script><p>由 $P(X,Y)$ 独立同分布产生。</p>
+<p>然后，朴素贝叶斯法 会通过训练数据集<strong>学习联合概率分布</strong> $P(X,Y)$ ，也就是学习<strong>先验概率分布</strong>以及<strong>条件概率分布</strong></p>
+<ul>
+<li><p>先验概率分布：</p>
+<script type="math/tex; mode=display">
+P(Y=c_k),k=1,2\cdots,K</script></li>
+<li><p>条件概率分布</p>
+<script type="math/tex; mode=display">
+P(X=x|Y=c_k)  = P(X^{(1)}=x^{(1)},\cdots,X^{(n)}=x^{(n)}|Y=c_k),k=1,2\cdots,K</script></li>
+</ul>
+<p>于是，学习到联合概率分布 $P(X,Y)$</p>
+<p>条件概率分布 $P(X=x|Y=c_k)$ 有着<strong>指数级数量</strong>的参数，其估计实际是不可行的。因此，朴素贝叶斯法对条件概率分布做了条件独立性假设。具体的，条件独立性假设是：</p>
+<script type="math/tex; mode=display">
+P(X^{(1)}=x^{(1)},\cdots,X^{(n)}=x^{(n)}|Y=c_k)\\
+=\prod_{j=1}^n P(X^{(j)}=x^{(j)}|Y=c_k)</script><p>条件独立假设等于是说：用于分类的特征在类确定的条件下都是<strong>条件独立的</strong>。这一假设使得朴素贝叶斯法变得简单，但有时会牺牲一定的分类准确率。</p>
+<h4 id="分类过程"><a href="#分类过程" class="headerlink" title="分类过程"></a>分类过程</h4><p>朴素贝叶斯法分类时，对给定的输入x，通过学习到的模型计算后验概率分布 $P(Y=c_k|X=x)$ ，将后验概率最大的类作为$x$ 的输出。后验概率计算根据<strong>贝叶斯定理</strong>进行：</p>
+<script type="math/tex; mode=display">
+P(Y=c_k|X=x) = \frac{P(X=x|Y=c_k)P(Y=c_k)}{\sum_k P(X=x|Y=c_k)P(Y=c_k)}</script><p>将独立性假设带入上式，可得：</p>
+<script type="math/tex; mode=display">
+P(Y=c_k|X=x) = \frac{P(Y=c_k)\prod_{j=1}^n P(X^{(j)}=x^{(j)}|Y=c_k)}{\sum_k P(X=x|Y=c_k)\prod_{j=1}^n P(X^{(j)}=x^{(j)}|Y=c_k)} ,~~~k=1,2,\cdots,K</script><p>这是朴素贝叶斯法分类的基本公式。于是，朴素贝叶斯分类器科表示为：</p>
+<script type="math/tex; mode=display">
+y = f(x) = \arg\max_{c_k}\frac{P(Y=c_k)\prod_{j=1}^n P(X^{(j)}=x^{(j)}|Y=c_k)}{\sum_k P(Y=c_k)\prod_{j=1}^n P(X^{(j)}=x^{(j)}|Y=c_k)}</script><p>注意到，在上式中，分母对所有 $c_k$ 都是相同的，因此直接拿掉了</p>
+<script type="math/tex; mode=display">
+y = \arg\max_{c_{k}} P(Y=c_k)\prod_{j=1}^nP(X_j=x^{(j)}|Y=c_k)</script><h2 id="朴素贝叶斯的学习与分类算法"><a href="#朴素贝叶斯的学习与分类算法" class="headerlink" title="朴素贝叶斯的学习与分类算法"></a>朴素贝叶斯的学习与分类算法</h2><h3 id="朴素贝叶斯算法"><a href="#朴素贝叶斯算法" class="headerlink" title="朴素贝叶斯算法"></a>朴素贝叶斯算法</h3><p>输入：训练数据 $T = {(x<em>1,y_1),(x_2,y_2),\cdots,(x_N,y_N) }$ ，其中 $x_i = (x_i^{(1)},\cdots,x_i^{(n)})^T$.  $x_i^{(j)}$ 是第i个样本的第j 个特征，$x_i^{(j)}\in{a</em>{j1},\cdots,a<em>{jS_j} }$ , $a</em>{jl}$ 是第j个特征可能取的第 l 个值。</p>
+<script type="math/tex; mode=display">
+j=1,2\cdots,n\\
+l=1,2\cdots,S_j\\
+y_i\in \{c_1,c_2,\cdots,c_k\}</script><p>以及测试数据 ：实例x</p>
+<p>输入：实例x的分类</p>
+<ol>
+<li>计算先验概率及条件概率</li>
+</ol>
+<script type="math/tex; mode=display">
+P(Y=c_k) = \frac{\sum_{i=1}^NI(y_i=c_k)}{N},k=1,2\cdots,K\\~\\</script><p>第一步是计算输入 $c_k$ 的训练数据占所有训练数据的比值</p>
+<script type="math/tex; mode=display">
+P(X^{(j)}=a_{jl}|Y=c_k)=\frac{\sum_{i=1}^N I(x_i^{(j)}=a_{jl},y=c_k)}{\sum_{i=1}^N I(y_i=c_k)}\\~\\
+j=1,2\cdots,n;~l=1,2\cdots,S_j;~y_i\in \{c_1,c_2,\cdots,c_k\}</script><p>第二步是计算条件概率</p>
+<ol>
+<li>对于给定的实例 $x=(x^{(1)},\cdots,x^{(n)})^T$ 计算：</li>
+</ol>
+<script type="math/tex; mode=display">
+P(Y=c_k) \prod_{j=1}^n P(X^{(j)}=x^{(j)}|Y=c_k) ,k=1,2\cdots,K</script><ol>
+<li>确定实例 $x$ 的类</li>
+</ol>
+<script type="math/tex; mode=display">
+y = \arg\max_{c_k}P(Y=c_k)\prod_{j=1}^n P(X^{(j)}=x^{(j)}|Y=c_k)</script><h4 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h4><p>试由下表的训练数据学习一个朴素贝叶斯分类器并确定$x=(2,S)^T$的类标记 y. 表中$X^{(1)}, X^{(2)}$  为特征，取值的集合分别为，$A_1={1 , 2, 3} ,  A_2={S, M,L}$ ;  $Y$ 为类标记， $Y\in C = {1 , -1}$</p>
+<p><img src="/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF/1.png" style="zoom:150%;"></p>
+<ol>
+<li>计算先验概率，首先统计正例和负例的个数。</li>
+</ol>
+<p>这里，正例有9个，负例有6个。因此:</p>
+<script type="math/tex; mode=display">
+P(Y=1) = 9/15\\
+P(Y=-1) = 6/15</script><ol>
+<li>计算条件概率，一共要计算 $2\times(3+3)=12$个概率</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&P(X^{(1)}=1|Y=1)=\frac{2}{9},P(X^{(1)}=2|Y=1)=\frac{3}{9},P(X^{(1)}=3|Y=1)=\frac{4}{9}\\
+&P(X^{(2)}=S|Y=1)=\frac{1}{9},P(X^{(2)}=M|Y=1)=\frac{4}{9},P(X^{(2)}=L|Y=1)=\frac{4}{9}\\
+&P(X^{(1)}=1|Y=-1)=\frac{3}{6},P(X^{(1)}=2|Y=-1)=\frac{2}{6},P(X^{(1)}=3|Y=-1)=\frac{1}{6}\\
+&P(X^{(2)}=S|Y=-1)=\frac{3}{6},P(X^{(2)}=M|Y=-1)=\frac{2}{6},P(X^{(2)}=L|Y=-1)=\frac{1}{6}\\
+\end{align}</script><ol>
+<li>计算后验概率，对给定的测试样本 $x=(2,S)^T$ 进行计算</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&P(Y=1)P(X^{(1)}=2|Y=1)P(X^{(2)}=S|Y=1) =\frac{9}{15}\frac{3}{9}\frac{1}{9} = \frac{1}{45}\\
+&P(Y=-1)P(X^{(1)}=2|Y=-1)P(X^{(2)}=S|Y=-1)=\frac{6}{15}\frac{2}{6}\frac{3}{6} = \frac{1}{15}
+\end{align}</script><p>由于$P(Y=-1)P(X^{(1)}=2|Y=-11)P(X^{(2)}=S|Y=-1)$ 是两种情况中最大的，因此 最终的预测结果是 $y=-1$</p>
+<h3 id="贝叶斯估计"><a href="#贝叶斯估计" class="headerlink" title="贝叶斯估计"></a>贝叶斯估计</h3><p>用极大似然估计可能会出现所要估计的概率值为0 的情况. 这时会影响到后验概率的计算结果(只要一个概率值为0就都为0)，使分类产生偏差解决这一问题的方法是采用贝叶斯估计</p>
+<p>具体地</p>
+<p>先验概率的贝叶斯估计是</p>
+<script type="math/tex; mode=display">
+P_\lambda (Y=c_k) = \frac{\sum_{i=1}^NI(y_i=c_k)+\lambda}{N+K\lambda}</script><p>条件概率的贝叶斯估计是</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&P_\lambda (X^{(j)}=a_{jl}|Y=c_{k}) = \frac{\sum_{i=1}^N I(x_i^{(j)}=a_{jl},y=c_k)+\lambda}{\sum_{i=1}^N I(y_i=c_k)+S_j\lambda }\\~\\
+&j=1,2\cdots,n;~l=1,2\cdots,S_j;~y_i\in \{c_1,c_2,\cdots,c_k\}
+\end{align}</script><p>式中 $\lambda \geq 0$, 等价于在随机变量各个取值的频数上赋予一个整数 $\lambda &gt;0$ . 当 $\lambda=0$ 时，就是极大似然估计。常常取 $\lambda = 1$ ,这称为拉普拉斯平滑 。 </p>
+<p>显然，对任何 $l=1,2\cdots,S_j,k=1,2\cdots,K$ ,有条件概率大于0</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&P_\lambda (X^{j} = a_{jl}|Y=c_k) > 0\\~\\
+&\sum_{l=1}^{S_j}P(X^{(j)}=a_{jl}|Y=c_k)=1\\
+\end{align}</script><h4 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h4><p>试由下表的训练数据学习一个朴素贝叶斯分类器并确定$x=(2,S)^T$ 的类标记 $y$ 。 表中$X^{(1)}, X^{(2)}$  为特征，取值的集合分别为，$A_1={1 , 2, 3} ,  A_2={S, M,L}$  $Y$ 为类标记， $Y\in C = {1 , -1}$ </p>
+<p>按照拉普拉斯平滑估计概率 ，即取  $\lambda = 1$</p>
+<p><img src="/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF/1.png" style="zoom:150%;"></p>
+<ol>
+<li>先验概率的贝叶斯估计</li>
+</ol>
+<script type="math/tex; mode=display">
+P(Y=1) = \frac{9+1}{15+2\times1} = \frac{10}{17}\\
+P(Y=-1) = \frac{6+1}{15+2\times 1} =\frac{7}{17}\\</script><ol>
+<li>计算条件概率</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&P(X^{(1)}=1|Y=1)=\frac{2+1}{9+3*1}= \frac{3}{12},P(X^{(1)}=2|Y=1)=\frac{4}{12},P(X^{(1)}=3|Y=1)=\frac{5}{12}\\~\\
+&P(X^{(2)}=S|Y=1)=\frac{2}{12},P(X^{(2)}=M|Y=1)=\frac{5}{12},P(X^{(2)}=L|Y=1)=\frac{5}{12}\\~\\
+&P(X^{(1)}=1|Y=-1)=\frac{4}{9},P(X^{(1)}=2|Y=-1)=\frac{3}{9},P(X^{(1)}=3|Y=-1)=\frac{2}{9}\\~\\
+&P(X^{(2)}=S|Y=-1)=\frac{4}{9},P(X^{(2)}=M|Y=-1)=\frac{3}{9},P(X^{(2)}=L|Y=-1)=\frac{2}{9}\\
+\end{align}</script><p>由此我们可以看出，及时当前的条件样本数为0，条件概率也不会为0，而是 $p = \frac{\lambda}{\sum_{i=1}^N I(y_i=c_k)+S_j\lambda}$ </p>
+<ol>
+<li>因此，对于给定的 $x=(2,S)^T$ ，我们计算后验概率 </li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&P(Y=1)P(X^{(1)}=2|Y=1)P(X^{(2)}=S|Y=1) =\frac{10}{17}\frac{4}{12}\frac{2}{12} = \frac{5}{153}=0.0327\\
+&P(Y=-1)P(X^{(1)}=2|Y=-1)P(X^{(2)}=S|Y=-1)=\frac{7}{17}\frac{3}{9}\frac{4}{9} = \frac{28}{459}=0.0610
+\end{align}</script><p>由于$P(Y=-1)P(X^{(1)}=2|Y=-11)P(X^{(2)}=S|Y=-1)$ 是两种情况中最大的，因此 最终的预测结果是 $y=-1$</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="prev" title="机器学习-感知机">
+      <i class="fa fa-chevron-left"></i> 机器学习-感知机
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/01/03/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="next" title="机器学习-支持向量机">
+      机器学习-支持向量机 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#机器学习-朴素贝叶斯"><span class="nav-number">1.</span> <span class="nav-text">机器学习-朴素贝叶斯</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概要"><span class="nav-number">1.1.</span> <span class="nav-text">概要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#朴素贝叶斯学习与分类"><span class="nav-number">1.2.</span> <span class="nav-text">朴素贝叶斯学习与分类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本方法"><span class="nav-number">1.2.1.</span> <span class="nav-text">基本方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#训练过程"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">训练过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分类过程"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">分类过程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#朴素贝叶斯的学习与分类算法"><span class="nav-number">1.3.</span> <span class="nav-text">朴素贝叶斯的学习与分类算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#朴素贝叶斯算法"><span class="nav-number">1.3.1.</span> <span class="nav-text">朴素贝叶斯算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例子"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#贝叶斯估计"><span class="nav-number">1.3.2.</span> <span class="nav-text">贝叶斯估计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例子-1"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">例子</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

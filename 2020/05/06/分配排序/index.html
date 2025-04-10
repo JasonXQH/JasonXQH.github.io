@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="分配排序桶排序 分配排序不需要比较关键词的大小，根据关键词各位上的值，进行若干次分配和收集实现排序 桶排序将待排序序列划分成若干区间。每个区间形象的看作一个桶，如果桶中的记录多以一个则使用较快的排序方法进行排序，把每个桶中的记录收集起来，最终得到有序序列   注意的问题 桶排序的数据最好是均匀分布的，如果都在90分以上，那么都在一个桶内，那么就退化成了一般的排序。在理想的情况下，当数据均匀分布，桶">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分配排序">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="分配排序桶排序 分配排序不需要比较关键词的大小，根据关键词各位上的值，进行若干次分配和收集实现排序 桶排序将待排序序列划分成若干区间。每个区间形象的看作一个桶，如果桶中的记录多以一个则使用较快的排序方法进行排序，把每个桶中的记录收集起来，最终得到有序序列   注意的问题 桶排序的数据最好是均匀分布的，如果都在90分以上，那么都在一个桶内，那么就退化成了一般的排序。在理想的情况下，当数据均匀分布，桶">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/2.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/1.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/5.png">
+<meta property="article:published_time" content="2020-05-06T03:50:52.000Z">
+<meta property="article:modified_time" content="2022-12-10T11:47:20.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="Data_structure">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>分配排序 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分配排序
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-05-06 11:50:52" itemprop="dateCreated datePublished" datetime="2020-05-06T11:50:52+08:00">2020-05-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-12-10 19:47:20" itemprop="dateModified" datetime="2022-12-10T19:47:20+08:00">2022-12-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Rank/" itemprop="url" rel="index"><span itemprop="name">Rank</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="分配排序"><a href="#分配排序" class="headerlink" title="分配排序"></a>分配排序</h1><h2 id="桶排序"><a href="#桶排序" class="headerlink" title="桶排序"></a>桶排序</h2><ul>
+<li>分配排序不需要比较关键词的大小，根据关键词各位上的值，进行若干次分配和收集实现排序</li>
+<li>桶排序将待排序序列划分成若干区间。每个区间形象的看作一个桶，如果桶中的记录多以一个则使用较快的排序方法进行排序，把每个桶中的记录收集起来，最终得到有序序列</li>
+</ul>
+<p><img src="/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/1.png" alt="示例"></p>
+<h3 id="注意的问题"><a href="#注意的问题" class="headerlink" title="注意的问题"></a>注意的问题</h3><ul>
+<li>桶排序的数据最好是均匀分布的，如果都在90分以上，那么都在一个桶内，那么就退化成了一般的排序。在理想的情况下，当数据均匀分布，桶的数量m足够大的时候，那么每一个桶内最多只有一个记录，不需要再进行排序，只需要O（N）的时间将所有的记录分配到桶中，再用O（N）的时间收集起来。但这样空间复杂度会很大</li>
+<li>桶排序支队不同的数据选择的划分方法是不同的，例如序列（2，46，1278，89323，211，22，43，1）可以按照位数划分桶，1位数，2位数，3位数…</li>
+<li>桶内排序的时候使用的比较排序算法也有可能不同，可以用插入排序，也可以用快速排序</li>
+</ul>
+<h2 id="基数排序"><a href="#基数排序" class="headerlink" title="基数排序"></a>基数排序</h2><ul>
+<li>基数排序可以看作桶排序的一种扩展，是一种多关键词排序算法，如果记录按照多个关键词排序，则依次按照这些关键词进行排序。如果记录按照一个数值型的关键词排序，可以把该关键词看作是d位组成的多关键词排序，每一位的取值范围是[0,r)，其中r被称为基数。例如十进制数268由3位数组成，每一位取值都在[0,10)，十进制数的r为10，二进制为2，英文字母的基数为26.</li>
+</ul>
+<h3 id="算法步骤"><a href="#算法步骤" class="headerlink" title="算法步骤"></a>算法步骤</h3><ol>
+<li>求出待排序序列中最大关键词的位数d，然后从低位到高位进行基数排序</li>
+<li>按个位将关键词<strong>依次</strong>分配到桶中，然后把每个桶中的数据依次收集起来</li>
+<li>将十位关键词<strong>依次</strong>分配到桶中，然后把每个桶中的数据依次收集起来</li>
+<li><strong>依次</strong>下去，直到d位处理完毕，得到一个有序的序列</li>
+<li>拿68，75，54，70，83，48，80，12，92为例子</li>
+</ol>
+<ul>
+<li>先按个位排序</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>70</td>
+<td></td>
+<td>12</td>
+<td>83</td>
+<td>54</td>
+<td>75</td>
+<td></td>
+<td></td>
+<td>68</td>
+<td></td>
+</tr>
+<tr>
+<td>80</td>
+<td></td>
+<td>92</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>48</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>按找桶的顺序收集，波浪化收集得到 70，80，12，92，83，54，75，68，48</li>
+<li>再按照第一趟的排序结果十位排序</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>12</td>
+<td></td>
+<td></td>
+<td>48</td>
+<td>54</td>
+<td>68</td>
+<td>70</td>
+<td>80</td>
+<td>92</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>75</td>
+<td>83</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>再按照桶的顺序收集，得到12，48，54，68，70，75，80，83，92</li>
+</ul>
+<h3 id="讨论"><a href="#讨论" class="headerlink" title="讨论"></a>讨论</h3><ul>
+<li>为啥一定要依次收集？如果不依次会怎么样</li>
+<li><img src="/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/3.png" alt="示例"></li>
+<li>因为在十位相同的数字，在它们个位排序的时候，桶标号较小的肯定要比桶标号大的要小，所以在收集生成序列的时候也要先于大的，这样在按照十位排序的时候小的先于大的入桶，达到排序目的</li>
+<li>所以要用一个队列，先进先出，依次进行。可以采用队列保持桶中数据的进出顺序，从而保证排序结果的正确性。也就是说每一个桶内使用一个队列存储数据，可以使用顺序队列或者链式队列</li>
+</ul>
+<h3 id="算法复杂度分析"><a href="#算法复杂度分析" class="headerlink" title="算法复杂度分析"></a>算法复杂度分析</h3><ul>
+<li>基数排序需要进行d次排序，每一次排序包含分配和收集两个操作，分配需要O(n)的时间，收集操作如果使用顺序队列也要O(n)的时间，如果使用链式队列则只需要将r个链队首尾相连即可，需要O(r)的时间，总的时间复杂度为O(d(n+r))</li>
+<li>如果使用顺序队列，需要r个大小为n的队列，空间复杂度为O(rn)。如果使用链式队列，则需要额外的指针域，那么空间复杂度O(n+r)，比顺序队列的空间要少得多</li>
+<li>基数排序时按关键字出现的顺序依次进行的，是<strong>稳定</strong>的排序方法</li>
+<li>桶中的多个数据元素可以采用二维数组，链式存储，也可以采用一维辅助数组进行处理。</li>
+</ul>
+<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><h5 id="二维数组代码的实现"><a href="#二维数组代码的实现" class="headerlink" title="二维数组代码的实现"></a>二维数组代码的实现</h5><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;bits/stdc++.h&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="meta"># <span class="meta-keyword">define</span> Maxsize 10000</span></span><br><span class="line"><span class="keyword">int</span> A[Maxsize];</span><br><span class="line"><span class="comment">//求出待排序序列中最大的元素位数</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Maxbit</span><span class="params">(<span class="keyword">int</span> A[],<span class="keyword">int</span> n)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> maxvalue = A[<span class="number">0</span>],digits = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>;i&lt;n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(A[i]&gt;maxvalue)</span><br><span class="line">            maxvalue = A[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">while</span>(maxvalue!= <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        digits++;</span><br><span class="line">        maxvalue/=<span class="number">10</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> digits;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 求xbit位上的数字，如238上的第2位上的数字是3</span></span><br><span class="line"><span class="comment">// bit = 1的时候，那么就是8</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Bitnumber</span><span class="params">(<span class="keyword">int</span> x,<span class="keyword">int</span> <span class="built_in">bit</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> temp = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>;i&lt;<span class="built_in">bit</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        temp*=<span class="number">10</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (x/temp)%<span class="number">10</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 算法函数</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">RadixSort</span><span class="params">(<span class="keyword">int</span> A[],<span class="keyword">int</span> n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i ,j,k,<span class="built_in">bit</span>,maxbit;</span><br><span class="line">    maxbit = Maxbit(A,n);</span><br><span class="line">    <span class="comment">//构造一个动态二位数组</span></span><br><span class="line">    <span class="keyword">int</span> **B= <span class="keyword">new</span> <span class="keyword">int</span> *[<span class="number">10</span>];</span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>;i&lt;<span class="number">10</span>;i++)</span><br><span class="line">        B[i] = <span class="keyword">new</span> <span class="keyword">int</span>[n+<span class="number">1</span>];<span class="comment">//第0位存储元素个数</span></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>;i&lt;<span class="number">10</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        B[i][<span class="number">0</span>] = <span class="number">0</span>;<span class="comment">//先把元素个数默认为0</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//这里开始进行分配收集操作，一共进行maxbit次</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="built_in">bit</span> = <span class="number">1</span>;<span class="built_in">bit</span>&lt;=maxbit;<span class="built_in">bit</span>++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//分配操作</span></span><br><span class="line">        <span class="keyword">for</span>(j = <span class="number">0</span>;j&lt;n;j++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//取出位数</span></span><br><span class="line">            <span class="keyword">int</span> num = Bitnumber(A[j],<span class="built_in">bit</span>);</span><br><span class="line">            <span class="comment">//然后给A[j]分配桶内位置</span></span><br><span class="line">            <span class="keyword">int</span> index = ++B[num][<span class="number">0</span>];</span><br><span class="line">            <span class="comment">//存储</span></span><br><span class="line">            B[num][index] = A[j];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//收集操作，一共有10个桶，那么一一串连</span></span><br><span class="line">        <span class="keyword">for</span>(i = <span class="number">0</span>,j = <span class="number">0</span>;i&lt;<span class="number">10</span>;i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">for</span>(k=<span class="number">1</span>;k&lt;=B[i][<span class="number">0</span>];k++)</span><br><span class="line">                A[j++] = B[i][k];</span><br><span class="line">            <span class="comment">//更新原来序列，因为j一直在加，最后会把原来的序列全更新一遍</span></span><br><span class="line">            B[i][<span class="number">0</span>]=<span class="number">0</span>;<span class="comment">//收集完这个桶后元素置0</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//销毁数组</span></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>;i&lt;<span class="number">10</span>;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">delete</span> []B[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">delete</span> B;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n ;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请输入数列中的元素个数"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;n;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"请依次输入数列中的元素"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cin</span>&gt;&gt;A[i];</span><br><span class="line">    &#125;</span><br><span class="line">    RadixSort(A,n);</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">"基数排序的结果:"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;A[i]&lt;&lt;<span class="string">" "</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="一维数组实现"><a href="#一维数组实现" class="headerlink" title="一维数组实现"></a>一维数组实现</h5><ul>
+<li>利用计数器数组计数</li>
+<li>计数器累加</li>
+<li>把数据反向遍历存储到临时数组中，这里如果用正向遍历，就不能正确输入数据了，在每次输入的时候，计数器相应元素-1，这样能实现巧妙地映射。最后会变成上一格的计数器的数字</li>
+<li><img src="/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/4.png" alt="示例"></li>
+<li>临时数组对原数组实现覆盖</li>
+</ul>
+<p>拿68，75，54，70，83，48，80，12，75*，92举例</p>
+<p>第一次循环</p>
+<ul>
+<li>先计数</li>
+<li><img src="/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/7.png" alt="示例"></li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>0</td>
+<td>0</td>
+<td>2</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>count数组累加<br>| 0    | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    |<br>| —— | —— | —— | —— | —— | —— | —— | —— | —— | —— |<br>| 2    | 2    | 3    | 5    | 6    | 8    | 8    | 8    | 10   | 10   |</li>
+<li>68，75，54，70，83，48，80，12，75*，92 反向遍历，放入temp数组</li>
+<li>拿到92，个位数是2，那么看到2的count数组对应4，因为我们是从0开始计数的，所以92放到temp[3]中，同时count[2]—</li>
+</ul>
+<p>count</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>2</td>
+<td>3</td>
+<td>5</td>
+<td>6</td>
+<td>8</td>
+<td>8</td>
+<td>8</td>
+<td>10</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>temp</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>92</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>以此类推，那么最后的结果就是这样</li>
+</ul>
+<p>count</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>2</td>
+<td>2</td>
+<td>4</td>
+<td>5</td>
+<td>6</td>
+<td>8</td>
+<td>8</td>
+<td>8</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>temp</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>70</td>
+<td>80</td>
+<td>12</td>
+<td>92</td>
+<td>83</td>
+<td>54</td>
+<td>75</td>
+<td>75*</td>
+<td>68</td>
+<td>48</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>第二次循环<br> 70   ， 80   ， 12   ， 92   ， 83   ， 54   ， 75   ， 75*  ， 68   ， 48</p>
+<ul>
+<li>先计数</li>
+<li><img src="/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/8.png" alt="示例"></li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>3</td>
+<td>2</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>count累加<br>| 0    | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    |<br>| —— | —— | —— | —— | —— | —— | —— | —— | —— | —— |<br>| 0    | 1    | 1    | 1    | 2   | 3   | 4    | 7    | 9    | 10    |</li>
+<li>以此类推，那么最后的结果就是这样</li>
+</ul>
+<p>count</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td>7</td>
+<td>9</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>temp</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>12</td>
+<td>48</td>
+<td>54</td>
+<td>68</td>
+<td>70</td>
+<td>75</td>
+<td>75*</td>
+<td>80</td>
+<td>83</td>
+<td>92</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><img src="/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/2.gif" alt="示例" style="zoom:250%;"></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> maxn=<span class="number">1000</span>;</span><br><span class="line"><span class="keyword">int</span> a[maxn],n;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">maxbit</span><span class="params">(<span class="keyword">int</span> data[], <span class="keyword">int</span> n)</span> <span class="comment">//辅助函数，求数据的最大位数</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//扫描一遍就可以了，判断是不是比10，1000大</span></span><br><span class="line">    <span class="keyword">int</span> d=<span class="number">1</span>;<span class="comment">//统计最大的位数</span></span><br><span class="line">    <span class="keyword">int</span> p=<span class="number">10</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;n;++i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">while</span>(data[i]&gt;=p)</span><br><span class="line">        &#123;</span><br><span class="line">            p*=<span class="number">10</span>;</span><br><span class="line">            ++d;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> d;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">radixsort</span><span class="params">(<span class="keyword">int</span> data[], <span class="keyword">int</span> n)</span> <span class="comment">//基数排序</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> d=maxbit(data,n); <span class="comment">//求最大位数</span></span><br><span class="line">    <span class="keyword">int</span> *tmp=<span class="keyword">new</span> <span class="keyword">int</span>[n]; <span class="comment">//辅助数组</span></span><br><span class="line">    <span class="keyword">int</span> *count=<span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">10</span>]; <span class="comment">//计数器</span></span><br><span class="line">    <span class="keyword">int</span> i,j,k;</span><br><span class="line">    <span class="keyword">int</span> radix=<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">1</span>;i&lt;=d;i++) <span class="comment">//进行d次排序</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span>(j=<span class="number">0</span>;j&lt;<span class="number">10</span>;j++)</span><br><span class="line">            count[j]=<span class="number">0</span>; <span class="comment">//每次分配前清空计数器</span></span><br><span class="line">        <span class="keyword">for</span>(j=<span class="number">0</span>;j&lt;n;j++)</span><br><span class="line">        &#123;</span><br><span class="line">            k=(data[j]/radix)%<span class="number">10</span>; <span class="comment">//取出个位数，然后是十位数，...</span></span><br><span class="line">            count[k]++; <span class="comment">//统计每个桶中的记录数</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span>(j=<span class="number">1</span>;j&lt;<span class="number">10</span>;j++)</span><br><span class="line">            count[j]+=count[j<span class="number">-1</span>]; <span class="comment">//将tmp中的位置依次分配给每个桶</span></span><br><span class="line">        <span class="keyword">for</span>(j=n<span class="number">-1</span>;j&gt;=<span class="number">0</span>;j--) <span class="comment">//将所有桶中记录依次收集到tmp中</span></span><br><span class="line">        &#123;</span><br><span class="line">            k=(data[j]/radix)%<span class="number">10</span>;</span><br><span class="line">            tmp[--count[k]]=data[j];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span>(j=<span class="number">0</span>;j&lt;n;j++) <span class="comment">//将临时数组的内容复制到data中</span></span><br><span class="line">            data[j]=tmp[j];</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="string">"第"</span>&lt;&lt;i&lt;&lt;<span class="string">"次排序结果："</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;n;i++)</span><br><span class="line">            <span class="built_in">cout</span>&lt;&lt;data[i]&lt;&lt;<span class="string">"\t"</span>;</span><br><span class="line">        <span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">        radix=radix*<span class="number">10</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">delete</span>[]tmp;</span><br><span class="line">    <span class="keyword">delete</span>[]count;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;n;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;n;i++)</span><br><span class="line">        <span class="built_in">cin</span>&gt;&gt;a[i];</span><br><span class="line">    radixsort(a,n);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="加一段基数排序的gif，更容易理解"><a href="#加一段基数排序的gif，更容易理解" class="headerlink" title="加一段基数排序的gif，更容易理解"></a>加一段基数排序的gif，更容易理解</h3><p><img src="/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/1.gif" alt="示例"></p>
+<p>视频来自可视化算法网站<a href="https://visualgo.net/zh" target="_blank" rel="noopener">https://visualgo.net/zh</a></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><img src="/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/6.png" alt="示例"></p>
+<p><img src="/2020/05/06/%E5%88%86%E9%85%8D%E6%8E%92%E5%BA%8F/5.png" alt="示例"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Data-structure/" rel="tag"># Data_structure</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/05/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%E5%A4%9A%E5%85%83%E5%BE%AE%E7%A7%AF%E5%88%86%E6%80%BB%E7%BB%93/" rel="prev" title="高等数学多元微积分总结">
+      <i class="fa fa-chevron-left"></i> 高等数学多元微积分总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/06/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" rel="next" title="快速排序">
+      快速排序 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#分配排序"><span class="nav-number">1.</span> <span class="nav-text">分配排序</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#桶排序"><span class="nav-number">1.1.</span> <span class="nav-text">桶排序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#注意的问题"><span class="nav-number">1.1.1.</span> <span class="nav-text">注意的问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基数排序"><span class="nav-number">1.2.</span> <span class="nav-text">基数排序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#算法步骤"><span class="nav-number">1.2.1.</span> <span class="nav-text">算法步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#讨论"><span class="nav-number">1.2.2.</span> <span class="nav-text">讨论</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#算法复杂度分析"><span class="nav-number">1.2.3.</span> <span class="nav-text">算法复杂度分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码"><span class="nav-number">1.2.4.</span> <span class="nav-text">代码</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#二维数组代码的实现"><span class="nav-number">1.2.4.0.1.</span> <span class="nav-text">二维数组代码的实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#一维数组实现"><span class="nav-number">1.2.4.0.2.</span> <span class="nav-text">一维数组实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#加一段基数排序的gif，更容易理解"><span class="nav-number">1.2.5.</span> <span class="nav-text">加一段基数排序的gif，更容易理解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.2.6.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

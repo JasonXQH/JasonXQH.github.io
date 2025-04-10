@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="CSAPP链接(Linking)为什么要用 Linking？  能让程序模块化 Linking可以让程序写成一个包含了较小源文件的集合，而不是将所有代码整合到一起。 Linking允许我们构建一些包含常用函数的库(Math library,standard C library)   能提高整个程序的运行效率 在时间方面，可以单独编译 改变其中一个源文件即可，然后重新编译 不需要重新编译其他的源文件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CSAPP链接">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="CSAPP链接(Linking)为什么要用 Linking？  能让程序模块化 Linking可以让程序写成一个包含了较小源文件的集合，而不是将所有代码整合到一起。 Linking允许我们构建一些包含常用函数的库(Math library,standard C library)   能提高整个程序的运行效率 在时间方面，可以单独编译 改变其中一个源文件即可，然后重新编译 不需要重新编译其他的源文件">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/1.jpg">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/22.png">
+<meta property="article:published_time" content="2020-11-21T06:10:24.000Z">
+<meta property="article:modified_time" content="2022-08-22T13:05:18.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="CSAPP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>CSAPP链接 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CSAPP链接
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-11-21 14:10:24" itemprop="dateCreated datePublished" datetime="2020-11-21T14:10:24+08:00">2020-11-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-08-22 21:05:18" itemprop="dateModified" datetime="2022-08-22T21:05:18+08:00">2022-08-22</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="CSAPP链接-Linking"><a href="#CSAPP链接-Linking" class="headerlink" title="CSAPP链接(Linking)"></a>CSAPP链接(Linking)</h1><p>为什么要用 Linking？</p>
+<ol>
+<li>能让程序模块化<ul>
+<li>Linking可以让程序写成一个包含了较小源文件的集合，而不是将所有代码整合到一起。</li>
+<li>Linking允许我们构建一些包含常用函数的库(Math library,standard C library)</li>
+</ul>
+</li>
+<li>能提高整个程序的运行效率<ul>
+<li>在时间方面，可以单独编译<ul>
+<li>改变其中一个源文件即可，然后重新编译</li>
+<li>不需要重新编译其他的源文件</li>
+<li>可以同时编译多个文件</li>
+</ul>
+</li>
+<li>空间方便，可以编写库<ul>
+<li>常见的函数可以整合到一个文件夹当中                         </li>
+<li>静态链接<ul>
+<li>静态链接的过程就已经把要链接的内容已经链接到了生成的可执行文件中，就算你在去把静态库删除也不会影响可执行程序的执行</li>
+</ul>
+</li>
+<li>动态链接<ul>
+<li>动态链接这个过程没有把内容链接进去，而是在执行的过程中，再去找要链接的内容，生成的可执行文件中并没有要链接的内容，所以当你删除动态库时，可执行程序就不能运行。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="编译器驱动程序"><a href="#编译器驱动程序" class="headerlink" title="编译器驱动程序"></a>编译器驱动程序</h2><p>现在我们有两个 .c文件：</p>
+<p>main.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sum</span><span class="params">(<span class="keyword">int</span> *a, <span class="keyword">int</span> n)</span></span>;</span><br><span class="line"><span class="keyword">int</span> <span class="built_in">array</span>[<span class="number">2</span>] = &#123;<span class="number">1</span>, <span class="number">2</span>&#125;;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> val = sum(<span class="built_in">array</span>, <span class="number">2</span>);</span><br><span class="line">    <span class="keyword">return</span> val;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>sum.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sum</span><span class="params">(<span class="keyword">int</span> *a, <span class="keyword">int</span> n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i, s = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">   		s += a[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> s;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当我们在shell中输入这样的命令之后：<code>gcc -Og -o prog main.c sum.c</code></p>
+<p>机器会调用 GCC 来驱动程序：流程如下</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/1.png" style="zoom: 120%;"></p>
+<ol>
+<li>首先，驱动程序运行了 C 预处理器(C-preprocessor即cpp) ，它会将C的源程序main.c翻译成一个 ASCII 码的中间文件 main.i</li>
+<li>接下来，驱动程序运行C编译器(C compiler即ccl) ，它将main.i 翻译成一个 ASCII汇编语言文件 main.s</li>
+<li>然后驱动程序运行汇编器(assembler即as) 将main.s文件翻译成一个可重定位目标文件 main.o,同理，生成sum.o</li>
+<li>最后，它运行链接器程序ld，将main.o 和 sum.o 以及一些必要的系统目标文件组合起来，创建一个可执行目标文件 prog:</li>
+<li>要运行可执行proq，我们在linux shell 的命令行中下输入 <code>./prog</code> ，shell就会调用一个叫做加载器(loader)的函数，他将可执行文件中的prog中的代码和数据复制到内存，然后将控制转移到这个程序的开头</li>
+</ol>
+<h2 id="三种-Object-Files"><a href="#三种-Object-Files" class="headerlink" title="三种 Object Files"></a>三种 Object Files</h2><h3 id="Executable-and-Linkable-Format-ELF"><a href="#Executable-and-Linkable-Format-ELF" class="headerlink" title="Executable and Linkable Format (ELF)"></a>Executable and Linkable Format (ELF)</h3><p>ELF格式，是标准的<strong>目标文件的二进制格式</strong>。是三种对象文件统一的格式</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/3.png" style="zoom: 100%;"></p>
+<ul>
+<li><p>Elf header</p>
+<ul>
+<li>Word size, byte ordering, file type (.o, exec, .so),machine type, etc.</li>
+</ul>
+</li>
+<li><p>Segment header table</p>
+<ul>
+<li>Page size, virtual address memory segments (sections), segment sizes.</li>
+</ul>
+</li>
+<li>.text section<ul>
+<li>Code 代码</li>
+</ul>
+</li>
+<li>.rodata section (read-only)<ul>
+<li>放只读的数据。如跳转表，字符串常量、带 const 修饰的全局变量和静态变量等</li>
+</ul>
+</li>
+<li>.data section<ul>
+<li>用于维护初始化的且初始值非0的全局变量和静态变量（不带 const 修饰）</li>
+<li>这部分需要空间</li>
+</ul>
+</li>
+<li>.bss section 用于维护未初始化的或初始值为0的全局变量和静态变量（不带 const 修饰）<ul>
+<li>Uninitialized global variables 没有初始化的全局变量</li>
+<li>“Block Started by Symbol”</li>
+<li>不占用目标文件的空间,因此更节省空间</li>
+</ul>
+</li>
+<li>.symtab section 符号表<ul>
+<li>Symbol table 符号表</li>
+<li>Procedure and static variable names 静态变量的名字</li>
+<li>Section names and locations 对应所在的section的名字和位置</li>
+</ul>
+</li>
+<li>.rel.text section <ul>
+<li>Relocation info for .text section</li>
+<li>Addresses of instructions that will need to be modified in the executable</li>
+<li>Instructions for modifying.</li>
+</ul>
+</li>
+<li>.rel.data section<ul>
+<li>Relocation info for .data section</li>
+<li>Addresses of pointer data that will need to be modified in the merged executable</li>
+</ul>
+</li>
+<li>.debug section<ul>
+<li>Info for symbolic debugging (gcc -g) 编译成debug版本的时候会用</li>
+</ul>
+</li>
+<li>Section header table<ul>
+<li>Offsets and sizes of each section</li>
+</ul>
+</li>
+</ul>
+<h3 id="Relocatable-object-file-o-file"><a href="#Relocatable-object-file-o-file" class="headerlink" title="Relocatable object file(.o file)"></a>Relocatable object file(.o file)</h3><p>可重定位的文件，包含了代码和数据(初始化全局变量的数据，<strong>不包含局部变量的初始化</strong>，局部变量在真正压栈的时候才会将其初始化，在一开始连空间都没有给它分配)</p>
+<p><strong>可重定位文件只能和别人链接，不能单独运行</strong></p>
+<h3 id="Executable-object-file-a-out-file"><a href="#Executable-object-file-a-out-file" class="headerlink" title="Executable object file(a.out file)"></a>Executable object file(a.out file)</h3><p>可执行文件，能直接被放在内存当中并被执行的。常常由多个.o文件链接而来</p>
+<p>LF 可执行文件被设计得很容易加载到内存，可执行文件的连续的片(chunk)被映射到连续的内存段。程序头部表（program header table)描述了这种映射关系</p>
+<h4 id="加载可执行目标文件"><a href="#加载可执行目标文件" class="headerlink" title="加载可执行目标文件"></a>加载可执行目标文件</h4><p>我们可以在linux下用 <code>./prog</code> 来运行可执行目标文件。</p>
+<p>因为prog并不是一个内置的shell命令，所以shell会认为 prog是一个可执行目标文件，通过调用加载器的操作系统代码来运行它。加载器可以将可执行目标文件中的代码和数据从磁盘复制到内存当中，然后通过跳转到程序的第一条指令或入口点来运行该程序。这个过程叫做加载</p>
+<p>在分配栈、共享库和堆的地址的时候，链接器会使用地址空间布局随机化。虽然每次程序运行的时候<strong>这些区域的地址都会改变</strong>，但是他们的<strong>相对位置是不变的</strong>。</p>
+<ul>
+<li><p>当加载器运行时，它创建类似于下图所示的内存映像。在程序头部表的引导下,加载器将可执行文件的片(chunk)复制到代码段和数据段。</p>
+</li>
+<li><p>接下来，加载器跳转到程序的入口点，也就 <code>_start</code>函数的地址。这个函数是在系统目标文件<code>ctrl.o</code>中定义的，对所有的C程序都是一样的。</p>
+</li>
+<li><code>_start</code> 函数调用系统启动函数<code>__libc_start_main</code> ，该函数定义在<code>libc.so</code>中。它初始化执行环境，调用用户层的<code>main</code> 函数，处理 <code>main</code> 函数的返回值，并且在需要的时候把控制返回给内核。</li>
+</ul>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/1.jpg" style="zoom: 100%;"></p>
+<h3 id="Share-object-file-so-file"><a href="#Share-object-file-so-file" class="headerlink" title="Share object file(.so file)"></a>Share object file(.so file)</h3><p>共享目标文件是一种特殊的可以重定位的目标文件，它只在运行的时候，由操作系统现成得加进去。在windows系统中 .so文件被叫做 .dll(Dynamic Link Libraries)</p>
+<h2 id="静态链接-符号解析-symbol-resolution"><a href="#静态链接-符号解析-symbol-resolution" class="headerlink" title="静态链接-符号解析(symbol resolution)"></a>静态链接-符号解析(symbol resolution)</h2><p>为了构造可执行文件，链接器必须完成两个主要任务：符号解析和重定向</p>
+<p>目标文件定义和引用符号，每个符号对应于一个函数、一个全局变量或者一个静态变量(static 声明的变量)，也就是说，除了关键字之外，我们写的都是符号。符号解析的目的是将每一个符号引用正好和一个符号定义关联起来。</p>
+<p>比如说<br><code>void swap()</code>是定义了一个符号，而 <code>swap()</code> 是调用了一个符号</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">swap</span><span class="params">()</span> </span>&#123;…&#125; 	<span class="comment">/* define symbol swap */</span></span><br><span class="line">swap(); 			<span class="comment">/* reference symbol swap */</span></span><br><span class="line"><span class="keyword">int</span> *xp = &amp;x; 		<span class="comment">/* define symbol xp, reference x */</span></span><br></pre></td></tr></table></figure>
+<p>符号定义都被存放在一个符号表当中(symbol table)，这张符号表记录了符号的名字大小和位置。这些记录组成了一个数组。</p>
+<p>符号解析的目的是将每一个符号引用正好和一个符号定义关联起来。</p>
+<h3 id="静态变量、全局变量、局部变量"><a href="#静态变量、全局变量、局部变量" class="headerlink" title="静态变量、全局变量、局部变量"></a>静态变量、全局变量、局部变量</h3><ul>
+<li>在内存里的位置不一样</li>
+<li>静态变量不能被其他 .c文件访问，全局变量可以</li>
+<li>静态变量可以在函数里面定义，出了函数再进来静态变量的值还是一样的。不会因为函数返回就没了。可以用来保留反复调用的函数的中间状态。</li>
+<li>静态变量可以节省空间，减少无谓的压栈和出栈的次数</li>
+</ul>
+<p>接下来我们还要详细讲解一下全局变量的注意事项</p>
+<h3 id="三种symbols"><a href="#三种symbols" class="headerlink" title="三种symbols"></a>三种symbols</h3><p><strong>Global symbols</strong></p>
+<p>全局符号就是在本地<code>.c</code>文件中定义，在其他模块中也能引用 。 如<strong>非static函数和非static的全局变量</strong>（指<strong>不带static的全局变量</strong>）</p>
+<p><strong>External symbols</strong></p>
+<p>在外部文件定义，当前文件可以引用的，叫做外部符号。<strong>由其他模块定义并被模块m引用</strong>的全局符号（标志是extern，<strong>extern用来修饰全局变量，即声明在“最外层”</strong>）（要体现引用，否则不会进入符号表）</p>
+<p><strong>Local symbols</strong></p>
+<p> <strong>仅由模块m定义并能被本模块引用的本地符号</strong>。例如，在模块m中定义的<strong>带static的函数和变量（无论定义变量的位置，是全局还是在函数中，只要变量前面有static，都算是（本地）符号！）</strong></p>
+<p>注意：局部符号并不是局部变量!!!!</p>
+<p><strong>Local non-static C variables  vs local static variables</strong></p>
+<ul>
+<li><strong>本地非静态变量是存放在栈里</strong>的而<strong>本地静态变量</strong>是存放在 .bss或者 .data当中的</li>
+</ul>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/6.png" style="zoom: 120%;"></p>
+<p>问2个问题：</p>
+<ul>
+<li>一开头的<code>static int x</code>和<code>f()</code>、<code>g()</code>中的<code>static int x</code>，这三个 x是不是同一个 x？</li>
+</ul>
+<p>这是三个不同的静态变量，都在.data当中初始化了。在编译的时候，还要给x加上不同的后缀。 </p>
+<ul>
+<li>如果是同一个x，那么它们的值？如果不是x，那么return的x分别是哪一个x？</li>
+</ul>
+<p><code>f()、g()</code>中返回的值即在函数中定义的<code>static int</code>;<code>h()</code>返回的值是global的static int</p>
+<p>第一次调用<code>f(),g(),h()</code>。返回的值分别是 17，33，42</p>
+<p>第二次调用<code>f(),g(),h()</code>。返回的值分别是 18，47，69</p>
+<p>因此我们也可以了解静态变量的性质：在进入函数，x还是之前的x，并不会重新声明</p>
+<h3 id="关于symbols划分的例题"><a href="#关于symbols划分的例题" class="headerlink" title="关于symbols划分的例题"></a>关于symbols划分的例题</h3><p><strong>例1</strong></p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/4.png" style="zoom: 120%;"></p>
+<p>比如说在 main.c里面，sum() 并不是 global symbol，是一个 external symbol</p>
+<p>array和 main都是global symbol</p>
+<p>val是局部变量，并不是symbol</p>
+<p><strong>例2</strong></p>
+<p>我们再来看一个例子，下面这个.c文件哪些名字会被保存在 symbol table 当中呢？</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/5.png" style="zoom: 120%;"></p>
+<p><code>incr</code> 是全局变量 是 global symbol</p>
+<p><code>foo</code> 是static 修饰的，是local symbol</p>
+<p>a,argc，argv都是参数，不是变量</p>
+<p><code>main</code> 是一个 global symbol</p>
+<p><code>printf</code> 是一个external symbol</p>
+<p>我们可以用命令 <code>readelf -s symbols.o</code> 来看一下符号表</p>
+<h3 id="全局变量"><a href="#全局变量" class="headerlink" title="全局变量"></a>全局变量</h3><p><strong>Type Mismatch Example</strong></p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/13.png" style="zoom: 120%;"></p>
+<p>这样两个.c文件编译，还是能打印出来的，只是最后答应出来的是类型为long int的3.14</p>
+<p>所以，我们尽量不要用全局变量，在多人合作的情况下非常容易出错。</p>
+<p>如果一定要用，那么要养成一些习惯</p>
+<ul>
+<li>如果我自己的模块，要一直用，那就加static</li>
+<li>在定义一个全局变量的时候顺便初始化它</li>
+<li>如果我们引用了一个外部的全局变量，那么就用 关键词 extern 去修饰<ul>
+<li>这样能将其变成一个 weak symbol</li>
+<li>当其他文件中没有定义这个变量，但我加了extern，linker 也会报错。</li>
+</ul>
+</li>
+</ul>
+<h3 id="Use-of-extern-in-h-Files"><a href="#Use-of-extern-in-h-Files" class="headerlink" title="Use of extern in .h Files"></a>Use of extern in .h Files</h3><p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/14.png" style="zoom: 120%;"></p>
+<p>我们做一个 .h文件，里面声明了全局变量 g和全局函数f()，然后在其他文件中通过 Include 来将这两个全局变量和全局函数加进来</p>
+<p>这是标准的头文件使用方法，头文件一般只写声明，不写定义! 因为头文件是在预处理的时候将.h文件加入到.c文件去，如果在.h文件中写了定义，那么在预处理的时候c1.c和c2.c都会有.h中关于变量和函数的定义，在链接器将两个.c文件链接的时候会报重复定义的错误</p>
+<h3 id="链接器怎么解决重复定义的？"><a href="#链接器怎么解决重复定义的？" class="headerlink" title="链接器怎么解决重复定义的？"></a>链接器怎么解决重复定义的？</h3><p>首先，我们要了解符号 是 strong 还是 weak的概念</p>
+<p>Strong: procedures and initialized globals  初始化了的全局变量是Strong 的</p>
+<p>Weak: uninitialized globals Or ones declared with specifier extern 没有初始化或者是外部符号是 Weak的</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/7.png" style="zoom: 100%;"></p>
+<p>当发生冲突的时候，有一些规则</p>
+<ul>
+<li>Rule 1: 同名字且都为Strong的符号是不被允许的<ul>
+<li>相同名字的 strong 符号只能定义一次，否则 Linker是会报错的</li>
+</ul>
+</li>
+<li>Rule 2: 如果有一个强的和若干个弱的符号，那么选择那个强的符号<ul>
+<li>References to the weak symbol resolve to the strong symbol</li>
+</ul>
+</li>
+<li>Rule 3如果没有一个强的，有很多弱的符号，那就随便选一个<ul>
+<li>Can override this with gcc –fno-common</li>
+<li>也可以要求编译器强制报错，不要产生任何的warning和error</li>
+</ul>
+</li>
+</ul>
+<p>下面是一些例子：</p>
+<p><strong>1：</strong></p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/9.png" style="zoom: 150%;"></p>
+<p>因为在两个文件里， p1都是strong的符号，因此 链接器会报错。</p>
+<p><strong>2：</strong></p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/8.png" style="zoom: 150%;"></p>
+<p>p1和p2 不冲突，两个x都是弱符号，因此不冲突</p>
+<p><strong>3：</strong></p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/10.png" style="zoom: 150%;"></p>
+<p>两个x的数据类型都是不同的，但是这也是被允许的。linker是不管类型的，他只管x在哪</p>
+<p>然而，严格意义上来说这是不行的。因为double(8个字节)比int大，当我们在p2中写入的时候，因为x和y是连续存放的，因此可能会把 int y (4个字节)覆盖掉。</p>
+<p><strong>4： </strong></p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/11.png" style="zoom: 150%;"></p>
+<p>同理，虽然是合法的，但是 double的x可能吧 int y给覆盖掉</p>
+<p><strong>5：</strong></p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/12.png" style="zoom: 150%;"></p>
+<p>两个x是一强一弱的，会选择强的那个初始化，因此并不会冲突</p>
+<p>注意：只有 compiler会注意到类型，linker是不会进行类型检查的</p>
+<h2 id="静态链接-重定位-relocation"><a href="#静态链接-重定位-relocation" class="headerlink" title="静态链接-重定位(relocation)"></a>静态链接-重定位(relocation)</h2><p>静态重定位是在目标程序装入内存时，由装入程序对目标程序中的指令和数据的地址进行修改，即把<strong>程序的逻辑地址都改成实际的地址</strong>。对每个程序来说，这种地址变换只是在装入时一次完成，在程序运行期间不再进行重定位。</p>
+<p>例如，一个以“0”作为参考地址的装配模块，要装入以1000为起始地址的存储空间。显然，在装入之前要做某些修改，程序才能正确执行。例如，MOV　 EAX，[500]这条指令的意义，是把相对地址为500的存储单元内容1234装入eax寄存器。现在内容为1234的存储单元的实际地址为1500， 即为相对地址(500)加上装入的地址(1000),因此，MOV　EAX，[500]这条指令中的直接地址码也要相应地加上起始地址，而成为MOV　 EAX，[1500]。<br>程序中涉及直接地址的每条指令都要进行这样的修改。需要修改的位置称为重定位项，所做的加实际装入模块起始地址修改中的块起始地址称为重定位因子。</p>
+<p>我们看到，从可重定位目标文件到可执行目标文件，经历了下图这样一个过程：</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/2.png" style="zoom: 120%;"></p>
+<p>拿一个实际例子来说，可执行文件包含了从不同.o文件中来的内容。最终我们要生成一个可执行文件，其代码段和数据段是放在一起的。因此我们要对两个.o 文件做一个拼接。比如说我们要把<code>main()</code> 、<code>sum()</code>放在一起。 也就是说做一个将 .o文件剪开，再归类拼接到一起的过程 。</p>
+<p>假设现在 main.o 和 sum.o 发生了链接；又有一个 main1和sum.o 还有 swap.o 一起发生了链接，构成另外一个可执行文件。这就可能造成了 sum() 在不同的可执行文件当中相对于main() 的相对位置也是不同的。因此，链接器需要为目标文件中的符号进行重定位</p>
+<h3 id="Relocation-Entries"><a href="#Relocation-Entries" class="headerlink" title="Relocation Entries"></a>Relocation Entries</h3><p>那么从左边的部分到右边的部分，需要解决的问题就是将 函数和.data中的一些变量的地址给固定下来(将地址填到相应位置)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//main.c</span></span><br><span class="line"><span class="keyword">int</span> <span class="built_in">array</span>[<span class="number">2</span>] = &#123;<span class="number">1</span>, <span class="number">2</span>&#125;;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> val = sum(<span class="built_in">array</span>, <span class="number">2</span>);</span><br><span class="line">	<span class="keyword">return</span> val;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//sum.c</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sum</span><span class="params">(<span class="keyword">int</span> *a,<span class="keyword">int</span> n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> i,s = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">for</span>(i= <span class="number">0</span>;i&lt;n;i++)</span><br><span class="line">	&#123;</span><br><span class="line">		s+=a[i];</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> s;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="重定位算法"><a href="#重定位算法" class="headerlink" title="重定位算法"></a>重定位算法</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">foreach section s &#123;</span><br><span class="line">    foreach relocation entry r &#123;</span><br><span class="line">        refptr = s + r.offset; <span class="comment">/* ptr to reference to be relocated */</span></span><br><span class="line">            <span class="comment">/* Relocate a PC-relative reference */</span></span><br><span class="line">            <span class="keyword">if</span> (r.type == R_X86_64_PC32) &#123;</span><br><span class="line">                refaddr = ADDR(s) + r.offset; <span class="comment">/* ref’s run-time address */</span></span><br><span class="line">                *refptr = (<span class="keyword">unsigned</span>) (ADDR(r.symbol) + r.addend - refaddr);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">         <span class="comment">/* Relocate an absolute reference */</span></span><br><span class="line">         	<span class="keyword">if</span> (r.type == R_X86_64_32)</span><br><span class="line">         		*refptr = (<span class="keyword">unsigned</span>) (ADDR(r.symbol) + r.addend);</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>我们看看这个链接器是如何进行重定位的。首先，可重定位目标文件main.o 如下：</p>
+<p>我们看到这时候的 .o 文件用的都是相对地址，是以 0为起始地址的</p>
+<p>我们注意到。array的地址一开始被初始化为0，然后后面还有一条注释表明在重定位的时候才会把绝对地址填进去</p>
+<p>同理，sum() 函数也是一个相对位置(填入的是返回后的地址，也就是+13)，在重定位的时候，才会填入绝对的地址</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0000000000000000</span> &lt;main&gt;:</span><br><span class="line"><span class="number">0</span>: 	<span class="number">48</span> <span class="number">83</span> ec <span class="number">08</span> 	sub		$<span class="number">0x8</span>,%rsp</span><br><span class="line"><span class="number">4</span>: 	be <span class="number">02</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> 	mov 	$<span class="number">0x2</span>,%esi</span><br><span class="line"><span class="number">9</span>: 	bf <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> 	mov 	$<span class="number">0x0</span>,%edi 		# %edi = &amp;<span class="built_in">array</span></span><br><span class="line">				a: R_X86_64_32 <span class="built_in">array</span> 		# Relocation entry</span><br><span class="line">e: 	e8 <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> 	callq 	<span class="number">13</span> &lt;main+<span class="number">0x13</span>&gt; 	# sum()</span><br><span class="line">				f: R_X86_64_PC32 sum<span class="number">-0x4</span> 	# Relocation entry</span><br><span class="line"><span class="number">13</span>: <span class="number">48</span> <span class="number">83</span> c4 <span class="number">08</span> 	add 	$<span class="number">0x8</span>,%rsp</span><br><span class="line"><span class="number">17</span>: c3 						retq</span><br></pre></td></tr></table></figure>
+<p>main函数引用了两个全局符号，一个是array，还有一个是sum。为每个引用，汇编器都产生一个重定位条目，然后显示在后面一行上:这里是<code>a: R_X86_64_32 array</code>和<code>f: R_X86_64_PC32 sum-0x4</code></p>
+<p>这些重定位条目告诉链接器对sum的引用要进行32位<strong>相对地址</strong>进行重定位 ，表现为<code>R_X86_64_PC32</code>; 但是对 array的引用是进行32位<strong>绝对地址</strong>的重定位,表现为 <code>R_X86_64_32</code></p>
+<h3 id="相对引用"><a href="#相对引用" class="headerlink" title="相对引用"></a>相对引用</h3><p>在上面的汇编代码中，main函数在第六行调用sum数，sum函数是在模块sum.o 中的。call指令 开始于节偏移 <code>0xe</code> 的地方，包括一字节的操作码<code>0xe8</code>,后跟着的是PC相对引用的占位符。现在还是00</p>
+<p>假设重定位条目 r 由 4个字段组成</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">r.offset = <span class="number">0xf</span></span><br><span class="line">r.symbol = sum</span><br><span class="line">r.type 	= R_X86_64_PC32</span><br><span class="line">r.addend = <span class="number">-4</span></span><br></pre></td></tr></table></figure>
+<p>这些字段告诉链接器修改开始于偏移量<code>0xf</code> 处的32 位PC相对引用，这样在运行时它会指向 sum 例程。现在，假设链接器已经确定 <code>ADDR(.text)=0x4004d0</code>和 <code>ADDR(sum)=0x4004e8</code></p>
+<p>然后通过相对寻址算法，连接器可以计算出<strong>引用的运行时地址</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">refaddr &#x3D; ADDR(s) + r.offset</span><br><span class="line">&#x3D; 0x4004d0 + 0xf</span><br><span class="line">&#x3D; 0x4004df</span><br></pre></td></tr></table></figure>
+<p>然后更新引用，让它在运行时指向sum程序</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">*refptr &#x3D; (unsigned) (ADDR(r.symbol) + r.addend - refaddr)</span><br><span class="line">&#x3D; (unsigned) (0x4004e8 +(-4)- 0x4004df)</span><br><span class="line">&#x3D; (unsigned) (0x5)</span><br></pre></td></tr></table></figure>
+<p>因此，在在最后的.o文件中， call指令有着如下的重定位形式</p>
+<p><code>4004de:         e8 05 00 00 00         callq 4004e8 &lt;sum&gt; # sum()</code></p>
+<p>在运行时，call指令将存放在地址0x4004de 处。当CPU执行call 指令时，PC 的值为0x4004e3, 即紧随在call 指令之后的指令的地址。为了执行这条指令，CPU 执行以下的步骤：<br>1) 将PC 压入栈中</p>
+<p>2) $PC\leftarrow PC+0x5 = 0x4004e3+0x5 = 0x4004e8$</p>
+<p>下面是重定位之后的在 可执行文件的text区域中的代码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">00000000004004d0 &lt;main&gt;:</span><br><span class="line">4004d0: 		48 83 ec 08 		sub $0x8,%rsp</span><br><span class="line">4004d4: 		be 02 00 00 00 		mov $0x2,%esi</span><br><span class="line">4004d9: 		bf 18 10 60 00 		mov $0x601018,%edi # %edi &#x3D; &amp;array</span><br><span class="line">4004de: 		e8 05 00 00 00 		callq 4004e8 &lt;sum&gt; # sum()</span><br><span class="line">4004e3: 		48 83 c4 08 		add $0x8,%rsp</span><br><span class="line">4004e7: 		c3 					retq</span><br><span class="line">00000000004004e8 &lt;sum&gt;:</span><br><span class="line">4004e8: 		b8 00 00 00 00 		mov $0x0,%eax</span><br><span class="line">4004ed: 		ba 00 00 00 00 		mov $0x0,%edx</span><br><span class="line">4004f2: 		eb 09 				jmp 4004fd &lt;sum+0x15&gt;</span><br><span class="line">4004f4: 		48 63 ca 			movslq %edx,%rcx</span><br><span class="line">4004f7: 		03 04 8f 			add (%rdi,%rcx,4),%eax</span><br><span class="line">4004fa: 		83 c2 01 			add $0x1,%edx</span><br><span class="line">4004fd: 		39 f2 cmp 			%esi,%edx</span><br><span class="line">4004ff: 		7c f3 				jl 4004f4 &lt;sum+0xc&gt;</span><br><span class="line">400501: 		f3 c3 				repz retq</span><br></pre></td></tr></table></figure>
+<p>我们有发现，在 .o 文件当中 <code>e:  e8 00 00 00 00 callq 13 &lt;main+0x13&gt; # sum()</code> 这行汇编代码已经变成了<br><code>4004de:   e8 05 00 00 00     callq 4004e8 &lt;sum&gt; # sum()</code> ，其中 0x4004e8 是sum的绝对地址，因为产生跳转目标的编码是由<strong>目标指令的地址与紧跟在跳转指令后面那条指令的地址之间的差</strong>得出的。因此这时候产生跳转目标的编码 = 0x4004e8-0x4004e3 = 0x05,和指令的十六进制表示相匹配，callq 采用的这种方式就是基于PC的相对地址寻址方法。</p>
+<h3 id="绝对引用"><a href="#绝对引用" class="headerlink" title="绝对引用"></a>绝对引用</h3><p>重定位绝对引用相当简单。比如下面这段汇编。 mov指令将array的地址(一个32位立即地址)复制到寄存器$\%edi$当中。mov指令开始于偏移量0x9 的位置，包括1字节操作码 $0xbf$ ，后面跟着array 的32位绝对引用的占位符</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0000000000000000 &lt;main&gt;:</span><br><span class="line">0: 	48 83 ec 08 	sub		$0x8,%rsp</span><br><span class="line">4: 	be 02 00 00 00 	mov 	$0x2,%esi</span><br><span class="line">9: 	bf 00 00 00 00 	mov 	$0x0,%edi 		# %edi &#x3D; &amp;array</span><br><span class="line">				a: R_X86_64_32 array 		# Relocation entry</span><br><span class="line">e: 	e8 00 00 00 00 	callq 	13 &lt;main+0x13&gt; 	# sum()</span><br><span class="line">				f: R_X86_64_PC32 sum-0x4 	# Relocation entry</span><br><span class="line">13: 48 83 c4 08 	add 	$0x8,%rsp</span><br><span class="line">17: c3 						retq</span><br></pre></td></tr></table></figure>
+<p>现在给出占位符条目 r ，包括4个字段：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">r.offset &#x3D; 0xa</span><br><span class="line">r.symbol &#x3D; array</span><br><span class="line">r.type 	&#x3D; R_X86_64_32</span><br><span class="line">r.addend &#x3D; 0</span><br></pre></td></tr></table></figure>
+<p>这些字段告诉链接器要修改从偏移量$0xa$ 开始的绝对引用，这样在运行时它将会指向array的第一个字节。现在，假设链接器已经确定</p>
+<p><code>ADDR(r.symbol)=ADDR(array)=0x601018</code></p>
+<p>那么根据上面的算法，我们可以计算 <code>*refptr</code>的值 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">*refptr &#x3D; (unsigned) (ADDR(r.symbol) + r.addend)</span><br><span class="line">		&#x3D; (unsigned) (0x601018+0)</span><br><span class="line">		&#x3D; (unsigned) (0x601018)</span><br></pre></td></tr></table></figure>
+<p>因此我们要将汇编改为</p>
+<p><code>4004d9:    bf 18 10 60 00      mov    $0x601018,%edi</code> 因为我们的机器是小端法 </p>
+<h2 id="库-libraries"><a href="#库-libraries" class="headerlink" title="库(libraries)"></a>库(libraries)</h2><h3 id="什么是库？"><a href="#什么是库？" class="headerlink" title="什么是库？"></a>什么是库？</h3><p>库是一些常用函数的集合，比如说基于 Math,I/O,memory management,string manipulation 的一些操作函数。</p>
+<p>那么我们要引用库中的函数，有两种方法：</p>
+<ul>
+<li>选择1：将所有的函数放到一个源文件当中<ul>
+<li>这样程序员就会将一个很大的文件链接到自己的程序当中</li>
+<li>空间和时间的效率都很差。我只用一个函数，但是我却要链接很多很多其他没用的函数链接进来，这样就会浪费内存和磁盘的空间。且每次编译都要进行很多无谓的工作。</li>
+</ul>
+</li>
+<li>选择2：将每一个库函数分别放在不同的源文件当中<ul>
+<li>程序员将合适的函数精确的链接到自己的程序当中</li>
+<li>更加油效率，但对程序员来说很不友好，要记住更多函数的名字，压力更大。</li>
+</ul>
+</li>
+</ul>
+<p>这两种方法都不是特别好，于是我们提出了两种方案。</p>
+<h3 id="静态库-static-library"><a href="#静态库-static-library" class="headerlink" title="静态库(static library)"></a>静态库(static library)</h3><ul>
+<li><p>archive(.a库文件) 就是把所有的函数头尾相连，打包。前面加一个index索引</p>
+</li>
+<li><p>使用链接器，使其尝试通过在一个或多个存档中查找符号来解析未解析的外部引用。</p>
+</li>
+<li>当我和库文件( .a)连接的时候，会到 .a 文件当中去查找哪些.o 文件是我需要的。那么这一部分 .o文件链接到我的可执行文件当中</li>
+</ul>
+<p>.a 和 .o 文件的关系如下：</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/16.png" style="zoom: 120%;"></p>
+<p>我们也可以字节编写一个 .a 文件：</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/17.png" style="zoom: 120%;"></p>
+<p>在编译链接的过程如下图所示：</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/18.png" style="zoom: 120%;"></p>
+<p>当我们安装环境的时候，已经把库的查找路径安装进去了，编译器会根据这些缺省的路径去查找。</p>
+<p>查找的优先级：include 某一个文件可以用双引号”” 和一个\&lt;> 双引号代表当前目录下的文件，而\&lt;> 则代表在系统缺省路径中查找。</p>
+<h4 id="使用静态库"><a href="#使用静态库" class="headerlink" title="使用静态库"></a>使用静态库</h4><ul>
+<li>按顺序扫描.o文件和.a文件</li>
+<li>在扫面描的时候，把unresolved 符号引用都保存下来</li>
+<li>每当一个新的 .o 和 .a 进来，我们回去看前面的那张表，去看看前面保存的哪些unresolved 符号是否在这些 .o和 .a 文件中存在。逐个把这些unresolved 符号解析掉</li>
+<li>如果整个过程结束，发现表中还有symbol没有找到，那么就会报 symbol not found ，链接失败</li>
+</ul>
+<h3 id="动态链接共享库-shared-library"><a href="#动态链接共享库-shared-library" class="headerlink" title="动态链接共享库(shared library)"></a>动态链接共享库(shared library)</h3><p>静态链接库有如下缺点：</p>
+<ol>
+<li>增加了硬盘的占用空间</li>
+<li>增加了内存的占用空间，比如说一份printf的代码可能会在内存中存放100份</li>
+<li>如果要更新某些库中的一些函数，我不得不将和这个库有关的程序重新编译链接一遍。这个代价是非常非常大的。编译一个程序是十分消耗时间的。</li>
+</ol>
+<p>所以我们引入了共享库/动态链接库的概念</p>
+<p>当我想要一个 对象文件的时候，我并不将其链接进我们的程序，只有在要使用这个文件的时候，再动态的加载进去。这样就能让磁盘只保存一份库的代码即可</p>
+<p>那么有哪些情况需要用到 object file呢？</p>
+<ol>
+<li>当加载可执行程序的时候，发现要用特定的object file，就将其加载到内存当中去</li>
+<li>可执行程序要用到某个 object file中的某个全局变量或者函数的时候，到那句语句要执行的时候我在将对应的object file加载进去。</li>
+</ol>
+<p>在windows中，这类库叫做 .dll ; 在linux环境下，叫做 .so</p>
+<h4 id="What-dynamic-libraries-are-required"><a href="#What-dynamic-libraries-are-required" class="headerlink" title="What dynamic libraries are required"></a>What dynamic libraries are required</h4><ul>
+<li>.interp section<ul>
+<li>Specifies the dynamic linker to use (i.e.,ld-linux.so)</li>
+</ul>
+</li>
+<li>.dynamic section<ul>
+<li>Specifies the names, etc of the dynamic libraries to use</li>
+</ul>
+</li>
+<li>where are the libraries found <ul>
+<li>专门有一个可执行文件 ldd帮我们去找到我们需要的动态链接库在什么地方</li>
+</ul>
+</li>
+</ul>
+<h4 id="生成一个动态链接库的例子"><a href="#生成一个动态链接库的例子" class="headerlink" title="生成一个动态链接库的例子"></a>生成一个动态链接库的例子</h4><p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/19.png" style="zoom: 120%;"></p>
+<p>将两个 .o 文件，通过命令 <code>gcc -shared -o libvector.so addvec.o multvec.o</code> 这行命令来生成一个 .so 文件。 其中 <code>.o</code> 表示 output，即说明生成的这个文件(共享库)是什么名字。</p>
+<h4 id="Dynamic-Linking-at-load-time"><a href="#Dynamic-Linking-at-load-time" class="headerlink" title="Dynamic Linking at load-time"></a>Dynamic Linking at load-time</h4><p>现在我们来讲一下加载过程中怎么样使用共享库</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/20.png" style="zoom: 120%;"></p>
+<p>我们对程序采用动态链接，这就是编译链接生成函数的内部步骤。</p>
+<p>我们通过 <code>gcc -o prog21 main2.o ./libvector.so</code> 这行命令就可以将main2.o 和我们需要的 libvector.so,libc.so 组合生成prog21文件。</p>
+<p>但是这个prog21文件有 main2.o的代码，但是却没有 libvector.so 的代码，仅仅是在里面“埋了一个伏笔告诉我们会用到libvector.so “</p>
+<p>当我们要运行的时候(最后)，系统会通过动态链接器(ld-linux.so) 将需要的两个 .so 文件加载进去。最终形成一个完整的文件。</p>
+<h4 id="Dynamic-Linking-at-Run-time"><a href="#Dynamic-Linking-at-Run-time" class="headerlink" title="Dynamic Linking at Run-time"></a>Dynamic Linking at Run-time</h4><p>现在有一个程序如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;dlfcn.h&gt;</span></span></span><br><span class="line"><span class="keyword">int</span> x[<span class="number">2</span>] = &#123;<span class="number">1</span>, <span class="number">2</span>&#125;;</span><br><span class="line"><span class="keyword">int</span> y[<span class="number">2</span>] = &#123;<span class="number">3</span>, <span class="number">4</span>&#125;;</span><br><span class="line"><span class="keyword">int</span> z[<span class="number">2</span>];</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">void</span> *handle;<span class="comment">//handle是一个句柄，我们通过handle这个指针来拿到我想要的东西</span></span><br><span class="line">    <span class="keyword">void</span> (*addvec)(<span class="keyword">int</span> *, <span class="keyword">int</span> *, <span class="keyword">int</span> *, <span class="keyword">int</span>);<span class="comment">//函数指针，</span></span><br><span class="line">    <span class="keyword">char</span> *error;<span class="comment">//字符串数组，来传递错误信息的</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* Dynamically load the shared library that contains addvec() */</span></span><br><span class="line">    <span class="comment">//一开始用handle来挂住一个文件，也就是相对路径下的 libvector.so文件</span></span><br><span class="line">    handle = dlopen(<span class="string">"./libvector.so"</span>, RTLD_LAZY);</span><br><span class="line">    <span class="comment">//这里的 LAZY 翻译成 “迟" 的，也就是能不加载就不加载，不得已要的时候才加载</span></span><br><span class="line">    <span class="keyword">if</span> (!handle) &#123;</span><br><span class="line">    	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%s\n"</span>, dlerror());</span><br><span class="line">        <span class="comment">//如果handle没有打开这个文件，那就报标准错误</span></span><br><span class="line">   		<span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get a pointer to the addvec() function we just loaded */</span></span><br><span class="line">    addvec = dlsym(handle, <span class="string">"addvec"</span>);</span><br><span class="line">    <span class="keyword">if</span> ((error = dlerror()) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">//如果dlerror 非空，那么也要把错误输出</span></span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%s\n"</span>, error);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* Now we can call addvec() just like any other function */</span></span><br><span class="line">    addvec(x, y, z, <span class="number">2</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"z = [%d %d]\n"</span>, z[<span class="number">0</span>], z[<span class="number">1</span>]);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* Unload the shared library */</span></span><br><span class="line">    <span class="comment">//如果要关闭外部的资源，要看看handle的返回值是否是负的，负的就要报错</span></span><br><span class="line">    <span class="comment">//我们可以用man来看系统调用。</span></span><br><span class="line">    <span class="keyword">if</span> (dlclose(handle) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%s\n"</span>, dlerror());</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个工程的逻辑如下：</p>
+<p>首先我们要在本地申明一个和要链接的动态库绑定的指针(handle)</p>
+<p>然后打开这个共享库</p>
+<p>然后正常使用共享库当中的符号 </p>
+<p>最后关闭这个共享库</p>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/21.png" style="zoom: 120%;"></p>
+<h3 id="静态库-vs-动态库"><a href="#静态库-vs-动态库" class="headerlink" title="静态库  vs 动态库"></a>静态库  vs 动态库</h3><p>静态库和动态库的载入时间是不一样的。</p>
+<p>静态库的代码在编译的过程中已经载入到可执行文件中，所以最后生成的可执行文件相对较大。</p>
+<p>动态库的代码在可执行程序运行时才载入内存，在编译过程中仅简单的引用，所以最后生成的可执行文件相对较小。可以提高代码的可复用度和降低程序的耦合度。</p>
+<p>静态库在程序编译时会被连接到目标代码中，程序运行时将不再需要该静态库。</p>
+<p>动态库在程序编译时并不会被连接到目标代码中，而是在程序运行是才被载入，因此在程序运行时还需要动态库存在。</p>
+<p>无论静态库，还是动态库，都是由.o文件创建的。因此，我们必须将源程序hello.c通过gcc先编译成.o文件。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li><p>链接能让多个目标文件最终组合成一个程序</p>
+</li>
+<li><p>链接可以在程序生命周期的不同时间发生:</p>
+<ul>
+<li>Compile time (when a program is compiled) 编译阶段，静态库</li>
+<li>Load time (when a program is loaded into memory) 加载阶段，动态库</li>
+<li>Run time (while a program is executing) 运行阶段, 动态库</li>
+</ul>
+</li>
+<li><p>了解链接能帮助我们避免恶心的错误</p>
+</li>
+</ul>
+<p><img src="/2020/11/21/CSAPP%E9%93%BE%E6%8E%A5/22.png"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CSAPP/" rel="tag"># CSAPP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/11/17/%E6%9C%80%E9%95%BF%E5%85%AC%E5%85%B1-%E4%B8%8A%E5%8D%87%E5%AD%90%E5%BA%8F%E5%88%97/" rel="prev" title="最长公共/上升子序列">
+      <i class="fa fa-chevron-left"></i> 最长公共/上升子序列
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/11/24/CSAPP%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/" rel="next" title="CSAPP虚拟内存">
+      CSAPP虚拟内存 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP链接-Linking"><span class="nav-number">1.</span> <span class="nav-text">CSAPP链接(Linking)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#编译器驱动程序"><span class="nav-number">1.1.</span> <span class="nav-text">编译器驱动程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三种-Object-Files"><span class="nav-number">1.2.</span> <span class="nav-text">三种 Object Files</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Executable-and-Linkable-Format-ELF"><span class="nav-number">1.2.1.</span> <span class="nav-text">Executable and Linkable Format (ELF)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Relocatable-object-file-o-file"><span class="nav-number">1.2.2.</span> <span class="nav-text">Relocatable object file(.o file)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Executable-object-file-a-out-file"><span class="nav-number">1.2.3.</span> <span class="nav-text">Executable object file(a.out file)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#加载可执行目标文件"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">加载可执行目标文件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Share-object-file-so-file"><span class="nav-number">1.2.4.</span> <span class="nav-text">Share object file(.so file)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#静态链接-符号解析-symbol-resolution"><span class="nav-number">1.3.</span> <span class="nav-text">静态链接-符号解析(symbol resolution)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#静态变量、全局变量、局部变量"><span class="nav-number">1.3.1.</span> <span class="nav-text">静态变量、全局变量、局部变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三种symbols"><span class="nav-number">1.3.2.</span> <span class="nav-text">三种symbols</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关于symbols划分的例题"><span class="nav-number">1.3.3.</span> <span class="nav-text">关于symbols划分的例题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#全局变量"><span class="nav-number">1.3.4.</span> <span class="nav-text">全局变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Use-of-extern-in-h-Files"><span class="nav-number">1.3.5.</span> <span class="nav-text">Use of extern in .h Files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#链接器怎么解决重复定义的？"><span class="nav-number">1.3.6.</span> <span class="nav-text">链接器怎么解决重复定义的？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#静态链接-重定位-relocation"><span class="nav-number">1.4.</span> <span class="nav-text">静态链接-重定位(relocation)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Relocation-Entries"><span class="nav-number">1.4.1.</span> <span class="nav-text">Relocation Entries</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重定位算法"><span class="nav-number">1.4.2.</span> <span class="nav-text">重定位算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#相对引用"><span class="nav-number">1.4.3.</span> <span class="nav-text">相对引用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#绝对引用"><span class="nav-number">1.4.4.</span> <span class="nav-text">绝对引用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#库-libraries"><span class="nav-number">1.5.</span> <span class="nav-text">库(libraries)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是库？"><span class="nav-number">1.5.1.</span> <span class="nav-text">什么是库？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#静态库-static-library"><span class="nav-number">1.5.2.</span> <span class="nav-text">静态库(static library)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用静态库"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">使用静态库</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态链接共享库-shared-library"><span class="nav-number">1.5.3.</span> <span class="nav-text">动态链接共享库(shared library)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#What-dynamic-libraries-are-required"><span class="nav-number">1.5.3.1.</span> <span class="nav-text">What dynamic libraries are required</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#生成一个动态链接库的例子"><span class="nav-number">1.5.3.2.</span> <span class="nav-text">生成一个动态链接库的例子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dynamic-Linking-at-load-time"><span class="nav-number">1.5.3.3.</span> <span class="nav-text">Dynamic Linking at load-time</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dynamic-Linking-at-Run-time"><span class="nav-number">1.5.3.4.</span> <span class="nav-text">Dynamic Linking at Run-time</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#静态库-vs-动态库"><span class="nav-number">1.5.4.</span> <span class="nav-text">静态库  vs 动态库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.5.5.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

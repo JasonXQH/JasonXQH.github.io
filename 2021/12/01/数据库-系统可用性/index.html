@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="数据库-系统可用性系统的可用性是指：一个系统处在正常工作状态的时间比例  比如说，一台机器的 MTTR(mean time to failure)是81.5年，MTTF(mean time to repair)是1h，那么：  MTTF in hours &#x3D; 81.5$\times$365$\times$24 &#x3D; 713940 Inherent availability(Ai) &#x3D; 713940&#x2F;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库-系统可用性">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="数据库-系统可用性系统的可用性是指：一个系统处在正常工作状态的时间比例  比如说，一台机器的 MTTR(mean time to failure)是81.5年，MTTF(mean time to repair)是1h，那么：  MTTF in hours &#x3D; 81.5$\times$365$\times$24 &#x3D; 713940 Inherent availability(Ai) &#x3D; 713940&#x2F;">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/9.png">
+<meta property="article:published_time" content="2021-12-01T10:55:07.000Z">
+<meta property="article:modified_time" content="2022-06-23T12:10:24.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据管理系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>数据库-系统可用性 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库-系统可用性
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-12-01 18:55:07" itemprop="dateCreated datePublished" datetime="2021-12-01T18:55:07+08:00">2021-12-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-06-23 20:10:24" itemprop="dateModified" datetime="2022-06-23T20:10:24+08:00">2022-06-23</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="数据库-系统可用性"><a href="#数据库-系统可用性" class="headerlink" title="数据库-系统可用性"></a>数据库-系统可用性</h1><p>系统的可用性是指：一个系统处在正常工作状态的时间比例</p>
+<p> 比如说，一台机器的 MTTR(mean time to failure)是81.5年，MTTF(mean time to repair)是1h，那么：</p>
+<ul>
+<li>MTTF in hours = 81.5$\times$365$\times$24 = 713940</li>
+<li>Inherent availability(Ai) = 713940/(713940+1) = 99.99986%</li>
+</ul>
+<p>怎么才能让服务器变得高可用呢?</p>
+<p>我们可以使用 冗余节点(Redundancy) 和数据复制(Replication)的技术，当某节点发生故障时，切换到冗余节点。</p>
+<h2 id="MongoDB的容错方案"><a href="#MongoDB的容错方案" class="headerlink" title="MongoDB的容错方案"></a>MongoDB的容错方案</h2><p>MongoDB诞生的时候，就决定部署在云上。那么在部署的时候我们就不能只放在一台机器上，需要做备份，如下图：</p>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/1.png"></p>
+<p>Primary是主机，有两个Secondary是主机的备份。系统要做的就是在主机更新时通知备份的及其来让这三个机器的数据保持一致。为了实现同步，我们需要了解<strong>心跳</strong>的含义，简单来说，心跳就是主机过一段时间(可能是几十毫秒).告诉对方我还在，还有心跳。一旦有Primary机器出故障了，就会影响心跳。这时候Secondary机器会感知到，其中一台机器变成了Primary, 如下图所示：</p>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/2.png"></p>
+<p>那么有一个问题：为什么是一主两备，而不是一主一备呢？第三台机器存在的意义是什么</p>
+<p>其实，原来的高可用机制就是单机热备：</p>
+<p>它的期望效果是：只要S1和S2 其中一个在线，系统即可用，如下图：</p>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/3.png"></p>
+<p>第一种情况，当S2出问题的时候，Primary S1还可以正常运行，等S2重启之后，再去做更新。</p>
+<p>第二种情况，当Primary S1发生故障的时候，S2会宣布自己没有心跳了(Timeout)，然后S2转换身份变成Primary，当S1恢复之后，再把S2的信息同步给S1</p>
+<p>这种设计，看起来只要两个主机不同时发生故障，就会一直运行下去，但事实上并非如此。如下图：</p>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/4.png"></p>
+<p>比如，最后一种情况，S1只是卡了一下，它并不认为自己是宕机了或者故障了，但此时S2已经收不到S1的心跳了，因此它决定变成Primary，但此时S1却回过神来了。这种情况下到底谁是Primary呢？这便出现了<strong>争议</strong>。有的用户会认为S1是Primary，而有的用户认为S2才是Primary。</p>
+<p>解决办法只能是再增加一个S3，当两个人出现争议的时候，可以通过<strong>投票</strong>的方式选出新的Primary。</p>
+<h2 id="Raft算法"><a href="#Raft算法" class="headerlink" title="Raft算法"></a>Raft算法</h2><p> raft是一个共识算法（consensus algorithm），所谓共识，就是多个节点对某个事情达成一致的看法，即使是在部分节点故障、网络延时、网络分割的情况下</p>
+<p>而在分布式系统中，共识算法更多用于提高系统的容错性，比如分布式存储中的复制集（replication），在 带着问题学习分布式系统之中心化复制集 一文中介绍了中心化复制集的相关知识。raft协议就是一种leader-based的共识算法，与之相应的是leaderless的共识算法。</p>
+<p>简单概括算法就是：raft会先选举出leader，leader完全负责replicated log的管理。leader负责接受所有客户端更新请求，然后复制到follower节点，并在“安全”的时候执行这些请求。如果leader故障，followes会重新选举出新的leader。</p>
+<p>Raft算法可以分为几个子问题：Leader election , Log replication</p>
+<h3 id="Leader-election"><a href="#Leader-election" class="headerlink" title="Leader election"></a>Leader election</h3><p>在raft协议中，一个节点任意时刻都处于以下三个状态之一：</p>
+<ul>
+<li>Leader</li>
+<li>Follower</li>
+<li>Candidate</li>
+</ul>
+<p>给出状态转移图能很直观的知道这三个状态的区别：</p>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/5.png"></p>
+<p>可以看出所有节点启动时都是follower状态；在一段时间内如果没有收到来自leader的心跳，从follower切换到candidate，发起选举；如果收到大多数节点的票（含自己的一票）则切换到leader状态；如果发现其他节点比自己更新，则主动切换到follower。</p>
+<p> 总之，系统中最多只有一个leader，如果在一段时间里发现没有leader，则大家通过选举-投票选出leader。leader会不停的给follower发心跳消息，表明自己的存活状态。如果leader故障，那么follower会转换成candidate，重新选出leader。</p>
+<h4 id="term"><a href="#term" class="headerlink" title="term"></a>term</h4><p>从上面可以看出，哪个节点做leader是大家投票选举出来的，每个leader工作一段时间，然后选出新的leader继续负责。这根民主社会的选举很像，每一届新的履职期称之为一届任期，在raft协议中，也是这样的，对应的术语叫<strong>term</strong>。</p>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/6.png"></p>
+<p>term（任期）以选举（election）开始，然后就是一段或长或短的稳定工作期（normal Operation）。从上图可以看到，任期是递增的，这就充当了逻辑时钟的作用；另外，term 3展示了一种情况，就是说没有选举出leader就结束了，然后会发起新的选举，后面会解释这种<em>split vote</em>的情况。</p>
+<h4 id="选举过程"><a href="#选举过程" class="headerlink" title="选举过程"></a>选举过程</h4><p> 上面已经说过，如果follower在<em>election timeout</em>内没有收到来自leader的心跳，（也许此时还没有选出leader，大家都在等；也许leader挂了；也许只是leader与该follower之间网络故障），则会主动发起选举。步骤如下：</p>
+<ul>
+<li>增加节点本地的 <em>current term</em> ，切换到candidate状态</li>
+<li>投自己一票</li>
+<li>并行给其他节点发送 <em>RequestVote RPCs</em></li>
+<li><p>等待其他节点的回复</p>
+<p>在这个过程中，根据来自其他节点的消息，可能出现三种结果</p>
+</li>
+</ul>
+<ol>
+<li>收到majority的投票（含自己的一票），则赢得选举，成为leader</li>
+</ol>
+<blockquote>
+<p> 第一种情况，赢得了选举之后，新的leader会立刻给所有节点发消息，广而告之，避免其余节点触发新的选举。在这里，先回到投票者的视角，投票者如何决定是否给一个选举请求投票呢，有以下约束：</p>
+<ul>
+<li>在任一任期内，单个节点最多只能投一票</li>
+<li>候选人知道的信息不能比自己的少（这一部分，后面介绍log replication和safety的时候会详细介绍）</li>
+<li>first-come-first-served 先来先得</li>
+</ul>
+</blockquote>
+<ol>
+<li>被告知别人已当选，那么自行切换到follower</li>
+</ol>
+<blockquote>
+<p>第二种情况，比如有三个节点A B C。A B同时发起选举，而A的选举消息先到达C，C给A投了一票，当B的消息到达C时，已经不能满足上面提到的第一个约束，即C不会给B投票，而A和B显然都不会给对方投票。A胜出之后，会给B,C发心跳消息，节点B发现节点A的term不低于自己的term，知道有已经有Leader了，于是转换成follower。</p>
+</blockquote>
+<ol>
+<li>一段时间内没有收到majority投票，则保持candidate状态，重新发出选举</li>
+</ol>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/7.png"></p>
+<blockquote>
+<p>第三种情况如上图所示，总共有四个节点，Node C、Node D同时成为了candidate，进入了term 4，但Node A投了NodeD一票，NodeB投了Node C一票，这就出现了平票 split vote的情况。这个时候大家都在等啊等，直到超时后重新发起选举。如果出现平票的情况，那么就延长了系统不可用的时间（没有leader是不能处理客户端写请求的），因此raft引入了randomized election timeouts来尽量避免平票情况。同时，leader-based 共识算法中，节点的数目都是奇数个，尽量保证majority的出现。</p>
+</blockquote>
+<h3 id="Log-replication"><a href="#Log-replication" class="headerlink" title="Log replication"></a>Log replication</h3><p>当有了leader，系统应该进入对外工作期了。客户端的一切请求来发送到leader，leader来调度这些并发请求的顺序，并且保证leader与followers状态的一致性。raft中的做法是，将这些请求以及执行顺序告知followers。leader和followers以相同的顺序来执行这些请求，保证状态一致。</p>
+<h4 id="Replicated-state-machines"><a href="#Replicated-state-machines" class="headerlink" title="Replicated state machines"></a>Replicated state machines</h4><p>   共识算法的实现一般是基于复制状态机（Replicated state machines），何为复制状态机：</p>
+<blockquote>
+<p>If two identical, <strong>deterministic</strong> processes begin in the same state and get the same inputs in the same order, they will produce the same output and end in the same state.</p>
+</blockquote>
+<p>   简单来说：<strong>相同的初识状态 + 相同的输入 = 相同的结束状态</strong>。引文中有一个很重要的词<code>deterministic</code>，就是说不同节点要以相同且确定性的函数来处理输入，而不要引入一些不确定的值，比如本地时间等。如何保证所有节点 <code>get the same inputs in the same order</code>，使用replicated log是一个很不错的注意，log具有持久化、保序的特点，是大多数分布式系统的基石。</p>
+<p>  因此，可以这么说，在raft中，leader将客户端请求（command）封装到一个个log entry，将这些log entries复制（replicate）到所有follower节点，然后大家按相同顺序应用log entry中的command，则状态肯定是一致的。</p>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/8.png"></p>
+<h4 id="请求完整流程"><a href="#请求完整流程" class="headerlink" title="请求完整流程"></a>请求完整流程</h4><p>当系统（leader）收到一个来自客户端的写请求，到返回给客户端，整个过程从leader的视角来看会经历以下步骤：</p>
+<ul>
+<li>leader append log entry</li>
+<li>leader issue AppendEntries RPC in parallel</li>
+<li>leader wait for majority response</li>
+<li>leader apply entry to state machine</li>
+<li>leader reply to client</li>
+<li>leader notify follower apply log</li>
+</ul>
+<p>  可以看到日志的提交过程有点类似两阶段提交(2PC)，不过与2PC的区别在于，leader只需要大多数（majority）节点的回复即可，这样只要超过一半节点处于工作状态则系统就是可用的。</p>
+<p>  那么日志在每个节点上是什么样子的呢</p>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/9.png"></p>
+<p> 不难看到，logs由顺序编号的log entry组成 ，每个log entry除了包含command，还包含产生该log entry时的leader term。从上图可以看到，五个节点的日志并不完全一致，raft算法为了保证高可用，并不是强一致性，而是最终一致性，leader会不断尝试给follower发log entries，直到所有节点的log entries都相同。</p>
+<p>  在上面的流程中，leader只需要日志被复制到大多数节点即可向客户端返回，一旦向客户端返回成功消息，那么系统就必须保证log（其实是log所包含的command）<strong>在任何异常的情况下都不会发生回滚</strong>。这里有两个词：commit（committed），apply(applied)，前者是指日志被复制到了大多数节点后<strong>日志的状态</strong>；而后者则是节点将日志应用到状态机，真正影响到<strong>节点状态</strong>。</p>
+<blockquote>
+<p>The leader decides when it is safe to apply a log entry to the state machines; such an entry is called committed. Raft guarantees that committed entries are durable and will eventually be executed by all of the available state machines. A log entry is committed once the leader that created the entry has replicated it on a majority of the servers</p>
+</blockquote>
+<h3 id="Safety"><a href="#Safety" class="headerlink" title="Safety"></a>Safety</h3><p>在上面提到只要日志被复制到majority节点，就能保证不会被回滚，即使在各种异常情况下，这根leader election提到的选举约束有关。在这一部分，主要讨论raft协议在各种各样的异常情况下如何工作的。</p>
+<p>  衡量一个分布式算法，有许多属性，如</p>
+<ul>
+<li>safety：nothing bad happens,</li>
+<li>liveness： something good eventually happens.</li>
+</ul>
+<p>  在任何系统模型下，都需要满足safety属性，即在任何情况下，系统都不能出现不可逆的错误，也不能向客户端返回错误的内容。比如，raft保证被复制到大多数节点的日志不会被回滚，那么就是safety属性。而raft最终会让所有节点状态一致，这属于liveness属性。</p>
+<p>  raft协议会保证以下属性</p>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/10.png"></p>
+<h4 id="Election-safety"><a href="#Election-safety" class="headerlink" title="Election safety"></a>Election safety</h4><p>  选举安全性，即任一任期内最多一个leader被选出。这一点非常重要，在一个复制集中任何时刻只能有一个leader。系统中同时有多余一个leader，被称之为脑裂（brain split），这是非常严重的问题，会导致数据的覆盖丢失。在raft中，两点保证了这个属性：</p>
+<ul>
+<li>一个节点某一任期内最多只能投一票；</li>
+<li>只有获得majority投票的节点才会成为leader。</li>
+</ul>
+<p>  因此，<strong>某一任期内一定只有一个leader</strong>。</p>
+<h4 id="log-matching"><a href="#log-matching" class="headerlink" title="log matching"></a>log matching</h4><p>很有意思，log匹配特性， 就是说如果两个节点上的某个<code>log entry</code>的<code>log index</code>相同且term相同，那么在该index之前的所有log entry应该都是相同的。如何做到的？依赖于以下两点</p>
+<ul>
+<li>If two entries in different logs have the same index and term, then they store the same command.如果不同日志中的两个条目具有相同的索引和term，那么它们存储的是同一个命令。</li>
+<li>If two entries in different logs have the same index and term, then the logs are identical in all preceding entries.如果不同日志中的两个条目具有相同的索引和term，那么日志中的所有前面的条目都是相同的。</li>
+</ul>
+<p>首先，leader在某一term的任一位置只会创建一个log entry，且log entry是append-only。其次，consistency check。leader在AppendEntries中包含最新log entry之前的一个log 的term和index，如果follower在对应的term index找不到日志，那么就会告知leader不一致。</p>
+<p>在没有异常的情况下，log matching是很容易满足的，但如果出现了node crash，情况就会变得复杂。比如下图</p>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/11.png"></p>
+<p><strong>注意</strong>：上图的a-f不是6个follower，而是某个follower可能存在的六个状态</p>
+<p>leader、follower都可能crash，那么follower维护的日志与leader相比可能出现以下情况</p>
+<ul>
+<li>比leader日志少，如上图中的ab</li>
+<li>比leader日志多，如上图中的cd</li>
+<li>某些位置比leader多，某些日志比leader少，如ef（多少是针对某一任期而言）</li>
+</ul>
+<p>最终的结果是日志必须按照顺序记录的如下图：</p>
+<p><img src="/2021/12/01/%E6%95%B0%E6%8D%AE%E5%BA%93-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E7%94%A8%E6%80%A7/9.png" style="zoom:50%;"></p>
+<p> 因此，当出现了leader与follower不一致的情况，leader强制follower复制自己的log</p>
+<blockquote>
+<p>To bring a follower’s log into consistency with its own, the leader must find the latest log entry where the two logs agree, delete any entries in the follower’s log after that point, and send the follower all of the leader’s entries after that point.</p>
+</blockquote>
+<p>leader会维护一个<code>nextIndex[]</code>数组，记录了leader可以发送每一个follower的log index，初始化为eader最后一个log index加1， 前面也提到，leader选举成功之后会立即给所有follower发送AppendEntries RPC（不包含任何log entry， 也充当心跳消息）,那么流程总结为：</p>
+<blockquote>
+<p>s1 leader 初始化nextIndex[x]为 leader最后一个 log index + 1<br>s2 AppendEntries里prevLogTerm prevLogIndex来自 logs[nextIndex[x] - 1]<br>s3 如果follower判断prevLogIndex位置的log term不等于prevLogTerm，那么返回 False，否则返回True<br>s4 leader收到follower的回复，如果返回值是False，则nextIndex[x] -= 1, 跳转到s2. 否则<br>s5 同步nextIndex[x]后的所有log entries</p>
+</blockquote>
+<h4 id="leader-completeness-vs-elcetion-restriction"><a href="#leader-completeness-vs-elcetion-restriction" class="headerlink" title="leader completeness vs elcetion restriction"></a>leader completeness vs elcetion restriction</h4><p>  leader完整性：如果一个log entry在某个任期被提交（committed），那么这条日志一定会出现在所有更高term的leader的日志里面。这个跟leader election、log replication都有关。</p>
+<ul>
+<li>一个日志被复制到majority节点才算committed</li>
+<li>一个节点得到majority的投票才能成为leader，而节点A给节点B投票的其中一个前提是，B的日志不能比A的日志旧。下面的引文指处了如何判断日志的新旧</li>
+</ul>
+<blockquote>
+<p>voter denies its vote if its own log is more up-to-date than that of the candidate.</p>
+<p>If the logs have last entries with different terms, then the log with the later term is more up-to-date. If the logs end with the same term, then whichever log is longer is more up-to-date.</p>
+</blockquote>
+<p>  上面两点都提到了majority：commit majority and vote majority，根据Quorum，这两个majority一定是有重合的，因此被选举出的leader一定包含了最新的committed的日志。</p>
+<p>  raft与其他协议（Viewstamped Replication、mongodb）不同，raft始终保证leade包含最新的已提交的日志，因此leader不会从follower catchup日志，这也大大简化了系统的复杂度。</p>
+<p>我们可以在 Raft官网看到可视化的Raft，十分有趣 <a href="https://raft.github.io/" target="_blank" rel="noopener">https://raft.github.io/</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" rel="tag"># 数据管理系统</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/11/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch12-%E5%AD%90%E6%A8%A1%E5%87%BD%E6%95%B0/" rel="prev" title="数据科学算法ch12-子模函数">
+      <i class="fa fa-chevron-left"></i> 数据科学算法ch12-子模函数
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/12/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E8%AE%AD%E7%BB%83/" rel="next" title="计算机视觉-神经网络的训练">
+      计算机视觉-神经网络的训练 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据库-系统可用性"><span class="nav-number">1.</span> <span class="nav-text">数据库-系统可用性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MongoDB的容错方案"><span class="nav-number">1.1.</span> <span class="nav-text">MongoDB的容错方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Raft算法"><span class="nav-number">1.2.</span> <span class="nav-text">Raft算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader-election"><span class="nav-number">1.2.1.</span> <span class="nav-text">Leader election</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#term"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">term</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#选举过程"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">选举过程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Log-replication"><span class="nav-number">1.2.2.</span> <span class="nav-text">Log replication</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Replicated-state-machines"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">Replicated state machines</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#请求完整流程"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">请求完整流程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Safety"><span class="nav-number">1.2.3.</span> <span class="nav-text">Safety</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Election-safety"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">Election safety</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#log-matching"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">log matching</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#leader-completeness-vs-elcetion-restriction"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">leader completeness vs elcetion restriction</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

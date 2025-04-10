@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="模仿老师的代码开始自己的爬虫项目写在前面 这篇子博客主要是记录我写的三个爬虫得心得，主要把精力集中在第一个爬取什么值得买网站上了，剩下两个通过修改爬取信息和正则表达式，可以很快的运作起来 我会运用一一讲解代码的形式来介绍为什么要这么做，或者这么做有什么作用（第一个例子） 剩下，我爬取了十个左右的网站，因为代码大多数重复，所以我就简要介绍一下他们的不同之处  什么值得买 网站123456789101">
+<meta property="og:type" content="article">
+<meta property="og:title" content="模仿老师的代码开始自己的爬虫项目">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/04/23/%E6%A8%A1%E4%BB%BF%E8%80%81%E5%B8%88%E7%9A%84%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E8%87%AA%E5%B7%B1%E7%9A%84%E7%88%AC%E8%99%AB%E9%A1%B9%E7%9B%AE/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="模仿老师的代码开始自己的爬虫项目写在前面 这篇子博客主要是记录我写的三个爬虫得心得，主要把精力集中在第一个爬取什么值得买网站上了，剩下两个通过修改爬取信息和正则表达式，可以很快的运作起来 我会运用一一讲解代码的形式来介绍为什么要这么做，或者这么做有什么作用（第一个例子） 剩下，我爬取了十个左右的网站，因为代码大多数重复，所以我就简要介绍一下他们的不同之处  什么值得买 网站123456789101">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/23/%E6%A8%A1%E4%BB%BF%E8%80%81%E5%B8%88%E7%9A%84%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E8%87%AA%E5%B7%B1%E7%9A%84%E7%88%AC%E8%99%AB%E9%A1%B9%E7%9B%AE/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/23/%E6%A8%A1%E4%BB%BF%E8%80%81%E5%B8%88%E7%9A%84%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E8%87%AA%E5%B7%B1%E7%9A%84%E7%88%AC%E8%99%AB%E9%A1%B9%E7%9B%AE/2.png">
+<meta property="article:published_time" content="2020-04-23T13:35:41.000Z">
+<meta property="article:modified_time" content="2025-04-09T15:25:39.239Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="crawler">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/04/23/%E6%A8%A1%E4%BB%BF%E8%80%81%E5%B8%88%E7%9A%84%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E8%87%AA%E5%B7%B1%E7%9A%84%E7%88%AC%E8%99%AB%E9%A1%B9%E7%9B%AE/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/04/23/%E6%A8%A1%E4%BB%BF%E8%80%81%E5%B8%88%E7%9A%84%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E8%87%AA%E5%B7%B1%E7%9A%84%E7%88%AC%E8%99%AB%E9%A1%B9%E7%9B%AE/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>模仿老师的代码开始自己的爬虫项目 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/04/23/%E6%A8%A1%E4%BB%BF%E8%80%81%E5%B8%88%E7%9A%84%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E8%87%AA%E5%B7%B1%E7%9A%84%E7%88%AC%E8%99%AB%E9%A1%B9%E7%9B%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          模仿老师的代码开始自己的爬虫项目
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-04-23 21:35:41" itemprop="dateCreated datePublished" datetime="2020-04-23T21:35:41+08:00">2020-04-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-04-09 23:25:39" itemprop="dateModified" datetime="2025-04-09T23:25:39+08:00">2025-04-09</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="模仿老师的代码开始自己的爬虫项目"><a href="#模仿老师的代码开始自己的爬虫项目" class="headerlink" title="模仿老师的代码开始自己的爬虫项目"></a>模仿老师的代码开始自己的爬虫项目</h1><h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><ul>
+<li>这篇子博客主要是记录我写的三个爬虫得心得，主要把精力集中在第一个爬取什么值得买网站上了，剩下两个通过修改爬取信息和正则表达式，可以很快的运作起来</li>
+<li>我会运用一一讲解代码的形式来介绍为什么要这么做，或者这么做有什么作用（第一个例子）</li>
+<li>剩下，我爬取了十个左右的网站，因为代码大多数重复，所以我就简要介绍一下他们的不同之处</li>
+</ul>
+<h3 id="什么值得买-网站"><a href="#什么值得买-网站" class="headerlink" title="什么值得买 网站"></a>什么值得买 网站</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"什么值得买？"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'https://post.smzdm.com'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"utf-8"</span>;</span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'https://post.smzdm.com'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href，这是为了获取到源代码中所有a开头的链接</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/\/.\/.&#123;8&#125;\//</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> interface_format = <span class="string">"$('h1.item-name').text()"</span>;<span class="comment">//标题内容</span></span><br><span class="line"><span class="keyword">var</span> content_format = <span class="string">"$('.m-contant').text()"</span>;<span class="comment">//正文内容</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//下面是引环节，具体的讲解在我的另一篇：爬虫项目中引用的包极其用法有所讲解</span></span><br><span class="line"><span class="keyword">var</span> fs = <span class="built_in">require</span>(<span class="string">'fs'</span>);</span><br><span class="line"><span class="keyword">var</span> myRequest = <span class="built_in">require</span>(<span class="string">'request'</span>)</span><br><span class="line"><span class="keyword">var</span> myCheerio = <span class="built_in">require</span>(<span class="string">'cheerio'</span>)</span><br><span class="line"><span class="keyword">var</span> myIconv = <span class="built_in">require</span>(<span class="string">'iconv-lite'</span>)</span><br><span class="line"><span class="built_in">require</span>(<span class="string">'date-utils'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//因为很多网站会防止爬虫，所以我们必须伪装成一个浏览器来防止屏蔽</span></span><br><span class="line"><span class="keyword">var</span> headers = &#123;</span><br><span class="line">    <span class="string">'User-Agent'</span>: <span class="string">'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.65 Safari/537.36'</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//下面的代码块，我在request模块讲解时有所提及，这里略去不讲</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">request</span>(<span class="params">url, callback</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> options = &#123;</span><br><span class="line">        url: url,</span><br><span class="line">        encoding: <span class="literal">null</span>,</span><br><span class="line">        <span class="comment">//proxy: 'http://x.x.x.x:8080',//过代理</span></span><br><span class="line">        headers: headers,</span><br><span class="line">        timeout: <span class="number">10000</span> <span class="comment">//多长时间没有反应，就不去理他了</span></span><br><span class="line">    &#125;</span><br><span class="line">    myRequest(options, callback)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//下面的代码块的作用是搜索主网的源代码，找出符合条件的子网页的链接</span></span><br><span class="line">request(seedURL,<span class="function"><span class="keyword">function</span> (<span class="params">err,res,body</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> html = myIconv.decode(body, myEncoding);</span><br><span class="line">    <span class="built_in">console</span>.log(html);</span><br><span class="line">    <span class="comment">//准备用cheerio解析html</span></span><br><span class="line">    <span class="keyword">var</span> $ = myCheerio.load(html, &#123; <span class="attr">decodeEntities</span>: <span class="literal">true</span> &#125;);</span><br><span class="line">    <span class="comment">//定义一个子网页数组，然后让他把我想要的所有目标链接都写进去，这里，还没有做进一步筛选</span></span><br><span class="line">    <span class="keyword">var</span> seedurl_news;</span><br><span class="line">    <span class="keyword">try</span>&#123;</span><br><span class="line">        seedurl_news = <span class="built_in">eval</span>(seedURL_format);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123; <span class="built_in">console</span>.log(<span class="string">'url列表所处的html块识别出错：'</span> + e) &#125;;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//这里做了进一步筛选，搜索我们新闻链接数组中的每一个元素</span></span><br><span class="line">    seedurl_news.each(<span class="function"><span class="keyword">function</span> (<span class="params">i,e</span>) </span>&#123;</span><br><span class="line">        <span class="comment">//定义一个子链接字符串</span></span><br><span class="line">        <span class="keyword">var</span> myURL =<span class="string">""</span>;</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            <span class="keyword">var</span> href = <span class="string">""</span>;</span><br><span class="line"><span class="comment">//让href等于  &lt;a href="https://post.smzdm.com/p/alpwnzve/"  源代码中href后面的字符串、</span></span><br><span class="line"><span class="comment">//也就是我们想要的子网站的链接          </span></span><br><span class="line">            href = $(e).attr(<span class="string">"href"</span>);     </span><br><span class="line">            <span class="keyword">if</span>(href.toLocaleString().indexOf(<span class="string">'https://'</span>)&gt;=<span class="number">0</span>||href.toLocaleString().indexOf(<span class="string">'http://'</span>)&gt;=<span class="number">0</span>)</span><br><span class="line">                <span class="comment">//这里再做一个判断，如果成功，我们就让子链接等于href</span></span><br><span class="line">            myURL =   href; <span class="comment">//其他</span></span><br><span class="line">        &#125; <span class="keyword">catch</span> (e) &#123; <span class="built_in">console</span>.log(<span class="string">'识别种子页面中的论坛链接出错：'</span> + e) &#125;</span><br><span class="line">        <span class="comment">//同时，如果子链接是不复合我们的正则表达式的，那么，我们就需要遍历下一个。</span></span><br><span class="line">        <span class="keyword">if</span>(!regExp.test(myURL))<span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">//最后经过三层筛选，我们终于可以进一步读取了，这里用自己定义的newsGet函数</span></span><br><span class="line">        newsGet(myURL);<span class="comment">//读取论坛页面</span></span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">//下面是newsGet函数的具体内容</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">newsGet</span>(<span class="params">myURL</span>) </span>&#123;</span><br><span class="line">    <span class="comment">//首先做一个对myURL的访问</span></span><br><span class="line">    request(myURL,<span class="function"><span class="keyword">function</span> (<span class="params">err,res,body</span>) </span>&#123;</span><br><span class="line">        <span class="comment">// 然后做一个转码</span></span><br><span class="line">        <span class="keyword">var</span> html_news = myIconv.decode(body,myEncoding);</span><br><span class="line">        <span class="comment">//用cheerio解析，并把我们需要的内容分别存给了各个$开头的内容</span></span><br><span class="line">        <span class="comment">//关于$是怎么操作的，请看我的博客：爬虫项目中引用的包及其用法</span></span><br><span class="line">        <span class="keyword">var</span> $ = myCheerio.load(html_news, &#123; <span class="attr">decodeEntities</span>: <span class="literal">true</span> &#125;);</span><br><span class="line">		<span class="comment">//进行到这一步，我们可以说已经把所有子页面中我们需要的</span></span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">"转码读取成功:"</span> + myURL);</span><br><span class="line">        <span class="comment">//然后就定义一个对象，把所有我们需要的信息都放到对象中的属性中去</span></span><br><span class="line">        <span class="keyword">var</span> fetch = &#123;&#125;</span><br><span class="line">        fetch.url = myURL;</span><br><span class="line">        fetch.content = <span class="string">""</span>;</span><br><span class="line">        fetch.crawltime = <span class="keyword">new</span> <span class="built_in">Date</span>();</span><br><span class="line">        fetch.source_encoding = myEncoding; <span class="comment">//编码</span></span><br><span class="line">        fetch.source_name = source_name;</span><br><span class="line">        fetch.interface_format = <span class="built_in">eval</span>(interface_format);</span><br><span class="line">        fetch.content = <span class="built_in">eval</span>(content_format); <span class="comment">//内容</span></span><br><span class="line">		<span class="comment">//最后做一个json文件的存储，关于存储时遇到的问题，我再主博客的问题6有所介绍</span></span><br><span class="line">        <span class="keyword">var</span> filename = source_name + <span class="string">"_"</span> +(<span class="keyword">new</span> <span class="built_in">Date</span>()).valueOf() +<span class="string">".json"</span>;</span><br><span class="line">        <span class="comment">// 存储json</span></span><br><span class="line">        fs.writeFileSync(filename, <span class="built_in">JSON</span>.stringify(fetch));</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>从下面开始的十一个网站，就是如法炮制一般，可以批量生产了，唯一要改动的，就是编码格式，正则表达式，还有更具不同网页源代码改变不同存储类型中的样式</li>
+<li>比如，同样是title_format 虎扑后面就是  <code>#j_data</code> 网易就是 h1 这种非常灵活，需要我们一一对照devtool</li>
+</ul>
+<h3 id="虎扑论坛"><a href="#虎扑论坛" class="headerlink" title="虎扑论坛"></a>虎扑论坛</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"虎扑"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'https://www.hupu.com/'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"utf-8"</span>;</span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'https://www.hupu.com/'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/\/\d+[.]html/</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> title_format = <span class="string">"$('#j_data').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> user_format =<span class="string">"$('.u').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> content_format =<span class="string">"$('.quote-content').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> title_format2 = <span class="string">"$('.headline').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> content_format2 =<span class="string">"$('.artical-main-content').text()"</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="网易新闻"><a href="#网易新闻" class="headerlink" title="网易新闻"></a>网易新闻</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"网易"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'https://www.163.com/'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"GBK"</span>;<span class="comment">//</span></span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'https://www.163.com/'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/\/\d&#123;2&#125;\/\d&#123;4&#125;\/\d&#123;2&#125;\/.+[.]html/</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> article_source = <span class="string">"$('#ne_article_source').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> title_format = <span class="string">"$('h1').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> author =<span class="string">"$('.ep-editor').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> content_format =<span class="string">"$('.post_text').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> pubtime = <span class="string">"$('.post_time_source').text()"</span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>值得注意的是，网易的编码是GBK而不是utf-8如果以utf-8的编码格式这样把他存入数据库或者保存在json文件夹中，会出现乱码</li>
+</ul>
+<p><img src="/2020/04/23/%E6%A8%A1%E4%BB%BF%E8%80%81%E5%B8%88%E7%9A%84%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E8%87%AA%E5%B7%B1%E7%9A%84%E7%88%AC%E8%99%AB%E9%A1%B9%E7%9B%AE/1.png" alt="示例"></p>
+<ul>
+<li>只要改成myEncoding = “GBK”就可以完美规避这个问题</li>
+</ul>
+<h3 id="新浪"><a href="#新浪" class="headerlink" title="新浪"></a>新浪</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"新浪体育"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'http://sports.sina.com.cn/'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"utf-8"</span>;</span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'http://sports.sina.com.cn/'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/\/.+\/\d&#123;4&#125;-\d&#123;2&#125;-\d&#123;2&#125;\/.+[.]shtml/</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> title_format = <span class="string">"$('.main-title').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> article_source = <span class="string">"$('.source ent-source').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> content_format =<span class="string">"$('.article').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> author =<span class="string">"$('.show_author').text()"</span>;</span><br><span class="line"><span class="comment">// var content_format2 ="$('.artical-main-content').text()";</span></span><br><span class="line"><span class="keyword">var</span> pubtime = <span class="string">"$('.date').text()"</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="东方财富"><a href="#东方财富" class="headerlink" title="东方财富"></a>东方财富</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"东方财富网"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'https://www.eastmoney.com/'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"utf-8"</span>;</span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'https://www.eastmoney.com/'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/\/.\/\d+[.]html/</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> title_format = <span class="string">"$('h1').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> pubtime = <span class="string">"$('.time').text()"</span>;</span><br><span class="line"><span class="comment">// var article_source = "$('.source data-source').text()";</span></span><br><span class="line"><span class="keyword">var</span> content_format =<span class="string">"$('.Body').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> author =<span class="string">"$('.res-edit').text()"</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="雪球财经"><a href="#雪球财经" class="headerlink" title="雪球财经"></a>雪球财经</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"雪球财经"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'https://xueqiu.com/'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"utf-8"</span>;</span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'https://xueqiu.com/'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/\/\d+\/\d&#123;9&#125;/</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> title_format = <span class="string">"$('.article__bd__title').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> pubtime = <span class="string">"$('.time').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> article_source = <span class="string">"$('.source').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> content_format =<span class="string">"$('.article__bd__detail').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> author =<span class="string">"$('.avatar__name').text()"</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="中国证券网"><a href="#中国证券网" class="headerlink" title="中国证券网"></a>中国证券网</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"中国证券网"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'http://www.cnstock.com/'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"GBK"</span>;</span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'http://www.cnstock.com/'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/news,[a-zA-Z]&#123;4&#125;-\d&#123;6&#125;-\d+[.]/</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> title_format = <span class="string">"$('.title').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> pubtime = <span class="string">"$('.timer').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> article_source = <span class="string">"$('.source').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> content_format =<span class="string">"$('.content').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> author =<span class="string">"$('.author').text()"</span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>这里同样注意，中国证券网也是GBK编码的</li>
+</ul>
+<h3 id="中财网"><a href="#中财网" class="headerlink" title="中财网"></a>中财网</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"中财网"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'http://www.cfi.net.cn/'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"utf-8"</span>;</span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'http://www.cfi.net.cn/'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/[a-z]\d+[.]/</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> title_format = <span class="string">"$('h1').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> pubtime = <span class="string">"$('.time').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> article_source = <span class="string">"$('.source data-source').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> content_format =<span class="string">"$('.Body').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> author =<span class="string">"$('.res-edit').text()"</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="凤凰财经"><a href="#凤凰财经" class="headerlink" title="凤凰财经"></a>凤凰财经</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"凤凰财经"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'http://finance.ifeng.com/'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"utf-8"</span>;</span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'http://finance.ifeng.com/'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/\/.\/[1-9a-zA-Z]&#123;10&#125;/</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> title_format = <span class="string">"$('.topic-3bY8Hw-9').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> pubtime = <span class="string">"$('.time-hm3v7ddj').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> article_source = <span class="string">"$('.source-2pXi2vGI').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> content_format =<span class="string">"$('.text-3zQ3cZD4').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> author =<span class="string">"$('#editor_baidu').text()"</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="新浪财经"><a href="#新浪财经" class="headerlink" title="新浪财经"></a>新浪财经</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"新浪财经"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'https://finance.sina.com.cn/'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"utf-8"</span>;</span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'https://finance.sina.com.cn/'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/\/.+\/\d&#123;4&#125;-\d&#123;2&#125;-\d&#123;2&#125;\/.+[.]shtml/</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> title_format = <span class="string">"$('.main-title').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> pubtime = <span class="string">"$('.date').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> article_source = <span class="string">"$('.source ent-source').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> content_format =<span class="string">"$('#artibody').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> author =<span class="string">"$('.article-editor').text()"</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="财经网"><a href="#财经网" class="headerlink" title="财经网"></a>财经网</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"财经网"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'http://www.caijing.com.cn/'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"utf-8"</span>;</span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'http://www.caijing.com.cn/'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/\/\d+\/\d+[.]shtml/</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> title_format = <span class="string">"$('#cont_title').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> pubtime = <span class="string">"$('#pubtime_baidu').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> article_source = <span class="string">"$('#source_baidu').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> content_format =<span class="string">"$('#the_content').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> author =<span class="string">"$('#editor_baidu').text()"</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="金融界"><a href="#金融界" class="headerlink" title="金融界"></a>金融界</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source_name = <span class="string">"金融界"</span>;</span><br><span class="line"><span class="keyword">var</span> domain = <span class="string">'http://www.jrj.com.cn/'</span>;</span><br><span class="line"><span class="keyword">var</span> myEncoding = <span class="string">"GBK"</span>;</span><br><span class="line"><span class="keyword">var</span> seedURL = <span class="string">'http://www.jrj.com.cn/'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> seedURL_format = <span class="string">"$('a')"</span>;<span class="comment">//a-href</span></span><br><span class="line"><span class="keyword">var</span> regExp =<span class="regexp">/\/\d&#123;4&#125;\/\d&#123;2&#125;\/\d+[.]/</span>;<span class="comment">//获取a href的正则表达式</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> title_format = <span class="string">"$('h1').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> pubtime = <span class="string">"$('.inftop').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> article_source = <span class="string">"$('h1').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> content_format =<span class="string">"$('.texttit_m1').text()"</span>;</span><br><span class="line"><span class="keyword">var</span> author =<span class="string">"$('h1').text()"</span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>注意，金融界也是GBK编码的网站</li>
+</ul>
+<h2 id="这些网站的爬虫，我也都有存储至MySQL"><a href="#这些网站的爬虫，我也都有存储至MySQL" class="headerlink" title="这些网站的爬虫，我也都有存储至MySQL"></a>这些网站的爬虫，我也都有存储至MySQL</h2><ul>
+<li><p>这里牵扯到一些复杂的分类问题</p>
+</li>
+<li><p>一开始我想把所有文件分开来放在不同databse下的不同table</p>
+</li>
+<li>但是后来我觉得切换不是很方便，所以直接把所有table放在同一个crawl 数据库下</li>
+<li>最后，因为爬取了很多金融网站，而且为了给最后的express框架做一些内容上的支撑，所以我把所有的财经类网站放到了一张名为经济新闻的表中，这时候我们可以看到一张巨大的表格</li>
+<li><img src="/2020/04/23/%E6%A8%A1%E4%BB%BF%E8%80%81%E5%B8%88%E7%9A%84%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E8%87%AA%E5%B7%B1%E7%9A%84%E7%88%AC%E8%99%AB%E9%A1%B9%E7%9B%AE/2.png" alt="示例"></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+              <a href="/tags/crawler/" rel="tag"># crawler</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/23/%E7%88%AC%E8%99%AB%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E7%94%A8%E7%9A%84%E5%8C%85%E5%8F%8A%E5%85%B6%E7%94%A8%E6%B3%95/" rel="prev" title="爬虫项目中引用的包及其用法">
+      <i class="fa fa-chevron-left"></i> 爬虫项目中引用的包及其用法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/" rel="next" title="如何把数据存储到MySql中">
+      如何把数据存储到MySql中 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#模仿老师的代码开始自己的爬虫项目"><span class="nav-number">1.</span> <span class="nav-text">模仿老师的代码开始自己的爬虫项目</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#写在前面"><span class="nav-number">1.1.</span> <span class="nav-text">写在前面</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#什么值得买-网站"><span class="nav-number">1.1.1.</span> <span class="nav-text">什么值得买 网站</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#虎扑论坛"><span class="nav-number">1.1.2.</span> <span class="nav-text">虎扑论坛</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网易新闻"><span class="nav-number">1.1.3.</span> <span class="nav-text">网易新闻</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新浪"><span class="nav-number">1.1.4.</span> <span class="nav-text">新浪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#东方财富"><span class="nav-number">1.1.5.</span> <span class="nav-text">东方财富</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#雪球财经"><span class="nav-number">1.1.6.</span> <span class="nav-text">雪球财经</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#中国证券网"><span class="nav-number">1.1.7.</span> <span class="nav-text">中国证券网</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#中财网"><span class="nav-number">1.1.8.</span> <span class="nav-text">中财网</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#凤凰财经"><span class="nav-number">1.1.9.</span> <span class="nav-text">凤凰财经</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新浪财经"><span class="nav-number">1.1.10.</span> <span class="nav-text">新浪财经</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#财经网"><span class="nav-number">1.1.11.</span> <span class="nav-text">财经网</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#金融界"><span class="nav-number">1.1.12.</span> <span class="nav-text">金融界</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#这些网站的爬虫，我也都有存储至MySQL"><span class="nav-number">1.2.</span> <span class="nav-text">这些网站的爬虫，我也都有存储至MySQL</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

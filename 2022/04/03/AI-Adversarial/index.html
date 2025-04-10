@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="搜索树1:  博弈博弈的类型和区分axes Deterministic or stochastic? 象棋是确定性的、足球是不确定的 One, two, or more players? 玩家数量 Zero sum? 零和、协同合作（例如王者荣耀的队友） Perfect information (can you see the state)? 完整的信息（例如整个状态和棋子分布）是否都能完全观察到">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI-Adversarial">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="搜索树1:  博弈博弈的类型和区分axes Deterministic or stochastic? 象棋是确定性的、足球是不确定的 One, two, or more players? 玩家数量 Zero sum? 零和、协同合作（例如王者荣耀的队友） Perfect information (can you see the state)? 完整的信息（例如整个状态和棋子分布）是否都能完全观察到">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/14.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/1.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/2.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/3.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/15.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/4.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/5.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/6.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/7.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/8.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/9.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/10.gif">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/22.png">
+<meta property="article:published_time" content="2022-04-03T07:59:44.000Z">
+<meta property="article:modified_time" content="2022-04-07T06:39:56.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="AI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>AI-Adversarial | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/04/03/AI-Adversarial/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AI-Adversarial
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-04-03 15:59:44" itemprop="dateCreated datePublished" datetime="2022-04-03T15:59:44+08:00">2022-04-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-04-07 14:39:56" itemprop="dateModified" datetime="2022-04-07T14:39:56+08:00">2022-04-07</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="搜索树1-博弈"><a href="#搜索树1-博弈" class="headerlink" title="搜索树1:  博弈"></a>搜索树1:  博弈</h1><h3 id="博弈的类型和区分axes"><a href="#博弈的类型和区分axes" class="headerlink" title="博弈的类型和区分axes"></a>博弈的类型和区分axes</h3><ul>
+<li>Deterministic or stochastic? 象棋是确定性的、足球是不确定的</li>
+<li>One, two, or more players? 玩家数量</li>
+<li>Zero sum? 零和、协同合作（例如王者荣耀的队友）</li>
+<li>Perfect information (can you see the state)? 完整的信息（例如整个状态和棋子分布）是否都能完全观察到</li>
+</ul>
+<h3 id="Deterministic-Games-确定性的博弈"><a href="#Deterministic-Games-确定性的博弈" class="headerlink" title="Deterministic Games 确定性的博弈"></a>Deterministic Games 确定性的博弈</h3><ul>
+<li><p>状态 States: $S$ (start at $s_0$)</p>
+<p>例如下象棋中棋子的分布</p>
+</li>
+<li><p>玩家 Players: $P={1…N}$ (usually take turns)</p>
+<p>代表玩家的个数</p>
+</li>
+<li><p>行为 Actions: $A$ (may depend on player / state)</p>
+</li>
+<li><p>转移函数 Transition Function: $S\times A \rightarrow S$</p>
+<p>从状态出发经过相应的行为可以到达的一个新的状态</p>
+</li>
+<li><p>是否到达最终状态 Terminal Test: $S\rightarrow {\text{true},\text{false}}$</p>
+<p>一个终止状态的节点，未必最优。</p>
+</li>
+<li><p>最终效用值 Terminal Utilities: $S\times P \rightarrow R$</p>
+<p>得分或者奖励值</p>
+</li>
+<li><p>策略<strong>policy</strong>: 智能体处于某种状态时该发出的行为，从状态映射到行为 $S\rightarrow A$</p>
+</li>
+</ul>
+<h3 id="Zero-Sum-Games-零和游戏"><a href="#Zero-Sum-Games-零和游戏" class="headerlink" title="Zero-Sum Games 零和游戏"></a>Zero-Sum Games 零和游戏</h3><ul>
+<li><p>Zero-Sum Games：</p>
+<p>Agents have opposite utilities (values on outcomes)</p>
+<p>多个 agents 拥有恰巧相反的目标，例如两个agent的分别希望最大化/最小化同一个值并不完全是两方的期望的加和是0</p>
+</li>
+<li><p>General Games:</p>
+<p>Agents have independent utilities (values on outcomes)</p>
+<p>协同合作等</p>
+</li>
+</ul>
+<h3 id="Adversarial-Search-对抗搜索、博弈搜索"><a href="#Adversarial-Search-对抗搜索、博弈搜索" class="headerlink" title="Adversarial Search 对抗搜索、博弈搜索"></a>Adversarial Search 对抗搜索、博弈搜索</h3><p><img src="/2022/04/03/AI-Adversarial/1.png" alt></p>
+<p>上图是 Single-Agent Trees 一个智能体对应的搜索树。左边的状态表示往左移一步，右边的状态表示往右移</p>
+<p><strong>Value of a State 状态的价值</strong>：从当前状态出发能够获得的最好效用值 The best achievable outcome (utility) from that state</p>
+<p>Non-Terminal States 的状态的价值也是孩子节点状态中最好的value值</p>
+<script type="math/tex; mode=display">
+V(s) = \max_{s'\in\text{ children(s)}} V(s')</script><p><img src="/2022/04/03/AI-Adversarial/2.png" alt></p>
+<p>Adversarial Game Trees。存在对抗，一方走完另一方走。鬼希望吃掉Pacman， Pacman希望吃掉豆子。不同层的目标不一样，轮流希望最大化各自的效用值。通过交替的方式对状态展开。</p>
+<h3 id="Minimax-Values：轮流进行min和max的操作"><a href="#Minimax-Values：轮流进行min和max的操作" class="headerlink" title="Minimax Values：轮流进行min和max的操作"></a>Minimax Values：轮流进行min和max的操作</h3><ul>
+<li>对Pacman来说 States Under Agent’s Control：希望最大化 Pacman 的收益 ，最大化后继节点的状态价值</li>
+</ul>
+<script type="math/tex; mode=display">
+V(s) = \max_{s'\in\text{successors(s)}}V(s')</script><ul>
+<li>对鬼来说States Under Opponent’s Control：希望最小化 Pacman 的收益，最小化后继节点的状态价值</li>
+</ul>
+<script type="math/tex; mode=display">
+V(s) = \min_{s'\in\text{successors(s)}}V(s')</script><p><img src="/2022/04/03/AI-Adversarial/3.png" alt></p>
+<h3 id="Adversarial-Search-Minimax-对抗搜索"><a href="#Adversarial-Search-Minimax-对抗搜索" class="headerlink" title="Adversarial Search (Minimax) 对抗搜索"></a>Adversarial Search (Minimax) 对抗搜索</h3><p>是在树上的搜索。计算非terminal的每一个节点对应的Minimax值，蓝色上三角表示希望最大化效用值，红色的下三角表示希望最小化效用值。由孩子节点的效用值得到。</p>
+<p><img src="/2022/04/03/AI-Adversarial/4.png"></p>
+<p>对每一个给定的状态，希望求它的所有后继的最大/最小值。由于是Minimax问题，对每个希望求最大/最小值的节点来说，它的后继相应的希望求最小/最大值。</p>
+<p><img src="/2022/04/03/AI-Adversarial/5.png"></p>
+<p>对terminal状态来说，直接返回最终的值。否则分别调用max-value或者min-value函数。</p>
+<h3 id="搜索树的提速方式"><a href="#搜索树的提速方式" class="headerlink" title="搜索树的提速方式"></a>搜索树的提速方式</h3><p>我们首先来看看没有剪枝的情况下搜索树得到的结果：</p>
+<p><img src="/2022/04/03/AI-Adversarial/7.png"></p>
+<p>但是，我们如何减少搜索的次数呢？答：进行剪枝</p>
+<p>为了提升搜索树的搜索速度，我们可以对其进行 $\alpha-\beta$ 剪枝，其中：</p>
+<ul>
+<li>$\alpha:$  Max’s best option on path to root , 即 $\alpha$ 是上限</li>
+<li>$\beta:$  Min’s best option on path to root，即$\beta$ 是下限 </li>
+</ul>
+<p>和普通搜索树算法的区别就在于引入了$\alpha,\beta$ 两个值</p>
+<p><img src="/2022/04/03/AI-Adversarial/8.png"></p>
+<p>我们结合具体的例子来看：</p>
+<p>首先，我们还是将最左边的节点的最小值3计算出来，此时根节点的值暂且为3，即$\alpha=3$；然后，我们需要计算中间节点的值, 为此我们需要遍历其子节点，当我们读取到第一个子节点为2的时候，那么不管后面的孩子节点的值是大于2还是小于2，中间这个节点的值一定是小于等于2的。而且2已经比根节点3小了，由于根节点求的是max操作，因此当我们读取到2的时候，其实已经不需要再去读取后面的孩子节点了，这棵子树相当于被废弃了。</p>
+<p>也就是说，在这一层因为求得是 min值，使用的是min-value函数， 因此当看到$ 2=v&lt;\alpha=3$ 的时候，就可以直接范围 $v$ 了，完成剪枝</p>
+<p>对于最右边这颗子树，首先读取到的是14，14是大于根节点3的，但我们并没法判断后面是否有比3小的数，因此我们无法进行剪枝，仍然需要读取。</p>
+<p>剪枝后的搜索树如下图所示：</p>
+<p><img src="/2022/04/03/AI-Adversarial/6.png"></p>
+<h4 id="Quiz"><a href="#Quiz" class="headerlink" title="Quiz"></a>Quiz</h4><ol>
+<li><img src="/2022/04/03/AI-Adversarial/9.png"></li>
+</ol>
+<p>最左边的孩子都需要遍历的，得到$\alpha=8$ ，右孩子的第一个数值是$4&lt;\alpha$ ，因此可以进行剪枝，直接返回4</p>
+<ol>
+<li><p><img src="/2022/04/03/AI-Adversarial/11.png"></p>
+</li>
+</ol>
+<p>结果：</p>
+<p><img src="/2022/04/03/AI-Adversarial/10.png"></p>
+<ol>
+<li>首先，遍历最左的这颗子树，得到10和6的最大值为10，因此设定了$\beta = 10$ ，</li>
+<li>读取f节点之后，发现等于100，是大于$\beta=10$的，因此，可以直接剪枝</li>
+<li>因此得到了节点B=10，同时可以得到 $\alpha = 10$</li>
+<li>读取右边的子树，发现F节点的值是2，而$2\leq \alpha=10$ ，因此直接可以剪枝，G节点可以不去探索了</li>
+</ol>
+<h4 id="性质"><a href="#性质" class="headerlink" title="性质"></a>性质</h4><p>$\alpha-\beta$ 剪枝的性质：</p>
+<ol>
+<li>中间节点的值可能是错误的。</li>
+</ol>
+<p>比如说下图，通过左子树，得到$\alpha=10$ , 然后扫描右边的子树，发现左孩子满足 $10\leq \alpha$ ，因此直接返回。但是，事实上左子树的根的真实值应该等于0，这里还没有读取到0就被剪枝了，因此可能是错误的</p>
+<p><img src="/2022/04/03/AI-Adversarial/12.png"></p>
+<ol>
+<li>合适的叶子结点的顺序可以提升搜索树的速度。因为如果是按从小到大的顺序排列的话，可能读取一个叶子就可以完成剪枝操作；但是如果按照从大到小的顺序来排列，可能就需要读完所有叶子结点。 <ul>
+<li>这样可以降低一点时间复杂度，但是对于象棋这种搜索空间特别大的情况，使用$\alpha-\beta$剪枝还是不够的</li>
+</ul>
+</li>
+</ol>
+<h3 id="Resource-Limits"><a href="#Resource-Limits" class="headerlink" title="Resource Limits"></a>Resource Limits</h3><p><img src="/2022/04/03/AI-Adversarial/13.png" style="zoom:50%;"></p>
+<p><strong>问题</strong>：  在现实情况中，很难沿着这棵树去搜索叶子结点</p>
+<p><strong>解决办法</strong>：除了$\alpha-\beta$ 剪枝之外，还可以限制搜索的深度。比如上面这颗树，我们可以只搜索到第二层后就停止。这时候就没有中间节点的效用值了。那么怎么得到第二层的值?</p>
+<p>我们可以引入一个 Evaluation Function，他可以估计中间节点的效用值，如上图所示。</p>
+<p>因此，我们引入的Evaluation Function的估计精度就非常重要了，如果估计完全准确，那么就不需要再增加接下来几层节点的访问开销了。</p>
+<p><strong>例子</strong>：在象棋比赛中，假设我们有100秒，每秒可以探索1万个节点。因此，每回合我们可以探索 1 million 的节点。借此我们大致可以再搜索树里面探索8层，这已经可以得到很好的结果了。</p>
+<p>同时我们要知道，限制层数的搜索方式，和层数的多少有着密切关系。搜索的层数越深，那么非叶子结点的估计也就会越准确，越有可能返回真实的结果。</p>
+<h4 id="Evaluation-Functions"><a href="#Evaluation-Functions" class="headerlink" title="Evaluation Functions"></a>Evaluation Functions</h4><p>理想的Evaluation Function可以返回完全正确的估计</p>
+<p>比如说，我们可以采用线性加和的方式对当前状态的效应值进行估计</p>
+<script type="math/tex; mode=display">
+Eval(s) = w_1f_1(s) + w_2f_2(s)+\cdots+w_nf_n(s)</script><p>举个例子，我们以象棋为例，我们可以把$f_1(s)$ 设置为 白色queen的数量减去黑色queen的数量，把$f_2(s)$  设置为白色马的数量减去黑色马的数量，以此类推</p>
+<p><img src="/2022/04/03/AI-Adversarial/14.png" style="zoom:50%;"></p>
+<p>当然，也可以用神经网络来作为Evaluation Function</p>
+<h4 id="Depth-Matters"><a href="#Depth-Matters" class="headerlink" title="Depth Matters"></a>Depth Matters</h4><p>首先我们要明白，Evaluation并不是一直准确的。但是随着Evaluation所在的层数的加深，其估计的质量也就会越高。最后，Evaluation可以对特征复杂度和计算复杂度做一个推导，因为如果Evaluation很准，那么就可以剩下很多计算，但是如何构建准确的Evaluation的工作量就要上升了</p>
+<h5 id="例1"><a href="#例1" class="headerlink" title="例1"></a>例1</h5><p>我们看到如果只探索两层的话，pacman的动作如下所示：</p>
+<p><img src="/2022/04/03/AI-Adversarial/1.gif"></p>
+<p>我们看到，由于pacman并不知道之后几步的行踪，因此被鬼给吃了</p>
+<p>但是如果把探索层数扩大到10层，那么pacman的行动如下所示：</p>
+<p><img src="/2022/04/03/AI-Adversarial/2.gif"></p>
+<p>由于Pacman掌握了更多信息，因此鬼捉不到pacman，但pacman可以吃到果子。</p>
+<h5 id="例2"><a href="#例2" class="headerlink" title="例2"></a>例2</h5><p>我们再来看一个例子，下面这个pacman一直在踱步，但是始终没有下去吃果子，这是为什么呢？这和我们设计的Evaluation有关</p>
+<p><img src="/2022/04/03/AI-Adversarial/3.gif"></p>
+<p>由于我们只考虑了两层，我们将搜索树全部画出来看看：</p>
+<p><img src="/2022/04/03/AI-Adversarial/15.png"></p>
+<p>假设吃到果子后可以加上10分那么上面搜索树的值为：</p>
+<p><img src="/2022/04/03/AI-Adversarial/16.png"></p>
+<p>那么对于根节点来说，往左走和往右走的Evaluation是一样的，往左往右都可以，所以一直在左右徘徊。</p>
+<p>因此我们需要更准确的Evaluation，我们看到叶子结点中，最左边的情况实际上比最右边的情况更加接近果子，因此我们不妨将这个状态设置为11，那么pacman的行动轨迹就会变成先往左走吃掉果子，再往右走吃掉右边的果子，如下所示：</p>
+<p><img src="/2022/04/03/AI-Adversarial/4.gif"></p>
+<h1 id="搜索树-Part2-Uncertainty-and-Utilities"><a href="#搜索树-Part2-Uncertainty-and-Utilities" class="headerlink" title="搜索树 Part2: Uncertainty and Utilities"></a>搜索树 Part2: Uncertainty and Utilities</h1><p>我们要让自己赢一个游戏的话，肯定需要让自己的利益最大化，由于游戏是存在不确定性的，因此我们需要计算整个游戏的期望。</p>
+<h2 id="Expectimax-Search"><a href="#Expectimax-Search" class="headerlink" title="Expectimax Search"></a>Expectimax Search</h2><h3 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h3><p>如下图两个游戏，对于画圈画叉来说，游戏下一步的状态是确定的，因此可以用 MinMax Tree来做搜索，但是对于掷骰子，下一步是什么状态是不确定的。</p>
+<p><img src="/2022/04/03/AI-Adversarial/17.png"></p>
+<p>如上图所示，因此我们把中间层的倒三角替换成圆形了，圆形代表什么？其实圆形就是引入概率的、引入随机性的博弈。比如说两条边的概率都是0.5的话，右边的节点的值就是$\frac{1}{2}\cdot (9+100)$ </p>
+<p>由此，这颗搜索树从 Minmax Search 变成了 Expectimax Search。当我们考虑随机性的时候，就不去靠考虑最大值最小值了，而是考虑期望和均值。实际上，Expectimax在日常生活中很常见。比如说投色子，又比如说在pacman中鬼是随机游走的，不再是你死我亡型的鬼了。</p>
+<h3 id="计算"><a href="#计算" class="headerlink" title="计算"></a>计算</h3><p>那么Expectimax Search是如何计算的？</p>
+<p><img src="/2022/04/03/AI-Adversarial/18.png"></p>
+<p>首先，对于chance节点，求的不再是最小值，而是 期望效用值。他和min的功能是一样的，只是结果是不确定的。</p>
+<p>同时，max节点还是会计算chance节点的最大值，这和minimax search中的max节点功能一致</p>
+<p>我们可以看一下Minimax search和 Expectimax search的区别</p>
+<ul>
+<li>Minimax Search</li>
+</ul>
+<p><img src="/2022/04/03/AI-Adversarial/5.gif"></p>
+<ul>
+<li>Expectimax Search</li>
+</ul>
+<p><img src="/2022/04/03/AI-Adversarial/6.gif"></p>
+<h3 id="伪代码"><a href="#伪代码" class="headerlink" title="伪代码"></a>伪代码</h3><p>现在我们来看一下Expectimax Search的伪代码：</p>
+<ul>
+<li>value函数</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">value</span><span class="params">(state)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> the state <span class="keyword">is</span> a terminal state: <span class="keyword">return</span> the state’s utility</span><br><span class="line">    <span class="comment"># 子节点是max-value节点，那么调用max-value函数</span></span><br><span class="line">    <span class="keyword">if</span> the next agent <span class="keyword">is</span> MAX: <span class="keyword">return</span> max-value(state)</span><br><span class="line">    <span class="comment"># 子节点是exp-value节点，那么调用exp-value函数</span></span><br><span class="line">    <span class="keyword">if</span> the next agent <span class="keyword">is</span> EXP: <span class="keyword">return</span> exp-value(state)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>max-value函数, 这和minimax search的max节点是类似的</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">max</span>-<span class="title">value</span><span class="params">(state)</span>:</span></span><br><span class="line">    initialize v = -∞</span><br><span class="line">    <span class="keyword">for</span> each successor of state:</span><br><span class="line">    		v = max(v, value(successor))</span><br><span class="line">    <span class="keyword">return</span> v</span><br></pre></td></tr></table></figure>
+<ul>
+<li>exp-value函数</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">exp</span>-<span class="title">value</span><span class="params">(state)</span>:</span></span><br><span class="line">    initialize v = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> each successor of state:</span><br><span class="line">      <span class="comment"># 由于chance节点的每条边都是由概率的，所以要先获取概率然后累加计算节点的值</span></span><br><span class="line">        p = probability(successor)</span><br><span class="line">    		v += p * value(successor)</span><br><span class="line">    <span class="keyword">return</span> v</span><br></pre></td></tr></table></figure>
+<h3 id="Expectimax可以剪枝吗"><a href="#Expectimax可以剪枝吗" class="headerlink" title="Expectimax可以剪枝吗"></a>Expectimax可以剪枝吗</h3><p>首先，我们来看看不剪枝的情况下，Expectimax Search计算的一个例子：</p>
+<p><img src="/2022/04/03/AI-Adversarial/19.png"></p>
+<p>但是对于Expectimax来说，情况就变得很不一样了。假设我们遍历了最右边的子树，得到了其值为8，令$\alpha=8$，那么我们可以在遍历中间子树的第一个叶子(其值为2)之后就能对其进行剪枝吗？</p>
+<p>显然是不行的，因为虽然每条边的概率是一样的，但是并不能确定叶子的值是多少，可能2后面的叶子是1亿，那么显然中间的chance节点的值是大于8的</p>
+<p>因此Expectimax Search是不能做剪枝的，但如果在知道bound的情况下，还是可以做剪枝的。比如说，我知道2后面两个叶子的值都是小于10的，那么就可以做剪枝了</p>
+<h3 id="Expectimax-可以做限高吗"><a href="#Expectimax-可以做限高吗" class="headerlink" title="Expectimax 可以做限高吗"></a>Expectimax 可以做限高吗</h3><p><img src="/2022/04/03/AI-Adversarial/20.png"></p>
+<p>可以限高，但是比minimax更为复杂，因为其中涉及到概率相关的问题。</p>
+<h4 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h4><p>在一个游戏中，如果对手在80%的时间里采用深度为2的minimax search，剩余20%的时间在随机游走，应该用什么？Expectimax Search</p>
+<p>但这时候，chance节点的两条边的权重就不一样了。在80%的情况下，是求min的操作；在20%的情况下随机进行。通过这种方式去模拟可以求得针对该问题的概率值。但这种方法速度很慢，需要访问到最底部的叶子结点。</p>
+<h2 id="建模"><a href="#建模" class="headerlink" title="建模"></a>建模</h2><p>在设计智能体的时候，常常会对日常生活做一个建模，两个极端的方向就是：过度乐观和过度悲观</p>
+<ul>
+<li>乐观派是说，前面就算有鬼我也要走过去</li>
+<li>悲观派是说， 前面就算是无害的小动物我也不敢走过去</li>
+</ul>
+<p>我们用pacman为例：下面有四种情况，博弈的鬼和随机游走的鬼与Minimax和Expectimax两两搭配，我们来看一下结果是什么样的。</p>
+<p><img src="/2022/04/03/AI-Adversarial/21.png"></p>
+<ul>
+<li>Expectimax Pacman——Random Ghost</li>
+</ul>
+<p><img src="/2022/04/03/AI-Adversarial/7.gif"></p>
+<ul>
+<li>Adversarial Ghost —— Minimax Pacman(对抗性的鬼和对抗性的pacman)</li>
+</ul>
+<p><img src="/2022/04/03/AI-Adversarial/8.gif"></p>
+<p>我们看到，因为鬼是对抗性的，所以一直在追着pacman跑，pacman则已知躲着鬼，然后吃到了果子</p>
+<ul>
+<li>Adversarial Ghost —— Expectimax Pacman(对抗性的鬼和Expectimax 的pacman)</li>
+</ul>
+<p><img src="/2022/04/03/AI-Adversarial/9.gif"></p>
+<p>我们看到鬼是Adversarial 的，非常具有攻击性。而pacman考虑了随机性后，有一定几率躲掉鬼，但不能保证每次都可以逃脱。视频中是赢了，但不一定下次还能赢。</p>
+<ul>
+<li>Random Gost——Minimax Pacman</li>
+</ul>
+<p><img src="/2022/04/03/AI-Adversarial/10.gif"></p>
+<p>我们看到在这种情况下，只要鬼还在地图的下半部分移动，上面的pacman就非常害怕不敢轻举妄动。因此，minimax其实是一种过度悲观的方式。</p>
+<p>最后 我们来看一下，玩五次游戏以后，上面四种方式得到的分数：</p>
+<p><img src="/2022/04/03/AI-Adversarial/22.png"></p>
+<ul>
+<li>我们看到，Expectimax对上Random Gost五次都能赢，因为考虑了随机性</li>
+<li>Minimax对上Adversarial Ghost，由于Adversarial具有强烈的攻击性，而Minimax又是比较悲观的，因此他虽然赢了5次，但是平均得分不如Expectimax对上Random Ghost</li>
+<li><p>Expectimax对上Adversarial Ghost，我们看到只赢了一次，这是因为鬼具有强烈的攻击性，但是Pacman的行动却具有随机性，因此一着不慎就可能被鬼吃掉。</p>
+</li>
+<li><p>MiniMax 对上Random Ghost，虽然小心翼翼地再走，但是最终还是能赢的</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/AI/" rel="tag"># AI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/31/%E4%BA%86%E8%A7%A3Spark/" rel="prev" title="了解Spark">
+      <i class="fa fa-chevron-left"></i> 了解Spark
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/04/08/Solidity%E5%88%9D%E8%AF%86/" rel="next" title="Solidity初识">
+      Solidity初识 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#搜索树1-博弈"><span class="nav-number">1.</span> <span class="nav-text">搜索树1:  博弈</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#博弈的类型和区分axes"><span class="nav-number">1.0.1.</span> <span class="nav-text">博弈的类型和区分axes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deterministic-Games-确定性的博弈"><span class="nav-number">1.0.2.</span> <span class="nav-text">Deterministic Games 确定性的博弈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Zero-Sum-Games-零和游戏"><span class="nav-number">1.0.3.</span> <span class="nav-text">Zero-Sum Games 零和游戏</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Adversarial-Search-对抗搜索、博弈搜索"><span class="nav-number">1.0.4.</span> <span class="nav-text">Adversarial Search 对抗搜索、博弈搜索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Minimax-Values：轮流进行min和max的操作"><span class="nav-number">1.0.5.</span> <span class="nav-text">Minimax Values：轮流进行min和max的操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Adversarial-Search-Minimax-对抗搜索"><span class="nav-number">1.0.6.</span> <span class="nav-text">Adversarial Search (Minimax) 对抗搜索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#搜索树的提速方式"><span class="nav-number">1.0.7.</span> <span class="nav-text">搜索树的提速方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Quiz"><span class="nav-number">1.0.7.1.</span> <span class="nav-text">Quiz</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#性质"><span class="nav-number">1.0.7.2.</span> <span class="nav-text">性质</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Resource-Limits"><span class="nav-number">1.0.8.</span> <span class="nav-text">Resource Limits</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Evaluation-Functions"><span class="nav-number">1.0.8.1.</span> <span class="nav-text">Evaluation Functions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Depth-Matters"><span class="nav-number">1.0.8.2.</span> <span class="nav-text">Depth Matters</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#例1"><span class="nav-number">1.0.8.2.1.</span> <span class="nav-text">例1</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#例2"><span class="nav-number">1.0.8.2.2.</span> <span class="nav-text">例2</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#搜索树-Part2-Uncertainty-and-Utilities"><span class="nav-number">2.</span> <span class="nav-text">搜索树 Part2: Uncertainty and Utilities</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Expectimax-Search"><span class="nav-number">2.1.</span> <span class="nav-text">Expectimax Search</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#引入"><span class="nav-number">2.1.1.</span> <span class="nav-text">引入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计算"><span class="nav-number">2.1.2.</span> <span class="nav-text">计算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#伪代码"><span class="nav-number">2.1.3.</span> <span class="nav-text">伪代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Expectimax可以剪枝吗"><span class="nav-number">2.1.4.</span> <span class="nav-text">Expectimax可以剪枝吗</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Expectimax-可以做限高吗"><span class="nav-number">2.1.5.</span> <span class="nav-text">Expectimax 可以做限高吗</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例题"><span class="nav-number">2.1.5.1.</span> <span class="nav-text">例题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#建模"><span class="nav-number">2.2.</span> <span class="nav-text">建模</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Shells Signals 在 异常控制流（ECF）1 中，我们介绍了Interrupts，Traps，Faults和Aborts，这是硬件和软件合作以提供基本的底层异常机制。接下来我们要研究一种更高层的软件形式异常，称为 Linux信号，它允许进程和内核 中断其他进程。 一个信号(signal)就是一条小消息，它通知进程系统中发生了一个某种类型的事件。如下图  如果是低层的硬件异常，是由内核异">
+<meta property="og:type" content="article">
+<meta property="og:title" content="异常控制流（ECF）2">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Shells Signals 在 异常控制流（ECF）1 中，我们介绍了Interrupts，Traps，Faults和Aborts，这是硬件和软件合作以提供基本的底层异常机制。接下来我们要研究一种更高层的软件形式异常，称为 Linux信号，它允许进程和内核 中断其他进程。 一个信号(signal)就是一条小消息，它通知进程系统中发生了一个某种类型的事件。如下图  如果是低层的硬件异常，是由内核异">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/12.png">
+<meta property="article:published_time" content="2021-01-06T13:13:24.000Z">
+<meta property="article:modified_time" content="2022-06-25T14:41:08.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="CSAPP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/2.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>异常控制流（ECF）2 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          异常控制流（ECF）2
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-01-06 21:13:24" itemprop="dateCreated datePublished" datetime="2021-01-06T21:13:24+08:00">2021-01-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-06-25 22:41:08" itemprop="dateModified" datetime="2022-06-25T22:41:08+08:00">2022-06-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Shells"><a href="#Shells" class="headerlink" title="Shells"></a>Shells</h1><p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/2.png" style="zoom:80%;"></p>
+<h1 id="Signals"><a href="#Signals" class="headerlink" title="Signals"></a>Signals</h1><p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/1.png" style="zoom:80%;"></p>
+<p>在 <a href="https://jasonxqh.github.io/2020/12/24/异常控制流（ECF）1/">异常控制流（ECF）1</a> 中，我们介绍了Interrupts，Traps，Faults和Aborts，这是硬件和软件合作以提供基本的底层异常机制。接下来我们要研究一种更高层的软件形式异常，称为 Linux信号，它允许<strong>进程和内核</strong> 中断其他进程。</p>
+<p>一个信号(signal)就是一条小消息，它通知进程系统中发生了一个某种类型的事件。如下图</p>
+<p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/3.png" style="zoom:80%;"></p>
+<p>如果是低层的硬件异常，是由内核异常处理程序处理的，一般对用户不可见。但信号不同，信号提供了一种机制来通知用户进程发生了这 些异常。比如，一个进程试图除以0，那么内核就会发送给它一个SIGFPE信号(号码8);如果一个进程执行一条非法指令，那么内核就会发送给它一个SIGSEGV信号(号码11). Kernel是通过 kill这一个系统调用来发送指令的，发送的指令可以是 SIGKILL也可以是 其他指令<br>此外，一个进程可以通过向另一个进程发送一个 SIGKILL 信号(号码9)强制终止它。当一个子进程终止或者停止的时候，内核会发送一个SIGCHILD的信号来给父进程</p>
+<h2 id="信号术语"><a href="#信号术语" class="headerlink" title="信号术语"></a>信号术语</h2><p>下面我们来简单看一下发送信号的过程：是由两个不同步骤组成的：</p>
+<ul>
+<li>发送信号。内核通过更新目的进程上下文中的某个状态，发送一个信号给目的进程。发送信号可以有两个原因 ：<ul>
+<li>内核检测到一个系统时间，比如除零错误或者子进程终止</li>
+<li>一个进程调用了kill函数，显示地要求内核发送一个信号给目的进程。一个进程也可以发送信号给它自己</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/4.png" style="zoom: 67%;"></p>
+<p>一个发出的，而没有被接手的信号叫做待处理信号(pending signal)，在任何时刻，一种类型最多只会有一个待处理信号。如果一个进程有一个类型为k的待处理信号，那么任何接下来发送到这个进程的类型为k的信号都不会排队等待，只是被简单的丢弃。我们可以理解为是一个“状态”而非一个队列。<br>一个进程可以选择性的阻塞接收某种信号，当一种信号被阻塞的时候，它仍然可以被发送但是产生的待处理信号不会被接收，直到进程取消对这种信号的阻塞。</p>
+<p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/5.png" style="zoom: 67%;"></p>
+<ul>
+<li>接收信号。当目的进程被内核强迫以某种方式对信号的发送做出反应的时候，他就接受了信号，进程可以忽略这个信号，终止或者捕获这个信号。如下图所示</li>
+</ul>
+<p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/8.png" style="zoom:80%;"></p>
+<p>一个待处理的信号只能被接收一次。内核为每个进程在<strong>pending位向量</strong>中维护<strong>待处理信号</strong>的集合。而在<strong>blocked向量</strong>中维护<strong>被阻塞的信号</strong>集合。只要传送了一个类型为k的信号，内核就会设置pending中的第k位，而只要接收了一个类型为k的信号，内核就会清除pending中的第k位</p>
+<p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/7.png" style="zoom:80%;"></p>
+<h2 id="发送信号"><a href="#发送信号" class="headerlink" title="发送信号"></a>发送信号</h2><p>Unix系统提供了大量向进程发送信号的机制，所有这些机制都是基于进程组这个概念的</p>
+<h3 id="进程组"><a href="#进程组" class="headerlink" title="进程组"></a>进程组</h3><p>每个进程都<strong>只</strong>属于一个进程组，进程组是由一个正整数进程组ID来标识的。getpgrp函数返回当前进程的进程组ID</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">getpgrp</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>默认的，一个子进程和他的父进程同属于一个进程组。一个进程可以通过使用<code>setpgid</code> 函数来改变自己或者其他进程的进程组</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#inlcude <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">setpgid</span><span class="params">(<span class="keyword">pid_t</span> pid,<span class="keyword">pid_t</span> pgid)</span></span>;<span class="comment">//若成功则返回0，否则返回-1</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/9.png" style="zoom:80%;"></p>
+<p><code>setpgid</code> 函数将进程<code>pid</code>组改为<code>pgid</code>。如果<code>pid</code>是0，那么就使用当前进程的PID。如果<code>pgid</code>为0，那么就用<code>pid</code>指定的进程的PID作为进程组ID。例如，如果进程15213是调用进程，那么 <code>setpgid(0,0);</code> 会创建一个新的进程组，其进程组ID是15213，并且把进程15213加入到这个新的进程组中</p>
+<h3 id="用-bin-kill程序发送信号"><a href="#用-bin-kill程序发送信号" class="headerlink" title="用 /bin/kill程序发送信号"></a>用 /bin/kill程序发送信号</h3><p>/bin/kill 程序可以向另外的进程发送任意的信号。</p>
+<p>例如，命令 <code>linux&gt;/bin/kill -9 15213</code> 发送信号9(SIGKILL)给进程15213. </p>
+<p>一个为负的PID会导致i信号被发送到进程组PID中的<strong>每个进程</strong></p>
+<p>例如：<code>linux&gt;/bin/kill -9 -15213</code> 会发送一个SIGKILL信号给进程组15213中的每个进程。</p>
+<h3 id="从键盘发送信号"><a href="#从键盘发送信号" class="headerlink" title="从键盘发送信号"></a>从键盘发送信号</h3><p>下图展示了一个有一个前台作业和两个后台作业的shell，前台作业中的父进程PID为20，进程组也为20.父进程创建两个子进程，每个也都是进程组20的成员。</p>
+<p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/10.png" style="zoom:80%;"></p>
+<p>在键盘上输入 <code>Ctrl+C</code>会导致内核发送一个 SIGINT 信号到前台进程组中的每一个进程，默认情况下，结果是<strong>终止前台作业</strong>。</p>
+<p>输入<code>Ctrl+Z</code>会发送一个SIGTSTP信号到前台进程组中的每个进程。默认情况下，结果是<strong>停止(挂起suspend)前台作业</strong>。</p>
+<h3 id="用kill-函数发送信号"><a href="#用kill-函数发送信号" class="headerlink" title="用kill 函数发送信号"></a>用kill 函数发送信号</h3><p>进程可以通过调用kill 函数发送信号给其他进程(包括他们自己)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">kill</span><span class="params">(<span class="keyword">pid_t</span> pid,<span class="keyword">int</span> sig)</span></span></span><br></pre></td></tr></table></figure>
+<p>这里有三种不同的发送情况</p>
+<ul>
+<li>如果 $pid&gt;0$ ，那么<code>kill</code>函数就会发送信号号码 <code>sig</code>给进程 <code>pid</code>. </li>
+<li>如果 $pid=0$ ，那么<code>kill</code> 发送信号<code>sig</code>给<strong>调用进程所在进程组</strong>中的<strong>每一个进程</strong>，包括调用进程自己</li>
+<li>如果 $pid&lt;0$ ，那么<code>kill</code> 发送信号<code>sig</code> 给进程组 $|pid|$ <code>pid</code>的绝对值中的每一个进程。</li>
+</ul>
+<p>下面是一个例子</p>
+<p>首先我们创建N个子进程，每一个子进程都是无限循环。然后在对每一个子进程发送SIGINT信号，终止进程运行。</p>
+<p>接下来我们对每一个子进程进行回收，看到底是哪个进程退出。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">fork12</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid[N];</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">int</span> child_status;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; N; i++)</span><br><span class="line">    <span class="keyword">if</span> ((pid[i] = fork()) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">/* Child: Infinite Loop */</span></span><br><span class="line">        <span class="keyword">while</span>(<span class="number">1</span>)</span><br><span class="line">        ;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Killing process %d\n"</span>, pid[i]);</span><br><span class="line">        kill(pid[i], SIGINT);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">        <span class="keyword">pid_t</span> wpid = wait(&amp;child_status);</span><br><span class="line">        <span class="keyword">if</span> (WIFEXITED(child_status))</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"Child %d terminated with exit status %d\n"</span>,wpid, WEXITSTATUS(child_status));</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">	        <span class="built_in">printf</span>(<span class="string">"Child %d terminated abnormally\n"</span>, wpid);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="用alarm函数发送信号"><a href="#用alarm函数发送信号" class="headerlink" title="用alarm函数发送信号"></a>用alarm函数发送信号</h3><p>进程可以通过调用alarm函数向它自己发送SIGALRM信号。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="title">alarm</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> secs)</span></span>;</span><br><span class="line"><span class="comment">//返回: 前一次alarm剩余的秒数，若以前没有设定alarm，则为0</span></span><br></pre></td></tr></table></figure>
+<p>alarm函数安排kernel在<code>secs</code>秒之后发送一个 SIGALRM信号给调用进程。</p>
+<h2 id="接收信号"><a href="#接收信号" class="headerlink" title="接收信号"></a>接收信号</h2><p>当内核把进程p从内核模式切换到用户模式的时候(例如上下文切换) 如下图：</p>
+<p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/11.png" style="zoom:80%;"></p>
+<p>它会检查进程p的未被阻塞的待处理信号的集合，这个集合就是 <code>pending&amp;~blocked</code>,因为pending的是合法的信号，blocked维护的是被阻塞的信号</p>
+<p>如果集合为空，意味着要么信号没到，要么信号被屏蔽了 ，那么kernel将控制传递到p的逻辑控制流中的下一条指令($I_{next}$) </p>
+<p>如果集合非空，那么内核选择集合中的某个信号k(通常是最小的k)，然后强制p接收信号k，并做出相应的触发。接着会对<code>pnb</code>中所有的信号做此操作。做完之后再把控制权返回给 ($I_{next}$) </p>
+<h3 id="Installing-Signal-Handlers"><a href="#Installing-Signal-Handlers" class="headerlink" title="Installing Signal Handlers"></a>Installing Signal Handlers</h3><p>之前我们给出每个信号类型相关联的默认行为。例如，收到SIGKILL的默认行为是终止接收进程。但是其实我们可以通过使用<code>signal</code>函数修改和信号相关联的默认行为。唯一的例外是 <code>SIGSTOP</code> 和 <code>SIGKILL</code>，他们的默认行为是不能被修改的</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">void</span><span class="params">(*<span class="keyword">sighandler_t</span>)</span><span class="params">(<span class="keyword">int</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">sighandler_t</span> <span class="title">signal</span><span class="params">(<span class="keyword">int</span> signum,<span class="keyword">sighandler_t</span> handler)</span></span>;</span><br><span class="line"><span class="comment">//返回：若成功则为指向前次处理程序的指针，若出错则为 SIG_ERR(不设置errno)</span></span><br></pre></td></tr></table></figure>
+<p>通过这个函数我们可以用<strong>三种方法</strong>之一来改变与信号signum相关联的行为</p>
+<ul>
+<li>如果 handler参数 是 <strong>SIG_IGN</strong> ，那么<strong>忽略类型为 signum 的信号</strong></li>
+<li>如果 handler参数 是<strong>SIG_DFL</strong> ，那么<strong>类型为 signum的信号行为恢复为默认行为</strong></li>
+<li>否则，handler就是<strong>用户自定义的函数的地址</strong>，这个函数被称为<strong>信号处理程序</strong>，只要进程接收到一个类型为 signum的信号，就会调用这个程序。<ul>
+<li>通过把处理程序的地址传递到 signal函数从而改变默认行为叫做 <strong>设置信号处理程序(installing the handler)</strong>。</li>
+<li>调用信号处理程序被称为捕获信号。执行信号处理程序被称为处理信号</li>
+</ul>
+</li>
+</ul>
+<p>下面是一个 Signal Handling Example</p>
+<p>在main函数当中，我们首先 <code>handler</code>,就是将 SIGINT这个信号和我自己写的 <code>sigint_handler</code>函数关联，然后手动终止掉。这样当我们按下 <code>Ctrl+C</code>之后，就不只是简单的退出而已，而是会说一段废话……</p>
+<p>所以现在我们知道一些流氓软件的套路了，它就是不停地弹出弹框不让人退出程序。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sigint_handler</span><span class="params">(<span class="keyword">int</span> sig)</span> <span class="comment">/* SIGINT handler */</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"So you think you can stop the bomb with ctrl-c, do you?\n"</span>);</span><br><span class="line">    sleep(<span class="number">2</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Well..."</span>);</span><br><span class="line">    fflush(<span class="built_in">stdout</span>);</span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"OK. :-)\n"</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">/* Install the SIGINT handler */</span></span><br><span class="line">    <span class="keyword">if</span> (signal(SIGINT, sigint_handler) == SIG_ERR)</span><br><span class="line">    	unix_error(<span class="string">"signal error"</span>);</span><br><span class="line">    <span class="comment">/* Wait for the receipt of a signal */</span></span><br><span class="line">    pause();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>信号处理程序可以被其他信号处理程序中断掉，这也被称为 Nested Signal Handlers 如下图所示。</p>
+<p>在这个例子当中，主程序捕获到信号s，该信号会中断主程序，并将控制转移到处理程序S。S在运行的时候，程序捕获到信号t($t\neq s$)，该信号会中断S,控制转移到处理程序T。 当T返回的时候，S从它被中断地地方继续执行，最后，S返回，控制传送回主程序，主程序从它被中断的地方继续执行</p>
+<p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/12.png" style="zoom:80%;"></p>
+<h2 id="阻塞和解除阻塞信号"><a href="#阻塞和解除阻塞信号" class="headerlink" title="阻塞和解除阻塞信号"></a>阻塞和解除阻塞信号</h2><h3 id="隐式阻塞机制"><a href="#隐式阻塞机制" class="headerlink" title="隐式阻塞机制"></a>隐式阻塞机制</h3><p>内核会默认阻塞任何当前处理程序正在处理信号类型的待处理信号。</p>
+<p>比如说在这张图中，假设程序捕捉到了信号s，当前正在运行处理程序S。如果发送给该进程另外一个信号s，那么直到处理程序S返回，s会变成待处理而没有被接受。</p>
+<p><img src="/2021/01/06/%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E6%B5%81%EF%BC%88ECF%EF%BC%892/12.png" style="zoom:80%;"></p>
+<h3 id="显式阻塞机制"><a href="#显式阻塞机制" class="headerlink" title="显式阻塞机制"></a>显式阻塞机制</h3><p>我们可以使用 <code>sigprocmask</code>函数和它的<strong>辅助函数</strong>，明确的阻塞和解除阻塞选定的信号。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigprocmask</span><span class="params">(<span class="keyword">int</span> how, <span class="keyword">const</span> <span class="keyword">sigset_t</span> *<span class="built_in">set</span>, <span class="keyword">sigset_t</span> *oldset)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigemptyset</span><span class="params">(<span class="keyword">sigset_t</span> *<span class="built_in">set</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigfillset</span><span class="params">(<span class="keyword">sigset_t</span> *<span class="built_in">set</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigaddset</span><span class="params">(<span class="keyword">sigset_t</span> *<span class="built_in">set</span>, <span class="keyword">int</span> signum)</span></span>;<span class="comment">//把某一个特定的为加上去</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigdelset</span><span class="params">(<span class="keyword">sigset_t</span> *<span class="built_in">set</span>, <span class="keyword">int</span> signum)</span></span>;<span class="comment">//成功则返回0，否则返回-1</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigismember</span><span class="params">(<span class="keyword">const</span> <span class="keyword">sigset_t</span> *<span class="built_in">set</span>,<span class="keyword">int</span> signum)</span></span>;</span><br><span class="line"><span class="comment">//若signum是set的成员则为1，如果不是则为0，若出错则为-1</span></span><br></pre></td></tr></table></figure>
+<p><code>sigprocmask</code> 函数改变的是 blocked 位向量。具体的行为依赖于how的值:how有三个值</p>
+<ul>
+<li>SIG_BLOCK: 函数把set中的信号添加到blocked当中($blocked = blocked~|set$)</li>
+<li>SIG_UNBLOCK: 函数从block中删除set中的信号 ($blocked=blocked$&amp;~$set$)</li>
+<li>SIG_SETMASK: block=set</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sigset_t</span> mask, prev_mask;<span class="comment">//prev是保留原来的mask</span></span><br><span class="line">Sigemptyset(&amp;mask);<span class="comment">//创建一个空的mask</span></span><br><span class="line">Sigaddset(femask, SIGINT);<span class="comment">//将SIGINT位设置为1</span></span><br><span class="line"><span class="comment">/* Block SIGINT and	and save previous blocked set */</span></span><br><span class="line">Sigprocmask(SIG_BLOCK, &amp;mask, &amp;prev_mask);<span class="comment">// 注册这个mask，将pre_mask保存下来，把新的信号添加到blocked当中</span></span><br><span class="line"><span class="comment">// Code region that will not be interrupted by SIGINT</span></span><br><span class="line"><span class="comment">/* Restore previous blocked set, unblocking SIGINT */</span></span><br><span class="line">Sigprocmask(SIG_SETMASK, &amp;prev_mask, <span class="literal">NULL</span>);<span class="comment">//结束以后我们要回归原样</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CSAPP/" rel="tag"># CSAPP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/01/02/CSAPP%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="prev" title="CSAPP云计算">
+      <i class="fa fa-chevron-left"></i> CSAPP云计算
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/01/17/%E7%AE%97%E6%B3%95%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/" rel="next" title="算法期末复习">
+      算法期末复习 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Shells"><span class="nav-number">1.</span> <span class="nav-text">Shells</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Signals"><span class="nav-number">2.</span> <span class="nav-text">Signals</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#信号术语"><span class="nav-number">2.1.</span> <span class="nav-text">信号术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发送信号"><span class="nav-number">2.2.</span> <span class="nav-text">发送信号</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#进程组"><span class="nav-number">2.2.1.</span> <span class="nav-text">进程组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用-bin-kill程序发送信号"><span class="nav-number">2.2.2.</span> <span class="nav-text">用 &#x2F;bin&#x2F;kill程序发送信号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从键盘发送信号"><span class="nav-number">2.2.3.</span> <span class="nav-text">从键盘发送信号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用kill-函数发送信号"><span class="nav-number">2.2.4.</span> <span class="nav-text">用kill 函数发送信号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用alarm函数发送信号"><span class="nav-number">2.2.5.</span> <span class="nav-text">用alarm函数发送信号</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接收信号"><span class="nav-number">2.3.</span> <span class="nav-text">接收信号</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Installing-Signal-Handlers"><span class="nav-number">2.3.1.</span> <span class="nav-text">Installing Signal Handlers</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#阻塞和解除阻塞信号"><span class="nav-number">2.4.</span> <span class="nav-text">阻塞和解除阻塞信号</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#隐式阻塞机制"><span class="nav-number">2.4.1.</span> <span class="nav-text">隐式阻塞机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#显式阻塞机制"><span class="nav-number">2.4.2.</span> <span class="nav-text">显式阻塞机制</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

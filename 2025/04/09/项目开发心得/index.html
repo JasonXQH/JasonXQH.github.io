@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="项目开发心得数据库篇 postgres一般使用TEXT而不是用VARCHAR 对于一些字段，我们要求他可以为空，但是不能为空字符串。此时null 表示“没有提供数据”，而空字符串则被认为是无效或错误的输入。比如一些枚举类，它们一旦有值，通常需要用于后续业务逻辑或者系统校验，如果保存了空字符串，可能引发逻辑错误或数据不一致。 access_token TEXT CHECK (access_token">
+<meta property="og:type" content="article">
+<meta property="og:title" content="项目开发心得">
+<meta property="og:url" content="https://jasonxqh.github.io/2025/04/09/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E5%BF%83%E5%BE%97/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="项目开发心得数据库篇 postgres一般使用TEXT而不是用VARCHAR 对于一些字段，我们要求他可以为空，但是不能为空字符串。此时null 表示“没有提供数据”，而空字符串则被认为是无效或错误的输入。比如一些枚举类，它们一旦有值，通常需要用于后续业务逻辑或者系统校验，如果保存了空字符串，可能引发逻辑错误或数据不一致。 access_token TEXT CHECK (access_token">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-04-09T14:30:13.000Z">
+<meta property="article:modified_time" content="2025-04-09T14:32:29.155Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="一些思考">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2025/04/09/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E5%BF%83%E5%BE%97/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>项目开发心得 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2025/04/09/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E5%BF%83%E5%BE%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          项目开发心得
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2025-04-09 22:30:13 / Modified: 22:32:29" itemprop="dateCreated datePublished" datetime="2025-04-09T22:30:13+08:00">2025-04-09</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="项目开发心得"><a href="#项目开发心得" class="headerlink" title="项目开发心得"></a>项目开发心得</h1><h2 id="数据库篇"><a href="#数据库篇" class="headerlink" title="数据库篇"></a>数据库篇</h2><ul>
+<li>postgres一般使用TEXT而不是用VARCHAR</li>
+<li>对于一些字段，我们要求他可以为空，但是不能为空字符串。此时null 表示“没有提供数据”，而空字符串则被认为是无效或错误的输入。比如一些枚举类，它们一旦有值，通常需要用于后续业务逻辑或者系统校验，如果保存了空字符串，可能引发逻辑错误或数据不一致。<ul>
+<li><code>access_token TEXT CHECK (access_token IS NULL OR access_token &lt;&gt; &#39;&#39;)</code></li>
+</ul>
+</li>
+<li>对于其他一些字段，我们会要求它不能为空，但是可以为字符串。比如默认配置项、必要文本输入等 <code>seller_id BIGINT NOT NULL</code></li>
+<li>对于一些Unique的值 ，我们要在创建数据表格的时候，就将其约束起来，不要等到后续再去维护。<strong>要向上推</strong><ul>
+<li>比如<code>CREATE UNIQUE INDEX sellers_seller_id_store_id_idx ON public.sellers (seller_id);</code></li>
+<li>要知道数据库是最后一层保障，很多判断应该在应用层做判断，如果数据库报错一定是代码写错了。<h2 id="OpenAPI"><a href="#OpenAPI" class="headerlink" title="OpenAPI"></a>OpenAPI</h2><h3 id="OpenAPI-与数据库表类型匹配"><a href="#OpenAPI-与数据库表类型匹配" class="headerlink" title="OpenAPI 与数据库表类型匹配"></a>OpenAPI 与数据库表类型匹配</h3><a href="obsidian://open?vault=obsidian&amp;file=%E9%A1%B9%E7%9B%AEsop%2F04-mig25codegen">mig25-codegen的下载和基本操作</a><br>我们要编写符合mig25的<code>openapi.yaml</code> , 最好是要将openapi中定义的component中的字段和数据库表中的字段匹配起来。</li>
+</ul>
+</li>
+<li>比如数据库表中字段类型为long，在openapi中可以这样设置：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">type:</span> <span class="string">integer</span>  </span><br><span class="line"><span class="attr">format:</span> <span class="string">int64</span>  </span><br><span class="line"><span class="attr">example:</span> <span class="number">1052101482</span></span><br></pre></td></tr></table></figure></li>
+<li>比如数据库表中的字段类型是UUID，在openapi中可以这样设置<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">leyan_seller_id:</span>  </span><br><span class="line">  <span class="attr">type:</span> <span class="string">string</span>  </span><br><span class="line">  <span class="attr">format:</span> <span class="string">uuid</span>  </span><br><span class="line">  <span class="attr">example:</span> <span class="string">'44cfdf24-6a22-4ba8-dedc-55e62aeadd85'</span></span><br></pre></td></tr></table></figure>
+<h3 id="OpenAPI-component-设置-DTO-TO-VO"><a href="#OpenAPI-component-设置-DTO-TO-VO" class="headerlink" title="OpenAPI component 设置 DTO TO VO"></a>OpenAPI component 设置 DTO TO VO</h3>由于我们使用了<code>mig25-codegen</code> 这个插件，因此他可以根据OpenAPI的定义生成出相关VO和DTO的转换逻辑。这样就方便了对请求格式和返回格式的处理。<br>假设我们的 Model 名称为<code>Seller</code>，可以通过它对数据库进行增删改查的工作。<h4 id="request"><a href="#request" class="headerlink" title="request"></a>request</h4>那么当<code>requestBody</code>  中传入了json格式的seller，如何将其直接转换为可以操控数据库的类型Seller？<br>首先需要在OpenAPI的component中找到定义的seller,然后添加<code>x-request</code> 属性<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">SubsystemSeller:</span>  </span><br><span class="line">  <span class="attr">type:</span> <span class="string">object</span>  </span><br><span class="line">  <span class="attr">x-response:</span> <span class="string">Seller</span>  </span><br><span class="line">  <span class="attr">x-request:</span> <span class="string">Seller</span></span><br></pre></td></tr></table></figure>
+然后在方法中：<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> seller = Seller.newRecord(requestBody)</span><br></pre></td></tr></table></figure>
+如果说OpenAPI中定义的某些component和Seller Model不完全对应，只有其中某些字段，那么也可以用这种方法：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">SubsystemToken:</span>  </span><br><span class="line">  <span class="attr">type:</span> <span class="string">object</span>  </span><br><span class="line">  <span class="attr">x-request:</span> <span class="string">Seller</span>  </span><br><span class="line">  <span class="attr">required:</span> <span class="string">[</span> <span class="string">access_token,</span> <span class="string">app_name</span> <span class="string">]</span></span><br></pre></td></tr></table></figure>
+此时，假设传入的requestBody中包含了这个SubsystemToken，可以用<code>update</code> 来更新Seller Model实现更新操作。<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">seller.update(requestBody.SubsystemToken)</span><br></pre></td></tr></table></figure>
+当然，不管是那种方式，最后都需要 <code>seller.store()</code> 将其应用到数据库中。<h4 id="response"><a href="#response" class="headerlink" title="response"></a>response</h4>同样的，当我从数据库中拿到了一些记录，但他们是Model类型，如何将其以OpenAPI规定的格式传出？<br>此时我们可以定义<code>x-response</code> ，正如上面所说的那样。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val responses &#x3D; loadedSellerOrders.map &#123; it.includes(fields).toResponse(OpenApiSellerOrder) &#125;</span><br></pre></td></tr></table></figure>
+对于数据库中处理得到的loadedSellerOrders,对其执行toResponse操作转换成OpenAPI所定义的格式<h2 id="Controller"><a href="#Controller" class="headerlink" title="Controller"></a>Controller</h2>我们的目标是</li>
+<li>[!] 尽量不去手动的做VO和DTO之间的转换，而是交给codegen去完成。</li>
+<li>[!] 尽量使用codegen生成的api进行操作，如<code>find</code>,<code>findBy</code>,<code>update</code>,<code>store</code>,<code>delete</code>等。代码要包含两方面：1. 要做什么 2.怎么去做。好的代码只体现1，2对developer是透明的，尽量交给框架去完成。<h3 id="Exception-Mapper"><a href="#Exception-Mapper" class="headerlink" title="Exception Mapper"></a>Exception Mapper</h3>对于很多方法，可能都会抛出同一类错误，比如说<code>NOT FOUND</code> ，那么我们有没有什么合适的方法去同意管理起来，而不是在每个方法中写一模一样的错误处理方法？<br>这时我们就需要用到<code>@ServerExceptionMapper</code> 注解，我们在Controller类中配置，统一处理特定类型的错误，比如说：<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Path(<span class="meta-string">"/superbook/subsystem"</span>)</span>  </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SuperbookController</span> </span>&#123;  </span><br><span class="line">  <span class="meta">@ServerExceptionMapper</span>  </span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">handle</span><span class="params">(e: <span class="type">NoDataFoundException</span>)</span></span>: Response &#123;  </span><br><span class="line">    <span class="comment">// 返回 JSON 格式的错误信息  </span></span><br><span class="line">    <span class="keyword">val</span> body =  </span><br><span class="line">      mapOf(  </span><br><span class="line">        <span class="string">"code"</span> to <span class="number">404</span>,  </span><br><span class="line">        <span class="string">"error"</span> to <span class="string">"NOT_FOUND"</span>,  </span><br><span class="line">        <span class="string">"message"</span> to (e.message ?: <span class="string">"Resource not found"</span>),  </span><br><span class="line">      )  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> Response  </span><br><span class="line">      .status(Response.Status.NOT_FOUND)  </span><br><span class="line">      .type(MediaType.APPLICATION_JSON)  </span><br><span class="line">      .entity(body)  </span><br><span class="line">      .build()  </span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="mig25-codegen-find和findBy"><a href="#mig25-codegen-find和findBy" class="headerlink" title="mig25-codegen : find和findBy"></a>mig25-codegen : find和findBy</h3>当我们使用mig25生成的models的时候，可以使用它提供的API和数据库进行交互。那么<code>find</code>和<code>findBy</code> 有什么区别？<br>简单来说，<code>find</code> 只能根据主键进行查询，所以直接传入主键值即可。<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Seller.find(updatedFields.leyanSellerId)</span><br></pre></td></tr></table></figure>
+但是<code>findBy</code> 的参数是一个条件，可以查询任意字段值<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Seller.findBy(  Seller.SELLERS.LEYAN_SELLER_ID.eq(installSystem.subsystemSeller.leyanSellerId),  </span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+此外，还有一个差别,我们看一下二者的底层实现：<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">findBy</span><span class="params">(<span class="keyword">vararg</span> conditions: <span class="type">Condition</span>)</span></span> = <span class="keyword">where</span>(*conditions).fetchOne()  </span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">find</span><span class="params">(value: <span class="type">T</span>)</span></span> = <span class="keyword">where</span>(pk.eq(value)).fetchSingle()</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><strong>fetchOne()</strong>：<ul>
+<li>如果<strong>查询结果没有记录</strong>，返回 <strong>null</strong>。</li>
+<li>如果查询结果返回多于一条记录，则抛出异常（例如 <code>NonUniqueResultException</code>）。    </li>
+<li>适用于“可选”结果场景，即允许结果为空。</li>
+</ul>
+</li>
+<li><strong>fetchSingle()</strong>：<ul>
+<li>要求查询必须返回<strong>恰好一条记录</strong>。</li>
+<li>如果查询<strong>结果为空，则抛出异常</strong>（例如 <code>NoDataFoundException</code> 或者其他与“没有数据”相关的异常）；如果结果超过一条，也会抛出异常。</li>
+<li>用于预期必须存在一个记录的场景，并且希望在不存在时立即获得错误提示。<h3 id="Delete软删除"><a href="#Delete软删除" class="headerlink" title="Delete软删除"></a>Delete软删除</h3>在写delete方法的时候，通常使用软删除，将一些重要信息置空，而不是用<code>delete</code>将整行record删除。<h2 id="Test-amp-amp-Bugfix"><a href="#Test-amp-amp-Bugfix" class="headerlink" title="Test &amp;&amp; Bugfix"></a>Test &amp;&amp; Bugfix</h2></li>
+</ul>
+</li>
+</ul>
+<p>对于更新、插入等方法的测试，在测试插入之后，需要绕过接口直接查数据库并Assert状态是否已经更新。而且<strong>需要Assert所有字段</strong>。这样比较容易发现bug，当我们发现bug的时候，需要写一个尽可能详细的test去把这个bug的边界给囊括住，这样可以更好的帮助修复。<br>如：<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span>  </span><br><span class="line"><span class="function"><span class="keyword">fun</span> `test enableSubsystem updates existing seller <span class="keyword">if</span> already exists`<span class="params">()</span></span> &#123;  </span><br><span class="line">  <span class="keyword">val</span> subsystemName = ... </span><br><span class="line">  <span class="comment">// 使用 fixture 中已存在的 sellerOne  val existingId = sellerOne.leyanSellerId!!  </span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 构造示例请求体 InstallSystem  </span></span><br><span class="line">  <span class="keyword">val</span> subsystemInstallSystem =  ...</span><br><span class="line">  </span><br><span class="line">  Given &#123;  </span><br><span class="line">    ...</span><br><span class="line">  &#125; When &#123;  </span><br><span class="line">    ...</span><br><span class="line">  &#125; Then &#123;  </span><br><span class="line">    ...</span><br><span class="line">  &#125;  </span><br><span class="line">  <span class="comment">//需要从数据库fetch出来注意比较</span></span><br><span class="line">  <span class="keyword">val</span> seller = Seller.find(existingId)  </span><br><span class="line">  </span><br><span class="line">  assertNotNull(seller, <span class="string">"Seller 应该存在"</span>)  </span><br><span class="line">  assertEquals(existingId, seller.leyanSellerId, <span class="string">"leyan_seller_id 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="number">1052101482</span>, seller.sellerId, <span class="string">"seller_id 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="number">425920014</span>, seller.storeId, <span class="string">"store_id 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="string">"updated_seller_nick"</span>, seller.sellerNick, <span class="string">"seller_nick 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="string">"更新后的店铺标题"</span>, seller.storeTitle, <span class="string">"store_title 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="string">"taobao"</span>, seller.platform, <span class="string">"platform 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="string">"5c4f37e8-2447-4dd6-b31e-9d678904b051"</span>, seller.organizationId.toString(), <span class="string">"organization_id 应该匹配"</span>)  </span><br><span class="line">  assertEquals(<span class="string">"淘宝"</span>, seller.sellerType, <span class="string">"seller_type 应该匹配"</span>)  </span><br><span class="line">  <span class="comment">// bugfix: 这里是框架性错误，第二次update失效，expected accessToken:"updated_access_token"  </span></span><br><span class="line">  assertEquals(<span class="string">"updated_access_token"</span>, seller.accessToken, <span class="string">"access_token 应该匹配"</span>)  </span><br><span class="line">  <span class="comment">// bugfix: 这里是框架性错误，第二次update失效，expected appName:"tb_lyzr"  </span></span><br><span class="line">  assertEquals(<span class="string">"tb_lyzr"</span>, seller.appName, <span class="string">"app_name 应该匹配"</span>)  </span><br><span class="line">  <span class="comment">// bugfix: 这里是框架性错误，第二次update失效，expected:"Instant.parse("2030-01-01T00:00:00Z") "  </span></span><br><span class="line">  assertEquals(Instant.parse(<span class="string">"2030-01-01T00:00:00Z"</span>), seller.expiresAt?.toInstant(), <span class="string">"expiresAt 应该匹配"</span>)  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="bugfix"><a href="#bugfix" class="headerlink" title="bugfix"></a>bugfix</h3><p>此外，当发现bug的时候，我们如何上报，也是需要标准的处理方式<br>比如这里我发现了一个框架性的错误，无法解决。</p>
+<ul>
+<li>先在原来的分支编写 <strong>错误的、但是可以通过的测试</strong></li>
+<li>再checkout一条 <code>bugfix</code> 分支，编写 <strong>正确的、但是无法通过的测试</strong></li>
+<li>这样leader修改完之后，直接测试bugfix分支，通过以后，将bugfix分支merge到原先分支，就会得到<strong>正确的、且可以通过的测试</strong></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" rel="tag"># 一些思考</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/03/07/%E5%9B%9E%E6%BA%AF%E5%89%AA%E6%9E%9D%E6%95%B4%E7%90%86/" rel="prev" title="回溯剪枝整理">
+      <i class="fa fa-chevron-left"></i> 回溯剪枝整理
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#项目开发心得"><span class="nav-number">1.</span> <span class="nav-text">项目开发心得</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库篇"><span class="nav-number">1.1.</span> <span class="nav-text">数据库篇</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OpenAPI"><span class="nav-number">1.2.</span> <span class="nav-text">OpenAPI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#OpenAPI-与数据库表类型匹配"><span class="nav-number">1.2.1.</span> <span class="nav-text">OpenAPI 与数据库表类型匹配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OpenAPI-component-设置-DTO-TO-VO"><span class="nav-number">1.2.2.</span> <span class="nav-text">OpenAPI component 设置 DTO TO VO</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#request"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">request</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#response"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">response</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Controller"><span class="nav-number">1.3.</span> <span class="nav-text">Controller</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Exception-Mapper"><span class="nav-number">1.3.1.</span> <span class="nav-text">Exception Mapper</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mig25-codegen-find和findBy"><span class="nav-number">1.3.2.</span> <span class="nav-text">mig25-codegen : find和findBy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Delete软删除"><span class="nav-number">1.3.3.</span> <span class="nav-text">Delete软删除</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Test-amp-amp-Bugfix"><span class="nav-number">1.4.</span> <span class="nav-text">Test &amp;&amp; Bugfix</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bugfix"><span class="nav-number">1.4.1.</span> <span class="nav-text">bugfix</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

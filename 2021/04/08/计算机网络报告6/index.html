@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Exp6: DNS报文分析和基于UDP的Socket编程[TOC] 题解请直接跳转task1,task2,task3  一、实验目的 学习DNS协议  学习使用Datagram Socket  二、实验任务 使用Wireshark分析DNS协议  使用DatagramSocket和DatagramPacket编写代码  三、实验过程3.1 Wireshark补充 着色规则  数据包列表区中不同的协">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络报告6">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="Exp6: DNS报文分析和基于UDP的Socket编程[TOC] 题解请直接跳转task1,task2,task3  一、实验目的 学习DNS协议  学习使用Datagram Socket  二、实验任务 使用Wireshark分析DNS协议  使用DatagramSocket和DatagramPacket编写代码  三、实验过程3.1 Wireshark补充 着色规则  数据包列表区中不同的协">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/13.png">
+<meta property="article:published_time" content="2021-04-08T15:06:01.000Z">
+<meta property="article:modified_time" content="2022-08-24T20:31:26.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>计算机网络报告6 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机网络报告6
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-04-08 23:06:01" itemprop="dateCreated datePublished" datetime="2021-04-08T23:06:01+08:00">2021-04-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-08-25 04:31:26" itemprop="dateModified" datetime="2022-08-25T04:31:26+08:00">2022-08-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Exp6-DNS报文分析和基于UDP的Socket编程"><a href="#Exp6-DNS报文分析和基于UDP的Socket编程" class="headerlink" title="Exp6: DNS报文分析和基于UDP的Socket编程"></a>Exp6: DNS报文分析和基于UDP的Socket编程</h1><p>[TOC]</p>
+<p>题解请直接跳转task1,task2,task3 </p>
+<h2 id="一、实验目的"><a href="#一、实验目的" class="headerlink" title="一、实验目的"></a>一、实验目的</h2><ul>
+<li>学习DNS协议 </li>
+<li>学习使用Datagram Socket</li>
+</ul>
+<h2 id="二、实验任务"><a href="#二、实验任务" class="headerlink" title="二、实验任务"></a>二、实验任务</h2><ul>
+<li>使用Wireshark分析DNS协议 </li>
+<li>使用DatagramSocket和DatagramPacket编写代码</li>
+</ul>
+<h2 id="三、实验过程"><a href="#三、实验过程" class="headerlink" title="三、实验过程"></a>三、实验过程</h2><h3 id="3-1-Wireshark补充"><a href="#3-1-Wireshark补充" class="headerlink" title="3.1 Wireshark补充"></a>3.1 Wireshark补充</h3><ul>
+<li>着色规则</li>
+</ul>
+<p>数据包列表区中不同的协议使用了不同的颜色区分。协议颜色标识定位在菜单栏View —&gt; Coloring Rules。如下所示:</p>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/1.png" style="zoom:67%;"></p>
+<ul>
+<li><p>Packet Details Pane(<strong>数据包详细信息</strong>)</p>
+<p>在数据包列表中选择指定数据包，在数据包详细信息中会显示数据包的所有详细信息内容。数据包详细信息面板是最重要的，用来查看协议中的每一个字段。各行信息分别为:</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1）Frame: 物理层的数据帧概况</span><br><span class="line">2）Ethernet II: 数据链路层以太⽹帧头部信息</span><br><span class="line">3）Internet Protocol Version 4: 互联⽹层IP包头部信息</span><br><span class="line">4）Transmission Control Protocol: 传输层的数据段头部信息，此处是TCP</span><br><span class="line">5）Hypertext Transfer Protocol: 应⽤层的信息，此处是HTTP协议</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/2.png" style="zoom:67%;"></p>
+<h4 id="3-1-1-Wireshake过滤器"><a href="#3-1-1-Wireshake过滤器" class="headerlink" title="3.1.1 Wireshake过滤器"></a>3.1.1 Wireshake过滤器</h4><ol>
+<li>捕获过滤器<br>捕获过滤器 是指wireshark⼀开始在抓包时，就确定要抓取哪些类型的包；对于不需要的，不进⾏<br>抓取。</li>
+</ol>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/3.png" style="zoom:67%;"></p>
+<ol>
+<li>显示过滤器<br>显示过滤器 是指wireshark对所有的包都进⾏抓取，当⽤户分析数据包的信息，便于筛选出需要的<br>数据包</li>
+</ol>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/4.png" style="zoom:67%;"></p>
+<p><strong>捕获过滤器</strong> 是在⽤户开始任务之前就要使⽤的规则；⽽显示过滤器 是任务开始之后（⽆论是否已<br>完成）要使⽤的规则。</p>
+<h4 id="3-1-2-显示过滤器语法和实例"><a href="#3-1-2-显示过滤器语法和实例" class="headerlink" title="3.1.2 显示过滤器语法和实例"></a>3.1.2 显示过滤器语法和实例</h4><p>这⾥我们将主要介绍显示过滤器的常⽤语法和实例，捕获过滤器类似（可百度进⾏了解）。</p>
+<ol>
+<li>⽐较操作符</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x3D;&#x3D;(eq)　　&#x2F;&#x2F;等于，equal</span><br><span class="line">!&#x3D;(ne)　　&#x2F;&#x2F;不等于，no equal</span><br><span class="line">&lt;(lt)　　 &#x2F;&#x2F;⼩于，less than</span><br><span class="line">&gt;(gt)　　 &#x2F;&#x2F;⼤于，great than</span><br><span class="line">&gt;&#x3D;(ge)　　&#x2F;&#x2F;⼤于等于，great equal</span><br><span class="line">&lt;&#x3D;(le)　　&#x2F;&#x2F;⼩于等于，less equal</span><br><span class="line">&amp;&amp;　　&#x2F;&#x2F;逻辑“与”运算</span><br><span class="line">||　　&#x2F;&#x2F;逻辑“或”运算</span><br><span class="line">!　　 &#x2F;&#x2F;逻辑“⾮”运算</span><br></pre></td></tr></table></figure>
+<ol>
+<li>协议过滤</li>
+</ol>
+<p>⽐较简单，直接在过滤框中直接输⼊协议名即可。 注意：协议名称需要输⼊⼩写。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tcp、ip、dhcp、oicq、ftp、ssl等等</span><br><span class="line">icmp &#x2F;&#x2F;只查看HTTP协议的数据包列表</span><br><span class="line">udp || icmp || dns　&#x2F;&#x2F;只显示udp、icmp、dns相关协议的数据包</span><br><span class="line">not arp 等于 !arp　　&#x2F;&#x2F;不显示arp协议的数据包</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/5.png" style="zoom:67%;"></p>
+<ol>
+<li>过滤IP地址</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ip.addr&#x3D;&#x3D;192.168.1.104　　&#x2F;&#x2F;只显示源&#x2F;⽬的IP为192.168.1.3的数据包</span><br><span class="line">ip.src&#x3D;&#x3D;1.1.1.1 &#x2F;&#x2F;只显示源IP为1.1.1.1的数据包</span><br><span class="line">not ip.src&#x3D;&#x3D;1.1.1.1　　 &#x2F;&#x2F;不显示源IP为1.1.1.1的数据包</span><br><span class="line">ip.src&#x3D;&#x3D;1.1.1.1 or ip.dst&#x3D;&#x3D;1.1.1.2　　&#x2F;&#x2F;只显示源IP为1.1.1.1或⽬的IP为1.1.1.2的数据包</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/6.png" style="zoom:67%;"></p>
+<ol>
+<li>过滤端⼝</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tcp.port eq 80　　 &#x2F;&#x2F;只显示源&#x2F;⽬的端⼝为80的数据包</span><br><span class="line">tcp.dstport&#x3D;&#x3D;80　　&#x2F;&#x2F;只显示⽬的端⼝为80的数据包</span><br><span class="line">tcp.srcport&#x3D;&#x3D;80 &#x2F;&#x2F;只显示源端⼝为80的数据包</span><br><span class="line">tcp.port &gt;&#x3D;1 and tcp.port&lt;&#x3D;80　　&#x2F;&#x2F;只显示源&#x2F;⽬的端⼝⼤于等于1，⼩于等于80的数据包</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/7.png" style="zoom:67%;"></p>
+<ol>
+<li>过滤协议参数</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tcp.flags.syn &#x3D;&#x3D; 0x02　　&#x2F;&#x2F;显示包含syn标志位的数据包</span><br><span class="line">http.request.method&#x3D;&#x3D;&quot;get&quot;　　&#x2F;&#x2F;显示http请求中method值为get的包</span><br></pre></td></tr></table></figure>
+<p>tips：如图所示，在显示过滤器中输⼊规则时，会出现提示信息，可据此了解更多的协议过滤规则</p>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/8.png" style="zoom:67%;"></p>
+<ol>
+<li>逻辑运算符为 and/or/not</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">过滤多个条件组合时，使⽤and&#x2F;or。</span><br><span class="line">⽐如获取IP地址为192.168.1.104的ICMP数据包表达式为ip.addr &#x3D;&#x3D; 192.168.1.104 and icmp</span><br></pre></td></tr></table></figure>
+<h3 id="3-2-DNS协议"><a href="#3-2-DNS协议" class="headerlink" title="3.2 DNS协议"></a>3.2 DNS协议</h3><h4 id="3-2-1-DNS协议简介"><a href="#3-2-1-DNS协议简介" class="headerlink" title="3.2.1 DNS协议简介"></a>3.2.1 DNS协议简介</h4><p>识别主机有两种⽅式：主机名、IP地址。前者便于记忆(如www.baidu.com)，但路由器很难处理(主机名⻓度不定)；后者定⻓、有层次结构，便于路由器处理，但难以记忆。折中的办法就是建⽴IP地址与主机名间的映射，这就是域名系统DNS做的⼯作。DNS通常由其他应⽤层协议使⽤(如HTTP、SMTP、FTP)，将主机名解析为IP地址。<br>在本实验中，我们将仔细查看 DNS 报⽂的细节。</p>
+<h4 id="3-2-2-DNS报⽂"><a href="#3-2-2-DNS报⽂" class="headerlink" title="3.2.2 DNS报⽂"></a>3.2.2 DNS报⽂</h4><ul>
+<li>报⽂格式<br>DNS只有两种报⽂：查询报⽂、响应报⽂，两者有着相同格式，如下：</li>
+</ul>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/9.png" style="zoom:67%;"></p>
+<ul>
+<li>捕获的DNS报⽂</li>
+</ul>
+<p>考虑访问百度⻚⾯的⼀个操作，在浏览器输⼊<a href="http://www.baidu.com/index.html并回⻋，⾸先需要将URL(存放对象的服务器主机名和对象的路径名)解析成IP地址，具体步骤为：" target="_blank" rel="noopener">http://www.baidu.com/index.html并回⻋，⾸先需要将URL(存放对象的服务器主机名和对象的路径名)解析成IP地址，具体步骤为：</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1）同⼀台⽤户主机上运⾏着DNS应⽤的客户机端(如浏览器)</span><br><span class="line">2）从上述URL抽取主机名[www.baidu.com](http:&#x2F;&#x2F;www.baidu.com&#x2F;)，传给DNS应⽤的客户机端(浏览器)</span><br><span class="line">3）该DNS客户机向DNS服务器发送⼀个包含主机名的请求(DNS查询报⽂)</span><br><span class="line">4）该DNS客户机收到⼀份回答报⽂(DNS响应报⽂)，该报⽂包含该主机名对应的IP地址 182.61.200.7</span><br><span class="line">5）浏览器由该IP地址定位的HTTP服务器发送⼀个TCP链接</span><br></pre></td></tr></table></figure>
+<p>⽤Wireshark捕获的DNS报⽂如下图，第⼀⾏是DNS查询报⽂，第⼆⾏是DNS响应报⽂。</p>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/10.png" style="zoom:67%;"></p>
+<h4 id="域名解析过程："><a href="#域名解析过程：" class="headerlink" title="域名解析过程："></a>域名解析过程：</h4><p>表示授权应答 域名解析总体可分为两大步骤：</p>
+<p>第一个步骤是本机向本地域名服务器发出一个DNS请求报文，报文里携带需要查询的域名；第二个步骤是本地域名服务器向本机回应一个DNS响应报文，里面包含域名对应的IP地址或者别名等。</p>
+<p>注意：第一个步骤从主机到本地域名服务器是<strong>递归查询</strong>；第二大步骤中采用的是<strong>迭代查询</strong>，其实是包含了很多小步骤的</p>
+<p><strong>递归查询：</strong>本机向本地域名服务器发出一次查询请求，<strong>就静待最终的结果</strong>。如果本地域名服务器无法解析，自己会以DNS客户机的身份向其它域名服务器查询，直到得到最终的IP地址告诉本机</p>
+<p><strong>迭代查询：</strong>本地域名服务器向根域名服务器查询，根域名服务器告诉它下一步到哪里去查询，然后它再去查，<strong>每次它都是以客户机的身份去各个服务器查询 </strong></p>
+<h4 id="task1"><a href="#task1" class="headerlink" title="task1:"></a>task1:</h4><p><strong>内容： 根据Wireshark抓取的报⽂信息（例，下图所示示例），分别分析DNS查询报⽂和响应报⽂的组成结构，参考上⾯的报⽂格式指出报⽂的每个部分（如，头部区域等），请将实验结果附在实验报告中。</strong></p>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/11.png" style="zoom:67%;"></p>
+<h5 id="DNS-查询报文格式："><a href="#DNS-查询报文格式：" class="headerlink" title="DNS 查询报文格式："></a>DNS 查询报文格式：</h5><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>报文部分</th>
+<th>字段名</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>头部</td>
+<td>Transaction ID (事务ID) <br>这是DNS报文的ID标识，对于<strong>请求报文和其对应的应答报文</strong>，该字段的值是<strong>相同的</strong>。通过这个ID课题区分DNS 应答报文是对哪个请求进行相应的。</td>
+</tr>
+<tr>
+<td>头部</td>
+<td>Flags (标志) <br>其中，Flags又有很多子字段，在下面详细介绍。</td>
+</tr>
+<tr>
+<td>头部</td>
+<td>Questions(问题计数)</td>
+</tr>
+<tr>
+<td>头部</td>
+<td>Answer RRs(回答资源记录数)</td>
+</tr>
+<tr>
+<td>头部</td>
+<td>Authority RRs(权威名称能服务器计数)</td>
+</tr>
+<tr>
+<td>头部</td>
+<td>Additional RRs(附加资源记录数)</td>
+</tr>
+<tr>
+<td>问题部分</td>
+<td>Queries (查询问题区域)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Flags</strong> 这个字段是一串二进制编码，用来标志该请求报文的一些属性和窗台。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Flags: 0x0100 Standard query</span><br><span class="line">    0... .... .... .... &#x3D; Response: Message is a query</span><br><span class="line">    .000 0... .... .... &#x3D; Opcode: Standard query (0)</span><br><span class="line">    .... ..0. .... .... &#x3D; Truncated: Message is not truncated</span><br><span class="line">    .... ...1 .... .... &#x3D; Recursion desired: Do query recursively</span><br><span class="line">    .... .... .0.. .... &#x3D; Z: reserved (0)</span><br><span class="line">    .... .... ...0 .... &#x3D; Non-authenticated data: Unacceptable</span><br></pre></td></tr></table></figure>
+<p>这个Flags字段里面一共有6个子字段：</p>
+<ul>
+<li><strong>Response:  </strong> 查询请求/响应的标志信息。 0代表查询请求，1代表响应请求，这里是0</li>
+<li><strong>Opcode:</strong> 操作码。 0代表标准查询；1代表反响查询； 2代表服务器状态请求。</li>
+<li><strong>Truncated: </strong> 表示是否被截断。 1代表响应已超过512字节并已经被截断，且只返回前面512个字节</li>
+<li><strong>Recursion Desired: </strong> 期望递归。 该字段能在一个查询中设置，并在响应中返回。 该标志告诉名称服务器必须处理这个查询，这种方式被称为一个递归查询。如果该位为 0，且被请求的名称服务器没有一个授权回答，它将返回一个能解答该查询的其他名称服务器列表。这种方式被称为迭代查询。</li>
+<li><strong>Z: </strong> 保留字段，在请求和响应报文中，值必须为0</li>
+<li><strong>Non-authenticated data: Unacceptable：</strong>未经认证的数据；0 代表服务器已经进行了相关 DNSSEC 数字签名的验证 1 代表为服务器并未进行相关 DNSSEC 数字签名的验证</li>
+</ul>
+<p>事实上，Flags字段还有其他几个子字段：</p>
+<ul>
+<li><strong>Authoritative Answer</strong> 表示授权应答。 0代表 应答服务器不是该域名的权威解析服务器，1代表应答服务器是该域名的权威解析服务器。</li>
+<li><strong>rcode</strong>返回码字段，表示响应的差错状态。不同的值代表了不同的错误。</li>
+</ul>
+<p><strong>Queries</strong> 查询问题区域：</p>
+<p>该部分是用来显示 DNS 查询请求的问题，通常只有一个问题。该部分包含正在进行的查询信息，包含查询名（被查询主机名字）、查询类型、查询类。</p>
+<p>比如说这是一个我查询 CSDN 时候捕捉到的DNS报文中的Queries部分：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Queries																		&#x2F;&#x2F;问题部分</span><br><span class="line">    www.csdn.net: type AAAA, class IN</span><br><span class="line">        Name: www.csdn.net								&#x2F;&#x2F;被查询的主机名字</span><br><span class="line">        [Name Length: 12]									&#x2F;&#x2F;名字长度</span><br><span class="line">        [Label Count: 3]					</span><br><span class="line">        Type: AAAA (IPv6 Address) (28)		&#x2F;&#x2F;查询类型，这里查询的是 IPv6 的地址</span><br><span class="line">        Class: IN (0x0001)								&#x2F;&#x2F;查询类字段，这里是互联网地址</span><br></pre></td></tr></table></figure>
+<p>注意，DNS响应报文中的 Type类型要和查询报文中的Type类型保持一致。</p>
+<h5 id="DNS-响应报文格式："><a href="#DNS-响应报文格式：" class="headerlink" title="DNS 响应报文格式："></a>DNS 响应报文格式：</h5><p>DNS响应报文的头部、查询问题区域结构基本和响应报文一致。并且一些查询主机的名字、查询类型等信息也需要保持一致。但是比起查询报文，响应报文多了一个资源记录部分：</p>
+<p>资源记录部分是指 DNS 报文格式中的最后三个字段，包括<strong>Answers (回答问题区域)字段</strong>、<strong>Authoritative nameservers(权威名称服务器区域)字段</strong>、<strong>Additional records(附加信息区域)字段</strong>。这三个字段均采用一种称为资源记录的格式。 </p>
+<p>这里我分析的是访问百度新闻的 DNS 响应报文。</p>
+<p><strong>Answers 字段</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Answers</span><br><span class="line">    log.news.baidu.com: type CNAME, class IN, cname news.n.shifen.com # 资源记录部分</span><br><span class="line">        Name: log.news.baidu.com																			# 域名字段</span><br><span class="line">        Type: CNAME (Canonical NAME for an alias) (5)									# 类型字段，这里是CNAME</span><br><span class="line">        Class: IN (0x0001)				# 类字段</span><br><span class="line">        Time to live: 5483 (1 hour, 31 minutes, 23 seconds)# 生存时间</span><br><span class="line">        Data length: 16	#数据长度</span><br><span class="line">        CNAME: news.n.shifen.com# 资源数据，这里是 CNAME的信息</span><br></pre></td></tr></table></figure>
+<p><strong>Authoritative字段</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Authoritative nameservers</span><br><span class="line">    n.shifen.com: type SOA, class IN, mname ns1.n.shifen.com	#资源记录部分</span><br><span class="line">        Name: n.shifen.com	</span><br><span class="line">        Type: SOA (Start Of a zone of Authority) (6)# 类型字段，这里是 SOA类型</span><br><span class="line">        Class: IN (0x0001)	#类字段</span><br><span class="line">        Time to live: 234 (3 minutes, 54 seconds)</span><br><span class="line">        Data length: 45</span><br><span class="line">        Primary name server: ns1.n.shifen.com 	# 该域名对应的权威名称服务器的名称</span><br><span class="line">        Responsible authority&#39;s mailbox: baidu_dns_master.baidu.com</span><br><span class="line">        Serial Number: 2104090020</span><br><span class="line">        Refresh Interval: 5 (5 seconds)</span><br><span class="line">        Retry Interval: 5 (5 seconds)</span><br><span class="line">        Expire limit: 2592000 (30 days)</span><br><span class="line">        Minimum TTL: 3600 (1 hour)</span><br></pre></td></tr></table></figure>
+<p>在这里我们要了解一下 类型字段中 CNAME 类型和A类型的区别：</p>
+<p>A类型即  Address，也是用来指定主机名（或域名）对应的IP地址记录。用户可以将该域名下的网站服务器指向到自己的web server上。</p>
+<p>CNAME类型是 别名记录，也就是说，这种记录允许多个名字映射到另外一个域名。通常用于同时提供WWW和MAIL服务的计算机。例如，有一台计算机名为“host.mydomain.com”（A记录）。它同时提供WWW和MAIL服务，为了便于用户访问服务。可以为该计算机设置两个别名（CNAME）：WWW和MAIL。这两个别名的全称就<code>http://www.mydomain.com/</code>和<code>mail.mydomain.com</code>。实际上他们都指向 <code>host.mydomain.com</code></p>
+<p>在 Authoritative 字段中的类型字段，这个报文中现实的是 SOA类型，这代表授权起始点 (SOA) 记录会提供有关域和相应托管区域的信息。此外，还有NS记录类型，会标识托管区域的名称服务器。NS 记录的值为名称服务器的域名。</p>
+<h3 id="3-3-基于UDP的Socket编程"><a href="#3-3-基于UDP的Socket编程" class="headerlink" title="3.3 基于UDP的Socket编程"></a>3.3 基于UDP的Socket编程</h3><h4 id="3-3-1-什么是Socket"><a href="#3-3-1-什么是Socket" class="headerlink" title="3.3.1 什么是Socket"></a>3.3.1 什么是Socket</h4><ul>
+<li>简单来说是⼀种地址和端⼝的结合描述协议。</li>
+<li>TCP/IP协议的相关API的总称、是⽹络API的集合实现，涵盖了TCP和UDP。</li>
+<li>UDP是⼀种⽤户报协议，⼜称为⽤户数据报⽂协议，是⼀个简单的⾯向数据报的传输层协议。</li>
+<li>在本实验中，我们将重点学习基于UDP的Socket编程。</li>
+</ul>
+<h4 id="3-3-2-UDP核⼼API"><a href="#3-3-2-UDP核⼼API" class="headerlink" title="3.3.2 UDP核⼼API"></a>3.3.2 UDP核⼼API</h4><ul>
+<li>DatagramSocket</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">⽤于接收与发送UDP的类。</span><br><span class="line">负责发送某⼀个UDP包，或者接收UDP包。</span><br><span class="line">DatagramSocket() &#x2F;&#x2F;创建简单实例，不指定端⼝与ip</span><br><span class="line">DatagramSocket(int port) &#x2F;&#x2F;创建监听固定端⼝的实例</span><br><span class="line">DatagramSocket(int port，InetAddress localAddr) &#x2F;&#x2F;创建固定端⼝指定ip的实例</span><br><span class="line">receive(DatagramPacket d) &#x2F;&#x2F;接收</span><br><span class="line">send(DatagramPack d) &#x2F;&#x2F;发送</span><br><span class="line">setSoTimeout(int timeout) &#x2F;&#x2F;设置超时、毫秒</span><br></pre></td></tr></table></figure>
+<ul>
+<li>DatagramPacket</li>
+</ul>
+<p>⽤于报⽂处理。<br>将byte数组、⽬标地址、⽬标端⼝等数据包装成报⽂或者将报⽂拆卸成byte数组。<br>是UDP的发送实体，也是接收实体</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">DatagramPacket(byte[] buf,int offset,int length、InetAddress address,int</span><br><span class="line">port)</span><br><span class="line">DatagramPacket(byte[] buf,int offset,int length、SocketAddress address)</span><br><span class="line">setData(byte[] buf ,int offset,int length)</span><br><span class="line">setData(byte[] buf)</span><br><span class="line">setLength(int length)</span><br><span class="line">getData()、getIffset()、getLength()</span><br><span class="line">setAddress(InetAddress iddrr)、setPort(int port)</span><br><span class="line">getAddress()、getPort()</span><br><span class="line">setSocketAddress(SocketAddress address)</span><br><span class="line">getSocketAddress()</span><br></pre></td></tr></table></figure>
+<h4 id="3-3-3-小试牛刀-UDP传输案例"><a href="#3-3-3-小试牛刀-UDP传输案例" class="headerlink" title="3.3.3 小试牛刀: UDP传输案例"></a>3.3.3 小试牛刀: UDP传输案例</h4><p>UDP不分服务器端和客户端，这⾥为了更好地表示，采⽤了发送者和接收者的说法</p>
+<h4 id="task2"><a href="#task2" class="headerlink" title="task2:"></a>task2:</h4><p><strong>内容：补充完整UDPSearcher类，并运⾏UDPProvider和UDPSearcher，请将实验结果附在实验报告中</strong></p>
+<p>首先， TCP是面向连接的，且为两个端系统之间的数据流动提供可靠的字节流通道。而UDP是无连接的，从一个端系统向另一个端系统发送独立的数据分组，不对交付提供任何保证。</p>
+<p>这个小程序的功能就是接收我们的学号并返回学号的长度。我将利用多线程来分别启动 UDPProvider和UDPSearcher。</p>
+<ul>
+<li>编写UDPProvider类 </li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.DatagramPacket;</span><br><span class="line"><span class="keyword">import</span> java.net.DatagramSocket;</span><br><span class="line"><span class="keyword">import</span> java.net.SocketException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UDPProvider</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Provider Started"</span>);</span><br><span class="line"><span class="comment">// 选择⼀个端⼝⽤于数据接收</span></span><br><span class="line">        DatagramSocket datagramSocket = <span class="keyword">null</span>;</span><br><span class="line">      <span class="comment">//首先在 9091端口开辟一个 Provider</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket = <span class="keyword">new</span> DatagramSocket(<span class="number">9091</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SocketException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">byte</span>[] buf = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">      <span class="comment">//接收送到这个端口来的数据包</span></span><br><span class="line">        DatagramPacket receivePack = <span class="keyword">new</span> DatagramPacket(buf, buf.length);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket.receive(receivePack);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">      <span class="comment">//从数据包中读取发送者的端口号、地址、以及学号的长度</span></span><br><span class="line">        String ip = receivePack.getAddress().getHostAddress();</span><br><span class="line">        <span class="keyword">int</span> port = receivePack.getPort();</span><br><span class="line">        <span class="keyword">int</span> len = receivePack.getLength();</span><br><span class="line">			<span class="comment">// 将 学号从 Bytes[] 转换成 String 类型</span></span><br><span class="line">        String data = <span class="keyword">new</span> String(receivePack.getData(), <span class="number">0</span>, len);</span><br><span class="line">      <span class="comment">//打印</span></span><br><span class="line">        System.out.println(<span class="string">"receive from ip: "</span> + ip + <span class="string">"\tport: "</span> + port +</span><br><span class="line">                <span class="string">"\tdata: "</span> + data);</span><br><span class="line"><span class="comment">//回送数据</span></span><br><span class="line">      <span class="comment">// 编写返回数据的格式</span></span><br><span class="line">        String responseData = <span class="string">"receive data length = "</span> + len;</span><br><span class="line">        <span class="keyword">byte</span>[] responseDataBytes = responseData.getBytes();</span><br><span class="line">      <span class="comment">//编写返回包的信息</span></span><br><span class="line">        DatagramPacket responsePacket = <span class="keyword">new</span> DatagramPacket(</span><br><span class="line">                responseDataBytes,</span><br><span class="line">                responseDataBytes.length,</span><br><span class="line">                receivePack.getAddress(),</span><br><span class="line">                receivePack.getPort()</span><br><span class="line">        );</span><br><span class="line">      <span class="comment">// 会送数据包</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket.send(responsePacket);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">"Provider finished"</span>);</span><br><span class="line">        datagramSocket.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>编写UDPSearcher </li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UDPSearcher</span> <span class="keyword">implements</span> <span class="title">Runnable</span></span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Searcher Started"</span>);</span><br><span class="line"><span class="comment">// 搜索⽅不需要指定监听端⼝</span></span><br><span class="line">        DatagramSocket datagramSocket = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket = <span class="keyword">new</span> DatagramSocket();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SocketException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"><span class="comment">// 发送数据</span></span><br><span class="line">        String sendData = <span class="string">"10195501423"</span>;</span><br><span class="line">        <span class="keyword">byte</span>[] sendBytes = sendData.getBytes();</span><br><span class="line">        System.out.println(Arrays.toString(sendBytes));</span><br><span class="line"><span class="comment">// todo 请补充完sendPack,发送⾄localhost：9091</span></span><br><span class="line">        DatagramPacket sendPack = <span class="keyword">null</span>;</span><br><span class="line">      <span class="comment">//DatagramPacket包含四个字段，送出的信息(Bytes[]类型)、送出信息的长度，地址和端口</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            sendPack = <span class="keyword">new</span> DatagramPacket(sendBytes,sendBytes.length, InetAddress.getLocalHost(),<span class="number">9091</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (UnknownHostException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket.send(sendPack);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//接收回送数据</span></span><br><span class="line">        <span class="keyword">byte</span>[] buf = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">        DatagramPacket receivePack = <span class="keyword">new</span> DatagramPacket(buf, buf.length);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket.receive(receivePack);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">      <span class="comment">//从接受到的包中提取ip、端口和长度。</span></span><br><span class="line">        String ip = receivePack.getAddress().getHostAddress();</span><br><span class="line">        <span class="keyword">int</span> port = receivePack.getPort();</span><br><span class="line">        <span class="keyword">int</span> len = receivePack.getLength();</span><br><span class="line">        String data = <span class="keyword">new</span> String(receivePack.getData(), <span class="number">0</span>, len);</span><br><span class="line">        System.out.println(<span class="string">"receive from ip: "</span> + ip + <span class="string">"\tport: "</span> + port +</span><br><span class="line">                <span class="string">"\tdata: "</span> + data);</span><br><span class="line">        System.out.println(<span class="string">"Searcher finished"</span>);</span><br><span class="line">        datagramSocket.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>main函数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">      <span class="comment">// 创建两个线程实例，分别调用。</span></span><br><span class="line">        Thread provider = <span class="keyword">new</span> Thread(<span class="keyword">new</span> UDPProvider());</span><br><span class="line">        Thread sercher = <span class="keyword">new</span> Thread(<span class="keyword">new</span> UDPSearcher());</span><br><span class="line"></span><br><span class="line">        provider.start();</span><br><span class="line">        sercher.start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果如下：</p>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/12.png" style="zoom:67%;"></p>
+<h4 id="task3"><a href="#task3" class="headerlink" title="task3:"></a>task3:</h4><p><strong>内容：改写UDPProvider和UDPSearcher以完成下述功能，请将实验结果附在实验报告中：</strong></p>
+<ul>
+<li>⼴播地址：255.255.255.255</li>
+<li>现需完成如下场景的设计：<ul>
+<li>UDPSearcher现将UDP包发送⾄⼴播地址的9091号端⼝（这表示该UDP包将会被⼴播⾄局域⽹下所有主机的对应端⼝）</li>
+<li>如果有UDPProvider在监听，解析接受的UDP包，通过解析其中的data得到要回送的端⼝号，并将⾃⼰的⼀些信息写回，UDPSearcher接收到UDPProvider的消息后打印出来。</li>
+</ul>
+</li>
+<li>现提供发送消息的格式：<ul>
+<li>UDPSearcher请使⽤如下buildWithPort构建消息，port在实验中指定为30000</li>
+<li>UDPProvider请使⽤如下parsePort解析收到的消息并得到要回写的端⼝号，然后⽤buildWithTag构建消息，tag可以是<code>String tag =UUID.randomUUID().toString();</code>，然后回送数据。</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageUtil</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG_HEADER = <span class="string">"special tag:"</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String PORT_HEADER = <span class="string">"special port:"</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">buildWithPort</span><span class="params">(<span class="keyword">int</span> port)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> PORT_HEADER + port;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">parsePort</span><span class="params">(String data)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (data.startsWith(PORT_HEADER)) &#123;</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">                    Integer.parseInt(data.substring(PORT_HEADER.length()));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">buildWithTag</span><span class="params">(String tag)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> TAG_HEADER + tag;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">parseTag</span><span class="params">(String data)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (data.startsWith(TAG_HEADER)) &#123;</span><br><span class="line">            <span class="keyword">return</span> data.substring(TAG_HEADER.length());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改过的UDPProvider:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.DatagramPacket;</span><br><span class="line"><span class="keyword">import</span> java.net.DatagramSocket;</span><br><span class="line"><span class="keyword">import</span> java.net.SocketException;</span><br><span class="line"><span class="keyword">import</span> java.util.UUID;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UDPProvider</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Provider Started"</span>);</span><br><span class="line"><span class="comment">// 选择⼀个端⼝⽤于数据接收</span></span><br><span class="line">        DatagramSocket datagramSocket = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket = <span class="keyword">new</span> DatagramSocket(<span class="number">9091</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SocketException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">byte</span>[] buf = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">        DatagramPacket receivePack = <span class="keyword">new</span> DatagramPacket(buf, buf.length);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket.receive(receivePack);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//取得 新的 port</span></span><br><span class="line">        <span class="keyword">int</span> len = receivePack.getLength();</span><br><span class="line">        String newPort = <span class="keyword">new</span> String(receivePack.getData(), <span class="number">0</span>, len);</span><br><span class="line">        <span class="keyword">int</span> port = MessageUtil.parsePort(newPort);</span><br><span class="line">        System.out.println(port);</span><br><span class="line">        String tag =UUID.randomUUID().toString();</span><br><span class="line">        String data = MessageUtil.buildWithTag(tag);</span><br><span class="line">        <span class="comment">//取得 新的ip</span></span><br><span class="line">        String newIP = receivePack.getAddress().getHostAddress();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">"UDPProvider receive from ip: "</span> + newIP + <span class="string">"\tport: "</span> + port +</span><br><span class="line">                <span class="string">"\tdata: "</span> + <span class="keyword">new</span> String(receivePack.getData(), <span class="number">0</span>, len));</span><br><span class="line"><span class="comment">//回送数据</span></span><br><span class="line">        <span class="keyword">byte</span>[] responseDataBytes = data.getBytes();</span><br><span class="line">        DatagramPacket responsePacket = <span class="keyword">new</span> DatagramPacket(</span><br><span class="line">                responseDataBytes,</span><br><span class="line">                responseDataBytes.length,</span><br><span class="line">                receivePack.getAddress(),</span><br><span class="line">                port</span><br><span class="line">        );</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket.send(responsePacket);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">"Provider finished"</span>);</span><br><span class="line">        datagramSocket.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改过的UDPSearcher:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.*;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UDPSearcher</span> <span class="keyword">implements</span> <span class="title">Runnable</span></span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Searcher Started"</span>);</span><br><span class="line"><span class="comment">// 搜索⽅不需要指定监听端⼝</span></span><br><span class="line">        DatagramSocket datagramSocket = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket = <span class="keyword">new</span> DatagramSocket();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SocketException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"><span class="comment">// 发送数据</span></span><br><span class="line">        String sendData = MessageUtil.buildWithPort(<span class="number">30000</span>);</span><br><span class="line">        <span class="keyword">byte</span>[] sendBytes = sendData.getBytes();</span><br><span class="line"></span><br><span class="line"><span class="comment">// todo 请补充完sendPack,发送⾄localhost：9091</span></span><br><span class="line">        DatagramPacket sendPack = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            sendPack = <span class="keyword">new</span> DatagramPacket(sendBytes,sendBytes.length,InetAddress.getByName(<span class="string">"255.255.255.255"</span>),<span class="number">9091</span>);</span><br><span class="line">            datagramSocket.send(sendPack);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (UnknownHostException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//接收回送数据</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket = <span class="keyword">new</span> DatagramSocket(<span class="number">30000</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SocketException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">byte</span>[] buf = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">        DatagramPacket receivePack = <span class="keyword">new</span> DatagramPacket(buf, buf.length);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            datagramSocket.receive(receivePack);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        String ip = receivePack.getAddress().getHostAddress();</span><br><span class="line">        <span class="keyword">int</span> port = receivePack.getPort();</span><br><span class="line">        <span class="keyword">int</span> len = receivePack.getLength();</span><br><span class="line">        String data = <span class="keyword">new</span> String(receivePack.getData(), <span class="number">0</span>, len);</span><br><span class="line">        System.out.println(<span class="string">"UDPSearcher receive from ip: "</span> + ip + <span class="string">"\tport: "</span> + port +</span><br><span class="line">                <span class="string">"\tdata: "</span> + data);</span><br><span class="line">        System.out.println(<span class="string">"Searcher finished"</span>);</span><br><span class="line">        datagramSocket.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果如下：</p>
+<p><img src="/2021/04/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%8A%A5%E5%91%8A6/13.png" style="zoom:67%;"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"># 计算机网络</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/04/07/docker%E5%9F%BA%E7%A1%801/" rel="prev" title="docker基础1">
+      <i class="fa fa-chevron-left"></i> docker基础1
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/04/10/%E4%BB%8E%E9%A2%98%E7%9B%AE%E5%87%BA%E5%8F%91%E5%A4%8D%E4%B9%A0%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" rel="next" title="从题目出发复习数据科学数学基础">
+      从题目出发复习数据科学数学基础 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Exp6-DNS报文分析和基于UDP的Socket编程"><span class="nav-number">1.</span> <span class="nav-text">Exp6: DNS报文分析和基于UDP的Socket编程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、实验目的"><span class="nav-number">1.1.</span> <span class="nav-text">一、实验目的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、实验任务"><span class="nav-number">1.2.</span> <span class="nav-text">二、实验任务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、实验过程"><span class="nav-number">1.3.</span> <span class="nav-text">三、实验过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-Wireshark补充"><span class="nav-number">1.3.1.</span> <span class="nav-text">3.1 Wireshark补充</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-1-Wireshake过滤器"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">3.1.1 Wireshake过滤器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-2-显示过滤器语法和实例"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">3.1.2 显示过滤器语法和实例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-DNS协议"><span class="nav-number">1.3.2.</span> <span class="nav-text">3.2 DNS协议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-1-DNS协议简介"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">3.2.1 DNS协议简介</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-2-DNS报⽂"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">3.2.2 DNS报⽂</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#域名解析过程："><span class="nav-number">1.3.2.3.</span> <span class="nav-text">域名解析过程：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task1"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">task1:</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#DNS-查询报文格式："><span class="nav-number">1.3.2.4.1.</span> <span class="nav-text">DNS 查询报文格式：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#DNS-响应报文格式："><span class="nav-number">1.3.2.4.2.</span> <span class="nav-text">DNS 响应报文格式：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-基于UDP的Socket编程"><span class="nav-number">1.3.3.</span> <span class="nav-text">3.3 基于UDP的Socket编程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-1-什么是Socket"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">3.3.1 什么是Socket</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-2-UDP核⼼API"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">3.3.2 UDP核⼼API</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-3-小试牛刀-UDP传输案例"><span class="nav-number">1.3.3.3.</span> <span class="nav-text">3.3.3 小试牛刀: UDP传输案例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task2"><span class="nav-number">1.3.3.4.</span> <span class="nav-text">task2:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#task3"><span class="nav-number">1.3.3.5.</span> <span class="nav-text">task3:</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

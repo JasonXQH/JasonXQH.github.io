@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="关系数据库设计关系数据库设计怎么做好数据库的设计？  需求分析, 解决存什么 概念设计，用何种模式 数据库结构设计，解决怎么存  需求分析下图是一个博客系统的4个界面  这个界面的功能如上图所示：  第一个登录界面，用户能看见自己的个人信息以及关注的人写的文章  第二个界面，是用户点击特定一篇文章后显示的文章具体信息  第三个界面是用户点击新建按钮之后显式的，用于新创建一个界面 第四个界面是其他博">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关系数据库设计">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="关系数据库设计关系数据库设计怎么做好数据库的设计？  需求分析, 解决存什么 概念设计，用何种模式 数据库结构设计，解决怎么存  需求分析下图是一个博客系统的4个界面  这个界面的功能如上图所示：  第一个登录界面，用户能看见自己的个人信息以及关注的人写的文章  第二个界面，是用户点击特定一篇文章后显示的文章具体信息  第三个界面是用户点击新建按钮之后显式的，用于新创建一个界面 第四个界面是其他博">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/2.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/3.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/4.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/6.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/7.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/8.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/9.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/9.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/10.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/11.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/12.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/16.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/17.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/13.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/14.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/18.png">
+<meta property="article:published_time" content="2021-11-14T05:26:42.000Z">
+<meta property="article:modified_time" content="2022-11-23T06:19:34.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据管理系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>关系数据库设计 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          关系数据库设计
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-11-14 13:26:42" itemprop="dateCreated datePublished" datetime="2021-11-14T13:26:42+08:00">2021-11-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-11-23 14:19:34" itemprop="dateModified" datetime="2022-11-23T14:19:34+08:00">2022-11-23</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="关系数据库设计"><a href="#关系数据库设计" class="headerlink" title="关系数据库设计"></a>关系数据库设计</h1><h3 id="关系数据库设计-1"><a href="#关系数据库设计-1" class="headerlink" title="关系数据库设计"></a>关系数据库设计</h3><p>怎么做好数据库的设计？</p>
+<ol>
+<li>需求分析, 解决存什么</li>
+<li>概念设计，用何种模式</li>
+<li>数据库结构设计，解决怎么存</li>
+</ol>
+<h4 id="需求分析"><a href="#需求分析" class="headerlink" title="需求分析"></a>需求分析</h4><p>下图是一个博客系统的4个界面</p>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/1.png" style="zoom:67%;"></p>
+<p>这个界面的功能如上图所示：</p>
+<ul>
+<li><p>第一个登录界面，用户能看见自己的个人信息以及关注的人写的文章</p>
+</li>
+<li><p>第二个界面，是用户点击特定一篇文章后显示的文章具体信息</p>
+</li>
+<li>第三个界面是用户点击新建按钮之后显式的，用于新创建一个界面</li>
+<li>第四个界面是其他博主的主页，我们可以看到他写了那些文章，它关注的人之类的信息。</li>
+</ul>
+<h4 id="概念设计"><a href="#概念设计" class="headerlink" title="概念设计"></a>概念设计</h4><p>现在我们解决了需求分析，现在我们来做概念设计</p>
+<p>对于这个 博客系统，我们需要创建三个对象：用户、文章、评论，其关系如下：</p>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/2.jpeg" style="zoom:67%;"></p>
+<h4 id="结构设计"><a href="#结构设计" class="headerlink" title="结构设计"></a>结构设计</h4><p>我们要用关系来表示这三个对象，用表格来呈现，每一列代表对象的一个属性，如下图所示：</p>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/3.jpeg" style="zoom:67%;"></p>
+<p>首先，黑色部分代表的是用表来展示对象的基本属性的部分。比如对于用户，有名字、信息等；比如对文档，有标题和内容等</p>
+<p>但是怎么用表格来表示对象与对象之间的关系呢？</p>
+<p>首先，对于文章和作者、评论和作者这类多对1关系，可以直接在后面加上一列。比如说，对于Doc表格，我们可以在后面加上一列Author，来记录UID，这样就能记录这篇文章的作者了</p>
+<p>对于评论，我们可以在表后添加两列，分别记录代表作者的UID和代表文章的DID。用来表示这条评论所在的文章及其作者</p>
+<p>但是对于用户和用户之间的关注关系，因为是多对多的，我们发现没有办法通过添加一列的方式来呈现，因此我们可以另外新建一张表，里面有Followee和Follower两列，分别记录被关注者和关注者的UID即可。</p>
+<p>这是我们比较朴素的设计思路，接下来我们介绍一种更系统的设计方法——ER图</p>
+<h3 id="ER图"><a href="#ER图" class="headerlink" title="ER图"></a>ER图</h3><p>ER图的表现形式有点类似于前面面向对象的模型的概念设计。但是在表达对象与对象之间的关系有一些更细致的方式。</p>
+<p>ER图中的E 代表 Entity(实体)，R代表Relationship(联系)，ER图也就是用来刻画实体与实体之间关系的示意图 </p>
+<p>比如说员工参与项目这个模型我们可以画出其ER图</p>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/4.jpeg" style="zoom:67%;"></p>
+<h4 id="形状的意义"><a href="#形状的意义" class="headerlink" title="形状的意义"></a>形状的意义</h4><p>其中，方块代表实体；圆圈代表实体中的属性；而菱型则代表连接对象之间的关系。</p>
+<p>我们从这张ER图中可以很清楚的看到：员工实体有<strong>工号、名字、技能</strong>这三个属性；项目有<strong>项目号、经费</strong>；此外，参与这个关系也有一个<strong>工时</strong>属性，代表每个人需要花多少时间在这个项目上。</p>
+<h4 id="箭头的意义"><a href="#箭头的意义" class="headerlink" title="箭头的意义"></a>箭头的意义</h4><p>现在，我们要了解不同类型的属性</p>
+<ul>
+<li><strong>唯一属性</strong>，就是可以唯一识别一个实体的属性。比如员工里的工号，项目中的项目号。通常我们可以把唯一属性看做是这个实体中的ID。</li>
+<li><strong>单值属性</strong>，名字和经费这类属性可以被称为单值属性，因为一个员工只能对应一个名字，一个项目只能对应一笔经费</li>
+<li><strong>多值属性</strong>，员工的技能并不是单值属性，一个员工可以由多个技能。</li>
+</ul>
+<p>不同的属性反映在不同的箭头上，唯一属性用双向箭头表示，单值属性用单箭头表示，双值属性用两个同一朝向的箭头表示 </p>
+<h4 id="菱形两变m和1的意义"><a href="#菱形两变m和1的意义" class="headerlink" title="菱形两变m和1的意义"></a>菱形两变m和1的意义</h4><p>在上面这个ER图中，我们看到员工和项目之间的参与关系是一个多对多的关系，一个员工可以参加多个项目，同样一个项目也需要多个员工共同完成.因此参与关系的两变是m和m</p>
+<p>还有两种关系：一对多/多对一，一对一</p>
+<p>比如员工和部门之间就是多对一的关系，一个员工只能属于一个部门，而部门可以有多个员工</p>
+<p>比如经理和部门之间的就是一对一关系，一个员工只能管理一个部门</p>
+<h4 id="不同关系的表现形式"><a href="#不同关系的表现形式" class="headerlink" title="不同关系的表现形式"></a>不同关系的表现形式</h4><p>上面我们所介绍的都是两个实体之间的二元联系，其实联系可以有更多种不同的方式，比如：</p>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/6.jpeg" style="zoom:67%;"></p>
+<p>比如说，同样是员工，上级对下级是一个一对多的关系。我们可以用左边这张图来表示</p>
+<p>对于用户、运营商、手机这样一个三边关系，很难说是一对多还是一对一的关系，我们直接用语言描述即可：一个用户可以有多台手机，一个手机只能属于一位用户，而且一个手机只能对应一个运营商</p>
+<h4 id="延伸"><a href="#延伸" class="headerlink" title="延伸"></a>延伸</h4><p>ER图还有其他更细枝末节的刻画，比如说商品和食品、电子产品之间其实是父类和子类的关系。</p>
+<p>还有弱实体的概念，比如说一个房间的存在依附于一座楼房的存在，一座城市依附于一个国家的存在</p>
+<h3 id="从ER图到关系模型设计"><a href="#从ER图到关系模型设计" class="headerlink" title="从ER图到关系模型设计"></a>从ER图到关系模型设计</h3><p>我们之前设计出来了ER图，现在我们要介绍一种固定的方式来将设计出来的ER图转换成一张或者几张关系表。我们还是以上面员工和项目的ER图为例</p>
+<ul>
+<li>首先要将实体类中的唯一属性和单值属性选出来创建一张表</li>
+</ul>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/7.jpeg" style="zoom:67%;"></p>
+<ul>
+<li>对于多值属性，要单独拿出来刻画，比如说对于技能，要新建一张skills表来存放。</li>
+</ul>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/8.jpeg" style="zoom:67%;"></p>
+<ul>
+<li><p>最后我们来处理联系，对于一对一或者一对多联系，我们可以将其归并到一个实体当中。但是对于多对多联系，我们需要新建一张表来存放这个联系</p>
+<ul>
+<li>我们假设员工和项目是一对一的联系,我们可以任意选择一个实体关系表，在后面加上一列。比如：</li>
+</ul>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/9.jpeg" style="zoom:67%;"></p>
+<ul>
+<li>我们假设员工和项目是多对一的联系，我们在多的那一个实体关系表后加一列，即可，这里还是选择加在员工表后</li>
+</ul>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/9.jpeg" style="zoom:67%;"></p>
+<ul>
+<li>事实上，员工和项目是多对多的联系，因此我们要新建第四张表，这张表有三列，前两列分别存放员工的ID和项目的ID，第三列存放工时</li>
+</ul>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/10.jpeg" style="zoom:67%;"></p>
+</li>
+</ul>
+<h3 id="ER图在博客系统中的应用"><a href="#ER图在博客系统中的应用" class="headerlink" title="ER图在博客系统中的应用"></a>ER图在博客系统中的应用</h3><p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/11.jpeg" style="zoom:67%;"></p>
+<p>我们这里忽略了每一个实体的内部属性，把目光聚焦到关系上. 首先在这个类似于三角形的关系中，一共有三个一对多关系，因此在Doc表后加一列，在Comment表后加一列。此外，我们还要处理”关注”这个关系，新建一张表即可。</p>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/12.jpeg" style="zoom: 50%;"></p>
+<p>我们看到，从ER图到关系表，是一个机械化的过程。只要按部就班来即可</p>
+<h4 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h4><p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/16.png"></p>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/17.png"></p>
+<p>一般联系要么可以附着在一张现有的表上(1 to1,1 to m) ，如果单提取出来新建一张表，说明这是m to m的关系，那么这一行是由关系两边的实体的ID共同确定的，即A</p>
+<h3 id="关系数据库中的冗余"><a href="#关系数据库中的冗余" class="headerlink" title="关系数据库中的冗余"></a>关系数据库中的冗余</h3><p>我们在数据库中随处可见冗余，如下表所示：</p>
+<p>这里第二行和第三行出现了两个May，然后Price，P_name 也出现了重复的情况</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>UID</th>
+<th>U_name</th>
+<th>PID</th>
+<th>P_name</th>
+<th>Price</th>
+<th>Quant</th>
+<th>Date</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>U001</td>
+<td>Jason</td>
+<td>P003</td>
+<td>Pencil</td>
+<td>10</td>
+<td>1</td>
+<td>3/10/2020</td>
+</tr>
+<tr>
+<td>U002</td>
+<td>May</td>
+<td>P002</td>
+<td>Soap</td>
+<td>5</td>
+<td>2</td>
+<td>4/10/2020</td>
+</tr>
+<tr>
+<td>U003</td>
+<td>May</td>
+<td>P003</td>
+<td>Pencil</td>
+<td>10</td>
+<td>2</td>
+<td>8/10/2020</td>
+</tr>
+<tr>
+<td>U004</td>
+<td>Bob</td>
+<td>P002</td>
+<td>Soap</td>
+<td>5</td>
+<td>1</td>
+<td>10/10/2020</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这是因为这张表是由 UID和PID确定的，但是U_name是单独由UID确定的，P_name和Price则是有PID单独确定的。在这张表里主键是UID+PID，因此在一张表里面当UID或PID重复出现多次的话，会造成数据的冗余。</p>
+<p>冗余的副作用很多，最直观也最易理解的就是当我们修改一个值的时候需要将整个表扫描一遍然后修改所有冗余值。如何规避掉这些冗余，需要在我们设计数据库的时候下功夫。</p>
+<p>现在我介绍一下<strong>函数依赖</strong>的含义：</p>
+<p>比如u_name 是依赖于UID的，p_name,price是依赖于PID的。在这张表中有这两个函数依赖</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UID -&gt; u_name</span><br><span class="line">PID -&gt; p_name,price</span><br></pre></td></tr></table></figure>
+<p>当函数依赖的两个决定属性(UID和PID)不等于这个表的主键的时候，就会出现冗余的情况</p>
+<h3 id="数据库设计的规范化"><a href="#数据库设计的规范化" class="headerlink" title="数据库设计的规范化"></a>数据库设计的规范化</h3><p>为了规避冗余，我们需要把我们的数据库设计的规范化，只要我们按照ER图的设计理念，构造出来的数据表一般都是规范的。就像上面这张表，以规范化的方式我们要将其拆分为三张小表，如下：</p>
+<p>User</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>UID</th>
+<th>U_name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>U001</td>
+<td>Jason</td>
+</tr>
+<tr>
+<td>U002</td>
+<td>May</td>
+</tr>
+<tr>
+<td>U003</td>
+<td>Bob</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Product </p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>PID</th>
+<th style="text-align:left">Pname</th>
+<th>Price</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P002</td>
+<td style="text-align:left">soap</td>
+<td>5</td>
+</tr>
+<tr>
+<td>P003</td>
+<td style="text-align:left">pencil</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Order</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>UID</th>
+<th>PID</th>
+<th>Quant</th>
+<th>Date</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>U001</td>
+<td>P003</td>
+<td>1</td>
+<td>3/10/2020</td>
+</tr>
+<tr>
+<td>U002</td>
+<td>P002</td>
+<td>2</td>
+<td>4/10/2020</td>
+</tr>
+<tr>
+<td>U002</td>
+<td>P003</td>
+<td>2</td>
+<td>8/10/2020</td>
+</tr>
+<tr>
+<td>U003</td>
+<td>P002</td>
+<td>1</td>
+<td>10/10/2020</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>我们要记住宽表拆分的原则：</p>
+<p>让同时被使用到的属性(即出现在同一个SQL中的属性)尽可能位于拆分后的一张表中。这样子就不用再做连接，增加开销了</p>
+<h3 id="冗余带来的好处"><a href="#冗余带来的好处" class="headerlink" title="冗余带来的好处"></a>冗余带来的好处</h3><p>上面我们介绍了两种模式(大表和拆分后的三张表)现在我们来讨论哪一种模式更好。</p>
+<p>比如说对于查询</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT u_name,p_name</span><br><span class="line">FROM XXX</span><br><span class="line">WHERE date &#x3D; ? AND price*quant &gt;1000</span><br></pre></td></tr></table></figure>
+<p>虽然大表有冗余，但是能很高效的来处理这段查询。反观拆分的三张表格，我们需要对其做连接后才能完成查询，代价比较大。</p>
+<p>那么在规范化和非规范化之间应该怎么选择呢？我们要看看那些冗余的属性被修改的几率是否很高。</p>
+<p>如果修改的几率很大，那么对于大表来说每次修改的开销就很大，就不划算；反之则可以选择大表来存储数据</p>
+<p>但是对于这张表来说，我们在商城注册了之后，一般就不回去更改名字；且商品一旦创建之后，也不太会修改它的名字。价格这列见仁见智了。因此总体来说对于这套数据库系统，非规范化导致的数据冗余带来的负面作用是比较小的，但正面效果是比较好的。</p>
+<p>所以说，非规范化和规范化都有其使用场景。</p>
+<h3 id="如何利用冗余"><a href="#如何利用冗余" class="headerlink" title="如何利用冗余"></a>如何利用冗余</h3><p>现在我们有两张表：<code>Product(PID,P_name,Price)</code> 和 <code>Order(BID,UID,PID,Quant,Date)</code></p>
+<p>然后我们用这个查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">Sum</span>(Quant)*Price </span><br><span class="line"><span class="keyword">FROM</span> Product,<span class="keyword">Order</span></span><br><span class="line"><span class="keyword">WHERE</span> Product.PID = Order.PID</span><br><span class="line"><span class="keyword">AND</span> Product.PID = ?</span><br></pre></td></tr></table></figure>
+<p>这个查询非常普遍，就是要我们去计算某一件特定商品的总销售额。如果我们采用标准化的关系表，那么会非常慢，因为Product和Order会连接成一张大表，我们需要扫描这张表中所有的内容，然后再统计计算才能得到结果。因此这时候我们可以用冗余来帮助我们简化查询，方法也很简单就是给Product加一个TotalSales属性</p>
+<p><code>Product(PID,P_name,Price,TotalSales)</code> </p>
+<p>这样，我们就可以直接获得TotalSales了，而我们所需要付出的代价，仅仅是每次下订单的时候额外更新一下Product表格即可</p>
+<p>最后我们对非规范化和冗余做一个延伸和总结。冗余经常会给我们的程序开发带来一些好处。最具有代表性的就是缓存机制。比如web server会专门开一片区域当缓存来存放数据库中经常被调用的那些值。 但是缓存是冗余的值，没了缓存还是可以正常运行，但是有缓存会大大提升程序的运行速度。</p>
+<p>还有比如数据库内部的索引，这也是冗余的一种表现。</p>
+<h3 id="网上购物场景实例"><a href="#网上购物场景实例" class="headerlink" title="网上购物场景实例"></a>网上购物场景实例</h3><ul>
+<li>网站陈列了各种各样的商品，提供商品的详细信息，包括商品名称、种类、价格、仓储地址等。</li>
+<li>用户可以登录到网站，浏览并选择商品。</li>
+<li>用户提交购买请求，包括：购买商品的种类和数量、购买客户的姓名和地址等。</li>
+<li>系统审核用户的购买请求，完成购买，整个过程包括调用外部系统实现付款和送货，以及记录用户的购买历史。</li>
+</ul>
+<h4 id="创建ER图"><a href="#创建ER图" class="headerlink" title="创建ER图"></a>创建ER图</h4><p>我们对于用户和商品之间的购买关系，有两种处理方式，第一种是用一个简单关系带描述(菱形)，第二种则是通过用户下订单、订单中包含商品的方式来呈现，如下图所示。</p>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/13.jpeg" style="zoom: 50%;"></p>
+<p>那么应该采用哪种方式呢？</p>
+<p>选择标准就是这种关系能否由两个实体的ID去确定。比如UID和PID能唯一确定一个购买关系吗？答案是不能的，因为一个用户可以重复下单同一件商品，仅用UID和PID是反映出来的</p>
+<p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/14.jpeg" style="zoom: 50%;"></p>
+<h3 id="例题-1"><a href="#例题-1" class="headerlink" title="例题"></a>例题</h3><ol>
+<li><p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/19.png"></p>
+</li>
+</ol>
+<p>因为只有少量员工有两个电话号码，那么我们没有必要新开一张表去存储多值属性的关系，直接新建一列即可，这一列大多数都是空白的。不会让这张表变得非常宽</p>
+<ol>
+<li><p><img src="/2021/11/14/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1/18.png"></p>
+</li>
+<li><p>某关系表R的外键是指：</p>
+</li>
+</ol>
+<p>A. 其他关系表的键，可以是R的任意属性</p>
+<p>B. 该关系表R除主键之外的另一个键</p>
+<p>C. 其它关系表的键，同时必须作为R的主属性(即R的键包含的属性)</p>
+<p>D. 其他关系表的键，同时必须作为R的非主属性(即不被R的键包含)</p>
+<p>在了解这个问题之前，我们首先要学习 主码、候选码、主属性、非主属性 的定义</p>
+<ol>
+<li>候选码的定义：如果关系中的某一<strong>属性组</strong>的值能唯一地标识一个元组，则称该属性组为候选码；</li>
+<li>主码的定义：如果一个关系有多个候选码，则选定其中一个为主码；</li>
+<li>主属性定义：候选码的诸属性称为主属性；</li>
+<li>非主属性定义：不包含在任何候选码中的属性称为非主属性；</li>
+</ol>
+<p>因为我们可以通过两张表的主键来定义一张表格，这两个主键都是这张表的外键。因此，外键在表中也是用来标识一个元组的，是主属性。所以选择C</p>
+<ol>
+<li><p>请针对以下需求设计ER图，并构建相应的关系模式：</p>
+<p>一个关于电影、制作人员和演员的网站（类似一个简易的IMDB网站）。用户可以浏览每一部电影的简介和相关信息（出品年份、电影类型、时长、评级），以及其导演、编剧和演员的列表。用户还可以浏览每一位导演、编剧或演员的信息（姓名、性别、年龄、简介），以及他们参与过哪些电影作品。导演、编剧或演员只是职位，一个人可以身兼数职。</p>
+<p>每一位演员在其参演的电影中都扮演一定的角色。用户在浏览电影时，除了能看到演员信息，还能看到每位演员扮演了什么角色。用户在浏览演员时，除了能看到他（或她）参演的电影，还能看到他（或她）在每一部电影中扮演的角色。（注意：一位演员可以在一部电影中扮演多个角色。同一个角色也可能由多名演员扮演，比如，年少时由一位演员扮演，年老时由另一位演员扮演。）</p>
+<p>用户登录后还可以针对每一部电影、每一位导演、编剧或演员进行评价和打分，供别人参考。</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" rel="tag"># 数据管理系统</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/11/09/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch10-%E7%9F%A9%E9%98%B5%E5%88%86%E8%A7%A3/" rel="prev" title="数据科学算法ch10-矩阵分解">
+      <i class="fa fa-chevron-left"></i> 数据科学算法ch10-矩阵分解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/11/15/%E6%95%B0%E6%8D%AE%E6%AD%A3%E7%A1%AE%E6%80%A7%E4%B8%8E%E4%BA%8B%E5%8A%A1%E5%A4%84%E7%90%86/" rel="next" title="数据正确性与事务处理">
+      数据正确性与事务处理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#关系数据库设计"><span class="nav-number">1.</span> <span class="nav-text">关系数据库设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#关系数据库设计-1"><span class="nav-number">1.0.1.</span> <span class="nav-text">关系数据库设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#需求分析"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">需求分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#概念设计"><span class="nav-number">1.0.1.2.</span> <span class="nav-text">概念设计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#结构设计"><span class="nav-number">1.0.1.3.</span> <span class="nav-text">结构设计</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ER图"><span class="nav-number">1.0.2.</span> <span class="nav-text">ER图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#形状的意义"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">形状的意义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#箭头的意义"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">箭头的意义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#菱形两变m和1的意义"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">菱形两变m和1的意义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#不同关系的表现形式"><span class="nav-number">1.0.2.4.</span> <span class="nav-text">不同关系的表现形式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#延伸"><span class="nav-number">1.0.2.5.</span> <span class="nav-text">延伸</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从ER图到关系模型设计"><span class="nav-number">1.0.3.</span> <span class="nav-text">从ER图到关系模型设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ER图在博客系统中的应用"><span class="nav-number">1.0.4.</span> <span class="nav-text">ER图在博客系统中的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#例题"><span class="nav-number">1.0.4.1.</span> <span class="nav-text">例题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关系数据库中的冗余"><span class="nav-number">1.0.5.</span> <span class="nav-text">关系数据库中的冗余</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据库设计的规范化"><span class="nav-number">1.0.6.</span> <span class="nav-text">数据库设计的规范化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#冗余带来的好处"><span class="nav-number">1.0.7.</span> <span class="nav-text">冗余带来的好处</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何利用冗余"><span class="nav-number">1.0.8.</span> <span class="nav-text">如何利用冗余</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网上购物场景实例"><span class="nav-number">1.0.9.</span> <span class="nav-text">网上购物场景实例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#创建ER图"><span class="nav-number">1.0.9.1.</span> <span class="nav-text">创建ER图</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例题-1"><span class="nav-number">1.0.10.</span> <span class="nav-text">例题</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

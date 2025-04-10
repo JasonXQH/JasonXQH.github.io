@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="选择合适的回归模型学习自： https:&#x2F;&#x2F;blog.csdn.net&#x2F;zrh_CSDN&#x2F;article&#x2F;details&#x2F;81190001 R-Squard Intuition线性回归问题中，R-Squared 是用来衡量回归方程与真实样本输出之间的相似程度。其表达式如下所示： $R^2 &#x3D; 1-\frac{\sum(y-\hat y)^2}{\sum(y-\overline y)^2}$  上式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="评估与选择合适的回归模型">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/10/10/%E8%AF%84%E4%BC%B0%E4%B8%8E%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="选择合适的回归模型学习自： https:&#x2F;&#x2F;blog.csdn.net&#x2F;zrh_CSDN&#x2F;article&#x2F;details&#x2F;81190001 R-Squard Intuition线性回归问题中，R-Squared 是用来衡量回归方程与真实样本输出之间的相似程度。其表达式如下所示： $R^2 &#x3D; 1-\frac{\sum(y-\hat y)^2}{\sum(y-\overline y)^2}$  上式">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/10/%E8%AF%84%E4%BC%B0%E4%B8%8E%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/1.png">
+<meta property="article:published_time" content="2020-10-10T10:59:40.000Z">
+<meta property="article:modified_time" content="2020-10-10T13:50:58.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/10/10/%E8%AF%84%E4%BC%B0%E4%B8%8E%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/10/10/%E8%AF%84%E4%BC%B0%E4%B8%8E%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>评估与选择合适的回归模型 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/10/10/%E8%AF%84%E4%BC%B0%E4%B8%8E%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          评估与选择合适的回归模型
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-10-10 18:59:40 / Modified: 21:50:58" itemprop="dateCreated datePublished" datetime="2020-10-10T18:59:40+08:00">2020-10-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="选择合适的回归模型"><a href="#选择合适的回归模型" class="headerlink" title="选择合适的回归模型"></a>选择合适的回归模型</h1><p>学习自： <a href="https://blog.csdn.net/zrh_CSDN/article/details/81190001" target="_blank" rel="noopener">https://blog.csdn.net/zrh_CSDN/article/details/81190001</a></p>
+<h3 id="R-Squard-Intuition"><a href="#R-Squard-Intuition" class="headerlink" title="R-Squard Intuition"></a>R-Squard Intuition</h3><p>线性回归问题中，R-Squared 是用来衡量回归方程与真实样本输出之间的相似程度。其表达式如下所示：</p>
+<p>$R^2 = 1-\frac{\sum(y-\hat y)^2}{\sum(y-\overline y)^2}$ </p>
+<p>上式中，分子部分表示真实值与<strong>预测值</strong>的平方差之和，类似于 均方差 MSE；分母部分表示真是值与<strong>均值</strong>的平方差之和，类似于方差Var。</p>
+<p><strong>根据 R-Squared 的取值，来判断模型的好坏：如果结果是 0，说明模型拟合效果很差；如果结果是 1，说明模型无错误。</strong></p>
+<p>一般来说，R-Squared 越大，表示模型拟合效果越好。<strong>R-Squared 反映的是大概有多准，因为，随着特征数量的增加，R-Square必然增加，无法真正定量说明准确程度，只能大概定量。</strong></p>
+<p><strong>单独看 R-Squared，并不能推断出增加的特征是否有意义</strong>。通常来说，增加一个特征，R-Squared 可能变大也可能保持不变，两者不一定呈正相关。</p>
+<p><img src="/2020/10/10/%E8%AF%84%E4%BC%B0%E4%B8%8E%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/1.png" alt></p>
+<h3 id="Adjusted-R-Squared"><a href="#Adjusted-R-Squared" class="headerlink" title="Adjusted R-Squared"></a>Adjusted R-Squared</h3><p>对于 $R-Squared$ 来说，如果加入一个新的 Feature，在回归模型下，系统会自动让 $SS<em>{res}$ 趋向于最小。那么如果这个Feature会让整个模型预测准确性下降的话，算法就会让这个Feature的系数趋于0甚至等于0，那么$R-Squared$ 值就不会变化(甚至还可能有轻微的提升);如果这个Feature 会让整个模型的预测准确性上升，那么 $SS</em>{res}$ 会变小，而$R-Squared$ 值就会变大，于是 这个值变成了一个只增不减的，是有一个局限性的。</p>
+<p>所以 $R^2$ 并不能很好的让我们判断一个新的变量对整个模型的影响。</p>
+<p>如果使用校正决定系数（Adjusted R-Square）：</p>
+<p>$R^2_adjust = 1-(1-R^2)\frac{(n-1)}{n-p-1}$  </p>
+<p>其中，n是<strong>样本数量</strong>(sample size)，p是<strong>特征数量</strong>(number of regressors)。 </p>
+<p>我们看到如果我们一直增加特征数量的话， $\frac{n-1}{n-p-1}$ 就会增大，$(1-R^2)$ 会减小，所以这相当于是对增加样本做了一个补偿。</p>
+<p>如果我们现在添加的特征是对整个模型基本没用的，那么 $\frac{n-1}{n-p-1}$ 对 $R^2-adjust$ 的影响就会高于其本身对$R^2$ 的影响，因此 $R^2-adjust$ 会下降。反之，如果这个变量是对整个模型特别有用的，那么其对$R^2$ 的影响就会大于 对$\frac{n-1}{n-p-1}$ 的影响，那么整个 $R^2-adjust$ 就会上升</p>
+<p>$R^2-adjust$ 抵消样本数量对 R-Square 的影响，做到了真正的 $0\sim 1$ 越大越好 </p>
+<h1 id="选择合适的回归模型-1"><a href="#选择合适的回归模型-1" class="headerlink" title="选择合适的回归模型"></a>选择合适的回归模型</h1><p>接下来我们通过一个实践，利用刚刚学习的$R^2$或者 $R^2-adjust$ 来选择最准确的模型。</p>
+<h2 id="Preparation-of-the-Regression-Code"><a href="#Preparation-of-the-Regression-Code" class="headerlink" title="Preparation of the Regression Code"></a>Preparation of the Regression Code</h2><p>我们使用的是一个大约有10000行数据的csv文件，没有缺失数据。数据来自<a href="https://archive.ics.uci.edu/ml/index.php" target="_blank" rel="noopener">https://archive.ics.uci.edu/ml/index.php</a> 这里面有很多适合拿来练习data set。 接下来我会提供现在已经学到的五个模型的代码模板.并分别看看这些模板的准确性</p>
+<h3 id="multiple-linear-regression"><a href="#multiple-linear-regression" class="headerlink" title="multiple linear regression"></a>multiple linear regression</h3><h4 id="Importing-the-libraries"><a href="#Importing-the-libraries" class="headerlink" title="Importing the libraries"></a>Importing the libraries</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br></pre></td></tr></table></figure>
+<h4 id="Importing-the-dataset"><a href="#Importing-the-dataset" class="headerlink" title="Importing the dataset"></a>Importing the dataset</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dataset = pd.read_csv(<span class="string">'ENTER_THE_NAME_OF_YOUR_DATASET_HERE.csv'</span>)</span><br><span class="line">X = dataset.iloc[:, :<span class="number">-1</span>].values</span><br><span class="line">y = dataset.iloc[:, <span class="number">-1</span>].values</span><br></pre></td></tr></table></figure>
+<h4 id="Splitting-the-dataset-into-the-Training-set-and-Test-set"><a href="#Splitting-the-dataset-into-the-Training-set-and-Test-set" class="headerlink" title="Splitting the dataset into the Training set and Test set"></a>Splitting the dataset into the Training set and Test set</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> train_test_split</span><br><span class="line">X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = <span class="number">0.2</span>, random_state = <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="Training-the-Multiple-Linear-Regression-model-on-the-Training-set"><a href="#Training-the-Multiple-Linear-Regression-model-on-the-Training-set" class="headerlink" title="Training the Multiple Linear Regression model on the Training set"></a>Training the Multiple Linear Regression model on the Training set</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.linear_model <span class="keyword">import</span> LinearRegression</span><br><span class="line">regressor = LinearRegression()</span><br><span class="line">regressor.fit(X_train, y_train)</span><br></pre></td></tr></table></figure>
+<h4 id="Predicting-the-Test-set-results"><a href="#Predicting-the-Test-set-results" class="headerlink" title="Predicting the Test set results"></a>Predicting the Test set results</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">y_pred = regressor.predict(X_test)</span><br><span class="line">np.set_printoptions(precision=<span class="number">2</span>)</span><br><span class="line">print(np.concatenate((y_pred.reshape(len(y_pred),<span class="number">1</span>), y_test.reshape(len(y_test),<span class="number">1</span>)),<span class="number">1</span>))</span><br></pre></td></tr></table></figure>
+<h4 id="Evaluating-the-Model-Performance"><a href="#Evaluating-the-Model-Performance" class="headerlink" title="Evaluating the Model Performance"></a>Evaluating the Model Performance</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> r2_score</span><br><span class="line">r2_score(y_test, y_pred)</span><br></pre></td></tr></table></figure>
+<h3 id="Polynomial-Regression"><a href="#Polynomial-Regression" class="headerlink" title="Polynomial Regression"></a>Polynomial Regression</h3><h4 id="Importing-the-libraries-1"><a href="#Importing-the-libraries-1" class="headerlink" title="Importing the libraries"></a>Importing the libraries</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br></pre></td></tr></table></figure>
+<h4 id="Importing-the-dataset-1"><a href="#Importing-the-dataset-1" class="headerlink" title="Importing the dataset"></a>Importing the dataset</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dataset = pd.read_csv(<span class="string">'ENTER_THE_NAME_OF_YOUR_DATASET_HERE.csv'</span>)</span><br><span class="line">X = dataset.iloc[:, :<span class="number">-1</span>].values</span><br><span class="line">y = dataset.iloc[:, <span class="number">-1</span>].values</span><br></pre></td></tr></table></figure>
+<h4 id="Splitting-the-dataset-into-the-Training-set-and-Test-set-1"><a href="#Splitting-the-dataset-into-the-Training-set-and-Test-set-1" class="headerlink" title="Splitting the dataset into the Training set and Test set"></a>Splitting the dataset into the Training set and Test set</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> train_test_split</span><br><span class="line">X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = <span class="number">0.2</span>, random_state = <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="Training-the-Polynomial-Regression-model-on-the-Training-set"><a href="#Training-the-Polynomial-Regression-model-on-the-Training-set" class="headerlink" title="Training the Polynomial Regression model on the Training set"></a>Training the Polynomial Regression model on the Training set</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.preprocessing <span class="keyword">import</span> PolynomialFeatures</span><br><span class="line"><span class="keyword">from</span> sklearn.linear_model <span class="keyword">import</span> LinearRegression</span><br><span class="line">poly_reg = PolynomialFeatures(degree = <span class="number">4</span>)</span><br><span class="line">X_poly = poly_reg.fit_transform(X_train)</span><br><span class="line">regressor = LinearRegression()</span><br><span class="line">regressor.fit(X_poly, y_train)</span><br></pre></td></tr></table></figure>
+<h4 id="Predicting-the-Test-set-results-1"><a href="#Predicting-the-Test-set-results-1" class="headerlink" title="Predicting the Test set results"></a>Predicting the Test set results</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">y_pred = regressor.predict(poly_reg.transform(X_test))</span><br><span class="line">np.set_printoptions(precision=<span class="number">2</span>)</span><br><span class="line">print(np.concatenate((y_pred.reshape(len(y_pred),<span class="number">1</span>), y_test.reshape(len(y_test),<span class="number">1</span>)),<span class="number">1</span>))</span><br></pre></td></tr></table></figure>
+<h4 id="Evaluating-the-Model-Performance-1"><a href="#Evaluating-the-Model-Performance-1" class="headerlink" title="Evaluating the Model Performance"></a>Evaluating the Model Performance</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> r2_score</span><br><span class="line">r2_score(y_test, y_pred)</span><br></pre></td></tr></table></figure>
+<h3 id="Support-Vector-Regression-SVR"><a href="#Support-Vector-Regression-SVR" class="headerlink" title="Support Vector Regression (SVR)"></a>Support Vector Regression (SVR)</h3><h4 id="Importing-the-libraries-2"><a href="#Importing-the-libraries-2" class="headerlink" title="Importing the libraries"></a>Importing the libraries</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br></pre></td></tr></table></figure>
+<h4 id="Importing-the-dataset-2"><a href="#Importing-the-dataset-2" class="headerlink" title="Importing the dataset"></a>Importing the dataset</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dataset = pd.read_csv(<span class="string">'ENTER_THE_NAME_OF_YOUR_DATASET_HERE.csv'</span>)</span><br><span class="line">X = dataset.iloc[:, :<span class="number">-1</span>].values</span><br><span class="line">y = dataset.iloc[:, <span class="number">-1</span>].values</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">y = y.reshape(len(y),<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="Splitting-the-dataset-into-the-Training-set-and-Test-set-2"><a href="#Splitting-the-dataset-into-the-Training-set-and-Test-set-2" class="headerlink" title="Splitting the dataset into the Training set and Test set"></a>Splitting the dataset into the Training set and Test set</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> train_test_split</span><br><span class="line">X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = <span class="number">0.2</span>, random_state = <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="Feature-Scaling"><a href="#Feature-Scaling" class="headerlink" title="Feature Scaling"></a>Feature Scaling</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.preprocessing <span class="keyword">import</span> StandardScaler</span><br><span class="line">sc_X = StandardScaler()</span><br><span class="line">sc_y = StandardScaler()</span><br><span class="line">X_train = sc_X.fit_transform(X_train)</span><br><span class="line">y_train = sc_y.fit_transform(y_train)</span><br></pre></td></tr></table></figure>
+<h4 id="Training-the-SVR-model-on-the-Training-set"><a href="#Training-the-SVR-model-on-the-Training-set" class="headerlink" title="Training the SVR model on the Training set"></a>Training the SVR model on the Training set</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.svm <span class="keyword">import</span> SVR</span><br><span class="line">regressor = SVR(kernel = <span class="string">'rbf'</span>)</span><br><span class="line">regressor.fit(X_train, y_train)</span><br></pre></td></tr></table></figure>
+<h4 id="Predicting-the-Test-set-results-2"><a href="#Predicting-the-Test-set-results-2" class="headerlink" title="Predicting the Test set results"></a>Predicting the Test set results</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">y_pred = sc_y.inverse_transform(regressor.predict(sc_X.transform(X_test)))</span><br><span class="line">np.set_printoptions(precision=<span class="number">2</span>)</span><br><span class="line">print(np.concatenate((y_pred.reshape(len(y_pred),<span class="number">1</span>), y_test.reshape(len(y_test),<span class="number">1</span>)),<span class="number">1</span>))</span><br></pre></td></tr></table></figure>
+<h4 id="Evaluating-the-Model-Performance-2"><a href="#Evaluating-the-Model-Performance-2" class="headerlink" title="Evaluating the Model Performance"></a>Evaluating the Model Performance</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> r2_score</span><br><span class="line">r2_score(y_test, y_pred)</span><br></pre></td></tr></table></figure>
+<h3 id="Decision-Tree-Regression"><a href="#Decision-Tree-Regression" class="headerlink" title="Decision Tree Regression"></a>Decision Tree Regression</h3><h4 id="Importing-the-libraries-3"><a href="#Importing-the-libraries-3" class="headerlink" title="Importing the libraries"></a>Importing the libraries</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br></pre></td></tr></table></figure>
+<h4 id="Importing-the-dataset-3"><a href="#Importing-the-dataset-3" class="headerlink" title="Importing the dataset"></a>Importing the dataset</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dataset = pd.read_csv(<span class="string">'ENTER_THE_NAME_OF_YOUR_DATASET_HERE.csv'</span>)</span><br><span class="line">X = dataset.iloc[:, :<span class="number">-1</span>].values</span><br><span class="line">y = dataset.iloc[:, <span class="number">-1</span>].values</span><br></pre></td></tr></table></figure>
+<h4 id="Splitting-the-dataset-into-the-Training-set-and-Test-set-3"><a href="#Splitting-the-dataset-into-the-Training-set-and-Test-set-3" class="headerlink" title="Splitting the dataset into the Training set and Test set"></a>Splitting the dataset into the Training set and Test set</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> train_test_split</span><br><span class="line">X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = <span class="number">0.2</span>, random_state = <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="Training-the-Decision-Tree-Regression-model-on-the-Training-set"><a href="#Training-the-Decision-Tree-Regression-model-on-the-Training-set" class="headerlink" title="Training the Decision Tree Regression model on the Training set"></a>Training the Decision Tree Regression model on the Training set</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.tree <span class="keyword">import</span> DecisionTreeRegressor</span><br><span class="line">regressor = DecisionTreeRegressor(random_state = <span class="number">0</span>)</span><br><span class="line">regressor.fit(X_train, y_train)</span><br></pre></td></tr></table></figure>
+<h4 id="Predicting-the-Test-set-results-3"><a href="#Predicting-the-Test-set-results-3" class="headerlink" title="Predicting the Test set results"></a>Predicting the Test set results</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">y_pred = regressor.predict(X_test)</span><br><span class="line">np.set_printoptions(precision=<span class="number">2</span>)</span><br><span class="line">print(np.concatenate((y_pred.reshape(len(y_pred),<span class="number">1</span>), y_test.reshape(len(y_test),<span class="number">1</span>)),<span class="number">1</span>))</span><br></pre></td></tr></table></figure>
+<h4 id="Evaluating-the-Model-Performance-3"><a href="#Evaluating-the-Model-Performance-3" class="headerlink" title="Evaluating the Model Performance"></a>Evaluating the Model Performance</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> r2_score</span><br><span class="line">r2_score(y_test, y_pred)</span><br></pre></td></tr></table></figure>
+<h3 id="Random-Forest-Regression"><a href="#Random-Forest-Regression" class="headerlink" title="Random Forest Regression"></a>Random Forest Regression</h3><h4 id="Importing-the-libraries-4"><a href="#Importing-the-libraries-4" class="headerlink" title="Importing the libraries"></a>Importing the libraries</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br></pre></td></tr></table></figure>
+<h4 id="Importing-the-dataset-4"><a href="#Importing-the-dataset-4" class="headerlink" title="Importing the dataset"></a>Importing the dataset</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dataset = pd.read_csv(<span class="string">'ENTER_THE_NAME_OF_YOUR_DATASET_HERE.csv'</span>)</span><br><span class="line">X = dataset.iloc[:, :<span class="number">-1</span>].values</span><br><span class="line">y = dataset.iloc[:, <span class="number">-1</span>].values</span><br></pre></td></tr></table></figure>
+<h4 id="Splitting-the-dataset-into-the-Training-set-and-Test-set-4"><a href="#Splitting-the-dataset-into-the-Training-set-and-Test-set-4" class="headerlink" title="Splitting the dataset into the Training set and Test set"></a>Splitting the dataset into the Training set and Test set</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> train_test_split</span><br><span class="line">X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = <span class="number">0.2</span>, random_state = <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="Training-the-Random-Forest-Regression-model-on-the-whole-dataset"><a href="#Training-the-Random-Forest-Regression-model-on-the-whole-dataset" class="headerlink" title="Training the Random Forest Regression model on the whole dataset"></a>Training the Random Forest Regression model on the whole dataset</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.ensemble <span class="keyword">import</span> RandomForestRegressor</span><br><span class="line">regressor = RandomForestRegressor(n_estimators = <span class="number">10</span>, random_state = <span class="number">0</span>)</span><br><span class="line">regressor.fit(X_train, y_train)</span><br></pre></td></tr></table></figure>
+<h4 id="Predicting-the-Test-set-results-4"><a href="#Predicting-the-Test-set-results-4" class="headerlink" title="Predicting the Test set results"></a>Predicting the Test set results</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">y_pred = regressor.predict(X_test)</span><br><span class="line">np.set_printoptions(precision=<span class="number">2</span>)</span><br><span class="line">print(np.concatenate((y_pred.reshape(len(y_pred),<span class="number">1</span>), y_test.reshape(len(y_test),<span class="number">1</span>)),<span class="number">1</span>))</span><br></pre></td></tr></table></figure>
+<h4 id="Evaluating-the-Model-Performance-4"><a href="#Evaluating-the-Model-Performance-4" class="headerlink" title="Evaluating the Model Performance"></a>Evaluating the Model Performance</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> r2_score</span><br><span class="line">r2_score(y_test, y_pred)</span><br></pre></td></tr></table></figure>
+<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p>我们接下来就对上面的模型进行跑分：</p>
+<ul>
+<li>Multiple Linear Regression : 0.9325315554761303</li>
+<li>Polynomial Regression :  0.945819297903489</li>
+<li>Support Vector Regression(SVR) : 0.9480784049986258</li>
+<li><p>Decision Tree Regression : 0.9226091050550043</p>
+</li>
+<li><p>Random Forest :  0.9615980699813017</p>
+</li>
+</ul>
+<p>综上我们得到，Random Forest 随机森林模型对这个数据集的预测准确性在五个模型中分数最高，是最适合的回归模型。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/" rel="prev" title="决策树和随机森林回归">
+      <i class="fa fa-chevron-left"></i> 决策树和随机森林回归
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/11/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E5%8D%B3%E8%A1%A8%E7%A4%BA2%EF%BC%886-11%E8%8A%82%EF%BC%89/" rel="next" title="CSAPP程序的机器即表示2（6~11节）">
+      CSAPP程序的机器即表示2（6~11节） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#选择合适的回归模型"><span class="nav-number">1.</span> <span class="nav-text">选择合适的回归模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#R-Squard-Intuition"><span class="nav-number">1.0.1.</span> <span class="nav-text">R-Squard Intuition</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Adjusted-R-Squared"><span class="nav-number">1.0.2.</span> <span class="nav-text">Adjusted R-Squared</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#选择合适的回归模型-1"><span class="nav-number">2.</span> <span class="nav-text">选择合适的回归模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Preparation-of-the-Regression-Code"><span class="nav-number">2.1.</span> <span class="nav-text">Preparation of the Regression Code</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#multiple-linear-regression"><span class="nav-number">2.1.1.</span> <span class="nav-text">multiple linear regression</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Importing-the-libraries"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">Importing the libraries</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Importing-the-dataset"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">Importing the dataset</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Splitting-the-dataset-into-the-Training-set-and-Test-set"><span class="nav-number">2.1.1.3.</span> <span class="nav-text">Splitting the dataset into the Training set and Test set</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Training-the-Multiple-Linear-Regression-model-on-the-Training-set"><span class="nav-number">2.1.1.4.</span> <span class="nav-text">Training the Multiple Linear Regression model on the Training set</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Predicting-the-Test-set-results"><span class="nav-number">2.1.1.5.</span> <span class="nav-text">Predicting the Test set results</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Evaluating-the-Model-Performance"><span class="nav-number">2.1.1.6.</span> <span class="nav-text">Evaluating the Model Performance</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Polynomial-Regression"><span class="nav-number">2.1.2.</span> <span class="nav-text">Polynomial Regression</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Importing-the-libraries-1"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">Importing the libraries</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Importing-the-dataset-1"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">Importing the dataset</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Splitting-the-dataset-into-the-Training-set-and-Test-set-1"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">Splitting the dataset into the Training set and Test set</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Training-the-Polynomial-Regression-model-on-the-Training-set"><span class="nav-number">2.1.2.4.</span> <span class="nav-text">Training the Polynomial Regression model on the Training set</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Predicting-the-Test-set-results-1"><span class="nav-number">2.1.2.5.</span> <span class="nav-text">Predicting the Test set results</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Evaluating-the-Model-Performance-1"><span class="nav-number">2.1.2.6.</span> <span class="nav-text">Evaluating the Model Performance</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Support-Vector-Regression-SVR"><span class="nav-number">2.1.3.</span> <span class="nav-text">Support Vector Regression (SVR)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Importing-the-libraries-2"><span class="nav-number">2.1.3.1.</span> <span class="nav-text">Importing the libraries</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Importing-the-dataset-2"><span class="nav-number">2.1.3.2.</span> <span class="nav-text">Importing the dataset</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Splitting-the-dataset-into-the-Training-set-and-Test-set-2"><span class="nav-number">2.1.3.3.</span> <span class="nav-text">Splitting the dataset into the Training set and Test set</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Feature-Scaling"><span class="nav-number">2.1.3.4.</span> <span class="nav-text">Feature Scaling</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Training-the-SVR-model-on-the-Training-set"><span class="nav-number">2.1.3.5.</span> <span class="nav-text">Training the SVR model on the Training set</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Predicting-the-Test-set-results-2"><span class="nav-number">2.1.3.6.</span> <span class="nav-text">Predicting the Test set results</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Evaluating-the-Model-Performance-2"><span class="nav-number">2.1.3.7.</span> <span class="nav-text">Evaluating the Model Performance</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Decision-Tree-Regression"><span class="nav-number">2.1.4.</span> <span class="nav-text">Decision Tree Regression</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Importing-the-libraries-3"><span class="nav-number">2.1.4.1.</span> <span class="nav-text">Importing the libraries</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Importing-the-dataset-3"><span class="nav-number">2.1.4.2.</span> <span class="nav-text">Importing the dataset</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Splitting-the-dataset-into-the-Training-set-and-Test-set-3"><span class="nav-number">2.1.4.3.</span> <span class="nav-text">Splitting the dataset into the Training set and Test set</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Training-the-Decision-Tree-Regression-model-on-the-Training-set"><span class="nav-number">2.1.4.4.</span> <span class="nav-text">Training the Decision Tree Regression model on the Training set</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Predicting-the-Test-set-results-3"><span class="nav-number">2.1.4.5.</span> <span class="nav-text">Predicting the Test set results</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Evaluating-the-Model-Performance-3"><span class="nav-number">2.1.4.6.</span> <span class="nav-text">Evaluating the Model Performance</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Random-Forest-Regression"><span class="nav-number">2.1.5.</span> <span class="nav-text">Random Forest Regression</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Importing-the-libraries-4"><span class="nav-number">2.1.5.1.</span> <span class="nav-text">Importing the libraries</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Importing-the-dataset-4"><span class="nav-number">2.1.5.2.</span> <span class="nav-text">Importing the dataset</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Splitting-the-dataset-into-the-Training-set-and-Test-set-4"><span class="nav-number">2.1.5.3.</span> <span class="nav-text">Splitting the dataset into the Training set and Test set</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Training-the-Random-Forest-Regression-model-on-the-whole-dataset"><span class="nav-number">2.1.5.4.</span> <span class="nav-text">Training the Random Forest Regression model on the whole dataset</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Predicting-the-Test-set-results-4"><span class="nav-number">2.1.5.5.</span> <span class="nav-text">Predicting the Test set results</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Evaluating-the-Model-Performance-4"><span class="nav-number">2.1.5.6.</span> <span class="nav-text">Evaluating the Model Performance</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结果"><span class="nav-number">2.2.</span> <span class="nav-text">结果</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

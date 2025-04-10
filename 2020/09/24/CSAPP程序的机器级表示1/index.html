@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="CSAPP程序的机器级表示1本章内容：  快速浏览C语言、汇编代码以及机器代码之间的关系。 介绍 x86-64 的细节：从数据的表示和处理以及控制的实现(C语言中的if,while,switch等控制结构) 过程的实现(如程序如何维护一个运行栈来支持过程间数据和控制的传递，以及局部变量的存储) 考虑在机器级如何实现像数组、结构和联合这样的数据结构 讨论内存访问越界问题、洗头膏容易遭到缓冲区溢出攻击">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CSAPP程序的机器级表示1">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="CSAPP程序的机器级表示1本章内容：  快速浏览C语言、汇编代码以及机器代码之间的关系。 介绍 x86-64 的细节：从数据的表示和处理以及控制的实现(C语言中的if,while,switch等控制结构) 过程的实现(如程序如何维护一个运行栈来支持过程间数据和控制的传递，以及局部变量的存储) 考虑在机器级如何实现像数组、结构和联合这样的数据结构 讨论内存访问越界问题、洗头膏容易遭到缓冲区溢出攻击">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/7.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/8.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/18.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/19.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/20.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/21.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/9.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/10.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/11.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/12.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/13.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/22.png">
+<meta property="article:published_time" content="2020-09-24T00:43:24.000Z">
+<meta property="article:modified_time" content="2020-11-10T10:16:58.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="CSAPP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>CSAPP程序的机器级表示1 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CSAPP程序的机器级表示1
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-09-24 08:43:24" itemprop="dateCreated datePublished" datetime="2020-09-24T08:43:24+08:00">2020-09-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-11-10 18:16:58" itemprop="dateModified" datetime="2020-11-10T18:16:58+08:00">2020-11-10</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="CSAPP程序的机器级表示1"><a href="#CSAPP程序的机器级表示1" class="headerlink" title="CSAPP程序的机器级表示1"></a>CSAPP程序的机器级表示1</h1><p>本章内容：</p>
+<ul>
+<li>快速浏览C语言、汇编代码以及机器代码之间的关系。</li>
+<li>介绍 x86-64 的细节：从数据的表示和处理以及控制的实现(C语言中的if,while,switch等控制结构)</li>
+<li>过程的实现(如程序如何维护一个运行栈来支持过程间数据和控制的传递，以及局部变量的存储)</li>
+<li>考虑在机器级如何实现像数组、结构和联合这样的数据结构</li>
+<li>讨论内存访问越界问题、洗头膏容易遭到缓冲区溢出攻击的问题。</li>
+<li>用GDB调试器检查机器级程序运行时行为的技巧</li>
+<li>浮点数据和操作的代码的机器程序表示</li>
+</ul>
+<h2 id="程序编码"><a href="#程序编码" class="headerlink" title="程序编码"></a>程序编码</h2><p>之前我们讲过用 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -Og -o p p1.c p2.c</span><br></pre></td></tr></table></figure>
+<p>来编译 p1.c 和 p2.c 两个文件。编译选项 -Og 告诉编译器使用会产生<strong>符合原始C代码整体结构</strong>的机器代码的优化等级。因为使用较高级别的优化代码会使其严重变形，以至于产生的机器代码和源代码的关系变得难以理解。所以我们先从最基础的-Og开始，再看看较高级别的优化(-o1或-o2)会发生什么。</p>
+<h3 id="机器级代码"><a href="#机器级代码" class="headerlink" title="机器级代码"></a>机器级代码</h3><p>在整个编译过程中，编译器会完成大部分的工作，把C语言转化成处理器执行的<strong>非常基本</strong>的指令。汇编代码非常接近于机器代码，与机器代码的二进制格式比，汇编的主要特点就是他用<strong>可读性更好</strong>的文本格式表示。能够理解汇编代码以及它原始C代码的联系，使理解计算机如何执行程序的关键一步。</p>
+<p>我们先了解一些寄存器的概念：</p>
+<ul>
+<li>程序计数器(通常称为 “PC”, 在 x86-64中用 %rip 表示) 给出将要执行的下一条指令在内存当中的地址</li>
+<li>整数寄存器文件包含16个命名的位置用来存储64位的值。这些寄存器可以存储地址(对应于C语言的指针) 或整数数据。有的寄存器被用来记录某些重要的程序状态；其他的寄存器哟个来保存临时数据(参数、局部变量、返回值)</li>
+<li>条形码寄存器保存着最近执行的算术或者逻辑指令的状态信息。它们用来实现控制数据流中的条件变化(if 和 while)</li>
+<li>一组向量寄存器可以存放一个或者多个整数或浮点数值</li>
+</ul>
+<p>一条机器指令只执行一个非常基本的操作。例如将存放在寄存器中的两个数字相加，在寄存器和存储器之间传送数据，或是条件分支转移到新的指令地址。编译器必须产生这些指令的序列，从而实现(如算术表达式求值、循环或者过程调用和返回)程序结构</p>
+<h3 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h3><p>比如我写一个C语言代码</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"stdio.h"</span></span></span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">mult2</span><span class="params">(<span class="keyword">long</span>,<span class="keyword">long</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">multstore</span><span class="params">(<span class="keyword">long</span> x,<span class="keyword">long</span> y,<span class="keyword">long</span> *dest)</span></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> t = mult2(x,y);</span><br><span class="line">    *dest = t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后我们用 <code>gcc -Og -S mstore.c</code> 命令来进行编译</p>
+<p>得到mulstore的汇编语言形式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">multstore:</span><br><span class="line">	pushq			%rbx</span><br><span class="line">	.seh_pushreg	%rbx</span><br><span class="line">	subq			$32, %rsp</span><br><span class="line">	.seh_stackalloc	32</span><br><span class="line">	.seh_endprologue</span><br><span class="line">	movq			%r8, %rbx</span><br><span class="line">	call			mult2</span><br><span class="line">	movl			%eax, (%rbx)</span><br><span class="line">	addq			$32, %rsp</span><br><span class="line">	popq			%rbx</span><br><span class="line">	ret</span><br><span class="line">	.seh_endproc</span><br><span class="line">	.ident			&quot;GCC: (tdm64-1) 4.9.2&quot;</span><br><span class="line">	.def			mult2;	.scl	2;	.type	32;	.endef</span><br></pre></td></tr></table></figure>
+<p>上面代码mulstore下的每行都代表一条机器指令。比如 pushq指令表示应该将寄存器 %rbx 的内容压入程序栈当中。这段代码中已经除去了所有关于局部变量名或者数据类型的信息。</p>
+<p>我们再进一步用 <code>gcc -Og -c mstore.c</code> 来进行编译，这就会产生目标代码文件 mstore.c ，他是二进制格式的无法直接查看。转换为十六进制之后可以看到汇编指令对应的目标代码。</p>
+<p>我们从中得到一个重要信息，即机器执行的程序只是一个字节序列，它是对一系列指令的编码。机器对产生这些指令的源代码几乎一无所知</p>
+<p>要查看机器代码文件的内容，有一类称为 反汇编器的程序非常有用。这些程序根据机器代码产生一种类似于汇编代码的格式。我们可以用命令 <code>objdump -d mstore.o</code> 来实现</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0000000000000000 &lt;multstore&gt;:</span><br><span class="line">   0:   53                      push   %rbx</span><br><span class="line">   1:   48 83 ec 20             sub    $0x20,%rsp</span><br><span class="line">   5:   4c 89 c3                mov    %r8,%rbx</span><br><span class="line">   8:   e8 00 00 00 00          callq  d &lt;multstore+0xd&gt;</span><br><span class="line">   d:   89 03                   mov    %eax,(%rbx)</span><br><span class="line">   f:   48 83 c4 20             add    $0x20,%rsp</span><br><span class="line">  13:   5b                      pop    %rbx</span><br><span class="line">  14:   c3                      retq</span><br></pre></td></tr></table></figure>
+<p>在左边十六进制字节值被分成了机组，每组都是一条指令，右边是等价的汇编语言。</p>
+<p>其中，一些关于机器代码和它的反汇编表示的特性值得注意：</p>
+<ul>
+<li>x86-64 的指令长度从1到15个字节不等。<strong>常用的指令以及操作数较少</strong> 的指令所需的字节数<strong>少</strong>，而那些<strong>不太常用或操作数较多</strong>的指令所需的字节数较<strong>多</strong> </li>
+<li>设计指令格式的方式是，从某个给定位置开始，可以将字节唯一地解码成机器指令。例如，只有指令pushq %rbx 是以字节值53 开头的。</li>
+<li>反汇编器只是基于机器代码文件中的字节序列来确定汇编代码。它不需要访问该程序的源代码或汇编代码。</li>
+<li>反汇编器使用的指令命名规则与GCC 生成的汇编代码使用的有些细微的差别。在我们的示例中，它省略了很多指令结尾的  ‘q’ 这些后缀是大小指示符，在大多数情况中可以省略。相反，反汇编器给call 和ret 指令添加了 ‘q’ 后缀，同样，省略这些后缀也没有问题。</li>
+</ul>
+<h3 id="关于格式的注解"><a href="#关于格式的注解" class="headerlink" title="关于格式的注解"></a>关于格式的注解</h3><p>所有以 ‘.’ 开头的行 都是指导汇编器和链接器工作的伪指令。我们通常可以忽略这些行。另一方面，也没有关于指令的用途以及他们与源代码之间关系的解释说明。</p>
+<p>为了清楚的说明汇编代码，我们用下面这种格式来表示汇编代码，他省略了大部分伪指令，但包括行号和解释性说明。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">void multstore(long x, long y, long *dest)</span><br><span class="line">x in %rdi, y in %rsi, dest in %rdx</span><br><span class="line">multstore:</span><br><span class="line">	pushq %rbx 					Save %rbx</span><br><span class="line">	movq %rdx, %rbx 			Copy dest to %rbx</span><br><span class="line">	call mult2 					Call mult2(x, y)</span><br><span class="line">	movq %rax, (%rbx) 			Store result at *dest</span><br><span class="line">	popq %rbx 					Restore %rbx</span><br><span class="line">	ret 						Return</span><br></pre></td></tr></table></figure>
+<p>上面这种格式简单地描述了指令的效果以及它与原始C语言代码中的计算操作的关系。这是一种汇编语言程序员写代码的风格</p>
+<h2 id="数据格式"><a href="#数据格式" class="headerlink" title="数据格式"></a>数据格式</h2><p>Intel用 “word” 表示16位数据类型。因此称32位数为 “double words” ，64位数为 “quad words” . 下图是C语言基本数据类型对应的 x86-64表示的表格</p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/1.png" style="zoom: 120%;"></p>
+<p>浮点数主要有两种形式</p>
+<ul>
+<li><p>单精度(4字节) 值，对应于C中的 Float</p>
+</li>
+<li><p>双精度(8字节) 值，对应于C中的 Double</p>
+<p>大多数GCC生成的汇编代码指令都有一个字符的后缀，表明操作数的大小。比如 <code>moveb(传送字节)</code> 、<code>movw(传送字)</code> …</p>
+<p>后缀‘l’用来表示双字，因为32 位数被看成是“长字（long word)” 。注意，汇编代码也使用后缀‘l’来表示4 字节整数和8 字节双精度浮点数。这不会产生歧义，因为浮点数使用的是一组完全不同的指令和寄存器。</p>
+</li>
+</ul>
+<h2 id="访问信息"><a href="#访问信息" class="headerlink" title="访问信息"></a>访问信息</h2><p>我们首先来了解一下寄存器(register) 的历史</p>
+<p><strong>最初</strong>的8086处理器中8个16位的寄存器，即位下面的 $\%ax$ 到 $\%bp$ 。 每一个寄存器都有特殊的用处。</p>
+<p><strong>当扩展到IA32架构时</strong> ,这些寄存器也扩展成32位了，标号从 $\%eax$ 到 $\%ebp$ </p>
+<p><strong>扩展到 x86-64 之后</strong>，从原来的8个寄存器扩展成64位，标号从 $\%rax$ 到 $\%rbp$ .此外还增加了8个新的寄存器，它们的表好是按照新的命名规则制定的 $\%r8$ 到 $\%r15$ </p>
+<p>在常见的程序里不同的寄存器扮演着不同的角色。其中最特别的是栈指针 $\%rsp$ 用来指明栈的结束位置。有些程序会明确地读写这个寄存器。</p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/2.png" style="zoom: 120%;"></p>
+<p>指令可以对这16个寄存器的低位字节中存放的不同的数据进行操作。</p>
+<ul>
+<li>字节级操作可以访问最低的字节(the least significant byte)</li>
+<li>16位的操作能访问最低的2个字节</li>
+<li>32位操作可以访问最低的4个字节</li>
+<li>64位操作可以访问整个寄存器。</li>
+</ul>
+<p>当生成的指令以寄存器为目标时，对于生成小于8字节结果的指令，寄存器中剩下的字节会怎么样，对此有两条规则</p>
+<ul>
+<li>生成1字节和2字节数字的指令会保持剩下的字节不变</li>
+<li>生成4字节的数字的指令会把高位4个字节设置为0。后面这条规则是作为从IA32到x86-64 的扩展的一部分而采用的</li>
+</ul>
+<h3 id="操作数指示符"><a href="#操作数指示符" class="headerlink" title="操作数指示符"></a>操作数指示符</h3><p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/4.png" style="zoom: 120%;"></p>
+<p>大多数指令都有一个或者多个操作数(operand) , 指示出执行一个操作中要使用的源数据值以及放置结果的目的位置。</p>
+<p>源数值可以存放在寄存器或内存当中。因此，各种不同的操作数的可能性被分成三种类型：</p>
+<ul>
+<li>立即数(immediate) ，用来表示常数值。 书写方式是 $ 后面跟一个标准C表示法表示的整数，比如 $-577 或$ 0x1F</li>
+<li>寄存器(register), 我们用 $r_0$ 来表示任意寄存器 a, 用引用 $R[r_a]$ 来表示它的值，这是将寄存器集合看成一个数组R，用寄存器标识符作为索引</li>
+<li>内存引用。它会根据计算出来的地址访问某个内存位置。因为将内存看成一个很大的字节数组，我们用负号$M_b[Addr]$ 表示对存储在内存中从地址 $Addr$ 开始的b个字节值的引用。为了简便，我们通常省略下标b</li>
+</ul>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/3.png" style="zoom: 100%;"></p>
+<p>我们来 仔细解读一下这张表格，$$Imm 和R[r_a]$ 就不用说了。</p>
+<ul>
+<li>$M[Imm]$ 是绝对寻址。也就是按照<code>Imm</code> 取内存中寻址</li>
+<li>$M[R[r_0]]$ 是间接寻址。也就是说寄存器R中指定了一段内存地址，然后以此去寻址。<ul>
+<li><code>moveq (%rcx),%rax</code></li>
+</ul>
+</li>
+<li>$M[Imm+R[r_b]]$ 是 基址+偏移量 寻址。寄存器指定了一段内存空间，然后 $Imm$ 表明了偏移量<ul>
+<li><code>move 8(%rbp),%rdx</code> </li>
+</ul>
+</li>
+<li>$M[R[r_b]+R[r_i]]$ 变址寻址 </li>
+<li>$M[R[r_b]+R[r_i]+Imm]$ 变址寻址</li>
+</ul>
+<p>最后一行是 $M[Imm+R[r_b]+R[r_i]\cdot s]$</p>
+<p>$IMM$ 就代表着 偏移数，1，2或者4个字节</p>
+<p>$r_b$ 就是基址：任意一个寄存器</p>
+<p>$r_i$ 是变址寄存器</p>
+<p>s是比例因子，必须是1、2、4或者8</p>
+<p>比如说，对于 $2(\%rsp,\%rax,4)$ 这个操作数来讲，它代表的是内存地址为 $2+\%rsp+4\cdot \%rax$  的存储器区域的值。</p>
+<p>练习</p>
+<p>比如说 现在 $\%rdx$中的数字为 $0xf000$ ,$\%rcx$ 中的数字为 $0x0100$ ,我们可以做一个这样的表格</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Expression</th>
+<th>Address Computation</th>
+<th>Address</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$0x8(\%rdx)$</td>
+<td>0xf000+0x8</td>
+<td>0xf008</td>
+</tr>
+<tr>
+<td>$(\%rdx,\%rcx)$</td>
+<td>0xf000+0x100</td>
+<td>0xf100</td>
+</tr>
+<tr>
+<td>$(\%rdx,\%rcx,4)$</td>
+<td>0xf000+4*0x100</td>
+<td>0xf400</td>
+</tr>
+<tr>
+<td>$0x80(,rdx,2)$</td>
+<td>2*0xf000+0x80</td>
+<td>0x1e080</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="数据传送指令"><a href="#数据传送指令" class="headerlink" title="数据传送指令"></a>数据传送指令</h3><p>下图列出了形式最简单的数据传送指令 $MOV$ 类。这些指令把数据从原位置复制到目的位置而不做任何变化。</p>
+<p>MOV跟着的后缀不同，则指令可操作的数据大小也不同。</p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/5.png" style="zoom: 120%;"></p>
+<p>源操作数指定的值是一个立即数，存储在寄存器或者内存中。</p>
+<p>目的操作数指定一个位置们要么是一个寄存器地址要么是一个内存地址。</p>
+<p>x86-64规定传送指令的两个操作数不能都指向内存位置。将一个值从一个内存位置复制到另一个内存位置需要两条指令：第一条指令将源值加载到寄存器中，第二条将该寄存器值写入目的位置。</p>
+<p>这些指令的寄存器可以是16个寄存器有标号部分中的任意一个，寄存器部分的大小必须和指令的后缀(bwlq) 指定的大小相匹配。</p>
+<p>有一个例外，当<code>movl</code>指令以寄存器位目的时，它会把该寄存器的高位4字节设置为0。这是因为x86-64采用的任何寄存器生成32位值都会把该寄存器的高位部分设置为0这一惯例。</p>
+<p>例子：</p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/6.png" style="zoom: 120%;"></p>
+<p>第一个是源操作数(source)，第二个是目的操作数(destination).</p>
+<ul>
+<li>第一行就是将一个立即数放到寄存器当中，长度为4个字节</li>
+<li>第二行是将寄存器转移到寄存器当中，长度为2个字节</li>
+<li>第三行是将内存中的数据转移到寄存器当中，长度为1个字节</li>
+<li>第四行是将立即数存储到内存当中，长度为1个字节</li>
+<li>第五行是将寄存器中的数存到内存当中，长度为8个字节</li>
+</ul>
+<p>下面两张表格记录的是两类移动指令，是当将较小的源值复制到较大的目的时使用的。</p>
+<p>MOVZ类中的指令是在复制到寄存器后将剩余的字节填充为0</p>
+<p>MOVS类中的指令则是通过符号扩展来填充，把源操作数的最高位进行赋值。</p>
+<p>我们可以看到每条指令名字的后两个字符都是大小指示符，第一个字符指定源的大小，而第二个指明destination的大小</p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/7.png" style="zoom: 100%;"></p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/8.png" style="zoom: 130%;"></p>
+<p>注意：cltq指令没有操作数，它总是以寄存器$\%eax$ 作为源，$\%rax$ 作为符号扩展结果的目的。它的效果与指令$moveslq~~ \%eax,\%rax$  完全一致，不过编码更紧凑。</p>
+<h4 id="练习："><a href="#练习：" class="headerlink" title="练习："></a>练习：</h4><p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/18.png" style="zoom: 130%;"></p>
+<p>我们知道，两个地址之间不能传值.操作指令的后缀取决于寄存器的大小: 两个寄存器之间如果要传值必须要保证两个寄存器的位数大小相同。地址和寄存器之间传递数据，指令后缀取决于寄存器。</p>
+<ol>
+<li>因为从%eax 传向 地址，所以后缀和 %eax相匹配，为 <code>movl</code></li>
+<li>因为从地址传向 %dx ,所以后缀和 %dx 相匹配，为 <code>movw</code></li>
+<li>因为从地址传向 %bl，所以后缀和 %bl 匹配，为 <code>movb</code></li>
+<li>同上,为 <code>movb</code></li>
+<li>从地址传向 %rax，所以后缀和%rax相匹配，为 <code>movq</code></li>
+<li>从%dx传向地址，和%dx相匹配，为 <code>movw</code></li>
+</ol>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/19.png" style="zoom: 130%;"></p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>错误之处</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>%bx</code>系列寄存器时被调用者保存的寄存器，不能拿来当成地址</td>
+</tr>
+<tr>
+<td><code>%rax</code>是64位的寄存器，而<code>movl</code>匹配的是32位的寄存器，应该改为 <code>movq</code></td>
+</tr>
+<tr>
+<td>不能在两个地址之间传递数据</td>
+</tr>
+<tr>
+<td>没有<code>%sl</code>这个名字的寄存器</td>
+</tr>
+<tr>
+<td>不能将寄存器中的数据移动给一个 <code>Immediate</code>(直接值)</td>
+</tr>
+<tr>
+<td>在两个寄存器之间传递值的时候，两个寄存器的大小要保持相等</td>
+</tr>
+<tr>
+<td><code>%si</code> 是16位寄存器，而 <code>movb</code>匹配的是8位寄存器，应该改为 <code>movw</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="数据传送示例"><a href="#数据传送示例" class="headerlink" title="数据传送示例"></a>数据传送示例</h3><p>我们现在来考虑一个exchange代码</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">exchange</span><span class="params">(<span class="keyword">long</span> *xp, <span class="keyword">long</span> y)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> x = *xp;</span><br><span class="line">    *xp = y;</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后看看这个函数的汇编代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">long exchange(long *xp, long y)</span><br><span class="line">xp in %rdi, y in %rsi</span><br><span class="line">exchange:</span><br><span class="line">	 movq 	(%rdi), %rax 		Get x at xp. Set as return value.</span><br><span class="line">	 movq 	%rsi, (%rdi) 		Store y at xp.</span><br><span class="line">	 ret 						Return.</span><br></pre></td></tr></table></figure>
+<p>我们看到函数exchange由三条指令实现：两个数据传送(movq) 加上一条返回函数被调用点的指令(ret)</p>
+<p>当过程开始时，参数xp和y分别存储在 $\%rdi$ 和$\%rsi$ 中。然后，指令2从内存中读出xp指向的x，将其存到寄存器$\%rax$ 中，直接实现了C程序中的操作 $x=*xp$ 。然后用 $\%rax$ 从这个函数返回一个值，因而返回的值就是x</p>
+<p>指令3将y写入到寄存器$\%rdi$ 中的 $xp$ 指向的内存位置，直接实现了操作 $*xp=y$ 这个例子说明了如何用 $MOV$ 指令从内存中读值到寄存器，如何从寄存器写到内存当中。</p>
+<p>我们要注意两点</p>
+<ul>
+<li>C语言中所谓的指针其实就是地址。简介引用指针就是将指针放在一个寄存器中，然后在内存引用中使用这个寄存器</li>
+<li>像x这样的局部变量常常是保存在寄存器当中而不是内存中。访问寄存器比访问内存要快得多</li>
+</ul>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/20.png" style="zoom: 130%;"></p>
+<p>这道题要注意几个点:</p>
+<ul>
+<li>高位转向低位(如 int 转成 char; unsigned 转换为 unsigned char)  不需要用 <code>movzbl,movsbl</code>之类的命令，直接将后几位移动到相应大小的寄存器即可</li>
+<li>低位转为高位，需要进行符号扩展或零扩展；选择那种扩展取决于源数据的数据类型。比如<strong>源数据是char，转换为unsigned</strong>，那么就要用<code>movsbl</code>来进行符号扩展； 如果<strong>原来是unsigned char 要转换为long类型</strong>，那么就要用 <code>movzbl</code> 来 进行 零扩展。</li>
+</ul>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/21.png" style="zoom: 130%;"></p>
+<p><code>%r8,%rcx,%rax</code>是三个新的变量，我们不妨将其命名为x,y,z</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">decode1</span><span class="params">(<span class="keyword">long</span> *xp,<span class="keyword">long</span> *yp,<span class="keyword">long</span> *zp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	x = *xp;</span><br><span class="line">	y = *yp</span><br><span class="line">	z = *zp;</span><br><span class="line">	*yp = x;</span><br><span class="line">	*zp = y;</span><br><span class="line">	*xp = z;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="压入和弹出栈数据"><a href="#压入和弹出栈数据" class="headerlink" title="压入和弹出栈数据"></a>压入和弹出栈数据</h3><p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/9.png" style="zoom: 130%;"></p>
+<p>pushq指令的功能就是把数据压入到栈上，而popq指令是弹出数据。这些指令都只有一个操作数-压入的数据源 和 弹出的数据目的</p>
+<p>将一个四字值压入栈中，<strong>首先要将栈指针减去8</strong>，然后<strong>将值写到新的栈顶地址</strong>。因此指令 $pushq ~~\%rbp$ 的行为<strong>等价于</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">subq $8,%rsp</span><br><span class="line">movq %rbp,(%rsp)</span><br></pre></td></tr></table></figure>
+<p>只是前面的 $pushq ~~\%rbp$  只是一个字节，而后面两条指令一共需要8个字节。</p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/10.png" style="zoom: 130%;"></p>
+<p>上图的最右边说得是在pushq后立即执行指令 popq %rdx 的效果。先从内存中读取值 0x123,再写道寄存器 $\%rdx$ 中，然后，寄存器 $\%rsp$ 的值将从 0x100增加到 0x108 . 如图，值0x123仍然会保存在内存位置 $0x100$ 中，直到被覆盖。无论如何，$\% rsp$ 指向的地址总是栈顶。</p>
+<p>因为栈和程序代码以及其他形式的程序数据都是放在同一内存中，所以程序可以用标准的内存寻址方法访问栈内的任意位置。例如，假设栈顶元素是四字，指令movq 8(rsp),%rdx  会将第二个四字<strong>从栈中复制到寄存器</strong> %rdx</p>
+<h2 id="算数和逻辑操作"><a href="#算数和逻辑操作" class="headerlink" title="算数和逻辑操作"></a>算数和逻辑操作</h2><p>下面是一些整数和逻辑操作。大多数操作分成了指令类，这些指令类有各种带不同大小操作数的变种(除了leaq外）。 例如ADD由四条加法指令 addb、addw、addl、addq 组成。</p>
+<p>事实上给出的每个指令类都有对这四种大小不同的数据的指令。这些操作被分为四组：加载有效地址、一元操作、二元操作和移位。二元操作有两个操作数，而一元操作有一个操作数。</p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/11.png" style="zoom: 100%;"></p>
+<h3 id="加载有效地址"><a href="#加载有效地址" class="headerlink" title="加载有效地址"></a>加载有效地址</h3><p>load effective address(加载有效地址)指令leaq 实际上是 movq的变形。</p>
+<p><code>leaq src,Dst</code></p>
+<ul>
+<li>Src is address mode expression</li>
+<li>Set Dst to address denoted by expression</li>
+</ul>
+<p><code>leaq</code>主要用来简洁的描述普通的算术操作。例如如果寄存器 $\%rdx$ 的值为x，那么指令 $leaq ~~7(\%rdx,\%rdx,4),\%rax$ 将设置寄存器 $\%rax$ 的值为 $5x+7$ ,编译器经常发现 <code>leaq</code> 的一些灵活用法，根本和有效地址计算无关</p>
+<p>比如下面这个C程序</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">scale</span><span class="params">(<span class="keyword">long</span> x, <span class="keyword">long</span> y, <span class="keyword">long</span> z)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">long</span> t = x + <span class="number">4</span> * y + <span class="number">12</span> * z;</span><br><span class="line">	<span class="keyword">return</span> t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译成汇编语言的到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">long scale(long x, long y, long z)</span><br><span class="line">x in %rdi, y in %rsi, z in %rdx</span><br><span class="line">scale:</span><br><span class="line">leaq (%rdi,%rsi,4), %rax 	x + 4*y</span><br><span class="line">leaq (%rdx,%rdx,2), %rdx 	z + 2*z &#x3D; 3*z</span><br><span class="line">leaq (%rax,%rdx,4), %rax 	(x+4*y) + 4*(3*z) &#x3D; x + 4*y + 12*z</span><br><span class="line">ret</span><br></pre></td></tr></table></figure>
+<p>leaq 能执行加法和有限形式的乘法，在编译如上简单的算术表达式时，是很有用处的。</p>
+<h3 id="一元和二元操作"><a href="#一元和二元操作" class="headerlink" title="一元和二元操作"></a>一元和二元操作</h3><p>这一组操作是一元操作，只有一个操作数，既是源又是目的。这个操作数可以实寄存器也可以是一个内存位置。</p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/12.png" style="zoom: 100%;"></p>
+<p>第三组是二元操作，其中，第二个操作数既是源又是目的。这种语法让人想起C 语言中的赋值运算符，例如x-=y。 不过，要注意，源操作数是第一个，目的操作数是第二个, 对于不可交换操作来说，这看上去很奇特。例如，指令<code>subq%rax,%rdx</code> 使寄存器<code>%rdx</code>的值减去<code>％rax</code> 中的值。（将指令解成”从<code>%rdx</code> 中减去<code>％rax</code>” 会有所帮助。）第一个操作数可以是立即数、寄存器或是内存位置。第二个操作数可以是寄存器或是内存位置。注意，当第二个操作数为内存地址时，处理器必须从内存读出值，执行操作，再把结果写回内存.</p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/13.png" style="zoom: 100%;"></p>
+<h3 id="移位操作"><a href="#移位操作" class="headerlink" title="移位操作"></a>移位操作</h3><p>最后一组是移位操作，先给出移位量，然后第二项给出的是要移位的数。可以进行算术和逻辑右移。移位量可以是一个立即数，或者放在单字节寄存器％cl 中。（这些指令很特别，因为<strong>只允许</strong>以这个特定的寄存器作为操作数。）原则上来说，1 个字节的移位量使得移位量的编码范围可以达到$2^8-1= 255$。X86-64 中，移位操作对w 位长的数据值进行操作，移位量是由％cl 寄存器的低m 位决定的，这里$2^m=w$ 高位会被忽略。所以，例如当寄存器％cl 的十六进制值为OxFF 时，指令salb 会移7 位，salw 会移15 位，sail 会移31 位，而salq 会移63 位。<br>如下图所示，左移指令有两个名字：SAL 和SHL。两者的效果是一样的，都是将右边填上0。右移指令不同，SAR 执行算术移位（填上符号位）, 而SHR 执行逻辑移位（填上0）。</p>
+<p>移位操作的目的操作数可以是一个寄存器或是一个内存位置。图 3-10 中用$&gt;&gt;_A$(算术)和$&gt;&gt;_L$(逻辑）来表示这两种不同的右移运算。</p>
+<p><img src="/2020/09/24/CSAPP%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%9C%BA%E5%99%A8%E7%BA%A7%E8%A1%A8%E7%A4%BA1/22.png" style="zoom: 100%;"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CSAPP/" rel="tag"># CSAPP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/09/23/git%E5%9F%BA%E7%A1%80/" rel="prev" title="git基础">
+      <i class="fa fa-chevron-left"></i> git基础
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/27/git%E5%AD%A6%E4%B9%A02/" rel="next" title="git学习2">
+      git学习2 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CSAPP程序的机器级表示1"><span class="nav-number">1.</span> <span class="nav-text">CSAPP程序的机器级表示1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#程序编码"><span class="nav-number">1.1.</span> <span class="nav-text">程序编码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#机器级代码"><span class="nav-number">1.1.1.</span> <span class="nav-text">机器级代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码示例"><span class="nav-number">1.1.2.</span> <span class="nav-text">代码示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关于格式的注解"><span class="nav-number">1.1.3.</span> <span class="nav-text">关于格式的注解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据格式"><span class="nav-number">1.2.</span> <span class="nav-text">数据格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#访问信息"><span class="nav-number">1.3.</span> <span class="nav-text">访问信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#操作数指示符"><span class="nav-number">1.3.1.</span> <span class="nav-text">操作数指示符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据传送指令"><span class="nav-number">1.3.2.</span> <span class="nav-text">数据传送指令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#练习："><span class="nav-number">1.3.2.1.</span> <span class="nav-text">练习：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据传送示例"><span class="nav-number">1.3.3.</span> <span class="nav-text">数据传送示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压入和弹出栈数据"><span class="nav-number">1.3.4.</span> <span class="nav-text">压入和弹出栈数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算数和逻辑操作"><span class="nav-number">1.4.</span> <span class="nav-text">算数和逻辑操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#加载有效地址"><span class="nav-number">1.4.1.</span> <span class="nav-text">加载有效地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一元和二元操作"><span class="nav-number">1.4.2.</span> <span class="nav-text">一元和二元操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移位操作"><span class="nav-number">1.4.3.</span> <span class="nav-text">移位操作</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

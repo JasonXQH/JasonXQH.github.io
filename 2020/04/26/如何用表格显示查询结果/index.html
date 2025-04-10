@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="如何用表格显示查询结果写在前面 这篇博客记录了如何通过express框架让我们前端能出现表格式的查询内容 我会先讲述老师的操作 然后，我会以 我建立的 经济新闻 为例子，展示搜索成果  1.老师操作：如何搭建express网站并实现查找第一步，建立文件夹 我们用express 脚手架来创建一个网站框架  12express -e search_site&#x2F;&#x2F;-e 的参数说明我们用ejs作为缺省vie">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何用表格显示查询结果">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/04/26/%E5%A6%82%E4%BD%95%E7%94%A8%E8%A1%A8%E6%A0%BC%E6%98%BE%E7%A4%BA%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="如何用表格显示查询结果写在前面 这篇博客记录了如何通过express框架让我们前端能出现表格式的查询内容 我会先讲述老师的操作 然后，我会以 我建立的 经济新闻 为例子，展示搜索成果  1.老师操作：如何搭建express网站并实现查找第一步，建立文件夹 我们用express 脚手架来创建一个网站框架  12express -e search_site&#x2F;&#x2F;-e 的参数说明我们用ejs作为缺省vie">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/26/%E5%A6%82%E4%BD%95%E7%94%A8%E8%A1%A8%E6%A0%BC%E6%98%BE%E7%A4%BA%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/26/%E5%A6%82%E4%BD%95%E7%94%A8%E8%A1%A8%E6%A0%BC%E6%98%BE%E7%A4%BA%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/04/26/%E5%A6%82%E4%BD%95%E7%94%A8%E8%A1%A8%E6%A0%BC%E6%98%BE%E7%A4%BA%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C/3.png">
+<meta property="article:published_time" content="2020-04-26T05:11:22.000Z">
+<meta property="article:modified_time" content="2020-06-17T08:02:22.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="crawler">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/04/26/%E5%A6%82%E4%BD%95%E7%94%A8%E8%A1%A8%E6%A0%BC%E6%98%BE%E7%A4%BA%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/04/26/%E5%A6%82%E4%BD%95%E7%94%A8%E8%A1%A8%E6%A0%BC%E6%98%BE%E7%A4%BA%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>如何用表格显示查询结果 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/04/26/%E5%A6%82%E4%BD%95%E7%94%A8%E8%A1%A8%E6%A0%BC%E6%98%BE%E7%A4%BA%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何用表格显示查询结果
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-04-26 13:11:22" itemprop="dateCreated datePublished" datetime="2020-04-26T13:11:22+08:00">2020-04-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-06-17 16:02:22" itemprop="dateModified" datetime="2020-06-17T16:02:22+08:00">2020-06-17</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="如何用表格显示查询结果"><a href="#如何用表格显示查询结果" class="headerlink" title="如何用表格显示查询结果"></a>如何用表格显示查询结果</h1><h3 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h3><ul>
+<li>这篇博客记录了如何通过express框架让我们前端能出现表格式的查询内容</li>
+<li>我会先讲述老师的操作</li>
+<li>然后，我会以 我建立的 经济新闻 为例子，展示搜索成果</li>
+</ul>
+<h3 id="1-老师操作：如何搭建express网站并实现查找"><a href="#1-老师操作：如何搭建express网站并实现查找" class="headerlink" title="1.老师操作：如何搭建express网站并实现查找"></a>1.老师操作：如何搭建express网站并实现查找</h3><h4 id="第一步，建立文件夹"><a href="#第一步，建立文件夹" class="headerlink" title="第一步，建立文件夹"></a>第一步，建立文件夹</h4><ul>
+<li>我们用express 脚手架来创建一个网站框架</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">express -e search_site</span><br><span class="line"><span class="comment">//-e 的参数说明我们用ejs作为缺省view引擎，而非采用jade（这句话不是很理解）</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>然后 这样就可以建立一个search_site 文件夹</li>
+<li>由于我们需要使用mysql，因此将mysql.js拷贝到这个文件夹</li>
+<li><p>这里值得一提的是，因为我全把数据存储到一个database中了，也就是说，我们所有文件都可以引用这个mysql.js，但是如果是说存放在不同的databas中的话，我们就需要修改mysql.js中的database: ‘’中的值，名字就是你的database</p>
+</li>
+<li><p>建立好后，我们还需要引入一些配置</p>
+</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//npm install mysql --save</span></span><br><span class="line"><span class="comment">//- --save表示将mysql包安装到该项目中，并且将依赖项存进package.json里</span></span><br><span class="line"><span class="comment">//在search_site文件夹内cmd运行npm instll</span></span><br><span class="line"><span class="comment">//- 将package.json中列举的依赖项全部安装，完成网站搭建</span></span><br></pre></td></tr></table></figure>
+<h4 id="第二步，修改index-js和search-html"><a href="#第二步，修改index-js和search-html" class="headerlink" title="第二步，修改index.js和search.html"></a>第二步，修改index.js和search.html</h4><ul>
+<li>修改index.js</li>
+<li>具体的express用法我不是很明白，更多的是照葫芦画瓢罢了，有时间会系统学习express框架</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//引入express模块，引入mysql.js 注意，这个mysql.js在上层文件夹中，所以要用 ../</span></span><br><span class="line"><span class="keyword">var</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>);</span><br><span class="line"><span class="keyword">var</span> router = express.Router();</span><br><span class="line"><span class="keyword">var</span> mysql = <span class="built_in">require</span>(<span class="string">'../mysql.js'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* GET home page. */</span></span><br><span class="line">router.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">    res.render(<span class="string">'index'</span>, &#123; <span class="attr">title</span>: <span class="string">'Express'</span> &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">router.get(<span class="string">'/process_get'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">request, response</span>) </span>&#123;</span><br><span class="line">    <span class="comment">//sql字符串和参数,和前面一样，搜索我们需要的东西</span></span><br><span class="line">    <span class="keyword">var</span> fetchSql = <span class="string">"select url,source_name,title,author,publish_date "</span> +</span><br><span class="line">        <span class="string">"from fetches where title like '%"</span> + request.query.title + <span class="string">"%'"</span>;</span><br><span class="line">    mysql.query(fetchSql, <span class="function"><span class="keyword">function</span>(<span class="params">err, result, fields</span>) </span>&#123;</span><br><span class="line">        response.writeHead(<span class="number">200</span>, &#123;</span><br><span class="line">            <span class="string">"Content-Type"</span>: <span class="string">"application/json"</span></span><br><span class="line">        &#125;);</span><br><span class="line">        response.write(<span class="built_in">JSON</span>.stringify(result));</span><br><span class="line">        response.end();</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"><span class="built_in">module</span>.exports = router;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建search.html,在public文件夹下创建</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">header</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.bootcss.com/jquery/3.4.1/jquery.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">header</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">form</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">br</span>&gt;</span> 标题：<span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"text"</span> <span class="attr">name</span>=<span class="string">"title_text"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">class</span>=<span class="string">"form-submit"</span> <span class="attr">type</span>=<span class="string">"button"</span> <span class="attr">value</span>=<span class="string">"查询"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"cardLayout"</span> <span class="attr">style</span>=<span class="string">"margin: 10px 0px"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">table</span> <span class="attr">width</span>=<span class="string">"100%"</span> <span class="attr">id</span>=<span class="string">"record2"</span>&gt;</span><span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="actionscript"><span class="comment">//上面是引入jquery的包，下面是操作代码。但是jquery我也没系统学习过，所以这里很多功能不是很明白</span></span></span><br><span class="line"><span class="javascript">        $(<span class="built_in">document</span>).ready(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="actionscript">            <span class="comment">//对查询按钮进行了一个操作，就是click后会进行下面操作</span></span></span><br><span class="line"><span class="javascript">            $(<span class="string">"input:button"</span>).click(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="actionscript">                $.get(<span class="string">'/process_get?title='</span> + $(<span class="string">"input:text"</span>).val(), <span class="function"><span class="keyword">function</span><span class="params">(data)</span> </span>&#123;</span></span><br><span class="line"><span class="javascript">                    $(<span class="string">"#record2"</span>).empty();</span></span><br><span class="line"><span class="handlebars"><span class="xml">                    $("#record2").append('<span class="tag">&lt;<span class="name">tr</span> <span class="attr">class</span>=<span class="string">"cardLayout"</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>url<span class="tag">&lt;/<span class="name">td</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>source_name<span class="tag">&lt;/<span class="name">td</span>&gt;</span>' +</span></span></span><br><span class="line"><span class="handlebars"><span class="xml">                        '<span class="tag">&lt;<span class="name">td</span>&gt;</span>title<span class="tag">&lt;/<span class="name">td</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>author<span class="tag">&lt;/<span class="name">td</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>publish_date<span class="tag">&lt;/<span class="name">td</span>&gt;</span><span class="tag">&lt;/<span class="name">tr</span>&gt;</span>');</span></span></span><br><span class="line"><span class="actionscript">                    <span class="comment">//查询完后，信息放在data当中</span></span></span><br><span class="line"><span class="javascript">                    <span class="keyword">for</span> (<span class="keyword">let</span> list <span class="keyword">of</span> data) &#123;</span></span><br><span class="line"><span class="handlebars"><span class="xml">                        let table = '<span class="tag">&lt;<span class="name">tr</span> <span class="attr">class</span>=<span class="string">"cardLayout"</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>';</span></span></span><br><span class="line"><span class="actionscript">                        <span class="comment">//对其遍历，每一行都把具体的数据放到每一行中去</span></span></span><br><span class="line"><span class="javascript">                        <span class="built_in">Object</span>.values(list).forEach(<span class="function"><span class="params">element</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="handlebars"><span class="xml">                            table += (element + '<span class="tag">&lt;/<span class="name">td</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>');</span></span></span><br><span class="line">                        &#125;);</span><br><span class="line"><span class="javascript">                        $(<span class="string">"#record2"</span>).append(table + <span class="string">'&lt;/td&gt;&lt;/tr&gt;'</span>);</span></span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;);</span><br><span class="line"></span><br><span class="line">        &#125;);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>上面的讲解很生疏，也不是很明白具体原理，望见谅！</li>
+</ul>
+<h4 id="第三步，显示查询结果"><a href="#第三步，显示查询结果" class="headerlink" title="第三步，显示查询结果"></a>第三步，显示查询结果</h4><ul>
+<li>在search_site 文件夹下 的终端 打入以下命令</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node bin/www</span><br></pre></td></tr></table></figure>
+<ul>
+<li>用chrome打开 <a href="http://127.0.0.1:3000/search.html" target="_blank" rel="noopener">http://127.0.0.1:3000/search.html</a></li>
+<li>输入关键词，即可查询</li>
+</ul>
+<p><img src="/2020/04/26/%E5%A6%82%E4%BD%95%E7%94%A8%E8%A1%A8%E6%A0%BC%E6%98%BE%E7%A4%BA%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C/1.png" alt="示例"></p>
+<h3 id="2-模仿老师，建立自己查询页面"><a href="#2-模仿老师，建立自己查询页面" class="headerlink" title="2.模仿老师，建立自己查询页面"></a>2.模仿老师，建立自己查询页面</h3><h4 id="首先建立一个search-economy的文件夹，完成基本配置"><a href="#首先建立一个search-economy的文件夹，完成基本配置" class="headerlink" title="首先建立一个search_economy的文件夹，完成基本配置"></a>首先建立一个search_economy的文件夹，完成基本配置</h4><p><img src="/2020/04/26/%E5%A6%82%E4%BD%95%E7%94%A8%E8%A1%A8%E6%A0%BC%E6%98%BE%E7%A4%BA%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C/2.png" alt="示例"></p>
+<p>然后修改html和index的代码，主要集中在一句话上</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">('<span class="tag">&lt;<span class="name">tr</span> <span class="attr">class</span>=<span class="string">"cardLayout"</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>url<span class="tag">&lt;/<span class="name">td</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>source_name<span class="tag">&lt;/<span class="name">td</span>&gt;</span>' +</span><br><span class="line">                        '<span class="tag">&lt;<span class="name">td</span>&gt;</span>title<span class="tag">&lt;/<span class="name">td</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>crawltime<span class="tag">&lt;/<span class="name">td</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>author<span class="tag">&lt;/<span class="name">td</span>&gt;</span><span class="tag">&lt;/<span class="name">tr</span>&gt;</span>');</span><br></pre></td></tr></table></figure>
+<ul>
+<li>说穿了就是改变类型，把原来的publish_date换成了crawltime，在最后加了个author</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> fetchSql = <span class="string">"select url,source_name,title_format,crawltime,author "</span> +</span><br><span class="line">    <span class="string">"from 经济新闻 where title_format like '%"</span> + request.query.title + <span class="string">"%'"</span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在index.js中修改搜寻的表和内容样式</li>
+</ul>
+<h4 id="开始自己的搜寻"><a href="#开始自己的搜寻" class="headerlink" title="开始自己的搜寻"></a>开始自己的搜寻</h4><p><img src="/2020/04/26/%E5%A6%82%E4%BD%95%E7%94%A8%E8%A1%A8%E6%A0%BC%E6%98%BE%E7%A4%BA%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C/3.png" alt="示例"></p>
+<p>这时候，爬取好几个网站的重要性就体现出来了，我们可以看到不同门户网站上的不同新闻，在这里，我的关键词是”股“</p>
+<h2 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h2><p>这是系列博客的最后一篇，但是我并不会停止学习的脚步。在这个基础上，我还有很多工作可以做，比如美化操作界面，增加表格的美观程度，增加第二关键词搜索等功能。一周以来，我基本实现了每天更新爬虫博客，有些可能是JavaScript语法内容，也有可能是最新写的一些文章。我最大的感受就是：只要把时间花下去，肯定会有产出和收获。这也给我漫漫人生路增添了一段美好的经验和记忆。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+              <a href="/tags/crawler/" rel="tag"># crawler</a>
+              <a href="/tags/Mysql/" rel="tag"># Mysql</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/24/%E5%A6%82%E4%BD%95%E6%8A%8A%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%B0MySql%E4%B8%AD/" rel="prev" title="如何把数据存储到MySql中">
+      <i class="fa fa-chevron-left"></i> 如何把数据存储到MySql中
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/26/503%E4%B8%8B%E4%B8%80%E4%B8%AA%E6%9B%B4%E5%A4%A7%E7%9A%84%E6%95%B0II/" rel="next" title="503下一个更大的数II">
+      503下一个更大的数II <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#如何用表格显示查询结果"><span class="nav-number">1.</span> <span class="nav-text">如何用表格显示查询结果</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#写在前面"><span class="nav-number">1.0.1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-老师操作：如何搭建express网站并实现查找"><span class="nav-number">1.0.2.</span> <span class="nav-text">1.老师操作：如何搭建express网站并实现查找</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#第一步，建立文件夹"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">第一步，建立文件夹</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第二步，修改index-js和search-html"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">第二步，修改index.js和search.html</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第三步，显示查询结果"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">第三步，显示查询结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-模仿老师，建立自己查询页面"><span class="nav-number">1.0.3.</span> <span class="nav-text">2.模仿老师，建立自己查询页面</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#首先建立一个search-economy的文件夹，完成基本配置"><span class="nav-number">1.0.3.1.</span> <span class="nav-text">首先建立一个search_economy的文件夹，完成基本配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#开始自己的搜寻"><span class="nav-number">1.0.3.2.</span> <span class="nav-text">开始自己的搜寻</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#写在最后"><span class="nav-number">1.1.</span> <span class="nav-text">写在最后</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

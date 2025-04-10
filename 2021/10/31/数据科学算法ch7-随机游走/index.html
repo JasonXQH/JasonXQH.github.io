@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="随机游走引入首先我们来复习一下联合概率分布 给定n个离散随机变量 $X_1,X_2,\cdots,X_n$ 分别取值为$x_1,x_2\cdots,x_n$的联合概率 $f(x_1,x_2\cdots,x_n)$ 表示为：  f(x_1,x_2\cdots,x_n) &#x3D; P(X_1 &#x3D; x_1,X_2&#x3D; x_2,\cdots,X_n&#x3D;x_n)如果n个离散随机变量$X_1,X_2\cdots,X_n">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据科学算法ch7-随机游走">
+<meta property="og:url" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="随机游走引入首先我们来复习一下联合概率分布 给定n个离散随机变量 $X_1,X_2,\cdots,X_n$ 分别取值为$x_1,x_2\cdots,x_n$的联合概率 $f(x_1,x_2\cdots,x_n)$ 表示为：  f(x_1,x_2\cdots,x_n) &#x3D; P(X_1 &#x3D; x_1,X_2&#x3D; x_2,\cdots,X_n&#x3D;x_n)如果n个离散随机变量$X_1,X_2\cdots,X_n">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/7.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/8.jpeg">
+<meta property="og:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/9.png">
+<meta property="article:published_time" content="2021-10-31T08:54:30.000Z">
+<meta property="article:modified_time" content="2022-01-06T12:03:46.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="数据科学算法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>数据科学算法ch7-随机游走 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据科学算法ch7-随机游走
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-10-31 16:54:30" itemprop="dateCreated datePublished" datetime="2021-10-31T16:54:30+08:00">2021-10-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-06 20:03:46" itemprop="dateModified" datetime="2022-01-06T20:03:46+08:00">2022-01-06</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="随机游走"><a href="#随机游走" class="headerlink" title="随机游走"></a>随机游走</h1><h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>首先我们来复习一下联合概率分布</p>
+<p>给定n个离散随机变量 $X_1,X_2,\cdots,X_n$ 分别取值为$x_1,x_2\cdots,x_n$的联合概率 $f(x_1,x_2\cdots,x_n)$ 表示为：</p>
+<script type="math/tex; mode=display">
+f(x_1,x_2\cdots,x_n) = P(X_1 = x_1,X_2= x_2,\cdots,X_n=x_n)</script><p>如果n个离散随机变量$X_1,X_2\cdots,X_n$ 是相互独立的，那么它们取值$x_1,x_2\cdots,x_n$ 的联合概率可以很方便得计算为</p>
+<script type="math/tex; mode=display">
+f(x_1\cdots,x_n) =\prod_{i=1}^nP(X_i=x_i)=\prod_{i=1}^n f_{X_i}(x_i)</script><p>但是，如果$X$之间并不相互独立，那么</p>
+<script type="math/tex; mode=display">
+f(x_1,\cdots,x_n) = \prod_{i=2}^m P(X_i = x_i|X_{i-1}=x_{i-1},\cdots,X_1 = x_1)\\</script><p>这就是链式法则</p>
+<p>但是，对于大规模的数据，会很难处理，因为联合概率的计算复杂度会非常高。此时，需要对数据间的相关关系进行简化。对文本数据或者音频数据建模时，常常假设序列数据点之间存在<strong>一阶相关</strong>关系，即</p>
+<script type="math/tex; mode=display">
+P(X_i = x_i|X_{i-1}=x_{i-1},\cdots,X_1 = x_1) =P(X_i = x_i |X_{i-1}=x_{i-1})</script><p>因为有些词常常是一前一后出现的。比如在”今天天气炎热，我们去游泳“这一句话中，”天气”与“炎热”这两个词常常一前一后出现，但是“天气”和”游泳”不太可能会出现前后出现。</p>
+<p>同样的，对股票价格数据建模时，会假设序列数据点之间存在<strong>t阶相关</strong>关系，即</p>
+<script type="math/tex; mode=display">
+P(X_i = x_i|X_{i-1}=x_{i-1},\cdots,X_1 = x_1) = P(X_i = x_i|X_{i-1} = x_{i-1}\cdots,X_{i-t}=x_{i-t})</script><h2 id="随机过程"><a href="#随机过程" class="headerlink" title="随机过程"></a>随机过程</h2><p>现在我们来学习随机过程，随机过程${X(t,\omega),t\in T ,\omega\in \Omega}$ 是与时间t有关的一个随机变量序列，现实生活中有很多问题都可以用随机过程来建模，比如说文本数据、语音数据、股票价格和用户上网行为等等。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>例子</th>
+<th>时间集合</th>
+<th>状态空间</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>浏览网页</td>
+<td>步数</td>
+<td>所有网页</td>
+</tr>
+<tr>
+<td>自然语言</td>
+<td>单词位置</td>
+<td>字典</td>
+</tr>
+<tr>
+<td>股票价格</td>
+<td>交易日</td>
+<td>价格</td>
+</tr>
+<tr>
+<td>赌博</td>
+<td>下注次数</td>
+<td>筹码数量</td>
+</tr>
+<tr>
+<td>液体分子</td>
+<td>时间</td>
+<td>容器空间</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>现在我们来具体讲几个随机过程的例子：</p>
+<h4 id="抛币游戏"><a href="#抛币游戏" class="headerlink" title="抛币游戏"></a>抛币游戏</h4><p>游戏规则：</p>
+<ul>
+<li>假设开始有 $10, 参加一场公平无限期抛硬币游戏<ul>
+<li>正面朝上，赢得1</li>
+<li>反面朝上，输掉1</li>
+</ul>
+</li>
+<li>我们用$X_n$ 表示n次抛币后手上剩余的美元</li>
+<li>如果$X_0 = 10$,则 ${X_n:n\in N}$ 构成一个随机序列<ul>
+<li>假设$X<em>n = 12$，则$X</em>{n+1}=11$或者13</li>
+<li>在第(n+1)次抛币后手上剩余的美元和$X<em>{n-1}$​​​​​值没有关系。是一阶相关关系，即：$P(X</em>{i+1} = x<em>{i+1}|X</em>{i}=x<em>{i},\cdots,X_1 = x_1) = P(X</em>{i+1} = x<em>{i+1}|X</em>{n} = x_{n})$​​​​​</li>
+</ul>
+</li>
+</ul>
+<p>在这个抛币游戏中，手上剩余的钱是一个随机过程</p>
+<ul>
+<li>时间：抛币次数</li>
+<li>状态：非负集合</li>
+</ul>
+<p>在这个游戏中，稳定状态就是输光所有的钱</p>
+<h4 id="象棋"><a href="#象棋" class="headerlink" title="象棋"></a>象棋</h4><p>象棋中帅的位置变化</p>
+<ul>
+<li>按照规则，帅在每个位置都可以向周围移动</li>
+<li>$X_n$ 表示n步后帅所在的位置<ul>
+<li>如果 $X<em>n = 2$, 则$X</em>{n+1}=1,3,5$</li>
+<li>$(n+1)$步帅所在的位置和$X<em>{n-1}$ 的值没有关系，即：$P(X</em>{i+1} = x<em>{i+1}|X</em>{i}=x<em>{i},\cdots,X_1 = x_1) = P(X</em>{i+1} = x<em>{i+1}|X</em>{n} = x_{n})$​</li>
+</ul>
+</li>
+</ul>
+<p>因此${X_n:n\in N}$ 构成一个随机过程</p>
+<ul>
+<li>时间：步数</li>
+<li>状态：1到9之间的整数</li>
+</ul>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/1.png" alt="1" style="zoom:67%;"></p>
+<h4 id="网页浏览"><a href="#网页浏览" class="headerlink" title="网页浏览"></a>网页浏览</h4><p>每个网页都有可能对外的锚连接，</p>
+<ul>
+<li>$X_n$ 表示n步之后停留的页面<ul>
+<li>如果$X=ECNU$， 则$X_{n+1}$ 可以是 MOE、DASE、或者SEI</li>
+<li>(n+1)步停留的页面和 $X<em>{n-1}$的所停留的页面无关，即$P(X</em>{i+1} = x<em>{i+1}|X</em>{i}=x<em>{i},\cdots,X_1 = x_1) = P(X</em>{i+1} = x<em>{i+1}|X</em>{n} = x_{n})$</li>
+</ul>
+</li>
+</ul>
+<p>因此${X_n:n\in N}$ 构成一个随机过程</p>
+<ul>
+<li>时间：步数</li>
+<li>状态：所有网页组成的集合</li>
+</ul>
+<h3 id="马尔科夫过程"><a href="#马尔科夫过程" class="headerlink" title="马尔科夫过程"></a>马尔科夫过程</h3><h4 id="马尔科夫性质"><a href="#马尔科夫性质" class="headerlink" title="马尔科夫性质"></a>马尔科夫性质</h4><p>如果随机过程 ${X(t)\in S,t\in I }$​ , 满足</p>
+<script type="math/tex; mode=display">
+P(X(t_{n+1}) = x_{n+1}|X({t_0})=x_{0},\cdots,X(t_n) = x_n) = P(X(t_{n+1}) = x_{n+1}|X(t_{n}) = x_{n})</script><p>其中，$t<em>0&lt;t_1&lt;\cdots&lt;t_n&lt;t</em>{n+1}\in I,x_i\in S$​,则称该随机过程满足马尔科夫性质</p>
+<ul>
+<li>如果 $t<em>n$ 表示当前时间，$t</em>{n+1}$ 表示将来，$t<em>1,\cdots,t</em>{n-1}$ 则表示过去</li>
+<li>可以理解为：已知现在，将来与过去独立</li>
+</ul>
+<p>之前我们说的，咖啡溶质的扩散、网络、赌博、象棋，都是满足马尔科夫性质</p>
+<h4 id="马尔科夫过程-1"><a href="#马尔科夫过程-1" class="headerlink" title="马尔科夫过程"></a>马尔科夫过程</h4><p>若随机过程满足马尔科夫性质，则称其为<strong>马尔科夫过程</strong></p>
+<p>设 ${X(t),t\in T}$ 的空间状态为S，如果$\forall n \geq 0,\forall t<em>0&lt;t_1&lt;\cdots&lt;t_n&lt;t</em>{n+1}\in T$,在条件  $X(t<em>i) = x_i,x_i\in S,i=0,1\cdots,n$ 下，$X(t</em>{n+1})$ 的条件概率刚好等于在条件$X(t_n)=x_n$ 下的条件概率，即：</p>
+<script type="math/tex; mode=display">
+P(X(t_{n+1}) = x_{n+1}|X({t_0})=x_{0},\cdots,X(t_n) = x_n) = P(X(t_{n+1}) = x_{n+1}|X(t_{n}) = x_{n})</script><p>则称${X(t),t\in T}$ 为马尔科夫过程</p>
+<h4 id="马尔科夫链"><a href="#马尔科夫链" class="headerlink" title="马尔科夫链"></a>马尔科夫链</h4><p>马尔科夫链是特殊的马尔科夫过程，它满足：</p>
+<ul>
+<li>离散的时间集合：步数、下注次数</li>
+<li>离散的状态空间：网页、计数 </li>
+</ul>
+<p>因此，布朗运动是马尔科夫过程，但不是马尔科夫链。</p>
+<p>在本章举的例子，马尔科夫过程等于马尔科夫链</p>
+<h4 id="转移概率"><a href="#转移概率" class="headerlink" title="转移概率"></a>转移概率</h4><p>假定随机游走的状态空间为 $\Omega =[n]$ 矩阵 $\bold{P}^{(t+1)}\in\mathbb R^{n\times n}$ 被称为该随机游走的<strong>第(t+1)步概率转移矩阵</strong>，如果$p<em>{x,y}^{t+1} = P(X</em>{t+1}=y|X_t=x)$​</p>
+<ul>
+<li>其中 $p_{x,y}^{(t+1)}$ 表示在$(t+1)$ 步随机游走从状态x转移到y的概率</li>
+<li>概率转移矩阵的每行概率和为1，即：</li>
+</ul>
+<script type="math/tex; mode=display">
+\sum_y p_{x,y}^{t+1} = \sum_{y} \frac{P(X_{t+1}=y|X_t= x)}{P(X_t = x)}=1</script><p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/3.png" alt="1" style="zoom:67%;"></p>
+<h4 id="齐次马氏链"><a href="#齐次马氏链" class="headerlink" title="齐次马氏链"></a>齐次马氏链</h4><p>如果随机游走满足：</p>
+<script type="math/tex; mode=display">
+P(X_{t+s}=y|X_t = x)= P(X_s = y|X_0 = x)</script><ul>
+<li>即经过t步后，从状态x走到状态y的概率与起始步数s无关，则该随机游走是齐次的</li>
+</ul>
+<p>也就是说，无论当前是第几步，只要起点相同，一步转移到目标顶点的概率是相同的马氏链被称为齐次马氏链。</p>
+<p>例如：在抛币游戏中，无论是开始手上有10元，还是第100次抛币之后手上有10元，下一步手上有11元的概率是相通的，也就是说，抛币游戏中的马氏链是齐次的。也就是说是无记忆性的</p>
+<p>例如：</p>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/4.png" style="zoom:100%;"></p>
+<p>给定图$G=(V,E)$ 如上图，假设$S=\mathbb Z$ ，无论当前是什么时刻，只要当前在状态a，那么下一步的转移概率为：</p>
+<script type="math/tex; mode=display">
+p_a(a-1)=\frac{1}{2}\\p_a(a+1)=\frac{1}{2}\\p_{ab} = 0(b\neq a\pm 1)</script><p>因此，这个马尔科夫链也是齐次的。如果$\pi(a)$ 表示该马尔科夫链初始时刻在状态a的概率，那么$\pi(10)=1,\pi(a)=0(a\neq 10)$ 意味着在时刻0马尔科夫链一定是从坐标10出发的</p>
+<h3 id="随机游走-1"><a href="#随机游走-1" class="headerlink" title="随机游走"></a>随机游走</h3><p>在学习随机游走之前我们需要了解以下定义：图、度、无向图、路劲、连通分量、邻接矩阵、邻接表</p>
+<p>现给出随机游走的定义：随机游走模型是针对图建立的抽象马氏链模型，因此图上的马氏链都可以被称为<strong>随机游走</strong>。图上的随机游走是指给定一个图和一个出发点，随机地选择一个邻居节点，移动到邻居节点上，然后把当前节点作为出发点，重复以上过程。那些被随机选出的节点序列就构成了一个该图上的随机游走。</p>
+<p>我们可以将随机游走和之前说的齐次马尔科夫链结合起来理解：现在有状态转移图如下：</p>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/5.png" style="zoom:100%;"></p>
+<p>假设$\pi(a) = 1,\pi(i) = 0(i\neq a)$ 意味着在时刻0该随机游走从状态a出发。在第一步，该随机游走可能到达顶点c、e、f、g. 随机游走会随机选择一个顶点，其中：</p>
+<script type="math/tex; mode=display">
+p_{ac}=p_{ae}=p_{af}=p_{ag}= \frac{1}{4}\\</script><p> 走到第二个点，又有好几种不同的选择。以此类推，可以得到在图G上的一个随机序列。因此，随机游走是一类<strong>特殊的马氏链</strong></p>
+<p>无论何时出发，只要当前停留在状态a,那么下一步到达c、e、f、g的概率是相同的。因此，该随机游走对应的马氏链也是齐次的</p>
+<h3 id="平稳分布"><a href="#平稳分布" class="headerlink" title="平稳分布"></a>平稳分布</h3><p>之前我们说了概率转移矩阵，基于概率转移矩阵我们提出了平稳分布的概念。</p>
+<h4 id="状态分布"><a href="#状态分布" class="headerlink" title="状态分布"></a>状态分布</h4><p>我们令$\pi^{(t)}$为状态空间为S的马氏链<strong>在时刻t</strong>的状态分布，即：</p>
+<script type="math/tex; mode=display">
+\pi_x^{(t)} = P(X_t = x)</script><p>特别地，将$\pi^{(0)}$ 称为初始分布。</p>
+<p>进一步，对于一个概率转移矩阵为P的马氏链，其状态分布$\pi^{(t)}$ 具有如下性质</p>
+<ul>
+<li>$\pi^{(t)}$​ 的每个分量满足$0\leq\pi_i^{(t)}\leq 1$</li>
+<li>$\sum_{j\in S}\pi_j^{(t)} = 1$ 即每行的和为1</li>
+<li>$\pi^{(t+1)}= \pi^{(t)}P(t)$</li>
+</ul>
+<p>比如对于矩阵：</p>
+<script type="math/tex; mode=display">
+P=\begin{pmatrix}\frac{1}{2}&\frac{1}{2}&0&0\\\frac{1}{3}&\frac{2}{3}&0&0\\0&0&\frac{3}{4}&\frac{1}{4}\\0&0&\frac{1}{4}&\frac{3}{4} \end{pmatrix}</script><p>我们给定第t步的状态分布为$\pi^{(t)}=(0.4,0.6,0,0)$,那么:</p>
+<script type="math/tex; mode=display">
+\pi^{(t+1)} = \pi^{(t)} P = (0.4,0.6,0,0)\\</script><p>我们给定第t步的状态分布为$\pi^{(t)}=(0,0,0.5,0.5)$​,那么:</p>
+<script type="math/tex; mode=display">
+\pi^{(t+1)} = \pi^{(t)}P=(0,0,0.5,0.5)\\</script><p>我们给定第t步的状态分布为$\pi^{(t)}=(0.1,0.9,0,0)$​​,那么:</p>
+<script type="math/tex; mode=display">
+\pi^{(t+1)} = \pi^{(t)}P=(0.35,0.65,0,0)\\</script><h4 id="平稳分布-1"><a href="#平稳分布-1" class="headerlink" title="平稳分布"></a>平稳分布</h4><p>对于一个转移概率矩阵为$\boldsymbol P$ 的有限状态马氏链，若状态分布$\pi$满足：</p>
+<script type="math/tex; mode=display">
+\pi\boldsymbol P = \pi</script><p>则称$\pi$​ 为该马氏链的平稳分布· </p>
+<p>有矩阵为 $P =\begin{pmatrix}\frac{1}{2}&amp;\frac{1}{2} \\frac{1}{4}&amp;\frac{3}{4} \end{pmatrix} $​ 试求其平稳分布：</p>
+<p>我们可以令$\pi = (x,y)$​, 那么 $\cases{\frac{1}{2}x+\frac{1}{4}y = x\\frac{1}{2}x+\frac{3}{4}y = y}$ 解得$y=2x$，又要满足平稳分布的行和为1，所以解为：$(\frac{1}{3},\frac{2}{3})$</p>
+<h4 id="可约与不可约"><a href="#可约与不可约" class="headerlink" title="可约与不可约"></a>可约与不可约</h4><p>如果从状态x可以通过有限步转移到达状态y,并且从状态y可以通过有限步转移到达x，那么称状态x与y是<strong>连通</strong>的。如果马氏链中任意两个状态都是连通的，那么称该马氏链是<strong>不可约</strong>的</p>
+<ul>
+<li>马氏链中任意两个状态都是联通的，那么就意味着存在一个n使得矩阵$\boldsymbol P^{(n)}$ 中任意一个元素都大于0</li>
+<li>如果一张图是<strong>强连通</strong>的，那么它一定是不可约的，否则这个图所对应的马氏链是<strong>可约的</strong></li>
+</ul>
+<p>比如对于这张图，马氏链是可月的，因为对于状态2，他没有出边，因此它无法通过有限步到达其他状态。因此状态2与其他状态并不连通，因此该马尔科夫链是可约的</p>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/6.png" style="zoom:100%;"></p>
+<h4 id="反周期"><a href="#反周期" class="headerlink" title="反周期"></a>反周期</h4><p>状态x的周期$d<em>x$ 是集合${n|(P^n)</em>{x,x}&gt;0}$的<strong>最大公约数</strong>，特别地，如果$\forall n\geq 1,(\boldsymbol P^{(n)})_{x,x}=0$,那么$d_x=\infty$ 。而如果<strong>一个马氏链所有的状态的周期都为1</strong>，则称这个马氏链是反周期的</p>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/7.jpeg" style="zoom:100%;"></p>
+<p>比如说对于这张图，对于每一个状态其集合都为${2,4,6\cdots}$ 其最大公约数为2，因此这个马氏链是周期的。 </p>
+<h2 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h2><h3 id="1"><a href="#1" class="headerlink" title="1"></a>1</h3><p>给定一个转移矩阵 $P$ 和状态向量$\pi$ </p>
+<script type="math/tex; mode=display">
+\boldsymbol P = \begin{pmatrix}0.5&0.5\\0.25&0.75\end{pmatrix}&\pi =  \begin{pmatrix}1\\0\end{pmatrix}</script><ul>
+<li>证明 $\pi P^n$ 的结果接近一个常数向量</li>
+</ul>
+<p>这个常数向量，就是平稳分布。</p>
+<p>我们令 $\pi P^n = (x<em>{(n,1)},x</em>{(n,2)})$，那么，对于$n\geq 1$, 我们有：</p>
+<script type="math/tex; mode=display">
+x_{(n,1)} = \frac{1}{2}x_{(n-1,1)} +\frac{1}{4}x_{(n-1,2)}\\
+x_{(n,2)} = \frac{1}{2}x_{(n-1,1)} +\frac{3}{4}x_{(n-1,2)}\\</script><p>由于状态向量$\pi$ 的向量和一定为1，因此 $x<em>{(n-1,2)}=1-x</em>{(n-1,1)}$ ,带入得到：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+x_{(n,1)} &= \frac{1}{2}x_{(n-1,1)}+\frac{1}{4}(1-x_{(n-1,1)})\\~\\
+&=\frac{1}{4}x_{(n-1,1)} +\frac{1}{4}
+\end{align}</script><p>这是一个很简单的一阶递推</p>
+<script type="math/tex; mode=display">
+(x_{(n,1)}-\frac{1}{3})=\frac{1}{4}(x_{(n-1,1)}-\frac{1}{3})</script><p>解得：</p>
+<script type="math/tex; mode=display">
+x_{(n,1)} = \frac{2}{3}\times (\frac{1}{4})^n+\frac{1}{3},n\geq 1</script><p>当$n\rightarrow \infty$ 时，$x<em>{(n,1)}=\frac{1}{3}$ ，进而可以知道 $x</em>{(n,2)}= \frac{2}{3}$ </p>
+<h3 id="2"><a href="#2" class="headerlink" title="2"></a>2</h3><p>对于一个转移概率矩阵为 $\boldsymbol P$ 的马氏链</p>
+<script type="math/tex; mode=display">
+\boldsymbol P = \begin{pmatrix}0.5&0.5\\p&1-p\end{pmatrix}\\</script><p>已知实验多次之后，转移概率矩阵对应的马氏链停在状态1的概率大约为 $20\%$, 停在状态2的概率为$80\%$ ，p为未知参数</p>
+<ol>
+<li>计算未知参数$p$ 的合理估计值，并给出解释</li>
+</ol>
+<p>首先，根据题意是我们知道最终的平稳分布 $(0.2,0.8)$ ，又 $\pi \boldsymbol P = \pi $ ，可知 $0.1+0.8p = 0.2~~p=\frac{1}{8}$</p>
+<ol>
+<li>这个马氏链是否可约，是否反周期？</li>
+</ol>
+<p>是否可约呢？我们看到这边只有两个状态，两个状态是相互联通的，因此是不可约的。</p>
+<p>如图：</p>
+<p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/8.jpeg" style="zoom:100%;"></p>
+<p>那么是否反周期呢？我们看到，状态1、2的集合为：${1,2\cdots}$ ，其最大公约数都是1，因此这个马氏链是反周期的。</p>
+<h3 id="3"><a href="#3" class="headerlink" title="3"></a>3</h3><p><img src="/2021/10/31/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch7-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0/9.png" style="zoom:100%;"></p>
+<ul>
+<li>对于7.5<ul>
+<li>状态1和状态2都是相互连通的，因此是不可约的</li>
+<li>状态1的集合为 ${1,2,\cdots}$ ，状态2的集合为 ${2,3,4\cdots}$ ，两者最大公约数都是1，周期都是1，因此是反周期的</li>
+</ul>
+</li>
+<li>对于7.6<ul>
+<li>一共有4个状态，所有状态都是连通的，因此是不可约的</li>
+<li>四个状态，每个状态的集合都是 ${2,4,6,\cdots}$ ，最大公约数都是2，因此是非反周期(周期)的</li>
+</ul>
+</li>
+</ul>
+<h2 id="Page-Rank"><a href="#Page-Rank" class="headerlink" title="Page Rank"></a>Page Rank</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95/" rel="tag"># 数据科学算法</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/10/29/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E7%AE%97%E6%B3%95ch5-%E6%95%B0%E6%8D%AE%E6%B5%81%E6%A8%A1%E5%9E%8B%E5%8F%8A%E9%A2%91%E7%B9%81%E9%A1%B9%E6%8C%96%E6%8E%98/" rel="prev" title="数据科学算法ch5-数据流模型及频繁项挖掘">
+      <i class="fa fa-chevron-left"></i> 数据科学算法ch5-数据流模型及频繁项挖掘
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/11/01/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E5%88%86%E6%9E%90-%E7%9F%A9%E9%98%B5%E7%89%88/" rel="next" title="线性回归分析-矩阵版">
+      线性回归分析-矩阵版 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#随机游走"><span class="nav-number">1.</span> <span class="nav-text">随机游走</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#引入"><span class="nav-number">1.1.</span> <span class="nav-text">引入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#随机过程"><span class="nav-number">1.2.</span> <span class="nav-text">随机过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#抛币游戏"><span class="nav-number">1.2.0.1.</span> <span class="nav-text">抛币游戏</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#象棋"><span class="nav-number">1.2.0.2.</span> <span class="nav-text">象棋</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#网页浏览"><span class="nav-number">1.2.0.3.</span> <span class="nav-text">网页浏览</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#马尔科夫过程"><span class="nav-number">1.2.1.</span> <span class="nav-text">马尔科夫过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#马尔科夫性质"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">马尔科夫性质</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#马尔科夫过程-1"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">马尔科夫过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#马尔科夫链"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">马尔科夫链</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#转移概率"><span class="nav-number">1.2.1.4.</span> <span class="nav-text">转移概率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#齐次马氏链"><span class="nav-number">1.2.1.5.</span> <span class="nav-text">齐次马氏链</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#随机游走-1"><span class="nav-number">1.2.2.</span> <span class="nav-text">随机游走</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#平稳分布"><span class="nav-number">1.2.3.</span> <span class="nav-text">平稳分布</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#状态分布"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">状态分布</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#平稳分布-1"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">平稳分布</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可约与不可约"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">可约与不可约</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#反周期"><span class="nav-number">1.2.3.4.</span> <span class="nav-text">反周期</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例题"><span class="nav-number">1.3.</span> <span class="nav-text">例题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1"><span class="nav-number">1.3.1.</span> <span class="nav-text">1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2"><span class="nav-number">1.3.2.</span> <span class="nav-text">2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3"><span class="nav-number">1.3.3.</span> <span class="nav-text">3</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Page-Rank"><span class="nav-number">1.4.</span> <span class="nav-text">Page Rank</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+    
+
+  
+
+</body>
+</html>

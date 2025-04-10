@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="决策树和随机森林分类器决策树在之前，我们介绍了 回归树和随机森林回归 现在我们来看看分类树 分类树和和回归树不同，它处理的数据都是离散的，且有分类的, 对于一个新数据的预测，我们是将其划归为哪一类中去。而回归树处理的数据则是连续的数字，对于一个新数据的预测，我们是赋给它一个值。 比如说下面这个例子，用分类树将其划分为几个区：   然后再对其进行决策：  决策树和其他的分类器一样，也可以对多个维度进">
+<meta property="og:type" content="article">
+<meta property="og:title" content="决策树和随机森林分类器">
+<meta property="og:url" content="https://jasonxqh.github.io/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="决策树和随机森林分类器决策树在之前，我们介绍了 回归树和随机森林回归 现在我们来看看分类树 分类树和和回归树不同，它处理的数据都是离散的，且有分类的, 对于一个新数据的预测，我们是将其划归为哪一类中去。而回归树处理的数据则是连续的数字，对于一个新数据的预测，我们是赋给它一个值。 比如说下面这个例子，用分类树将其划分为几个区：   然后再对其进行决策：  决策树和其他的分类器一样，也可以对多个维度进">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/3.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/4.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/5.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/6.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/7.png">
+<meta property="article:published_time" content="2020-10-22T10:29:56.000Z">
+<meta property="article:modified_time" content="2020-10-22T11:19:18.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>决策树和随机森林分类器 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          决策树和随机森林分类器
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-10-22 18:29:56 / Modified: 19:19:18" itemprop="dateCreated datePublished" datetime="2020-10-22T18:29:56+08:00">2020-10-22</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="决策树和随机森林分类器"><a href="#决策树和随机森林分类器" class="headerlink" title="决策树和随机森林分类器"></a>决策树和随机森林分类器</h1><h2 id="决策树"><a href="#决策树" class="headerlink" title="决策树"></a>决策树</h2><p>在之前，我们介绍了<a href="https://jasonxqh.github.io/2020/10/09/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%9B%9E%E5%BD%92/"> 回归树和随机森林回归</a> 现在我们来看看分类树</p>
+<p>分类树和和回归树不同，它处理的数据都是离散的，且有分类的, 对于一个新数据的预测，我们是将其划归为哪一类中去。而回归树处理的数据则是连续的数字，对于一个新数据的预测，我们是赋给它一个值。</p>
+<p>比如说下面这个例子，用分类树将其划分为几个区：</p>
+<p><img src="/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/1.png" style="zoom:100%;"></p>
+<p><img src="/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/2.png" style="zoom:100%;"></p>
+<p>然后再对其进行决策：</p>
+<p><img src="/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/3.png" style="zoom:100%;"></p>
+<p>决策树和其他的分类器一样，也可以对多个维度进行训练。</p>
+<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><p>我们同样使用之前的 年龄-薪资-购买与否 的数据集：</p>
+<p>和之前的代码几乎一样，这里展示一下训练集、混淆矩阵以及可视化结果</p>
+<h3 id="Training-the-Decision-Tree-Classification-model-on-the-Training-set"><a href="#Training-the-Decision-Tree-Classification-model-on-the-Training-set" class="headerlink" title="Training the Decision Tree Classification model on the Training set"></a>Training the Decision Tree Classification model on the Training set</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.tree <span class="keyword">import</span> DecisionTreeClassifier</span><br><span class="line">classifier = DecisionTreeClassifier(criterion = <span class="string">'entropy'</span>, random_state = <span class="number">0</span>)</span><br><span class="line">classifier.fit(X_train, y_train)</span><br></pre></td></tr></table></figure>
+<h3 id="Making-the-Confusion-Matrix"><a href="#Making-the-Confusion-Matrix" class="headerlink" title="Making the Confusion Matrix"></a>Making the Confusion Matrix</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> confusion_matrix, accuracy_score</span><br><span class="line">cm = confusion_matrix(y_test, y_pred)</span><br><span class="line">print(cm)</span><br><span class="line">accuracy_score(y_test, y_pred)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[[62  6]</span><br><span class="line"> [ 3 29]]</span><br><span class="line"> 0.91</span><br></pre></td></tr></table></figure>
+<h3 id="Visualizing-the-Training-set-results"><a href="#Visualizing-the-Training-set-results" class="headerlink" title="Visualizing the Training set results"></a>Visualizing the Training set results</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> matplotlib.colors <span class="keyword">import</span> ListedColormap</span><br><span class="line">X_set, y_set = sc.inverse_transform(X_train), y_train</span><br><span class="line">X1, X2 = np.meshgrid(np.arange(start = X_set[:, <span class="number">0</span>].min() - <span class="number">10</span>, </span><br><span class="line">							   stop = X_set[:, <span class="number">0</span>].max() + <span class="number">10</span>,</span><br><span class="line">                               step = <span class="number">0.25</span>),</span><br><span class="line">                     np.arange(start = X_set[:, <span class="number">1</span>].min() - <span class="number">1000</span>, </span><br><span class="line">                     			stop = X_set[:, <span class="number">1</span>].max() + <span class="number">1000</span>, </span><br><span class="line">                     			step = <span class="number">0.25</span>))</span><br><span class="line">plt.contourf(X1, X2, </span><br><span class="line">classifier.predict(sc.transform(np.array([X1.ravel(), X2.ravel()]).T)).reshape(X1.shape),</span><br><span class="line">             alpha = <span class="number">0.75</span>,</span><br><span class="line">             cmap = ListedColormap((<span class="string">'red'</span>, <span class="string">'green'</span>)))</span><br><span class="line">plt.xlim(X1.min(), X1.max())</span><br><span class="line">plt.ylim(X2.min(), X2.max())</span><br><span class="line"><span class="keyword">for</span> i, j <span class="keyword">in</span> enumerate(np.unique(y_set)):</span><br><span class="line">    plt.scatter(X_set[y_set == j, <span class="number">0</span>],</span><br><span class="line">    			X_set[y_set == j, <span class="number">1</span>],</span><br><span class="line">                c = ListedColormap((<span class="string">'red'</span>, <span class="string">'green'</span>))(i),</span><br><span class="line">                label = j)</span><br><span class="line">plt.title(<span class="string">'Decision Tree Classification (Training set)'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Age'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Estimated Salary'</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/4.png" style="zoom:100%;"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> matplotlib.colors <span class="keyword">import</span> ListedColormap</span><br><span class="line">X_set, y_set = sc.inverse_transform(X_test), y_test</span><br><span class="line">X1, X2 = np.meshgrid(np.arange(start = X_set[:, <span class="number">0</span>].min() - <span class="number">10</span>,</span><br><span class="line">								stop = X_set[:, <span class="number">0</span>].max() + <span class="number">10</span>,</span><br><span class="line">                                step = <span class="number">0.25</span>),</span><br><span class="line">                     np.arange(start = X_set[:, <span class="number">1</span>].min() - <span class="number">1000</span>, </span><br><span class="line">                     			stop = X_set[:, <span class="number">1</span>].max() + <span class="number">1000</span>,</span><br><span class="line">                                step = <span class="number">0.25</span>))</span><br><span class="line">plt.contourf(X1, X2, </span><br><span class="line">classifier.predict(sc.transform(np.array([X1.ravel(), X2.ravel()]).T)).reshape(X1.shape),</span><br><span class="line">             alpha = <span class="number">0.75</span>, </span><br><span class="line">             cmap = ListedColormap((<span class="string">'red'</span>, <span class="string">'green'</span>)))</span><br><span class="line">plt.xlim(X1.min(), X1.max())</span><br><span class="line">plt.ylim(X2.min(), X2.max())</span><br><span class="line"><span class="keyword">for</span> i, j <span class="keyword">in</span> enumerate(np.unique(y_set)):</span><br><span class="line">    plt.scatter(X_set[y_set == j, <span class="number">0</span>], </span><br><span class="line">    			X_set[y_set == j, <span class="number">1</span>],</span><br><span class="line">                c = ListedColormap((<span class="string">'red'</span>, <span class="string">'green'</span>))(i), </span><br><span class="line">                label = j)</span><br><span class="line">plt.title(<span class="string">'Decision Tree Classification (Test set)'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Age'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Estimated Salary'</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/5.png" style="zoom:100%;"></p>
+<h2 id="随机森林分类器"><a href="#随机森林分类器" class="headerlink" title="随机森林分类器"></a>随机森林分类器</h2><ul>
+<li>Step 1: Pick at random K data points from the Training set</li>
+<li>Step 2: Build the Decision Tree associated to these K data points</li>
+<li>Step 3: Choose the number Ntree of trees you want to build and repeat STEPS 1&amp;2</li>
+<li>Step 4: For a new data point, make each one of your Ntree trees predict the category to which the data points belongs, and assign the new data point to the category that wins the majority vote</li>
+</ul>
+<h3 id="Training-the-Random-Forest-Classification-model-on-the-Training-set"><a href="#Training-the-Random-Forest-Classification-model-on-the-Training-set" class="headerlink" title="Training the Random Forest Classification model on the Training set"></a>Training the Random Forest Classification model on the Training set</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.ensemble <span class="keyword">import</span> RandomForestClassifier</span><br><span class="line">classifier = RandomForestClassifier(n_estimators = <span class="number">10</span>, criterion = <span class="string">'entropy'</span>, random_state = <span class="number">0</span>)</span><br><span class="line">classifier.fit(X_train, y_train)</span><br></pre></td></tr></table></figure>
+<h3 id="Making-the-Confusion-Matrix-1"><a href="#Making-the-Confusion-Matrix-1" class="headerlink" title="Making the Confusion Matrix"></a>Making the Confusion Matrix</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> confusion_matrix, accuracy_score</span><br><span class="line">cm = confusion_matrix(y_test, y_pred)</span><br><span class="line">print(cm)</span><br><span class="line">accuracy_score(y_test, y_pred)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[[63  5]</span><br><span class="line"> [ 4 28]]</span><br><span class="line"> 0.91</span><br></pre></td></tr></table></figure>
+<h3 id="Visualizing-the-Training-set-results-1"><a href="#Visualizing-the-Training-set-results-1" class="headerlink" title="Visualizing the Training set results"></a>Visualizing the Training set results</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> matplotlib.colors <span class="keyword">import</span> ListedColormap</span><br><span class="line">X_set, y_set = sc.inverse_transform(X_train), y_train</span><br><span class="line">X1, X2 = np.meshgrid(np.arange(start = X_set[:, <span class="number">0</span>].min() - <span class="number">10</span>,</span><br><span class="line">								stop = X_set[:, <span class="number">0</span>].max() + <span class="number">10</span>, </span><br><span class="line">								step = <span class="number">0.25</span>),</span><br><span class="line">                     np.arange(start = X_set[:, <span class="number">1</span>].min() - <span class="number">1000</span>,</span><br><span class="line">                     			stop = X_set[:, <span class="number">1</span>].max() + <span class="number">1000</span>,</span><br><span class="line">                                step = <span class="number">0.25</span>))</span><br><span class="line">plt.contourf(X1, X2, </span><br><span class="line">classifier.predict(sc.transform(np.array([X1.ravel(), X2.ravel()]).T)).reshape(X1.shape),</span><br><span class="line">             alpha = <span class="number">0.75</span>,</span><br><span class="line">             cmap = ListedColormap((<span class="string">'red'</span>, <span class="string">'green'</span>)))</span><br><span class="line">plt.xlim(X1.min(), X1.max())</span><br><span class="line">plt.ylim(X2.min(), X2.max())</span><br><span class="line"><span class="keyword">for</span> i, j <span class="keyword">in</span> enumerate(np.unique(y_set)):</span><br><span class="line">    plt.scatter(X_set[y_set == j, <span class="number">0</span>],</span><br><span class="line">    			X_set[y_set == j, <span class="number">1</span>], </span><br><span class="line">    			c = ListedColormap((<span class="string">'red'</span>, <span class="string">'green'</span>))(i), </span><br><span class="line">    			label = j)</span><br><span class="line">plt.title(<span class="string">'Random Forest Classification (Training set)'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Age'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Estimated Salary'</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/6.png" style="zoom:100%;"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> matplotlib.colors <span class="keyword">import</span> ListedColormap</span><br><span class="line">X_set, y_set = sc.inverse_transform(X_test), y_test</span><br><span class="line">X1, X2 = np.meshgrid(np.arange(start = X_set[:, <span class="number">0</span>].min() - <span class="number">10</span>, </span><br><span class="line">                               	stop = X_set[:, <span class="number">0</span>].max() + <span class="number">10</span>, </span><br><span class="line">                               	step = <span class="number">0.25</span>),</span><br><span class="line">                     np.arange(start = X_set[:, <span class="number">1</span>].min() - <span class="number">1000</span>, </span><br><span class="line">                               stop = X_set[:, <span class="number">1</span>].max() + <span class="number">1000</span>,</span><br><span class="line">                               step = <span class="number">0.25</span>))</span><br><span class="line">plt.contourf(X1, X2, </span><br><span class="line">             classifier.predict(sc.transform(np.array([X1.ravel(), X2.ravel()]).T)).reshape(X1.shape),</span><br><span class="line">             alpha = <span class="number">0.75</span>, </span><br><span class="line">             cmap = ListedColormap((<span class="string">'red'</span>, <span class="string">'green'</span>)))</span><br><span class="line">plt.xlim(X1.min(), X1.max())</span><br><span class="line">plt.ylim(X2.min(), X2.max())</span><br><span class="line"><span class="keyword">for</span> i, j <span class="keyword">in</span> enumerate(np.unique(y_set)):</span><br><span class="line">    plt.scatter(X_set[y_set == j, <span class="number">0</span>],</span><br><span class="line">                X_set[y_set == j, <span class="number">1</span>],</span><br><span class="line">                c = ListedColormap((<span class="string">'red'</span>, <span class="string">'green'</span>))(i), </span><br><span class="line">                label = j)</span><br><span class="line">plt.title(<span class="string">'Random Forest Classification (Test set)'</span>)</span><br><span class="line">plt.xlabel(<span class="string">'Age'</span>)</span><br><span class="line">plt.ylabel(<span class="string">'Estimated Salary'</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="/2020/10/22/%E5%86%B3%E7%AD%96%E6%A0%91%E5%92%8C%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E5%88%86%E7%B1%BB%E5%99%A8/7.png" style="zoom:100%;"></p>
+<p>随机森林可以用来进行体感游戏中对人体动作的检测，判断人生上的区域的运动等等。</p>
+<p><a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/BodyPartRecognition.pdf" target="_blank" rel="noopener">https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/BodyPartRecognition.pdf</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/21/%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF/" rel="prev" title="朴素贝叶斯">
+      <i class="fa fa-chevron-left"></i> 朴素贝叶斯
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/22/K-Means%E8%81%9A%E7%B1%BB/" rel="next" title="K-Means聚类">
+      K-Means聚类 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#决策树和随机森林分类器"><span class="nav-number">1.</span> <span class="nav-text">决策树和随机森林分类器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#决策树"><span class="nav-number">1.1.</span> <span class="nav-text">决策树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#代码"><span class="nav-number">1.1.1.</span> <span class="nav-text">代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Training-the-Decision-Tree-Classification-model-on-the-Training-set"><span class="nav-number">1.1.2.</span> <span class="nav-text">Training the Decision Tree Classification model on the Training set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Making-the-Confusion-Matrix"><span class="nav-number">1.1.3.</span> <span class="nav-text">Making the Confusion Matrix</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Visualizing-the-Training-set-results"><span class="nav-number">1.1.4.</span> <span class="nav-text">Visualizing the Training set results</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#随机森林分类器"><span class="nav-number">1.2.</span> <span class="nav-text">随机森林分类器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Training-the-Random-Forest-Classification-model-on-the-Training-set"><span class="nav-number">1.2.1.</span> <span class="nav-text">Training the Random Forest Classification model on the Training set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Making-the-Confusion-Matrix-1"><span class="nav-number">1.2.2.</span> <span class="nav-text">Making the Confusion Matrix</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Visualizing-the-Training-set-results-1"><span class="nav-number">1.2.3.</span> <span class="nav-text">Visualizing the Training set results</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

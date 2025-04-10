@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jasonxqh.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="机器学习-感知机破防了，还有4天就要期末考了，现在才开始做机器学习的第一份笔记 概要其实感知机就是一个神经元。 它有如下几个特点  输入为实例的特征向量，输出为实例的类别，取+1和-1  感知机对应于输入空间中将实例划分为正负两类的分离超平面，属于判别模型  导入基于误分类的损失函数  利用梯度下降法对损失函数进行极小化  感知机学习算法具有简单而易于实现的优点，分为原始形式和对偶形式    接下">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机器学习-感知机">
+<meta property="og:url" content="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="机器学习-感知机破防了，还有4天就要期末考了，现在才开始做机器学习的第一份笔记 概要其实感知机就是一个神经元。 它有如下几个特点  输入为实例的特征向量，输出为实例的类别，取+1和-1  感知机对应于输入空间中将实例划分为正负两类的分离超平面，属于判别模型  导入基于误分类的损失函数  利用梯度下降法对损失函数进行极小化  感知机学习算法具有简单而易于实现的优点，分为原始形式和对偶形式    接下">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/1.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/2.png">
+<meta property="og:image" content="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/3.jpeg">
+<meta property="article:published_time" content="2022-01-02T12:34:43.000Z">
+<meta property="article:modified_time" content="2022-01-04T17:28:20.000Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/1.png">
+
+<link rel="canonical" href="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>机器学习-感知机 | Jason‘s Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jason‘s Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          机器学习-感知机
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-01-02 20:34:43" itemprop="dateCreated datePublished" datetime="2022-01-02T20:34:43+08:00">2022-01-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-01-05 01:28:20" itemprop="dateModified" datetime="2022-01-05T01:28:20+08:00">2022-01-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="机器学习-感知机"><a href="#机器学习-感知机" class="headerlink" title="机器学习-感知机"></a>机器学习-感知机</h1><p>破防了，还有4天就要期末考了，现在才开始做机器学习的第一份笔记</p>
+<h3 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h3><p><strong>其实感知机就是一个神经元</strong>。 它有如下几个特点</p>
+<ul>
+<li><p>输入为实例的特征向量，输出为实例的类别，取+1和-1</p>
+</li>
+<li><p>感知机对应于输入空间中将实例划分为正负两类的分离超平面，属于判别模型</p>
+</li>
+<li><p>导入基于误分类的损失函数</p>
+</li>
+<li><p>利用梯度下降法对损失函数进行极小化</p>
+<ul>
+<li>感知机学习算法具有简单而易于实现的优点，分为原始形式和对偶形式</li>
+</ul>
+</li>
+</ul>
+<p>接下来对感知机模型进行拆解：</p>
+<p>第一个：输入部分</p>
+<p>第二个：权重（就是w向量）；权重是在我们进行训练期间计算的值，初始呢我们是用一些初始值来可以进行随机的初始化，然后在学习过程当中对他们进行更新，最后我们模型学习完之后，这就是我们学习到的参数向量。我们用w来表示。</p>
+<p>第三个：偏置项，这个偏置对应到上图在输入里边我们有一个常量1, 实际上这个常量1就相当于乘以1, 实际上就是, 后边的计算是和输入是无关的，相当于就是一个偏置，相当于i从1开始一直到n，还加上一个，这就是一个偏置。</p>
+<p>由输入空间到输出空间的函数：</p>
+<script type="math/tex; mode=display">
+f(x) = sign(w\cdot x+b)</script><p>符号函数：</p>
+<script type="math/tex; mode=display">
+sign(x) = \begin{cases}+1&x\geq 0\\-1&x<0\end{cases}</script><h4 id="几何解释"><a href="#几何解释" class="headerlink" title="几何解释"></a>几何解释</h4><p>对于线性方程：</p>
+<script type="math/tex; mode=display">
+w\cdot x+b = 0</script><p>相当于在平面空间中的超平面S，w 是法向量，b是截距，用来分割开正负两种类别：</p>
+<p><img src="/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/1.png"></p>
+<h3 id="感知机学习策略"><a href="#感知机学习策略" class="headerlink" title="感知机学习策略"></a>感知机学习策略</h3><p>如何定义损失函数？</p>
+<p>自然选择：误分类点的数目，但损失函数不是w,b连续可导，不宜优化。</p>
+<p>另一选择：误分类点到超平面的总距离：</p>
+<p>首先，距离函数：</p>
+<script type="math/tex; mode=display">
+d = \frac{|w\cdot x_0+b|}{||w||}</script><p>误分类点： $-y_i(w\cdot x_i+b)&gt;0$</p>
+<p>误分类点距离：</p>
+<script type="math/tex; mode=display">
+-\frac{1}{||w||}\sum_{x_i\in M} y_i(w\cdot x_i+b)\\
+w' = \frac{w}{||w||} ,b' = \frac{b}{||w||}</script><p>损失函数：</p>
+<script type="math/tex; mode=display">
+L(w,b) = -\sum_{x_{i}\in M} y_i(w\cdot x_i+b)</script><p>为了优化损失函数： </p>
+<script type="math/tex; mode=display">
+\min_{w,b}L(w,b) = -\sum_{x_i\in M}y_i(w\cdot x_i+b)</script><p>我们使用梯度下降法来更新损失函数。</p>
+<h3 id="感知机学习算法"><a href="#感知机学习算法" class="headerlink" title="感知机学习算法"></a>感知机学习算法</h3><h4 id="原始形式"><a href="#原始形式" class="headerlink" title="原始形式"></a>原始形式</h4><p>输入：训练数据集 $T =\big{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N) \big}$, 期中 $x_i\in \mathcal X =R^n,y_i\in\mathcal y = {-1,+1}$ $i=1,2\cdots,N$ ， 学习率 $\eta(0&lt;\eta\leq1)$ </p>
+<p>输出：w,b ： 感知机模型 $f(x) = sign(w\cdot x+b)$</p>
+<ol>
+<li><p>选取初值 $w_0,b_0$</p>
+</li>
+<li><p>在训练集中选取数据$(x_i,y_i)$</p>
+</li>
+<li><p>如果 $y_i(w\cdot x_i+b)\leq 0$, 说明分类错误:</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&w \leftarrow w+\eta ~y_ix_i\\
+&b \leftarrow b+\eta y_i
+\end{align}</script></li>
+<li><p>转至2，直至训练集中没有误分类点</p>
+</li>
+</ol>
+<p>比如说 正样本点是. $x_1=(3,3)^T,x_2=(4.3)^T$. 负样本点是 $x_3=(1,1)^T$. 试用感知机学习算法原始形式求感知机模型.</p>
+<ol>
+<li><p>取初值 $w_0 = 0,b_0= 0,\eta = 1$</p>
+</li>
+<li><p>对 $x_1 = (3,3)^T, y_1(w_0\cdot x_1+b_0)=0$ ，未能被正确分类，更新 $w,b$ </p>
+</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&w_1 = w_0+y_1x_1 = (3,3)^T\\
+&b_1=b_0+y_1 = 1
+\end{align}</script><p>​        得到新的线性模型： $w_1\cdot x+b_1 = 3x^{(1)}+3x^{(2)}+1$</p>
+<ol>
+<li>对于$x_1,x_2$显然模型大于0，被正确分类，对$x_3 = (1,1)^T$ 为负例 ，但计算得到$y_3(w_1\cdot x_3+b_1)&lt;0$ 被误分类, 更新$w,b$<script type="math/tex; mode=display">
+\begin{align}
+&w_2 = w_1+y_3x_3 = (2,2)^T\\
+&b_2 = b_1+y_3 = 0
+\end{align}</script></li>
+</ol>
+<p><img src="/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/2.png"></p>
+<p>算法的收敛性：证明经过有限次迭代可以得到一个将训练数据集完全正确划分的分离超平面及感知机模型。</p>
+<h4 id="对偶形式"><a href="#对偶形式" class="headerlink" title="对偶形式"></a>对偶形式</h4><p>感知机算法的对偶形式的基本想法是：</p>
+<p>将w和b表示为实例$x_i$和标记 $y_i$ 的线性组会的形式，通过求解其系数而求得$w$和$b$</p>
+<p>由于</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&w \leftarrow w+\eta ~y_ix_i\\
+&b \leftarrow b+\eta y_i
+\end{align}</script><p>最后学习到的$w,b$为：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&w =\sum_{i=1}^N \alpha_i y_ix_i\\
+&b =\sum_{i=1}^N \alpha_i y_i
+\end{align}</script><p>输入：训练数据集 $T =\big{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N) \big}$, 期中 $x_i\in \mathcal X =R^n,y_i\in\mathcal y = {-1,+1}$ $i=1,2\cdots,N$ ， 学习率 $\eta(0&lt;\eta\leq1)$ </p>
+<p>输出：感知机模型 $f(x) = sign\bigg(\sum_{j=1}^N\alpha_jy_jx_j\cdot x+b\bigg)$<br>其中 $\alpha = (\alpha_1,\cdots,\alpha_N)^T$ </p>
+<ol>
+<li><p>$\alpha\leftarrow 0,b\leftarrow 0,\eta\leftarrow 1$</p>
+</li>
+<li><p>在训练集中选取数据 $(x_i,y_i)$</p>
+</li>
+<li><p>如果  </p>
+<script type="math/tex; mode=display">
+\begin{align}
+&y_i\bigg(\sum_{j=1}^N \alpha_jy_j(x_j\cdot x_i)+b \bigg)\leq 0\\
+&\alpha_i\leftarrow \alpha_i+ \eta\\
+&b\leftarrow b+\eta y_i
+\end{align}</script></li>
+<li><p>转至(2) 直到没有误分类数据</p>
+</li>
+</ol>
+<p>比如说 正样本点是. $x_1=(3,3)^T,x_2=(4,3)^T$. $y_1=y_2=1$ ; 负样本点是 $x_3=(1,1)^T, y_3 = -1$ .试用感知机学习算法对偶形式求感知机模型.</p>
+<ol>
+<li><p>首先$\alpha_i$ 都是0，因为每个都没有误分，因此$b=\alpha_i\cdot y_i = 0$  所以这就是表2.2的第一列</p>
+</li>
+<li><p>接着，就是进入迭代过程，首先计算第一个点</p>
+</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&y_i(\sum\alpha_j y_j x_j\cdot x_i+b)\\
+&=1*((0*1*(3,3)^T\cdot(3,3)+0*1*(4,3)^T\cdot(3,3)+0*-1*(1,1)^T\cdot(3,3))+0)\\
+&=0
+\end{align}</script><p>那么就出现误分类，则此时，更新$\boldsymbol \alpha,b$ ,而这就是表2.2的第二列</p>
+<script type="math/tex; mode=display">
+\alpha_1 = 0,\alpha_2=0,\alpha_3 = 0\\
+b = 0+1\cdot1 = 1</script><ol>
+<li>接着进行判断，第二个点，发现没有误分类，进行判断第三个点</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&y_i(\sum\alpha_j y_j x_j\cdot x_i+b)\\
+&=-1*((1*1*(3,3)^T\cdot(1,1)+0*1*(4,3)^T\cdot(1,1)+0*-1*(1,1)^T\cdot(1,1))+1)\\
+&=-1*(((3,3)^T\cdot(1,1))+1)\\
+&=-(6+1)\\
+&=-7<0
+\end{align}</script><p>因此该点为误分类点，此时，更新$\boldsymbol \alpha,b$ ,而这就是表2.2的第三列</p>
+<script type="math/tex; mode=display">
+\alpha_1 = 1,\alpha_2=0,\alpha_3 = 1\\
+b = 1+1\cdot-1 = 0</script><p>以此类推</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>k</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td>$x_1$</td>
+<td>$x_3$</td>
+<td>$x_3$</td>
+<td>$x_3$</td>
+<td>$x_1$</td>
+<td>$x_3$</td>
+<td>$x_3$</td>
+</tr>
+<tr>
+<td>$\alpha_1$</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td>$\alpha_2$</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>$\alpha_3$</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>3</td>
+<td>4</td>
+<td>5</td>
+</tr>
+<tr>
+<td>b</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+<td>-2</td>
+<td>-1</td>
+<td>-2</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="习题"><a href="#习题" class="headerlink" title="习题"></a>习题</h2><p>感知机因为是线性模型，所以不能表示复杂的函数，如异或(XOR) 。验证感知机为什么不能表示异或。</p>
+<p>直观上，我们设正方形为True, 三角形为False</p>
+<p><img src="/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%84%9F%E7%9F%A5%E6%9C%BA/3.jpeg" style="zoom: 30%;"></p>
+<p>那么，我们是没有办法找到一条直线将其分离的，如上图</p>
+<p>在数学形式上：</p>
+<script type="math/tex; mode=display">
+\text{设}~~sign(x) = \begin{cases}1&x\geq 0\\-1&x<0 \end{cases}</script><p>我们令 $f(x) = sign(w\cdot x+b)$ $w$为权重$(w_1,w_2)$  ，b为偏置</p>
+<p>设向量$\boldsymbol x = (x_1,x_2)$ ，用其表示异或问题</p>
+<ul>
+<li>若 $x_1=x_2=0,f(x)=-1$ 则有 $b&lt;0$</li>
+<li>若 $x_1=0,x_2=1,f(x)=1$ 则有 $w_1\cdot 0+w_2\cdot1 +b &gt;0$ . 因此 $w_2&gt;-b&gt;0$</li>
+<li>若 $x_1=01,x_2=0,f(x)=1$ 则有 $w_1\cdot 1+w_2\cdot0 +b &gt;0$ . 因此 $w_1&gt;-b&gt;0$</li>
+<li>若 $x_1=x_2=1,f(x)=-1$ ，当前由上面三个式子，有 $w_2&gt;-b&gt;0,w_1&gt;-b&gt;0$ , 所以应该是 $w_1+w_2-(-b)&gt;0$ 。 但是这和 $f(x)=-1$   矛盾</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/01/01/%E6%95%B0%E6%8D%AE%E7%A7%91%E5%AD%A6%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%B5%81%E7%AE%97%E6%B3%95%E8%A1%A5%E5%85%85/" rel="prev" title="数据科学与算法-流算法补充">
+      <i class="fa fa-chevron-left"></i> 数据科学与算法-流算法补充
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/01/02/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF/" rel="next" title="机器学习-朴素贝叶斯">
+      机器学习-朴素贝叶斯 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#机器学习-感知机"><span class="nav-number">1.</span> <span class="nav-text">机器学习-感知机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概要"><span class="nav-number">1.0.1.</span> <span class="nav-text">概要</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#几何解释"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">几何解释</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#感知机学习策略"><span class="nav-number">1.0.2.</span> <span class="nav-text">感知机学习策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#感知机学习算法"><span class="nav-number">1.0.3.</span> <span class="nav-text">感知机学习算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#原始形式"><span class="nav-number">1.0.3.1.</span> <span class="nav-text">原始形式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对偶形式"><span class="nav-number">1.0.3.2.</span> <span class="nav-text">对偶形式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#习题"><span class="nav-number">1.1.</span> <span class="nav-text">习题</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">439</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
