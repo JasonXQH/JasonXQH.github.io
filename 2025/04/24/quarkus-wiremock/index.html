@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="y0-26jFM_8wn6Slpy1ahkB8ndR7w0OOGyAU6IaXjLUI" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="kotlin," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="quarkus-wiremock最近项目中接触到wiremock的测试，之前一直是写Mockito，也就是最传统的对 本地代码（类、接口、方法）进行行为模拟。比如我现在有一个TaobaoService接口，我可以对其方法进行模拟，当请求特定或任意资源的时候，返回我们想要返回的东西。1234567891011121314@InjectMock  @RestClient  lateinit var t">
+<meta property="og:type" content="article">
+<meta property="og:title" content="quarkus+wiremock">
+<meta property="og:url" content="https://jasonxqh.github.io/2025/04/24/quarkus-wiremock/index.html">
+<meta property="og:site_name" content="Jason‘s Blog">
+<meta property="og:description" content="quarkus-wiremock最近项目中接触到wiremock的测试，之前一直是写Mockito，也就是最传统的对 本地代码（类、接口、方法）进行行为模拟。比如我现在有一个TaobaoService接口，我可以对其方法进行模拟，当请求特定或任意资源的时候，返回我们想要返回的东西。1234567891011121314@InjectMock  @RestClient  lateinit var t">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-04-24T02:12:39.000Z">
+<meta property="article:modified_time" content="2025-04-24T06:14:00.136Z">
+<meta property="article:author" content="Jason">
+<meta property="article:tag" content="kotlin">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://jasonxqh.github.io/2025/04/24/quarkus-wiremock/"/>
+
+
+
+
+
+  <title>quarkus+wiremock | Jason‘s Blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-170027658-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://github.com/JasonXQH/JasonXQH.github.io" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Jason‘s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            Sitemap
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://jasonxqh.github.io/2025/04/24/quarkus-wiremock/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason‘s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">quarkus+wiremock</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2025-04-24T10:12:39+08:00">
+                2025-04-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  3k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  12
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="quarkus-wiremock"><a href="#quarkus-wiremock" class="headerlink" title="quarkus-wiremock"></a>quarkus-wiremock</h1><p>最近项目中接触到wiremock的测试，之前一直是写Mockito，也就是最传统的对 <strong>本地代码</strong>（类、接口、方法）进行行为模拟。<br>比如我现在有一个TaobaoService接口，我可以对其方法进行模拟，当请求特定或任意资源的时候，返回我们想要返回的东西。<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@InjectMock</span>  </span><br><span class="line"><span class="meta">@RestClient</span>  </span><br><span class="line"><span class="keyword">lateinit</span> <span class="keyword">var</span> taobaoService: TaobaoService</span><br><span class="line"></span><br><span class="line"><span class="meta">@BeforeEach</span>  </span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">setUp</span><span class="params">()</span></span> &#123;  </span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> taobaomockResponse = Fixture.loadPOJOFromFile&lt;TaobaoTradeApi&gt;(<span class="string">"/examples/api_mock.json"</span>)    </span><br><span class="line">  <span class="comment">// 配置 mock 行为  </span></span><br><span class="line">  `<span class="keyword">when</span>`(taobaoService.taobaoTradeFullinfoGet(anyString(), anyString(), anyString()))  </span><br><span class="line">    .thenReturn(taobaomockResponse)  </span><br><span class="line">  `<span class="keyword">when</span>`(taobaoService.taobaoTradeFullinfoGet(anyString(), anyString()))  </span><br><span class="line">    .thenReturn(taobaomockResponse)  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>但是我们遇到了一种情况，此时无法使用Mockito: </p>
+<p>在 MVC 项目里，我们想在 Model 层直接注入一个 TaobaoService 来方便调用，但 Model 并不在应用作用域（appScope）内，导致依赖注入失效。于是我们只能自己 <code>new</code> 一个 TaobaoService。问题是，这个手动创建的实例在单元测试里无法被 Mockito 的 <code>@InjectMock</code> 替换，Mock 失效，测试就会去请求真实的 Taobao API。</p>
+<p>此时就可以用到WireMock来实现我们想要的功能。WireMock 是针对 <strong>HTTP 服务</strong> 的模拟服务器。<br>它启动一个内嵌的 HTTP 服务器，配置请求─响应映射（stub），拦截真正的 HTTP 调用并返回预先定义的 mock 数据。</p>
+<h3 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>框架</th>
+<th>主要用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mockito</td>
+<td>单元测试中替代依赖对象：DAO、Service、工具类等。</td>
+</tr>
+<tr>
+<td>WireMock</td>
+<td>集成测试或端到端测试中，替代外部 HTTP 服务（第三方 API、微服务）</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="优劣对比"><a href="#优劣对比" class="headerlink" title="优劣对比"></a>优劣对比</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Mockito 优势</th>
+<th>Mockito 劣势</th>
+<th>WireMock 优势</th>
+<th>WireMock 劣势</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>依赖范围</strong></td>
+<td>- 直接在 JVM 内部拦截、速度快<br>- 无需网络，启动轻量</td>
+<td>- 只针对本地方法，<strong>无法</strong>模拟 HTTP 底层细节</td>
+<td>- 真正启动 HTTP 服务，<strong>完全模拟</strong>外部 HTTP 接口<br>- 支持延迟、故障注入等</td>
+<td>- 启动一个 HTTP Server，整体 <strong>启动&amp;执行</strong> 较慢<br>- 需占用端口</td>
+</tr>
+<tr>
+<td><strong>配置方式</strong></td>
+<td>- 代码级别声明<br>- 灵活控制单个方法的调用和返回值</td>
+<td>- 无法对 URL、Header、Body 级别进行精细匹配</td>
+<td>- 支持 URL、Query、Header、Body 等多维度匹配<br>- Stub 配置直观</td>
+<td>- Stub 配置较多时文件/代码会较冗长</td>
+</tr>
+<tr>
+<td><strong>断言能力</strong></td>
+<td>- 可以直接对方法调用次数、入参、顺序进行精确断言</td>
+<td>- <strong>仅限 Java 对象</strong>，不支持对 HTTP 原始报文断言</td>
+<td>- 可以对 HTTP 请求日志做断言（请求次数、Body 内容等）</td>
+<td>- 断言次数或内容变化时，需要额外调用 admin API</td>
+</tr>
+<tr>
+<td><strong>故障模拟</strong></td>
+<td>- 可抛出任意异常模拟下游组件故障</td>
+<td>- 无法模拟网络超时、延迟等真实 HTTP 场景</td>
+<td>- 原生支持延迟、连接失败、按比例返回错误码等</td>
+<td>- 对非 HTTP 场景无能为力</td>
+</tr>
+<tr>
+<td><strong>集成成本</strong></td>
+<td>- 几行代码即可完成 Mock<br>- 与测试框架无缝集成</td>
+<td>- 仅组件级 Mock，不具备对外部调用的覆盖</td>
+<td>- 可用独立进程或内嵌；支持 Docker 化</td>
+<td>- 需要管理服务器生命周期；CI 环境中要配置端口和依赖</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="引入依赖"><a href="#引入依赖" class="headerlink" title="引入依赖"></a>引入依赖</h2><p><a href="https://docs.quarkiverse.io/quarkus-wiremock/dev/index.html" target="_blank" rel="noopener">官方文档</a><br>官方文档中是Maven导入，我们用Gradle的话，可以这样写：<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">testImplementation(<span class="string">"io.quarkiverse.wiremock:quarkus-wiremock-test:1.0.0"</span>)</span><br></pre></td></tr></table></figure></p>
+<p>也可以使用<code>libs.versions.toml</code>来配置版本：<br><figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[versions]</span></span><br><span class="line"><span class="attr">wiremock-test</span> = <span class="string">"1.0.0"</span>  </span><br><span class="line"><span class="section">[libraries]</span>  </span><br><span class="line"><span class="attr">wiremock</span> = &#123;group = <span class="string">"io.quarkiverse.wiremock"</span>, name = <span class="string">"quarkus-wiremock-test"</span>, version.ref  = <span class="string">"wiremock-test"</span> &#125;</span><br></pre></td></tr></table></figure><br>然后再<code>build.gradle.kts</code>中写：<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">testImplementation(libs.wiremock)</span><br></pre></td></tr></table></figure></p>
+<h4 id="implementation-amp-testImplementation"><a href="#implementation-amp-testImplementation" class="headerlink" title="implementation &amp; testImplementation"></a><code>implementation &amp; testImplementation</code></h4><p>这里<code>WireMock</code>是用<code>implementation</code>还是<code>testImplementation</code>呢?</p>
+<ul>
+<li><p><strong>implementation(“…”)</strong></p>
+<ul>
+<li><strong>作用范围</strong>：对项目的 <strong>主代码</strong>（<code>src/main/java</code> / <code>src/main/kotlin</code>）可见，也会出现在<strong>运行时</strong>和最终打包的产物里。</li>
+<li><strong>典型用途</strong>：那些在生产环境里真正需要、无论是编译还是运行都离不开的库，比如 Quarkus 运行时、数据库驱动、核心工具库等。</li>
+</ul>
+</li>
+<li><p><strong>testImplementation(“…”)</strong></p>
+<ul>
+<li><strong>作用范围</strong>：仅对 <strong>测试代码</strong>（<code>src/test/java</code> / <code>src/test/kotlin</code>）可见，既会加入测试编译时的 classpath，也会加入测试执行时的 classpath；但不会出现在生产运行时，也不会被打包到发布产物里。</li>
+<li><strong>典型用途</strong>：只能在测试里用到的库，比如 JUnit、Mockito、WireMock、测试专用的工具集等。</li>
+</ul>
+</li>
+</ul>
+<p>这里我们在开发完毕后需要将wiremock放到<code>testImplementation</code>中，但是在开发的时候，为了方便调试，我们可以将其放到<code>implementation</code>中，查看mappings是否正常运行。</p>
+<h2 id="配置WireMock"><a href="#配置WireMock" class="headerlink" title="配置WireMock"></a>配置WireMock</h2><p>这是整个步骤中我觉得最困难的地方。由于我们是在测试中用到wiremock所以放在test下的<code>application.properties</code>更好。</p>
+<h3 id="quarkus-devservices-enabled"><a href="#quarkus-devservices-enabled" class="headerlink" title="quarkus.devservices.enabled"></a><code>quarkus.devservices.enabled</code></h3><p>这个全局开关默认为true，千万不能为诶false。否则wiremock就不会再测试或者本地开发模式下自动启动。</p>
+<h3 id="quarkus-wiremock-devservices-port"><a href="#quarkus-wiremock-devservices-port" class="headerlink" title="quarkus.wiremock.devservices.port"></a><code>quarkus.wiremock.devservices.port</code></h3><p>这个配置是定义wiremock启动后监听在哪个端口上，如果不配置，那么就随机制定。<br>通常我们不需要配置，但是如果要配置的话我们可以这样写：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">%test.quarkus.wiremock.devservices.port&#x3D;9081</span><br><span class="line">%dev.quarkus.wiremock.devservices.port&#x3D;9081</span><br></pre></td></tr></table></figure></p>
+<h4 id="bug"><a href="#bug" class="headerlink" title="bug"></a>bug</h4><p>这里注意了，当我们使用<code>implementation</code>的时候，如果不配置test port，运行<code>./gradlew quarkusDev</code>进行测试时会报错：</p>
+<ul>
+<li>因为此时<code>implementation</code> 把 <code>quarkus-wiremock-test</code> 扩展放进 <strong>主应用</strong>的 classpath。</li>
+<li>在 <strong>dev 模式</strong>下若没显式配置端口，启动时会直接尝试绑定 <strong>8089</strong>（官方默认）。</li>
+<li>如果随后又运行测试（<code>r</code> 快捷键），而测试也会再启一个 WireMock， <strong>两份</strong> WireMock 都想占 8089 → <strong>BindException</strong>。<br>在<code>testImplementation</code> 情况下</li>
+<li>WireMock 只出现在 <strong>test classpath</strong>，<code>quarkusDev</code> 启动的主应用里根本“看不到”它，所以不会在开发模式就抢占端口。</li>
+<li>只有在Continuous Testing（<code>r</code>）运行时，Quarkus 会为测试 fork/隔离一个专用的 <strong>测试 classloader</strong>，此时才加载 WireMock 扩展。</li>
+<li>如果没配 <code>quarkus.wiremock.devservices.port</code>，扩展会自动找 <strong>一个空闲端口</strong>，并把实际端口注入 <code>${quarkus.wiremock.devservices.port}</code> 占位符</li>
+</ul>
+<p><strong>因此最好使用</strong><code>testImplementation</code> 如果一定要在调试时使用<code>implementation</code>的话，也请显示定义<code>%test.quarkus.wiremock.devservices.port</code> </p>
+<h3 id="quarkus-wiremock-devservices-files-mapping"><a href="#quarkus-wiremock-devservices-files-mapping" class="headerlink" title="quarkus.wiremock.devservices.files-mapping"></a><code>quarkus.wiremock.devservices.files-mapping</code></h3><p>先说现象</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>连续测试 (<code>./gradlew quarkusDev</code> ➜ 键 <code>r</code>)</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>没有显式配置files-mapping<br></td>
+<td><strong>Dev 模式</strong>能启动 WireMock，但 <strong>测试</strong>一跑就报 <em>Un-recognized token ‘No’</em>；<code>/__admin/mappings</code> 为空</td>
+<td><strong>失败</strong></td>
+</tr>
+<tr>
+<td><br><code>quarkus.wiremock.devservices.files-mapping=${pwd}/build/resources/test</code><br></td>
+<td>Dev 模式照常启动；按 <code>r</code> 运行测试也能找到所有 stub，错误消失</td>
+<td><strong>成功</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li><p><strong><code>./gradlew test</code></strong></p>
+<ul>
+<li>Gradle 在运行 <code>test</code> 任务时，会把<ul>
+<li><code>src/main/resources</code></li>
+<li><code>src/test/resources</code></li>
+<li>测试类与测试依赖<br>一起打包到 <strong>测试 JVM</strong> 的 classpath 上。</li>
+</ul>
+</li>
+<li>WireMock Dev Service 默认会扫描 classpath 根下的 <code>mappings/</code> 和 <code>__files/</code> 目录，<br>  所以放在 <code>src/test/resources/mappings/…</code> 的 stub 能被自动找到并注册，测试自然通过。</li>
+</ul>
+</li>
+<li><p><strong><code>./gradlew quarkusDev</code> + 按 <code>r</code>（Continuous Testing）</strong></p>
+<ul>
+<li>Quarkus Dev Mode 会先把 <strong>主应用</strong>（<code>src/main/java</code> + <code>src/main/resources</code>）打包成 Runner Jar 并启动，</li>
+<li>Continuous Testing 再在这个运行时环境里 <strong>热重载执行测试</strong>，但它并不把 <strong><code>src/test/resources</code></strong> 一并打到 Runner Jar 中。</li>
+<li>因此，WireMock 在 Dev Mode 的 classpath 根下 <strong>看不到</strong> 测试资源里的 <code>mappings/</code> ——<br>  它启动了空的 stub 存储，所有请求都返回 404 “Not Found” </li>
+</ul>
+</li>
+</ul>
+<h2 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h2><p>经过了漫长的配置，我们终于要开始mock http了，首先，我们需要对需要mock的RestClient对象上，不能设置BaseURI，而是要配置configKey，如下所示。<br>如下所示：<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RegisterRestClient(configKey = <span class="meta-string">"taobao"</span>)</span>  </span><br><span class="line">xxx</span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">TaobaoService</span> </span>&#123;  </span><br><span class="line">  <span class="meta">@POST</span>  </span><br><span class="line">  <span class="meta">@ClientFormParam(name = <span class="meta-string">"method"</span>, value = [<span class="meta-string">"taobao.trade.fullinfo.get"</span>])</span> </span><br><span class="line">  <span class="meta">@ClientFormParam(name = <span class="meta-string">"include_oaid"</span>, value = [<span class="meta-string">"include_oaid"</span>])</span>  </span><br><span class="line">  <span class="meta">@ClientFormParam(name = <span class="meta-string">"fields"</span>, value = [DEFAULT_API_FIELDS])</span>  </span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">taobaoTradeFullinfoGet</span><span class="params">(  </span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="meta">@RestForm(<span class="meta-string">"session"</span>)</span> session: <span class="type">String</span>,  </span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="meta">@RestForm(<span class="meta-string">"tid"</span>)</span> tid: <span class="type">String</span>,  </span></span></span><br><span class="line"><span class="function"><span class="params">  )</span></span>: TaobaoTradeApi  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>在 <code>application.properties</code> 里，我们给 Taobao 的客户端设置了两套地址：</p>
+<ol>
+<li><strong>测试环境</strong>（用 <code>%test.</code> 前缀） <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%test.quarkus.rest-client.taobao.url &#x3D; http:&#x2F;&#x2F;localhost:$&#123;quarkus.wiremock.devservices.port&#125;&#x2F;router&#x2F;rest&#x2F;taobao</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ul>
+<li>▶️ 当跑测试时，Quarkus 会自动把所有对 <code>TaobaoService</code> 的调用指向本地 WireMock 服务器，这样就能返回我们事先准备好的模拟数据。</li>
+</ul>
+<ol>
+<li><strong>开发／生产环境</strong>（用 <code>%dev.</code> 前缀）<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#96;%dev.quarkus.rest-client.taobao.url &#x3D; https:&#x2F;&#x2F;eco.taobao.com&#x2F;router&#x2F;rest&#96;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ul>
+<li>▶️ 在平时的开发或上线时，客户端会调用真正的淘宝 API。</li>
+</ul>
+<p><strong>Quarkus</strong> 会根据当前运行的 Profile（<code>test</code> 还是 <code>dev</code>/<code>prod</code>）自动选用对应的那一行配置，不需要手动切换。</p>
+<p>在跑测试的时候，我们不想真打到淘宝 API，而是把所有 HTTP 请求都指向本地启动的 WireMock。</p>
+<p>为了让 WireMock “知道” 遇到什么请求该怎么回，它需要一份“剧本”——这就是 <strong>stub</strong>。</p>
+<p> <strong>stub</strong> 就像一套“如果看到这个请求，就给我返回那个响应”的规则：</p>
+<pre><code>1. **请求格式**：请求方法（GET/POST）、路径、Query 参数、Header、甚至 Body 长啥样
+2. **返回结果**：要回哪个 HTTP 状态码，Body 是哪段 JSON，Header 应该带什么
+</code></pre><p>我们把这些 stub 文件都放在 <code>src/test/resources/mappings/</code> 里，WireMock 启动时会自动读取它们。这样，测试一跑：</p>
+<ol>
+<li>代码里发出的每个 HTTP 调用，都会被 WireMock 拦截；</li>
+<li>WireMock 根据 mappings 里的 stub 规则，马上返回我们预先写好的假数据；</li>
+<li>测试就能在离线、可控的环境下稳稳地跑通，不会再去真正打淘宝接口。</li>
+</ol>
+<p>比如我这里定义的<code>taobao_v0-stubs.json</code><br><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">&#123;  </span><br><span class="line">  <span class="attr">"id"</span>: <span class="string">"8a3782de-2eca-420b-9942-079e74919389"</span>,  </span><br><span class="line">  <span class="attr">"priority"</span>: <span class="number">3</span>,  </span><br><span class="line">  <span class="attr">"request"</span>: &#123;  </span><br><span class="line">    <span class="attr">"method"</span>: <span class="string">"POST"</span>,  </span><br><span class="line">    <span class="attr">"urlPath"</span>: <span class="string">"/router/rest/taobao"</span>  </span><br><span class="line">  &#125;,  </span><br><span class="line">  <span class="attr">"response"</span>: &#123;  </span><br><span class="line">    <span class="attr">"status"</span>: <span class="number">200</span>,  </span><br><span class="line">    <span class="attr">"jsonBody"</span>: &#123;  </span><br><span class="line">      <span class="attr">"trade_fullinfo_get_response"</span>: &#123;  </span><br><span class="line">        <span class="attr">"trade"</span>: &#123;  </span><br><span class="line">          <span class="attr">"buyer_nick"</span>: <span class="string">"z**"</span>,  </span><br><span class="line">          <span class="attr">"buyer_open_uid"</span>: <span class="string">"AAEtbdvLAJmprSrbeTwWPXYC"</span>,  </span><br><span class="line">          <span class="attr">"created"</span>: <span class="string">"2024-12-25 17:02:02"</span>,  </span><br><span class="line">          <span class="attr">"modified"</span>: <span class="string">"2024-12-25 17:02:02"</span>,  </span><br><span class="line">          <span class="attr">"new_presell"</span>: <span class="literal">false</span>,  </span><br><span class="line">          <span class="attr">"orders"</span>: &#123;  </span><br><span class="line">            <span class="attr">"order"</span>: [  </span><br><span class="line">              &#123;  </span><br><span class="line">                <span class="attr">"buyer_rate"</span>: <span class="literal">false</span>,  </span><br><span class="line">                <span class="attr">"cid"</span>: <span class="number">50012587</span>,  </span><br><span class="line">                <span class="attr">"num"</span>: <span class="number">31</span>,  </span><br><span class="line">                <span class="attr">"num_iid"</span>: <span class="number">736399892063</span>,  </span><br><span class="line">                <span class="attr">"oid"</span>: <span class="string">"3922360629974"</span>,  </span><br><span class="line">                <span class="attr">"outer_iid"</span>: <span class="string">"HWM60PQSNM"</span>,  </span><br><span class="line">                <span class="attr">"outer_sku_id"</span>: <span class="string">"1.01.08.2055"</span>,  </span><br><span class="line">                <span class="attr">"payment"</span>: <span class="string">"0.00"</span>,  </span><br><span class="line">                <span class="attr">"pic_path"</span>: <span class="string">"https://img.alicdn.com/bao/uploaded/i3/793375733/O1CN01hyrhao1sDlWBeKF7N_!!793375733.jpg"</span>,  </span><br><span class="line">                <span class="attr">"price"</span>: <span class="string">"24.87"</span>,  </span><br><span class="line">                <span class="attr">"refund_status"</span>: <span class="string">"NO_REFUND"</span>,  </span><br><span class="line">                <span class="attr">"sku_id"</span>: <span class="string">"5740608026382"</span>,  </span><br><span class="line">                <span class="attr">"sku_properties_name"</span>: <span class="string">"适用手机型号:华为 Mate 60 Pro;颜色分类:超清水凝膜2片【曲屏全覆盖*升级无气泡】送神器+防滑垫"</span>,  </span><br><span class="line">                <span class="attr">"status"</span>: <span class="string">"WAIT_BUYER_PAY"</span>,  </span><br><span class="line">                <span class="attr">"title"</span>: <span class="string">"【活动价】闪魔适用华为mate60pro钢化膜Mate60Pro手机膜mate 60高清60Pro+曲面RS非凡大师"</span>  </span><br><span class="line">              &#125;,  </span><br><span class="line">              &#123;  </span><br><span class="line">                <span class="attr">"buyer_rate"</span>: <span class="literal">false</span>,  </span><br><span class="line">                <span class="attr">"cid"</span>: <span class="number">50023728</span>,  </span><br><span class="line">                <span class="attr">"num"</span>: <span class="number">32</span>,  </span><br><span class="line">                <span class="attr">"num_iid"</span>: <span class="number">727021460771</span>,  </span><br><span class="line">                <span class="attr">"oid"</span>: <span class="string">"6880691104973"</span>,  </span><br><span class="line">                <span class="attr">"outer_iid"</span>: <span class="string">"9.09.02.0004"</span>,  </span><br><span class="line">                <span class="attr">"payment"</span>: <span class="string">"0.00"</span>,  </span><br><span class="line">                <span class="attr">"pic_path"</span>: <span class="string">"https://img.alicdn.com/bao/uploaded/i4/793375733/O1CN013d698Z1sDlV1Bk1Cp_!!0-item_pic.jpg"</span>,  </span><br><span class="line">                <span class="attr">"price"</span>: <span class="string">"9999.00"</span>,  </span><br><span class="line">                <span class="attr">"refund_status"</span>: <span class="string">"NO_REFUND"</span>,  </span><br><span class="line">                <span class="attr">"status"</span>: <span class="string">"WAIT_BUYER_PAY"</span>,  </span><br><span class="line">                <span class="attr">"title"</span>: <span class="string">"赠【30天贴坏包赔服务】-限时活动专属"</span>  </span><br><span class="line">              &#125;  </span><br><span class="line">            ]  </span><br><span class="line">          &#125;,  </span><br><span class="line">          <span class="attr">"payment"</span>: <span class="string">"19.90"</span>,  </span><br><span class="line">          <span class="attr">"receiver_city"</span>: <span class="string">"深圳市"</span>,  </span><br><span class="line">          <span class="attr">"receiver_country"</span>: <span class="string">""</span>,  </span><br><span class="line">          <span class="attr">"receiver_district"</span>: <span class="string">"龙华区"</span>,  </span><br><span class="line">          <span class="attr">"receiver_state"</span>: <span class="string">"广东省"</span>,  </span><br><span class="line">          <span class="attr">"receiver_town"</span>: <span class="string">"观澜街道"</span>,  </span><br><span class="line">          <span class="attr">"seller_nick"</span>: <span class="string">"闪魔旗舰店"</span>,  </span><br><span class="line">          <span class="attr">"status"</span>: <span class="string">"WAIT_BUYER_PAY"</span>,  </span><br><span class="line">          <span class="attr">"tid"</span>: <span class="string">"12500568"</span>,  </span><br><span class="line">          <span class="attr">"total_fee"</span>: <span class="string">"10023.87"</span>,  </span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"fixed"</span>  </span><br><span class="line">        &#125;,  </span><br><span class="line">        <span class="attr">"request_id"</span>: <span class="string">"16l7c09wjvlxi"</span>  </span><br><span class="line">      &#125;  </span><br><span class="line">    &#125;,  </span><br><span class="line">    <span class="attr">"headers"</span>: &#123;  </span><br><span class="line">      <span class="attr">"Content-Type"</span>: <span class="string">"application/json"</span>  </span><br><span class="line">    &#125;  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>此stub包含如下信息</p>
+<h4 id="1-基础元信息"><a href="#1-基础元信息" class="headerlink" title="1. 基础元信息"></a>1. 基础元信息</h4><ul>
+<li><strong><code>id</code></strong>：<code>8a3782de-2eca-420b-9942-079e74919389</code><ul>
+<li>这是 WireMock 内部给这条映射规则的唯一标识，方便查日志或管理。</li>
+</ul>
+</li>
+<li><strong><code>priority</code></strong>：<code>3</code><ul>
+<li>数值越小优先级越高，值相同则按照注册顺序。这里写 <code>3</code>，表示中等优先级。</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-请求匹配（request）"><a href="#2-请求匹配（request）" class="headerlink" title="2. 请求匹配（request）"></a>2. 请求匹配（<code>request</code>）</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">"request": &#123;</span><br><span class="line">  "method": "POST",</span><br><span class="line">  "urlPath": "/router/rest/taobao"</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>HTTP 方法</strong>：<code>POST</code> 需要和被mock的请求方法保持一致</li>
+<li><strong>路径</strong>： <code>/router/rest/taobao</code> 需要和properties中配置的<code>taobao.url</code>保持一致</li>
+<li><strong>没有</strong>对请求头、查询参数、甚至请求体做进一步校验——只要是 POST 到这个路径，都能命中。<h4 id="3-响应定义（response）"><a href="#3-响应定义（response）" class="headerlink" title="3. 响应定义（response）"></a>3. 响应定义（<code>response</code>）</h4></li>
+</ul>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">"response": &#123;</span><br><span class="line">  "status": 200,</span><br><span class="line">  "jsonBody": &#123; …长 JSON… &#125;,</span><br><span class="line">  "headers": &#123;</span><br><span class="line">    "Content-Type": "application/json"</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>HTTP 状态</strong>：<code>200 OK</code></li>
+<li><strong>响应体</strong>：<ul>
+<li>这里直接把一个完整的 Java 对象格式的 JSON（即 <code>trade_fullinfo_get_response</code> 结构）内联在 <code>jsonBody</code> 里。</li>
+<li>WireMock 会自动把它序列化成纯文本 JSON 响应。</li>
+</ul>
+</li>
+<li><strong>响应头</strong>：<code>Content-Type: application/json</code><ul>
+<li>指明这是 JSON，方便客户端（你的 Quarkus Rest Client 或过滤器）正确解析。</li>
+</ul>
+</li>
+</ul>
+<h4 id="4-具体行为效果"><a href="#4-具体行为效果" class="headerlink" title="4. 具体行为效果"></a>4. 具体行为效果</h4><ol>
+<li><strong>客户端代码</strong> 发起 <code>POST http://&lt;wiremock-host&gt;:&lt;port&gt;/router/rest/taobao</code></li>
+<li>WireMock 匹配到上面的 stub（方法和路径都符合）</li>
+<li>WireMock 立刻 <strong>返回</strong></li>
+<li>测试或业务代码拿到这个假数据，就不会再去真正调用淘宝 API，而是直接用这份“剧本”数据跑逻辑或断言。<h3 id="进一步拆分"><a href="#进一步拆分" class="headerlink" title="进一步拆分"></a>进一步拆分</h3>事实上，我们可以把大块的响应 JSON 放到 <code>__files/</code> 目录下，然后在 <code>mappings/</code> 里只用一个很短的映射文件指向它。目录结构大致是：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">src</span><br><span class="line">└─ test</span><br><span class="line">   └─ resources</span><br><span class="line">      ├─ mappings</span><br><span class="line">      │  └─ taobao_v0-stubs.json</span><br><span class="line">      └─ __files</span><br><span class="line">         └─ taobao-response.json</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>mappings/taobao_v0-stubs.json如下<br><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#123;  </span><br><span class="line">  <span class="attr">"id"</span>: <span class="string">"8a3782de-2eca-420b-9942-079e74919389"</span>,  </span><br><span class="line">  <span class="attr">"priority"</span>: <span class="number">3</span>,  </span><br><span class="line">  <span class="attr">"request"</span>: &#123;  </span><br><span class="line">    <span class="attr">"method"</span>: <span class="string">"POST"</span>,  </span><br><span class="line">    <span class="attr">"urlPath"</span>: <span class="string">"/router/rest/taobao"</span>  </span><br><span class="line">  &#125;,  </span><br><span class="line">  <span class="attr">"response"</span>: &#123;  </span><br><span class="line">    <span class="attr">"status"</span>: <span class="number">200</span>,  </span><br><span class="line">    <span class="attr">"bodyFileName"</span>: <span class="string">"taobao-response.json"</span>,  </span><br><span class="line">    <span class="attr">"headers"</span>: &#123;  </span><br><span class="line">      <span class="attr">"Content-Type"</span>: <span class="string">"application/json"</span>  </span><br><span class="line">    &#125;  </span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>taobao-response即我们要返回的jsonbody</p>
+
+      
+    </div>
+    
+    
+    
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+    
+</div>
+
+      
+    </div>
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Jason
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://jasonxqh.github.io/2025/04/24/quarkus-wiremock/" title="quarkus+wiremock">https://jasonxqh.github.io/2025/04/24/quarkus-wiremock/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/kotlin/" rel="tag"><i class="fa fa-tag"></i> kotlin</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2025/04/10/JavaToKotlin%E9%87%8D%E6%9E%84%E6%96%B9%E6%A1%88/" rel="next" title="JavaToKotlin重构方案">
+                <i class="fa fa-chevron-left"></i> JavaToKotlin重构方案
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2025/04/29/kotlin-suspend/" rel="prev" title="kotlin-suspend">
+                kotlin-suspend <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80OTgyMC8yNjMxMQ=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Jason</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">437</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">61</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/JasonXQH" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:10195501423@stu.ecnu.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://yanghong.tech/" title="友链:杨弘的博客" target="_blank">友链:杨弘的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ankate.github.io/" title="友链:赵奕轲的博客" target="_blank">友链:赵奕轲的博客</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/JasonXQH/JasonXQH.github.io" title="Like it, STAR ME" target="_blank">Like it, STAR ME</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#quarkus-wiremock"><span class="nav-number">1.</span> <span class="nav-text">quarkus-wiremock</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用场景"><span class="nav-number">1.0.1.</span> <span class="nav-text">使用场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#优劣对比"><span class="nav-number">1.0.2.</span> <span class="nav-text">优劣对比</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引入依赖"><span class="nav-number">1.1.</span> <span class="nav-text">引入依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#implementation-amp-testImplementation"><span class="nav-number">1.1.0.1.</span> <span class="nav-text">implementation &amp; testImplementation</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置WireMock"><span class="nav-number">1.2.</span> <span class="nav-text">配置WireMock</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#quarkus-devservices-enabled"><span class="nav-number">1.2.1.</span> <span class="nav-text">quarkus.devservices.enabled</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#quarkus-wiremock-devservices-port"><span class="nav-number">1.2.2.</span> <span class="nav-text">quarkus.wiremock.devservices.port</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#bug"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">bug</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#quarkus-wiremock-devservices-files-mapping"><span class="nav-number">1.2.3.</span> <span class="nav-text">quarkus.wiremock.devservices.files-mapping</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试代码"><span class="nav-number">1.3.</span> <span class="nav-text">测试代码</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-基础元信息"><span class="nav-number">1.3.0.1.</span> <span class="nav-text">1. 基础元信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-请求匹配（request）"><span class="nav-number">1.3.0.2.</span> <span class="nav-text">2. 请求匹配（request）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-响应定义（response）"><span class="nav-number">1.3.0.3.</span> <span class="nav-text">3. 响应定义（response）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-具体行为效果"><span class="nav-number">1.3.0.4.</span> <span class="nav-text">4. 具体行为效果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进一步拆分"><span class="nav-number">1.3.1.</span> <span class="nav-text">进一步拆分</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart" aria-hidden="true"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
+ <!--
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">1297.9k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+-->
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('-1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>
